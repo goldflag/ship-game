@@ -2,7 +2,7 @@
 //! the simulation equality gate. Runs the same `PvePlanner`/`LocalRuntime` code
 //! the browser worker runs, without WASM or rendering.
 //!
-//! cargo run --release -p naval-wasm --example pve_speed -- [scenario] [seconds] [batch] [--dump PATH] [--no-snapshot] [--full-snapshot]
+//! cargo run --release -p naval-wasm --example pve_speed -- [scenario] [seconds] [batch] [--dump PATH] [--no-snapshot] [--full-snapshot] [--map ID]
 //!
 //! Scenarios: `surface` and `carrier` (fleet command, team projection, default
 //! 12-tick batches like 4× at 20 Hz), `custom` (15-ship custom battle, full
@@ -12,9 +12,11 @@
 //! `--dump` writes the complete final state for byte comparison across builds.
 //! The local scenarios publish Rust-emitted patches, as the worker does;
 //! `--full-snapshot` times the complete-frame path they replaced instead.
+//! `--map` picks the battle's map (default `iron-bottom-sound`, a real chart;
+//! `north-atlantic` is open sea).
 use std::time::Instant;
 
-fn pve_request(scenario: &str) -> serde_json::Value {
+fn pve_request(scenario: &str, map: &str) -> serde_json::Value {
     let roster: Vec<&str> = if scenario == "carrier" {
         let mut r = vec!["enterprise-cv6", "shokaku", "bismarck"];
         r.extend(std::iter::repeat_n("fletcher", 12));
@@ -38,12 +40,12 @@ fn pve_request(scenario: &str) -> serde_json::Value {
     } else {
         serde_json::json!([{"id":"front","name":"Surface","station":"front"}])
     };
-    serde_json::json!({"version":1,"seed":17001,"mapId":"pacific-islands","weather":"clear",
+    serde_json::json!({"version":1,"seed":17001,"mapId":map,"weather":"clear",
         "difficulty":"normal","ships":ships,"groups":groups})
 }
 
 /// The larger custom-battle performance roster from docs/custom-battle-performance.md.
-fn custom_setup() -> serde_json::Value {
+fn custom_setup(map: &str) -> serde_json::Value {
     const ROSTER: [&str; 15] = [
         "bismarck",
         "yamato",
@@ -72,7 +74,7 @@ fn custom_setup() -> serde_json::Value {
                 "aiLevel": "normal", "spawn": null }));
         }
     }
-    serde_json::json!({"ships": ships, "seed": 17001, "mapId": "pacific-islands", "weather": "clear",
+    serde_json::json!({"ships": ships, "seed": 17001, "mapId": map, "weather": "clear",
         "spawnDistance": 12000.0, "windSpeed": null})
 }
 
@@ -101,6 +103,7 @@ fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let mut positional = Vec::new();
     let mut dump = None;
+    let mut map = "iron-bottom-sound".to_string();
     let mut snapshot = true;
     let mut patches = true;
     let mut i = 0;
@@ -108,6 +111,10 @@ fn main() {
         match args[i].as_str() {
             "--dump" => {
                 dump = args.get(i + 1).cloned();
+                i += 1;
+            }
+            "--map" => {
+                map = args.get(i + 1).cloned().expect("--map ID");
                 i += 1;
             }
             "--no-snapshot" | "nosnapshot" => snapshot = false,
@@ -133,7 +140,7 @@ fn main() {
     let manifest = naval_sim::catalog::installed_manifest();
     let mut runtime = match scenario {
         "surface" | "carrier" => {
-            let request = pve_request(scenario);
+            let request = pve_request(scenario, &map);
             let mut planner = naval_wasm::PvePlanner::new(&manifest, &request.to_string()).unwrap();
             let briefing: serde_json::Value =
                 serde_json::from_str(&planner.briefing().unwrap()).unwrap();
@@ -148,7 +155,7 @@ fn main() {
                 .unwrap()
         }
         "custom" | "server" => {
-            naval_wasm::LocalRuntime::new(&manifest, &custom_setup().to_string()).unwrap()
+            naval_wasm::LocalRuntime::new(&manifest, &custom_setup(&map).to_string()).unwrap()
         }
         other => panic!("unknown scenario {other}"),
     };

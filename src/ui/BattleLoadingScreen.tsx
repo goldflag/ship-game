@@ -60,7 +60,16 @@ export function BattleLoadingScreen({ setup, state, onLeft, multiplayer, briefin
         if (state.leaving && event.target === event.currentTarget) onLeft();
       }}
     >
-      <img className="battle-loading-backdrop" src={backdropUrl(map.id)} alt="" width="1920" height="1080" />
+      <img
+        className="battle-loading-backdrop"
+        src={backdropUrl(map.id)}
+        alt=""
+        width="1920"
+        height="1080"
+        onError={(event) => {
+          event.currentTarget.style.visibility = 'hidden';
+        }}
+      />
       <div className="battle-loading-content">
         <p className="battle-loading-kicker">
           {briefing ? (
@@ -79,6 +88,7 @@ export function BattleLoadingScreen({ setup, state, onLeft, multiplayer, briefin
           )}
         </p>
         <h1>{map.name.toUpperCase()}</h1>
+        <p className="battle-loading-battle">{map.battle ?? map.region}</p>
         <p className="loading-subtitle">{map.description}</p>
         <div className="battle-loading-fleets">
           <div>

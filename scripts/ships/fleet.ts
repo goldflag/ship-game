@@ -2,6 +2,7 @@ import { availableParallelism, cpus, totalmem, platform, arch } from 'node:os';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { shipPresets } from '../../src/ships/presets';
+import { refreshRuntime } from './refresh';
 
 /** The runtime roster also owns fleet validation; adding a preset needs no build-script edit. */
 export async function runFleet(action: string): Promise<number> {
@@ -14,7 +15,7 @@ export async function runFleet(action: string): Promise<number> {
   await Promise.all(Array.from({ length: concurrency }, async () => {
   while (queue.length) {
     const id = queue.shift()!;
-    const child = Bun.spawn([process.execPath, `${import.meta.dir}/pipeline.ts`, action, id, ...process.argv.slice(4)], {
+    const child = Bun.spawn([process.execPath, `${import.meta.dir}/pipeline.ts`, action, id, ...process.argv.slice(4), ...action === 'build' ? ['--no-refresh'] : []], {
       stdout: 'pipe', stderr: 'pipe',
     });
     const [out, err, code] = await Promise.all([
@@ -26,9 +27,18 @@ export async function runFleet(action: string): Promise<number> {
       const reason = action === 'check' ? (out + err).match(/^error: (.*)$/m)?.[1] ?? (out + err).match(/^\{"error":(".*")\}$/m)?.[1] : undefined;
       if (reason) console.error(`${id}: check failed: ${reason.startsWith('"') ? JSON.parse(reason) : reason} (bun run ship:check ${id} shows the rest)`);
       else console.error(`${id}: ${action} failed\n${out}${err}`);
-    } else console.log(`${id}: ${action} passed`);
+    } else {
+      console.log(`${id}: ${action} passed`);
+      for (const warning of (out + err).match(/^warning: .*$/gm) ?? []) console.log('  ' + warning);
+    }
   }
   }));
+  // One refresh for the fleet: parallel ships would race on the shared table and content files.
+  if (action === 'build' && !process.argv.includes('--no-refresh') && failed.length < Object.keys(shipPresets).length)
+    try { await refreshRuntime(resolve(import.meta.dir, '../..'), Object.keys(shipPresets), console.log); } catch (error) {
+      console.error(error instanceof Error ? error.message : error);
+      failed.push('runtime content');
+    }
   const seconds = (performance.now() - started) / 1000;
   if (process.env.SHIP_TIMINGS_DIR) {
     const root = resolve(import.meta.dir, '../..'), directory = resolve(root, process.env.SHIP_TIMINGS_DIR);

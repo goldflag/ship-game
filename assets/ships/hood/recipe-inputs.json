@@ -9,9 +9,12 @@
     "assets/parts/rn-15in-guns/bl_15_twin.py",
     "assets/parts/rn-destroyer-guns/qf_4in_mkxix.py",
     "assets/parts/gun_bloomers.py",
-    "assets/parts/construction-library.json",
-    "assets/parts/construction.json",
+    "assets/parts/catalog_records.py",
     "assets/parts/construction/geometry.py",
     "assets/parts/historic-funnels/geometry.py"
-  ]
+  ],
+  "records": {
+    "assets/parts/construction-library.json": ["hood-forward-funnel"],
+    "assets/parts/construction.json": ["hood-forward-funnel"]
+  }
 }

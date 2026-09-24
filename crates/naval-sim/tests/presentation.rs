@@ -169,7 +169,7 @@ fn streamed_team_hulls_preserve_visibility_targets_damage_and_debrief() {
     };
     let catalog = Catalog::installed();
     let request: PveRequest = serde_json::from_value(json!({
-        "version":1,"seed":17001,"mapId":"pacific-islands","weather":"clear","difficulty":"normal",
+        "version":1,"seed":17001,"mapId":"iron-bottom-sound","weather":"clear","difficulty":"normal",
         "ships":[{"id":"own","presetId":"bismarck","groupId":"g"},
             {"id":"carrier","presetId":"enterprise-cv6","groupId":"g"},
             {"id":"escort","presetId":"fletcher","groupId":"g"}],

@@ -2,7 +2,7 @@ import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import type { Vec3 } from '../ships/blueprint';
 import { localToWorld, worldToLocal } from './geometry';
 import { segmentIntersectsBox } from './obstruction';
-import { landHeight, type Island } from '../maps/catalog';
+import { terrainHeight, type PlacedTerrain } from '../maps/heightfield';
 import type { RangeObservation } from './Rangefinder';
 
 export interface RangeTarget {
@@ -40,22 +40,17 @@ export function observeRangeTarget(target: RangeTarget, camera: PerspectiveCamer
 }
 
 /** Land and intervening hulls block optical observations. Test multiple heights
- * so a visible bridge can still be ranged when the waterline is concealed. */
-export function rangeTargetVisible(target: RangeTarget, origin: Vec3, targets: readonly RangeTarget[], islands: readonly Island[]): boolean {
-  const dx = target.position[0] - origin[0], dz = target.position[2] - origin[2], distance = Math.hypot(dx, dz);
-  // Most optical paths stay in the shipping lane. Skip distant islands before
-  // sampling their detailed terrain along a long-range sight line.
-  const nearbyIslands = islands.filter(island => {
-    const t = Math.max(0, Math.min(1, ((island.x - origin[0]) * dx + (island.z - origin[2]) * dz) / Math.max(1, distance ** 2)));
-    return Math.hypot(origin[0] + dx * t - island.x, origin[2] + dz * t - island.z) <= Math.hypot(island.rx, island.rz) * 2;
-  });
+ * so a visible bridge can still be ranged when the waterline is concealed. The
+ * sight line samples the battle's land every 50 m, finer than a chart cell. */
+export function rangeTargetVisible(target: RangeTarget, origin: Vec3, targets: readonly RangeTarget[], terrain?: PlacedTerrain): boolean {
+  const distance = Math.hypot(target.position[0] - origin[0], target.position[2] - origin[2]);
   return [.45, .9].some(fraction => {
     const end: Vec3 = [target.position[0], target.position[1] + target.height * fraction, target.position[2]];
     if (end[1] <= .5) return false;
     const steps = Math.max(1, Math.ceil(distance / 50));
-    if (nearbyIslands.length) for (let step = 1; step < steps; step++) {
+    if (terrain?.field) for (let step = 1; step < steps; step++) {
       const t = step / steps;
-      if (landHeight(nearbyIslands, origin[0] + (end[0] - origin[0]) * t, origin[2] + (end[2] - origin[2]) * t) >= origin[1] + (end[1] - origin[1]) * t) return false;
+      if (terrainHeight(terrain, origin[0] + (end[0] - origin[0]) * t, origin[2] + (end[2] - origin[2]) * t) >= origin[1] + (end[1] - origin[1]) * t) return false;
     }
     return !targets.some(other => {
       if (other.id === target.id) return false;
@@ -68,10 +63,10 @@ export function rangeTargetVisible(target: RangeTarget, origin: Vec3, targets: r
   });
 }
 
-export function pickRangeTarget(targets: readonly RangeTarget[], camera: PerspectiveCamera, ship: { x: number; z: number }, width: number, height: number, islands: readonly Island[]): SightObservation | undefined {
+export function pickRangeTarget(targets: readonly RangeTarget[], camera: PerspectiveCamera, ship: { x: number; z: number }, width: number, height: number, terrain?: PlacedTerrain): SightObservation | undefined {
   const observations = targets.flatMap(target => {
     const observation = observeRangeTarget(target, camera, ship, width, height);
     return observation?.nearSight ? [{ target, observation }] : [];
   }).sort((a, b) => a.observation.sightDistance - b.observation.sightDistance || a.observation.rangeM - b.observation.rangeM);
-  return observations.find(({ target }) => rangeTargetVisible(target, camera.position.toArray(), targets, islands))?.observation;
+  return observations.find(({ target }) => rangeTargetVisible(target, camera.position.toArray(), targets, terrain))?.observation;
 }

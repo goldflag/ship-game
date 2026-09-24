@@ -13,6 +13,7 @@ import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Command } from '../../multiplayer/generated/Command';
 import type { TimeOfDayId, WeatherId } from '../../maps/conditions';
+import { isOceanMapId, loadMapTerrain } from '../../maps/catalog';
 import type { HelmCommand } from '../../game/session/elements';
 import type { CombatIntent } from './telemetry';
 export type JoinMode = 'queue' | 'create-invite' | 'join-invite';
@@ -116,6 +117,8 @@ export class MatchConnection {
           readSnapshot(message.baseline);
           if (this.metadata && (this.metadata.matchId !== message.matchId || this.metadata.team !== message.team)) { this.fail('Battle identity changed.'); return; }
           this.metadata = message; this.disconnectedAt = undefined;
+          // The server chose the waters: chart them while both fleets load. `Game` awaits the same load.
+          if (isOceanMapId(message.setup.mapId)) void loadMapTerrain(message.setup.mapId).catch(() => {});
           if (this.session) this.session.reconnected(message);
           this.status({ message: 'Loading both fleets…' });
   }

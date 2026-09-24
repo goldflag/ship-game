@@ -1,13 +1,20 @@
-import { oceanMap, type OceanMapId } from '../../maps/catalog';
+import { oceanMap } from '../../maps/catalog';
 import { windSea } from '../../maps/seaCalibration';
 
 /** Where the game's ocean parameters mean something else to Water Pro, the values the game sent the library
  * before it was replaced. Nothing here reads the library; `WaterProOcean` applies these to it. */
 
-const MAPS: readonly OceanMapId[] = ['north-atlantic', 'pacific-islands', 'arctic-passage', 'indian-volcanic-coast'];
+/** The seas the gains below were measured on, each the calibrated wind sea under a map's amplitude scale (with its
+ * wavelength scale, which the gains fold in): the maps of that time, assets/maps/environments.v1.json at 219ac9e1a. */
+const MEASURED = [
+  { amplitudeScale: 1 }, // North Atlantic (wavelength 1)
+  { amplitudeScale: .65 }, // the retired Pacific Islands (wavelength 0.8): Iron Bottom Sound's sea
+  { amplitudeScale: .6 }, // the retired Arctic Passage (wavelength 0.8): Vestfjord's sea
+  { amplitudeScale: 1.05 }, // the retired Indian Ocean volcanic coast (wavelength 1.1)
+] as const;
 /** The retired sea calibration (assets/maps/battle-conditions.v1.json at 219ac9e1a, renderer "Water Pro 3.5.1; seed 1;
  * gamma 2.6; spectral sharpness 0.8; High"): per sample wind (m/s), the significant height (m) before a map's amplitude
- * scale, then the FFT amplitude gain the game measured to render each map's height, in `MAPS` order. */
+ * scale, then the FFT amplitude gain the game measured to render each measured sea's height, in `MEASURED` order. */
 const SAMPLES: readonly (readonly [windSpeed: number, significantHeight: number, ...gains: number[]])[] = [
   [0, 0, 0, 0, 0, 0],
   [1, .05, .29148864, .22002284, .20300851, .26660523],
@@ -27,9 +34,9 @@ const SAMPLES: readonly (readonly [windSpeed: number, significantHeight: number,
 ];
 
 /** Water Pro's `waves.amplitude` for the game's metric sea. The library's amplitude is a gain on its own spectrum,
- * not metres, so the game measured one per map and wind; interpolated by wind as the retired `windSea()` did. The
- * map is the one whose calibrated height at this wind is the requested one (each map scales the same wind sea by
- * its own amplitude); a height off the calibration scales that map's gain in proportion. */
+ * not metres, so the game measured one per sea and wind; interpolated by wind as the retired `windSea()` did. The
+ * measured sea is the one whose calibrated height at this wind is nearest the requested one (each scales the same
+ * wind sea by its own amplitude); a height off the calibration scales that sea's gain in proportion. */
 export function waterProAmplitude(significantHeight: number, windSpeed: number): number {
   const wind = Math.max(0, Math.min(30, windSpeed));
   const upper = SAMPLES.findIndex(sample => sample[0] >= wind);
@@ -39,11 +46,11 @@ export function waterProAmplitude(significantHeight: number, windSpeed: number):
   const base = mix(1);
   if (!(significantHeight > 0) || !(base > 0)) return 0;
   let best = 0, bestError = Infinity;
-  MAPS.forEach((id, i) => {
-    const error = Math.abs(Math.log(significantHeight / (base * oceanMap(id).water.amplitudeScale)));
+  MEASURED.forEach(({ amplitudeScale }, i) => {
+    const error = Math.abs(Math.log(significantHeight / (base * amplitudeScale)));
     if (error < bestError) { bestError = error; best = i; }
   });
-  return mix(2 + best) * significantHeight / (base * oceanMap(MAPS[best]).water.amplitudeScale);
+  return mix(2 + best) * significantHeight / (base * MEASURED[best].amplitudeScale);
 }
 
 /** Water Pro's wind-drawn surface foam as the game set it: none below 3 m/s, 8% by 15 m/s, over 18% of the sea. The

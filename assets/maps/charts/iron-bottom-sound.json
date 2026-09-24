@@ -1,0 +1,17 @@
+{
+  "id": "iron-bottom-sound",
+  "center": {
+    "lat": -9.304,
+    "lon": 159.8771
+  },
+  "bearing": 315,
+  "sizeKm": [
+    96,
+    96
+  ],
+  "cellM": 40,
+  "zoom": 12,
+  "supersample": 2,
+  "edgeFalloffKm": 6,
+  "framing": "Savo Island to Lunga Point along Guadalcanal's north coast; Savo at the top, the Florida Islands on the right."
+}

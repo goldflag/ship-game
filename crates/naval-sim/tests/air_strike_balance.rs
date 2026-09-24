@@ -1,3 +1,4 @@
+use naval_sim::terrain::Terrain;
 use naval_sim::{
     aviation::{AirOrder, FlightAttitude},
     battle::{Battle, BattleSetup, Orders, ShipSetup, Spawn},
@@ -48,7 +49,7 @@ fn bomb_at(a: &mut [Vessel], id: i64, is_bomb: bool) -> f64 {
     };
     let before = a[0].damage.integrity;
     for _ in 0..300 {
-        if advance_projectile(&mut s, a, 1.0 / 60.0, &[], &[], &|_, _| 0.0)
+        if advance_projectile(&mut s, a, 1.0 / 60.0, &Terrain::open_sea(), &|_, _| 0.0)
             .0
             .is_some()
         {
@@ -169,7 +170,7 @@ fn strike(preset: &str, role: &str, moving: bool, seed: u32) -> (usize, usize) {
         air_rules: Some(c.air_profiles["pve-air-v1"].clone()),
     };
     let mut b = Battle::new(c.clone(), &ships, setup).unwrap();
-    b.islands.clear();
+    b.terrain = Terrain::open_sea();
     b.sea.amplitude_m = 0.0;
     let throttle = if moving { 0.8 } else { 0.0 };
     b.actors[0].motion.speed = b.actors[0].definition().handling.forward_speed * throttle;
@@ -235,8 +236,7 @@ fn strike(preset: &str, role: &str, moving: bool, seed: u32) -> (usize, usize) {
         b.sensors.update(
             tick,
             &sensors::entities(&b.actors, &b.aviation),
-            &[],
-            &[],
+            &Terrain::open_sea(),
             conditions,
             &VisualRules::default(),
         );

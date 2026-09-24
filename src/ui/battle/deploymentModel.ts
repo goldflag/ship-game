@@ -1,11 +1,12 @@
-import { DEFAULT_MAP, mapIslands, type Island } from '../../maps/catalog';
+import { DEFAULT_MAP, customTerrainOffset, isOceanMapId, oceanMap, placedMapTerrain, trueBearing } from '../../maps/catalog';
+import { OPEN_SEA, type PlacedTerrain } from '../../maps/heightfield';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import { resolveShip } from '../../ships/localShips';
 import { berthsClear } from '../deploymentGestures';
 import { formationStations, stationPosition } from '../formationStations';
-import { deploymentIslands, moveFormation, placementError, unitName } from '../pveSetup';
+import { moveFormation, placementError, unitName } from '../pveSetup';
 import { shipClassOf } from '../shipGlyphs';
 import type { Team } from '../../game/session/elements';
 import { botSelection, setupSpawns, validateSpawns, type BattleSetup, type SpawnPose } from '../../game/session/battleSetup';
@@ -16,7 +17,12 @@ export interface ChartUnit { id: string; presetId: string; name: string; side: T
 export interface ChartGroup { id: string; name: string; side: Team; formation?: Formation; }
 export type ChartBounds = { kind: 'circle'; radius: number } | { kind: 'square'; half: number };
 export interface Deployment {
-  units: ChartUnit[]; groups: ChartGroup[]; islands: Island[]; bounds: ChartBounds;
+  units: ChartUnit[]; groups: ChartGroup[]; bounds: ChartBounds;
+  /** The battle's land as it lies on this chart; undefined while its heightfield is still being charted, when
+   * placement waits rather than judging the ships against open sea. */
+  terrain?: PlacedTerrain;
+  /** True bearing of the chart's top (the map's): the rose points north and headings read true. */
+  bearing: number;
   /** The shaded friendly sector's northern edge (PvE). */
   friendlyMinZ?: number;
   /** Initial chart center. */
@@ -30,16 +36,18 @@ const customName = (setup: BattleSetup, team: Team, index: number) => {
   const id = team === 'friendly' && index === 0 ? setup.playerShipId : botSelection(team === 'friendly' ? setup.friendlyBots[index - 1] : setup.enemies[index]).shipId;
   return { presetId: id, name: `${resolveShip(id).name}${team === 'friendly' && index === 0 ? ' · You' : ''}` };
 };
-export function customIslands(setup: BattleSetup): Island[] {
-  return mapIslands(setup.mapId ?? DEFAULT_MAP, setup.spawnDistance, Math.max(setup.friendlyBots.length + 1, setup.enemies.length));
-}
-/** Custom battle: both fleets on one chart, one formation frame per side. */
-export function customDeployment(setup: BattleSetup): Deployment {
-  const spawns = setupSpawns(setup), islands = customIslands(setup);
+/** The map's land as a custom battle lays it, between the default spawn lines; undefined until its heightfield has loaded. */
+export const customTerrain = (setup: BattleSetup): PlacedTerrain | undefined =>
+  placedMapTerrain(setup.mapId ?? DEFAULT_MAP, customTerrainOffset(setup.spawnDistance));
+/** Custom battle: both fleets on one chart, one formation frame per side, over `terrain` (`customTerrain`). */
+export function customDeployment(setup: BattleSetup, terrain: PlacedTerrain | undefined): Deployment {
+  const spawns = setupSpawns(setup);
   const units = (['friendly', 'enemy'] as const).flatMap(team => spawns[team].map((spawn, index) => ({ id: `${team}:${index}`, side: team, groupId: team, spawn, ...customName(setup, team, index) })));
   let error = '';
-  try { validateSpawns(spawns, setup.friendlyBots.length + 1, setup.enemies.length, islands); } catch (failure) { error = (failure as Error).message; }
-  return { units, groups: [...CUSTOM_GROUPS], islands, bounds: { kind: 'square', half: 40000 }, focus: { x: 0, z: -setup.spawnDistance / 2 }, labels: {}, error };
+  // While the coast is charted, spacing and bounds still report; only the land waits.
+  try { validateSpawns(spawns, setup.friendlyBots.length + 1, setup.enemies.length, terrain ?? OPEN_SEA); } catch (failure) { error = (failure as Error).message; }
+  return { units, groups: [...CUSTOM_GROUPS], terrain, bearing: oceanMap(setup.mapId ?? DEFAULT_MAP).bearing, bounds: { kind: 'square', half: 40000 },
+    focus: { x: 0, z: -setup.spawnDistance / 2 }, labels: {}, error };
 }
 export function applyCustomDeployment(setup: BattleSetup, units: readonly ChartUnit[]): BattleSetup {
   const round = (value: number) => Math.round(value / 10) * 10;
@@ -47,17 +55,18 @@ export function applyCustomDeployment(setup: BattleSetup, units: readonly ChartU
   return { ...setup, spawns: { friendly: side('friendly'), enemy: side('enemy') } };
 }
 
-/** PvE: the player's task groups inside the circular battle area; the enemy stays unseen.
- * `formations` overrides the briefing's cruising formation with what the player picked here. */
-export function pveDeployment(briefing: PveBriefing, placements: readonly Placement[], formations: Readonly<Record<string, Formation>> = {}): Deployment {
+/** PvE: the player's task groups inside the circular battle area; the enemy stays unseen. `terrain` is the mission's
+ * land (`missionTerrain`). `formations` overrides the briefing's cruising formation with what the player picked here. */
+export function pveDeployment(briefing: PveBriefing, placements: readonly Placement[], terrain: PlacedTerrain | undefined, formations: Readonly<Record<string, Formation>> = {}): Deployment {
   const groups = briefing.groups.filter(group => briefing.assignments.some(unit => unit.groupId === group.id))
     .map(group => ({ id: group.id, name: group.name, side: 'friendly' as const, formation: formations[group.id] ?? group.formation ?? 'column' as Formation }));
   const units = placements.flatMap(placement => {
     const unit = briefing.assignments.find(ship => ship.id === placement.id);
     return unit ? [{ id: unit.id, presetId: unit.presetId, name: unitName(unit, briefing.assignments), side: 'friendly' as const, groupId: unit.groupId, spawn: placement.spawn }] : [];
   });
-  return { units, groups, islands: deploymentIslands(briefing), bounds: { kind: 'circle', radius: briefing.setup.missionRules!.area.radiusM }, friendlyMinZ: briefing.deploymentMinZ, focus: { x: 0, z: 0 },
-    labels: { north: 'NO CONTACTS REPORTED', south: 'FRIENDLY DEPLOYMENT' }, error: placementError(briefing, [...placements]) };
+  return { units, groups, terrain, bearing: isOceanMapId(briefing.setup.mapId) ? oceanMap(briefing.setup.mapId).bearing : 0,
+    bounds: { kind: 'circle', radius: briefing.setup.missionRules!.area.radiusM }, friendlyMinZ: briefing.deploymentMinZ, focus: { x: 0, z: 0 },
+    labels: { north: 'NO CONTACTS REPORTED', south: 'FRIENDLY DEPLOYMENT' }, error: placementError(briefing, [...placements], terrain) };
 }
 export const applyPveDeployment = (units: readonly ChartUnit[]): Placement[] => units.map(unit => ({ id: unit.id, spawn: unit.spawn }));
 
@@ -66,9 +75,9 @@ export const applyPveDeployment = (units: readonly ChartUnit[]): Placement[] => 
  * formation, so without this a group would show one shape here and sail another. Stations
  * that reach a coast or the boundary slide astern, up to 3 km, before the group gives up and
  * keeps the worker's layout. */
-export function initialPvePlacements(briefing: PveBriefing, formations: Readonly<Record<string, Formation>> = {}): Placement[] {
+export function initialPvePlacements(briefing: PveBriefing, terrain: PlacedTerrain | undefined, formations: Readonly<Record<string, Formation>> = {}): Placement[] {
   const seed = briefing.setup.ships.flatMap(ship => ship.spawn ? [{ id: ship.id, spawn: ship.spawn }] : []);
-  const deployment = pveDeployment(briefing, seed, formations);
+  const deployment = pveDeployment(briefing, seed, terrain, formations);
   let units = deployment.units;
   for (const group of deployment.groups) {
     const members = units.filter(unit => unit.groupId === group.id), ids = members.map(unit => unit.id);
@@ -77,7 +86,7 @@ export function initialPvePlacements(briefing: PveBriefing, formations: Readonly
     const arranged = arrangeFormation(units, group.id, group.formation ?? 'column');
     for (let astern = 0; astern <= 3000; astern += 500) {
       const candidate = moveFormation(arranged, ids, center.x - Math.sin(heading) * astern, center.z + Math.cos(heading) * astern);
-      if (!placementError(briefing, applyPveDeployment(candidate))) { units = candidate; break; }
+      if (!placementError(briefing, applyPveDeployment(candidate), terrain)) { units = candidate; break; }
     }
   }
   return applyPveDeployment(units);
@@ -126,5 +135,7 @@ export function fitRadius(deployment: Deployment): number {
   const box = unitsBox(deployment.units), { x, z } = deployment.focus;
   return Math.max(4000, Math.abs(box.x0 - x), Math.abs(box.x1 - x), Math.abs(box.z0 - z), Math.abs(box.z1 - z)) * 1.25 + 1500;
 }
+/** A chart heading (radians clockwise from chart up) in whole degrees, for drawing on the chart. */
 export const headingDegrees = (heading: number) => ((Math.round(heading * 180 / Math.PI) % 360) + 360) % 360;
-export const formatHeading = (heading: number) => `${String(headingDegrees(heading)).padStart(3, '0')}°`;
+/** The heading a compass reads: true, on a chart whose top bears `bearing`. */
+export const formatHeading = (heading: number, bearing = 0) => `${String(Math.round(trueBearing(heading * 180 / Math.PI, bearing)) % 360).padStart(3, '0')}°`;

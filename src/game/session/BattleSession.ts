@@ -2,7 +2,8 @@ import type { DeckAction } from '../../multiplayer/generated/DeckAction';
 import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
 export type DeckServiceAction = Exclude<DeckAction, 'launch'>;
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blueprint';
-import type { Island, OceanMapId } from '../../maps/catalog';
+import type { OceanMapId } from '../../maps/catalog';
+import type { PlacedTerrain } from '../../maps/heightfield';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
 import type { FleetNotice } from '../../multiplayer/generated/FleetNotice';
@@ -10,6 +11,7 @@ import type { OrderReceipt } from './commandQueue';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { FormationPolicy } from '../../multiplayer/generated/FormationPolicy';
 import type { AirOrder } from '../../multiplayer/generated/AirOrder';
+import type { Command } from '../../multiplayer/generated/Command';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
@@ -67,7 +69,8 @@ export interface BattleSession {
  /** False for the port, where nothing is stepped or scored. */
  readonly isBattle: boolean;
  readonly mapId: OceanMapId;
- readonly islands: Island[];
+ /** The map's land placed in this battle's world; open sea until its heightfield has loaded (`Game` loads it first). */
+ readonly terrain: PlacedTerrain;
  readonly seed: number;
  readonly tick: number;
  readonly result: BattleResult;
@@ -131,6 +134,12 @@ export interface BattleSession {
  /** Simulated seconds per wall second actually reached; absent when unmeasured. */
  readonly achievedSpeed?: number;
  setSimulationSpeed?(speed: 1 | 2 | 4): void;
+ /** Development captures: resolves once no simulation batch is in flight (`Game.stepFrame`). Local battles only. */
+ batchSettled?(): Promise<void>;
+ /** Development direction: order any ship on either side, applied at battle `tick` (`LocalBattleSession.direct`). Local battles only. */
+ direct?(shipId: string, command: Command, tick?: number): void;
+ /** The tick the local worker has stepped to, applied or pending: what `direct` schedules against. */
+ readonly workerTick?: number;
  /** Local worker cost over the last measured window; absent for networked or unstepped sessions. */
  readonly simulationLoad?: SimulationLoad;
  /** Camera subject, so the transport can narrow damage-control detail to it. */

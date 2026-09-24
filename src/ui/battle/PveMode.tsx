@@ -264,7 +264,7 @@ export function PveRail({ request, onChange, disabled }: { request: PveRequest; 
             New opponent
           </Button>
         </div>
-        <p className="rail-note">The same seed brings the same enemy fleet and islands. The enemy stays hidden while you deploy.</p>
+        <p className="rail-note">The same seed brings the same enemy fleet. The enemy stays hidden while you deploy.</p>
       </RailBlock>
     </>
   );

@@ -58,6 +58,13 @@ try {
   const store = repositoryStore(root);
   if (action === 'new') {
     if (existsSync(join(root, 'assets/ships', id))) throw new Error('Ship directory already exists. Choose a new ID.');
+    if (args.includes('--legacy')) {
+      if (option('--template')) throw new Error('--template picks a construction starter; a --legacy preset starts from its own recipe.');
+      const { scaffoldLegacyShip, DEFAULT_LEGACY_PART } = await import('../ships/legacy');
+      print(await scaffoldLegacyShip(root, id, option('--name') ?? id, option('--part') ?? DEFAULT_LEGACY_PART));
+      process.exit(0);
+    }
+    if (option('--part')) throw new Error('--part applies to --legacy only.');
     const template = option('--template') ?? DEFAULT_HULL_PRESET;
     if (![...HULL_PRESETS.map((p) => p.id), 'blank', 'patrol', 'catamaran'].includes(template))
       throw new Error('Unknown construction template. Run ship:templates.');
@@ -118,6 +125,27 @@ try {
       expectedRevisionId: option('--expect') ?? null,
     });
     print({ id, fileRevision: revision.id, revision: source.revision });
+  } else if (action === 'register') {
+    // A Blender-recipe preset (build.py and an authored hull) has no construction source to read.
+    const legacy = await import('../ships/legacy');
+    const recipe = await legacy.isLegacyShip(root, id);
+    if (recipe) legacy.checkLegacyShip(root, id);
+    else await constructionPipeline(root, 'check', id);
+    const file = join(root, 'src/ships/presets.ts'),
+      text = await readFile(file, 'utf8');
+    if (text.includes('preset(' + JSON.stringify(id) + ')') || text.includes("preset('" + id + "')"))
+      throw new Error('Ship is already imported. Check the existing roster entry.');
+    const line = "  '" + id + "': preset('" + id + "'),\n";
+    const next = text.replace('export const shipPresets = {\n', 'export const shipPresets = {\n' + line);
+    if (next === text || !next.includes(line)) throw new Error('Roster declaration not found.');
+    await writeFile(file, next);
+    print({
+      id,
+      registered: true,
+      // The smoke test checks every registered Blender-recipe preset's funnel count.
+      ...(recipe ? await legacy.addFunnelCount(root, id) : {}),
+      next: 'Run bun run ship:hydrostatics and bun run multiplayer:content, then bun run build; registration does not certify visual acceptance.',
+    });
   } else {
     const current = await readSource(root, id),
       { source } = current;
@@ -208,17 +236,6 @@ try {
         });
         print({ id, revision: next.revision, fileRevision: revision.id });
       }
-    } else if (action === 'register') {
-      await constructionPipeline(root, 'check', id);
-      const file = join(root, 'src/ships/presets.ts'),
-        text = await readFile(file, 'utf8');
-      if (text.includes('preset(' + JSON.stringify(id) + ')') || text.includes("preset('" + id + "')"))
-        throw new Error('Ship is already imported. Check the existing roster entry.');
-      const line = '  ' + JSON.stringify(id) + ': preset(' + JSON.stringify(id) + '),\n';
-      const next = text.replace('export const shipPresets = {\n', 'export const shipPresets = {\n' + line);
-      if (next === text || !next.includes(line)) throw new Error('Roster declaration not found.');
-      await writeFile(file, next);
-      print({ id, registered: true, next: 'Run bun run build; registration does not certify visual acceptance.' });
     } else {
       const result = await compileConstruction(root, source);
       if (action === 'inspect' && args.includes('--brief')) {

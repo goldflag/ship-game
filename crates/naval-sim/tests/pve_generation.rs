@@ -1,3 +1,4 @@
+use naval_sim::terrain::Terrain;
 use naval_sim::{
     bots::AiLevel,
     catalog::Catalog,
@@ -118,12 +119,18 @@ fn generated_fleets_scale_to_selected_fleet_and_respect_every_hard_cap_across_ma
                     let o = s.spawn.as_ref().unwrap();
                     (o.x - p.x).hypot(o.z - p.z) >= 350.0
                 }));
-                assert!(environment.islands.iter().all(|i| {
-                    let mut expanded = i.clone();
-                    expanded.rx += 250.0;
-                    expanded.rz += 250.0;
-                    expanded.radius(p.x, p.z) > 1.05
-                }));
+                assert!(
+                    !environment.terrain.land_within(
+                        p.x,
+                        p.z,
+                        naval_sim::terrain::DEPLOYMENT_CLEARANCE_M
+                    ),
+                    "{map} seed {seed}: {} deployed within {} m of land at ({}, {})",
+                    ship.id,
+                    naval_sim::terrain::DEPLOYMENT_CLEARANCE_M,
+                    p.x,
+                    p.z
+                );
             }
             complements.insert(
                 enemy
@@ -163,7 +170,7 @@ fn tiny_fleet_and_one_preset_catalog_have_a_small_legal_opponent() {
 #[test]
 fn seed_repeats_setup_and_friendly_placement_never_rerolls_or_exposes_enemy() {
     let content = catalog();
-    let req = request(51, &["baltimore", "fletcher"], "pacific-islands");
+    let req = request(51, &["baltimore", "fletcher"], "iron-bottom-sound");
     let mut plan = PvePlan::generate(content, req.clone()).unwrap();
     let repeat = PvePlan::generate(content, req).unwrap();
     let initial = serde_json::to_value(plan.restart_setup()).unwrap();
@@ -243,18 +250,24 @@ fn mission_geography_is_independent_of_private_roster_and_initial_pool_excludes_
         .unwrap()
         .briefing(content);
         let environment = |setup: &naval_sim::battle::BattleSetup| {
-            serde_json::to_value(
-                content
-                    .resolve_pve_environment(
-                        &setup.map_id,
-                        &setup.weather,
-                        setup.seed,
-                        setup.mission_rules.as_ref().unwrap(),
-                        setup.wind_speed,
-                    )
-                    .unwrap(),
+            let resolved = content
+                .resolve_pve_environment(
+                    &setup.map_id,
+                    &setup.weather,
+                    setup.seed,
+                    setup.mission_rules.as_ref().unwrap(),
+                    setup.wind_speed,
+                )
+                .unwrap();
+            // The mission chart is centred on the mission area whatever the roster.
+            assert_eq!(resolved.terrain.offset, [0.0, 0.0]);
+            (
+                serde_json::to_value(resolved.sea).unwrap(),
+                resolved
+                    .terrain
+                    .field
+                    .map(|f| std::sync::Arc::as_ptr(&f) as usize),
             )
-            .unwrap()
         };
         assert_eq!(environment(&small.setup), environment(&large.setup));
     }
@@ -360,8 +373,7 @@ fn enemy_air_commander_scouts_before_striking_uses_reports_and_keeps_fighter_sup
         battle.sensors.update(
             battle.tick,
             &sensors::entities(&battle.actors, &battle.aviation),
-            &battle.islands,
-            &[],
+            &battle.terrain,
             sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
             &sensors::VisualRules::default(),
         );
@@ -424,7 +436,7 @@ fn enemy_front_loss_repositions_carriers_and_keeps_surviving_escorts_with_them()
         })
         .unwrap();
     let mut battle = battle(&plan);
-    battle.islands.clear();
+    battle.terrain = naval_sim::terrain::Terrain::open_sea();
     for (i, a) in battle.actors.iter_mut().enumerate() {
         a.motion.x = i as f64 * 500.0;
         a.motion.z = if a.team == TeamId::A { -6000.0 } else { 0.0 };
@@ -433,8 +445,7 @@ fn enemy_front_loss_repositions_carriers_and_keeps_surviving_escorts_with_them()
         battle.sensors.update(
             tick,
             &sensors::entities(&battle.actors, &battle.aviation),
-            &[],
-            &[],
+            &Terrain::open_sea(),
             sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
             &sensors::VisualRules::default(),
         );
@@ -679,8 +690,7 @@ fn observe(battle: &mut naval_sim::battle::Battle) {
     battle.sensors.update(
         battle.tick,
         &sensors::entities(&battle.actors, &battle.aviation),
-        &battle.islands,
-        &[],
+        &battle.terrain,
         sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
         &sensors::VisualRules::default(),
     );

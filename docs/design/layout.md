@@ -92,6 +92,10 @@ picked or dragged, and outline the commanded ship’s berth in brass. Allowance 
 and turn salmon when exceeded. The deployment chart draws each group as a dashed frame with an
 upper-left name tag, a brass compass ring with 15° ticks and a bow-shaped handle around the
 selection, and a brass heading readout; the side rail repeats the ring as a 72 px heading dial.
+The chart draws the real coast with shaded relief bands, keeps the map's frame ("315° up" beside
+the rail title), and turns its N and the ring's letters and heavy ticks to true north, so the heading
+readout, dial and input read true. Until the coast has loaded the status line reads "Charting the
+coast…" and Start waits.
 Selection scope (Group / Ship) is a segmented control with G and S keycaps.
 
 The column narrows to 296 px at 1,240 px and 272 px at 980 px, lifts clear of the fleet line below

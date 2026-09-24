@@ -1,7 +1,10 @@
 import { expect, test } from 'bun:test';
 import { Color, DirectionalLight, Group, Vector3 } from 'three/webgpu';
 import { RecordingSky } from './sky/testing';
-import { OCEAN_MAPS, oceanMap } from '../maps/catalog';
+import { OCEAN_MAPS, customTerrainOffset, oceanMap, placedMapTerrain } from '../maps/catalog';
+import { OPEN_SEA } from '../maps/heightfield';
+import { installMapTerrain } from '../maps/testing';
+import { directionFromAngles } from './sky/celestialModel';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { battlePrecipitation } from '../maps/precipitation';
 import { BOLT_CEILING, PORT_WIND, VisualEnvironment } from './VisualEnvironment';
@@ -32,14 +35,17 @@ function lightSink() {
     setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; } };
 }
 
-test('all battle conditions combine across maps without mutating their defaults', () => {
+test('all battle conditions combine across maps without mutating their defaults', async () => {
   const original = JSON.stringify(OCEAN_MAPS);
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 };
   for (const map of OCEAN_MAPS) {
-    expect(battleEnvironment(map).sky).toEqual(map.sky);
+    if (map.land.terrain) await installMapTerrain(map.id);
+    const terrain = placedMapTerrain(map.id, customTerrainOffset(setup.spawnDistance))!;
+    // The authored sun is a true direction; the chart frame turns it by the map's bearing.
+    expect(battleEnvironment(map).sky).toEqual({ ...map.sky, azimuth: (map.sky.azimuth + map.bearing) % 360 });
     expect(battleEnvironment(map).fog).toEqual(map.fog);
     for (const time of TIME_OF_DAY_PRESETS) for (const weather of WEATHER_PRESETS) {
-      validateBattleSetup({ ...setup, mapId: map.id, timeOfDay: time.id, weather: weather.id }, ['bismarck']);
+      validateBattleSetup({ ...setup, mapId: map.id, timeOfDay: time.id, weather: weather.id }, ['bismarck'], terrain);
       const environment = battleEnvironment(map, time.id, weather.id);
       expect(Object.values(environment.sky).every(Number.isFinite)).toBe(true);
       expect(environment.sky.elevation).toBe(time.sky.elevation ?? map.sky.elevation);
@@ -53,8 +59,8 @@ test('all battle conditions combine across maps without mutating their defaults'
   }
   expect(JSON.stringify(OCEAN_MAPS)).toBe(original);
   for (const value of ['missing', '', null, 7]) {
-    expect(() => validateBattleSetup({ ...setup, timeOfDay: value as never }, ['bismarck'])).toThrow('time of day');
-    expect(() => validateBattleSetup({ ...setup, weather: value as never }, ['bismarck'])).toThrow('weather preset');
+    expect(() => validateBattleSetup({ ...setup, timeOfDay: value as never }, ['bismarck'], OPEN_SEA)).toThrow('time of day');
+    expect(() => validateBattleSetup({ ...setup, weather: value as never }, ['bismarck'], OPEN_SEA)).toThrow('weather preset');
   }
 });
 
@@ -118,11 +124,11 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   attachOcean(environment, ocean); environment.attachSky(sky);
   for (const time of TIME_OF_DAY_PRESETS) for (const weather of WEATHER_PRESETS) {
     environment.setBattle({ timeOfDay: time.id, weather: weather.id, conditions: {} });
-    environment.setScene('pacific-islands', false);
+    environment.setScene('iron-bottom-sound', false);
     sky.update(0);
     // No ocean update occurs on a paused frame; the sky must still reach smoke.
     environment.syncLighting();
-    const expected = battleEnvironment(oceanMap('pacific-islands'), time.id, weather.id);
+    const expected = battleEnvironment(oceanMap('iron-bottom-sound'), time.id, weather.id);
     expect(sky.sun.elevationDeg).toBeCloseTo(expected.sky.elevation, 8);
     expect((sky.sun.azimuthDeg + 360) % 360).toBeCloseTo(expected.sky.azimuth, 8);
     // Battle time stands still: sky time passing moves neither body.
@@ -147,7 +153,7 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     } else if (sky.sun.elevationDeg >= 18) expect(effects.direct).toBeCloseTo(sky.scene.sun.intensity);
     else expect(effects.direct).toBeLessThan(sky.scene.sun.intensity);
   }
-  environment.setScene('pacific-islands', true); sky.update(0);
+  environment.setScene('iron-bottom-sound', true); sky.update(0);
   expect(sky.sun.elevationDeg).toBeCloseTo(36);
   expect(sky.sun.azimuthDeg).toBeCloseTo(58);
   expect(sky.scene.sun.intensity).toBe(5.8);
@@ -179,8 +185,31 @@ test('continuous battle conditions keep clouds independent of CPU and visual win
   }
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 };
   for (const key of ['timeHours', 'cloudCover', 'windSpeed']) {
-    for (const value of [NaN, Infinity, -1, 101]) expect(() => validateBattleSetup({ ...setup, [key]: value }, ['bismarck'])).toThrow();
+    for (const value of [NaN, Infinity, -1, 101]) expect(() => validateBattleSetup({ ...setup, [key]: value }, ['bismarck'], OPEN_SEA)).toThrow();
   }
+});
+
+test('on a turned chart the sun stands over the real place: true east at dawn, true north at noon', () => {
+  /** The chart-frame unit vector toward true compass bearing `degrees` on a chart whose top bears `bearing`. */
+  const toward = (degrees: number, bearing: number) => {
+    const chart = (degrees - bearing) * Math.PI / 180;
+    return { x: Math.sin(chart), z: -Math.cos(chart) };
+  };
+  for (const map of OCEAN_MAPS) {
+    const dawn = battleEnvironment(map, 'dawn').sky, noon = battleEnvironment(map, 'map', 'map', { timeHours: 12 }).sky;
+    expect(dawn.azimuth).toBeCloseTo((90 + map.bearing) % 360, 9);
+    for (const [sky, bearing] of [[dawn, 90], [noon, 0]] as const) {
+      const sun = directionFromAngles(0, sky.azimuth), expected = toward(bearing, map.bearing);
+      expect(sun.x).toBeCloseTo(expected.x, 9);
+      expect(sun.z).toBeCloseTo(expected.z, 9);
+    }
+    // The clock's sun and the authored map sun turn alike; the sea's wind stays in the chart frame.
+    expect(battleEnvironment(map, 'map', 'map', { timeHours: 18 }).sky.azimuth).toBeCloseTo((270 + map.bearing) % 360, 9);
+    expect(battleEnvironment(map).sky.azimuth).toBeCloseTo((map.sky.azimuth + map.bearing) % 360, 9);
+  }
+  // Iron Bottom Sound's chart is up 315° and its authored morning sun bears a true 100°; the Channel Dash's noon sun a true 180°.
+  expect(battleEnvironment(oceanMap('iron-bottom-sound')).sky.azimuth).toBe(35);
+  expect(battleEnvironment(oceanMap('strait-of-dover')).sky.azimuth).toBe(45);
 });
 
 test('numeric night time uses night fog and dawn cloud fill is not dimmed twice', () => {

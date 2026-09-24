@@ -69,21 +69,228 @@
     },
     {
       "id": "main-gun-a",
-      "duration_seconds": 4,
+      "provider": "procedural",
+      "generator": "scripts/audio/gunsynth.ts",
       "loop": false,
-      "prompt": "One enormous WWII battleship 380mm naval cannon firing outdoors over open water. Immediate concussive crack and massive deep chesty boom, brief gritty propellant roar, rolling low thunder decay fading naturally. One single discharge, isolated, no shell impact, no voices, music or repeated shots."
+      "seed": 7,
+      "sample_rate": 48000,
+      "tuning": "Layer levels, filters and envelopes fitted by coordinate descent to the band-energy envelopes of single 356 and 406 mm shots from a World of Warships calibre comparison. Analysis only: no reference audio is stored, sampled or shipped.",
+      "preset": {
+        "duration": 7,
+        "crack": {
+          "gain": 0.02842,
+          "decay": 0.05,
+          "highpass": 5317,
+          "spread": 0,
+          "barrels": 1,
+          "crackle": 815.5,
+          "crackleDecay": 0.2175
+        },
+        "blast": {
+          "gain": 0.653,
+          "hold": 0,
+          "decay": 0.03,
+          "from": 7985,
+          "to": 150,
+          "sweep": 0.03063
+        },
+        "boom": {
+          "gain": 4.893,
+          "lowpass": 214.3,
+          "hold": 1.435,
+          "decay": 1.3,
+          "swell": 0.5825,
+          "swellRate": 10.85,
+          "sub": 1.789,
+          "subFrom": 65,
+          "subTo": 36,
+          "subDecay": 0.7,
+          "subNoise": 0.7
+        },
+        "roar": {
+          "gain": 1.2,
+          "center": 420,
+          "q": 1.242,
+          "hold": 1.421,
+          "decay": 1.461,
+          "from": 7419,
+          "to": 219.5,
+          "sweep": 1.3,
+          "swell": 0.4,
+          "swellRate": 3
+        },
+        "rumble": {
+          "gain": 0.5214,
+          "center": 160,
+          "q": 0.8504,
+          "attack": 0.08925,
+          "decay": 4.908,
+          "swell": 1.381,
+          "swellRate": 8
+        },
+        "tail": {
+          "send": 0.08474,
+          "rt60": 5.158,
+          "damp": 3311,
+          "wet": 1.087
+        },
+        "reflection": {
+          "delay": 1.839,
+          "gain": 0.1839
+        },
+        "highpass": 32,
+        "drive": 0.5754
+      }
     },
     {
       "id": "main-gun-b",
-      "duration_seconds": 4,
+      "provider": "procedural",
+      "generator": "scripts/audio/gunsynth.ts",
       "loop": false,
-      "prompt": "A single very heavy 460mm battleship naval gun discharge over the sea. Instant sharp pressure crack into a huge resonant low explosion, dense short blast of expanding gas and long receding thunder tail. One shot only, clean isolation, no music, speech or subsequent impact."
+      "seed": 7,
+      "sample_rate": 48000,
+      "tuning": "Layer levels, filters and envelopes fitted by coordinate descent to the band-energy envelopes of single 460 mm shots from a World of Warships calibre comparison. Analysis only: no reference audio is stored, sampled or shipped.",
+      "preset": {
+        "duration": 7,
+        "crack": {
+          "gain": 0.1116,
+          "decay": 0.09892,
+          "highpass": 5058,
+          "spread": 0,
+          "barrels": 1,
+          "crackle": 315.4,
+          "crackleDecay": 0.08
+        },
+        "blast": {
+          "gain": 0.7225,
+          "hold": 0.3,
+          "decay": 0.0514,
+          "from": 7555,
+          "to": 197.5,
+          "sweep": 0.02
+        },
+        "boom": {
+          "gain": 5.437,
+          "lowpass": 181.4,
+          "hold": 1.665,
+          "decay": 0.8077,
+          "swell": 0.2175,
+          "swellRate": 14.42,
+          "sub": 0.8951,
+          "subFrom": 60,
+          "subTo": 32,
+          "subDecay": 0.8,
+          "subNoise": 0.635
+        },
+        "roar": {
+          "gain": 2.478,
+          "center": 230.5,
+          "q": 0.3225,
+          "hold": 1.635,
+          "decay": 1.8,
+          "from": 4000,
+          "to": 339,
+          "sweep": 1.5,
+          "swell": 0.4,
+          "swellRate": 3
+        },
+        "rumble": {
+          "gain": 0.3679,
+          "center": 58.86,
+          "q": 1.631,
+          "attack": 0.1937,
+          "decay": 6,
+          "swell": 0.7875,
+          "swellRate": 8
+        },
+        "tail": {
+          "send": 0.3798,
+          "rt60": 6,
+          "damp": 1367,
+          "wet": 1.793
+        },
+        "reflection": {
+          "delay": 9.892,
+          "gain": 0.3033
+        },
+        "highpass": 32,
+        "drive": 0.772
+      }
     },
     {
       "id": "secondary-gun",
-      "duration_seconds": 2.5,
+      "provider": "procedural",
+      "generator": "scripts/audio/gunsynth.ts",
       "loop": false,
-      "prompt": "One 127 to 155mm naval deck cannon firing. Fast sharp metallic explosive crack, punchy mid-low boom with a short open-air reverberating tail. Smaller and tighter than a battleship main gun. Immediate single shot, no automatic burst, shell landing, voice or music."
+      "seed": 7,
+      "sample_rate": 48000,
+      "tuning": "Layer levels, filters and envelopes fitted by coordinate descent to the band-energy envelopes of single 130 mm shots from a World of Warships calibre comparison. Analysis only: no reference audio is stored, sampled or shipped.",
+      "preset": {
+        "duration": 5,
+        "crack": {
+          "gain": 0.07267,
+          "decay": 0.06595,
+          "highpass": 1413,
+          "spread": 0.09,
+          "barrels": 2,
+          "crackle": 66.94,
+          "crackleDecay": 0.1319
+        },
+        "blast": {
+          "gain": 1.532,
+          "hold": 0.4125,
+          "decay": 0.06846,
+          "from": 5812,
+          "to": 260,
+          "sweep": 0.02
+        },
+        "boom": {
+          "gain": 4.077,
+          "lowpass": 161.7,
+          "hold": 1.074,
+          "decay": 0.7056,
+          "swell": 1.309,
+          "swellRate": 25,
+          "sub": 1.913,
+          "subFrom": 80,
+          "subTo": 48,
+          "subDecay": 0.4,
+          "subNoise": 0.555
+        },
+        "roar": {
+          "gain": 0.5528,
+          "center": 500,
+          "q": 1.098,
+          "hold": 0.8858,
+          "decay": 1.3,
+          "from": 5528,
+          "to": 1411,
+          "sweep": 1.051,
+          "swell": 0.35,
+          "swellRate": 4
+        },
+        "rumble": {
+          "gain": 0.6065,
+          "center": 289.6,
+          "q": 1.715,
+          "attack": 0.4,
+          "decay": 1.5,
+          "swell": 1.5,
+          "swellRate": 8
+        },
+        "tail": {
+          "send": 0.1583,
+          "rt60": 1.997,
+          "damp": 1313,
+          "wet": 0.2308
+        },
+        "reflection": {
+          "delay": 10.87,
+          "gain": 0.3993
+        },
+        "highpass": 42.13,
+        "drive": 2.556
+      }
     },
     {
       "id": "armor-hit",

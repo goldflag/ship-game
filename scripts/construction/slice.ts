@@ -159,24 +159,183 @@ export interface PlanPolygon {
   bounds: { min: Point2; max: Point2 };
   ring: Point2[];
   closed: boolean;
+  /** `exact` is a closed section ring; `traced` was filled from an open-shell section as a raster. */
+  source: 'exact' | 'traced';
+  holes: number;
 }
-/** Footprint rings of the solid at height `y`, in (x, z). Thin rails and ladders drop out below `minThickness`,
- * which stands in for the scratch tool's negative-then-positive buffer. */
-export function planPolygons(view: MeshView, y: number, options: { box?: Box; minArea?: number; minThickness?: number; simplify?: number } = {}): PlanPolygon[] {
+export interface PlanOptions {
+  box?: Box;
+  minArea?: number;
+  /** Features thinner than this drop out (an opening of half this radius), so rails and ladders do not count. */
+  minThickness?: number;
+  simplify?: number;
+  /** Gaps up to this wide in the section are bridged before the interior is filled. */
+  close?: number;
+  /** Raster cell size; the default keeps the grid under about 16 million cells. */
+  resolution?: number;
+  /** Mirror the section across x = 0 first, so a model with one-sided clutter still traces a symmetric footprint. */
+  symmetric?: boolean;
+}
+const MAX_PLAN_CELLS = 16_000_000;
+
+/** One-dimensional squared distance transform (Felzenszwalb and Huttenlocher) of `f` into `d`. */
+function distance1d(f: Float64Array, n: number, d: Float64Array, v: Int32Array, z: Float64Array) {
+  let k = 0;
+  v[0] = 0;
+  z[0] = -Infinity;
+  z[1] = Infinity;
+  for (let q = 1; q < n; q++) {
+    let s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+    while (s <= z[k]) {
+      k--;
+      s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+    }
+    k++;
+    v[k] = q;
+    z[k] = s;
+    z[k + 1] = Infinity;
+  }
+  k = 0;
+  for (let q = 0; q < n; q++) {
+    while (z[k + 1] < q) k++;
+    d[q] = (q - v[k]) * (q - v[k]) + f[v[k]];
+  }
+}
+/** Squared distance, in cells, from every cell to the nearest set cell of `mask`. */
+export function distanceTransform(mask: Uint8Array, width: number, height: number): Float32Array {
+  const out = new Float32Array(width * height);
+  const size = Math.max(width, height);
+  const f = new Float64Array(size), d = new Float64Array(size), v = new Int32Array(size), z = new Float64Array(size + 1);
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) f[y] = mask[y * width + x] ? 0 : 1e20;
+    distance1d(f, height, d, v, z);
+    for (let y = 0; y < height; y++) out[y * width + x] = d[y];
+  }
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) f[x] = out[y * width + x];
+    distance1d(f, width, d, v, z);
+    for (let x = 0; x < width; x++) out[y * width + x] = d[x];
+  }
+  return out;
+}
+/** Boundary segments of a binary grid by marching squares over cell centres. Diagonal pairs stay separate. */
+export function marchingSquares(grid: Uint8Array, width: number, height: number, origin: Point2, cell: number): Point2[][] {
+  const segments: Point2[][] = [];
+  const X = (c: number) => origin[0] + (c + 0.5) * cell;
+  const Z = (r: number) => origin[1] + (r + 0.5) * cell;
+  for (let r = 0; r + 1 < height; r++)
+    for (let c = 0; c + 1 < width; c++) {
+      const code = grid[r * width + c] | (grid[r * width + c + 1] << 1) | (grid[(r + 1) * width + c + 1] << 2) | (grid[(r + 1) * width + c] << 3);
+      if (code === 0 || code === 15) continue;
+      const bottom: Point2 = [X(c) + cell / 2, Z(r)], right: Point2 = [X(c + 1), Z(r) + cell / 2];
+      const top: Point2 = [X(c) + cell / 2, Z(r + 1)], left: Point2 = [X(c), Z(r) + cell / 2];
+      const edges: Record<number, Point2[][]> = {
+        1: [[left, bottom]], 2: [[bottom, right]], 3: [[left, right]], 4: [[right, top]], 5: [[left, bottom], [right, top]],
+        6: [[bottom, top]], 7: [[left, top]], 8: [[left, top]], 9: [[bottom, top]], 10: [[bottom, right], [left, top]],
+        11: [[right, top]], 12: [[left, right]], 13: [[bottom, right]], 14: [[left, bottom]],
+      };
+      segments.push(...edges[code]);
+    }
+  return segments;
+}
+const insideRing = (ring: Point2[], p: Point2): boolean => {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++)
+    if (ring[i][1] > p[1] !== ring[j][1] > p[1] && p[0] < ((ring[j][0] - ring[i][0]) * (p[1] - ring[i][1])) / (ring[j][1] - ring[i][1]) + ring[i][0]) inside = !inside;
+  return inside;
+};
+/** Footprint rings of the solid at height `y`, in (x, z). Source meshes are usually open shells, so the section is
+ * rasterised, gaps up to `close` are bridged, enclosed interiors are filled and the boundary is traced. Where the
+ * section already closes into a matching ring, that exact ring is returned instead of the traced one. */
+export function planPolygons(view: MeshView, y: number, options: PlanOptions = {}): PlanPolygon[] {
   const minArea = options.minArea ?? 1;
   const minThickness = options.minThickness ?? 0.3;
-  const loops = chainLoops(planeSegments(view, 'y', y, options.box));
-  const found: PlanPolygon[] = [];
-  for (const loop of loops) {
-    if (!loop.closed) continue;
-    const area = Math.abs(polygonArea(loop.points));
-    const perimeter = pathLength(loop.points, true);
-    const thickness = perimeter > 0 ? (4 * area) / perimeter : 0;
-    if (area < minArea || thickness < minThickness) continue;
-    const ring = options.simplify ? simplifyPath([...loop.points, loop.points[0]], options.simplify).slice(0, -1) : loop.points;
-    const [min, max] = boundsOf(ring);
-    found.push({ area: round(area, 2), perimeter: round(perimeter, 2), thicknessM: round(thickness, 3), bounds: { min: round2(min), max: round2(max) }, ring: ring.map(round2), closed: true });
+  const close = options.close ?? 0.25;
+  const segments = planeSegments(view, 'y', y, options.box);
+  if (!segments.length) return [];
+  const drawn = options.symmetric ? [...segments, ...segments.map(([a, b]) => [[-a[0], a[1]], [-b[0], b[1]]] as Point2[])] : segments;
+  const all = drawn.flat();
+  let [min, max] = boundsOf(all);
+  if (options.box) [min, max] = [[Math.max(min[0], options.box.min[0]), Math.max(min[1], options.box.min[2])], [Math.min(max[0], options.box.max[0]), Math.min(max[1], options.box.max[2])]];
+  const span = Math.max(max[0] - min[0], 0.01) * Math.max(max[1] - min[1], 0.01);
+  const cell = options.resolution ?? Math.max(0.04, Math.sqrt(span / MAX_PLAN_CELLS));
+  if (!(cell > 0)) throw new Error('The plan resolution must be positive.');
+  const pad = close + 3 * cell;
+  const origin: Point2 = [min[0] - pad, min[1] - pad];
+  const width = Math.ceil((max[0] - min[0] + 2 * pad) / cell) + 1;
+  const height = Math.ceil((max[1] - min[1] + 2 * pad) / cell) + 1;
+  if (width * height > MAX_PLAN_CELLS * 1.5) throw new Error(`A ${cell} m plan grid over this region is too large; pass a coarser --res or a smaller --box.`);
+  const lines = new Uint8Array(width * height);
+  for (const [a, b] of drawn) {
+    const steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / (cell / 2)));
+    for (let i = 0; i <= steps; i++) {
+      const c = Math.floor((a[0] + ((b[0] - a[0]) * i) / steps - origin[0]) / cell);
+      const r = Math.floor((a[1] + ((b[1] - a[1]) * i) / steps - origin[1]) / cell);
+      if (c >= 0 && c < width && r >= 0 && r < height) lines[r * width + c] = 1;
+    }
   }
+  // Close gaps, fill everything the outside cannot reach, then give back the closing and any thin features.
+  const reach = close / cell;
+  const toLine = distanceTransform(lines, width, height);
+  const outside = new Uint8Array(width * height);
+  const stack = new Int32Array(width * height);
+  let top = 0;
+  const seed = (i: number) => {
+    if (!outside[i] && toLine[i] > reach * reach) {
+      outside[i] = 1;
+      stack[top++] = i;
+    }
+  };
+  for (let c = 0; c < width; c++) {
+    seed(c);
+    seed((height - 1) * width + c);
+  }
+  for (let r = 0; r < height; r++) {
+    seed(r * width);
+    seed(r * width + width - 1);
+  }
+  while (top) {
+    const i = stack[--top];
+    const r = Math.floor(i / width), c = i - r * width;
+    if (c > 0) seed(i - 1);
+    if (c + 1 < width) seed(i + 1);
+    if (r > 0) seed(i - width);
+    if (r + 1 < height) seed(i + width);
+  }
+  const toOutside = distanceTransform(outside, width, height);
+  const open = minThickness / 2 / cell;
+  const core = new Uint8Array(width * height);
+  for (let i = 0; i < core.length; i++) core[i] = toOutside[i] > (reach + open) * (reach + open) ? 1 : 0;
+  const solid = new Uint8Array(width * height);
+  if (open > 0) {
+    const toCore = distanceTransform(core, width, height);
+    for (let i = 0; i < solid.length; i++) solid[i] = toCore[i] <= open * open ? 1 : 0;
+  } else solid.set(core);
+  const rings = chainLoops(marchingSquares(solid, width, height, origin, cell), cell * 0.01).filter((loop) => loop.closed).map((loop) => loop.points);
+  const depth = rings.map((ring, i) => rings.reduce((n, other, j) => n + (j !== i && insideRing(other, ring[0]) ? 1 : 0), 0));
+  const exact = options.symmetric ? [] : chainLoops(segments).filter((loop) => loop.closed).map((loop) => loop.points);
+  const epsilon = Math.max(options.simplify ?? 0, cell * 0.75);
+  const found: PlanPolygon[] = [];
+  rings.forEach((traced, i) => {
+    if (depth[i] % 2) return;
+    const tracedArea = Math.abs(polygonArea(traced));
+    const [tMin, tMax] = boundsOf(traced);
+    const match = exact.find((ring) => {
+      const [eMin, eMax] = boundsOf(ring);
+      const tolerance = 2 * cell;
+      return Math.abs(Math.abs(polygonArea(ring)) - tracedArea) <= 0.05 * tracedArea && [0, 1].every((k) => Math.abs(eMin[k] - tMin[k]) <= tolerance && Math.abs(eMax[k] - tMax[k]) <= tolerance);
+    });
+    const source = match ? 'exact' : 'traced';
+    const raw = match ?? traced;
+    const ring = match ? (options.simplify ? simplifyPath([...raw, raw[0]], options.simplify).slice(0, -1) : raw) : simplifyPath([...raw, raw[0]], epsilon).slice(0, -1);
+    const area = Math.abs(polygonArea(ring));
+    const perimeter = pathLength(ring, true);
+    const thickness = perimeter > 0 ? (4 * area) / perimeter : 0;
+    if (area < minArea || ring.length < 3) return;
+    const holes = rings.filter((other, j) => depth[j] === depth[i] + 1 && insideRing(traced, other[0])).length;
+    const [bMin, bMax] = boundsOf(ring);
+    found.push({ area: round(area, 2), perimeter: round(perimeter, 2), thicknessM: round(thickness, 3), bounds: { min: round2(bMin), max: round2(bMax) }, ring: ring.map(round2), closed: true, source, holes });
+  });
   return found.sort((a, b) => b.area - a.area);
 }
 

@@ -1,0 +1,17 @@
+{
+  "id": "sunda-strait",
+  "center": {
+    "lat": -5.851,
+    "lon": 106.1127
+  },
+  "bearing": 295,
+  "sizeKm": [
+    96,
+    96
+  ],
+  "cellM": 40,
+  "zoom": 12,
+  "supersample": 2,
+  "edgeFalloffKm": 6,
+  "framing": "Off St. Nicholas Point and Bantam Bay at the strait's north-east entrance; the strait and Sumatra at the top."
+}

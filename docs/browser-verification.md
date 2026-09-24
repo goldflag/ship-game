@@ -49,6 +49,8 @@ Every capture waits for the camera to arrive first: an optics glide takes about 
 | `battery` | The weapon group the battle opens on: `main`, `secondary`, `torpedo`… |
 | `progress=fresh` | Research progress from a local profile that starts with only each nation's starters and persists in this browser (`naval-progress-harness-v1`), so locked ships, Unlock and XP awards can be exercised. Without it every tree ship is owned. Scripts edit it with `window.harnessProgress.grant({ xp: 5000 })`, `{ unlockAll: true }` or `{ reset: true }` |
 | `hud=off` | Hide everything over the 3D view once the port or battle is ready. A script that still clicks the UI calls `review.setHud(false)` afterwards instead |
+| `clock=manual` | Hold the battle's frame clock from its first frame; frames then advance only through `review.clock.step`, so a scripted battle starts at the same tick every run |
+| `graphics` | Launch on a graphics preset (`low`, `medium`, `high`, `ultra`); the ocean tier and the renderers are fixed at launch |
 | `focus=real`, `pointerlock=real`, `sortie=board` | Turn off the defaults: blur and visibility changes are swallowed so a background window does not pause the game, pointer lock is faked so battle input arms under automation, and the sortie board is skipped |
 
 `window.review` holds `ready`, `inBattle`, `game`, `errors`, `designs` (`name`, `sourceId`, `shipId` or `issue`), the effective `battle` setup and `stage`, what the page is doing now (a loading-screen stage or a battle-dialog step). It also offers:
@@ -60,6 +62,11 @@ Every capture waits for the camera to arrive first: an optics glide takes about 
 | `settle({ frames })` | Resolve once no camera glide, zoom or orbit is easing (`Game.cameraSettled`), then after `frames` rendered frames |
 | `setHud(visible)` | Show or hide everything drawn over the 3D view |
 | `three`, `tsl` | The game's own `three/webgpu` and `three/tsl`. `page.evaluate(() => import('three/webgpu'))` does not resolve |
+| `clock` | `manual(on)` stops the display-driven loop; `step(frames, dt)` then draws frames of exactly `dt` battle seconds (default 1/60, at most 0.1), each once the simulation has answered the batch before it (`Game.stepFrame`). A battle stepped this way presents every tick in order however slowly it draws |
+| `directCamera(director?)` | Place the camera every frame in world space, after the rig (`Game.directCamera`); no director hands it back. `Game.subjectPose(id)` says where a ship or aircraft is drawn this frame |
+| `command(shipId, command, tick?)` | Order any ship on either side as its owner would, applied when the battle reaches `tick` (`LocalBattleSession.direct`, `Session::direct`): routes, holds, focus, weapons policy, air and deck orders. Refusals collect in `game.simulation.directReplies` |
+
+[Films](film.md) are built on these three: a staged battle filmed shot by shot with `bun run film`.
 
 ### Horizon rendering check
 
@@ -117,7 +124,7 @@ The WebGPU timestamp routes mislead on this machine. `trackTimestamp` stalls the
 
 ### Effects review
 
-`bun scripts/browser/effects-review.ts --scene hit,fire` renders scripted combat-effect sequences (`effectsScenes.ts`) as frames and contact sheets. The battle has a fixed seed, the sea is held at `--sea-time` (default 60 s) and every hull rides it to that time as the berth does, so master and a branch draw the same ships, water and sky: two runs of a scene differ in about 0.1% of pixels, a few sea glints among them. `--serve <port>` keeps the battle open: `curl 'localhost:<port>/run?scene=hit&out=.build/effects/try1'` renders against the current source, `/reload` loads the page afresh, and `/stop` turns away queued runs, closes the browser and exits. A run first checks that every ship of the roster has a view and a model, so frames of an empty sea fail instead of passing. In `--serve` mode Vite reloads the page after every source edit and the next run waits for the new battle; `--no-hmr` keeps the page through edits until `/reload`. The server stops after `--idle` minutes without a request (default 60).
+`bun scripts/browser/effects-review.ts --scene hit,fire` renders scripted combat-effect sequences (`effectsScenes.ts`) as frames and contact sheets. The battle has a fixed seed, the sea is held at `--sea-time` (default 60 s) and every hull rides it to that time as the berth does, so master and a branch draw the same ships, water and sky: two runs of a scene differ in about 0.1% of pixels, a few sea glints among them. `--serve <port>` keeps the battle open: `curl 'localhost:<port>/run?scene=hit&out=.build/effects/try1'` renders against the current source, `/reload` loads the page afresh, and `/stop` turns away queued runs, closes the browser and exits. A run first checks that every ship of the roster has a view and a model, so frames of an empty sea fail instead of passing. In `--serve` mode Vite reloads the page after every source edit and the next run waits for the new battle; `--no-hmr` keeps the page through edits until `/reload`. The server stops after `--idle` minutes without a request (default 60). The `splash-*` scenes review shell splashes (a straddling salvo from the air and abeam, one splash beside the hull, three sun angles, dusk, night and storm light, binoculars at 9 km, mixed calibers and `splash-cost`); the stage feeds its events to the sea's wake as a battle frame does, so their foam rings show.
 
 What the driver already handles, so a script need not:
 

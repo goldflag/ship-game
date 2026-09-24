@@ -203,8 +203,8 @@ impl Battle {
     /// **Observe.** Open the records for this tick, record every hull's
     /// track, and on the report cadence sample the mission's sensors.
     ///
-    /// Reads: every hull's motion, the aviation state, islands, terrain and
-    /// visual conditions. Writes: `records` (the tick opens here and closes
+    /// Reads: every hull's motion, the aviation state, terrain and visual
+    /// conditions. Writes: `records` (the tick opens here and closes
     /// in [`settle`](Self::settle)), `trails`, and on `reports_refresh`
     /// `sensors` and both teams' `navigation_reports`.
     pub fn observe(&mut self, tick: &mut Tick) {
@@ -219,8 +219,7 @@ impl Battle {
             self.sensors.update(
                 self.tick,
                 &crate::sensors::entities(&self.actors, &self.aviation),
-                &self.islands,
-                &self.catalog.terrain,
+                &self.terrain,
                 self.visual_conditions,
                 &self.visual_rules,
             );
@@ -239,7 +238,7 @@ impl Battle {
     /// and off the land.
     ///
     /// Reads: the fleet in `actors` order, `orders`, the mission's reports,
-    /// islands, terrain, `trails`, torpedoes. Writes: each vessel's `sea`,
+    /// terrain, `trails`, torpedoes. Writes: each vessel's `sea`,
     /// its capability on `capability_sweep`, its `target_id`, `bot` and
     /// `navigation` memory; `tick.helm` for every hull.
     pub fn decide(&mut self, tick: &mut Tick, orders: &BTreeMap<String, Orders>) {
@@ -281,8 +280,7 @@ impl Battle {
                         contacts: &self.navigation_reports[team.index()],
                         visibility_m: self.visual_conditions.visibility_m,
                     }),
-                    islands: &self.islands,
-                    terrain: &self.catalog.terrain,
+                    terrain: &self.terrain,
                     trails: &self.trails,
                     torpedoes: &self.torpedoes,
                     tick: self.tick,
@@ -301,9 +299,9 @@ impl Battle {
             // it, is kept inside the mission area and off the land.
             if let Some(mission) = &self.mission_rules {
                 command = avoid_land(
-                    &self.actors[i].motion,
+                    &self.actors[i],
                     mission.area.constrain(&self.actors[i], command),
-                    &self.islands,
+                    &self.terrain,
                 );
             }
             tick.set_helm(&self.actors[i].motion.id, command);
@@ -332,11 +330,7 @@ impl Battle {
         let hits = crate::collisions::resolve_ship_collisions(&mut self.actors);
         self.contacts(hits);
         for i in 0..self.actors.len() {
-            let hits = crate::land::resolve_land_contact(
-                &mut self.actors[i],
-                &self.islands,
-                &self.catalog.terrain,
-            );
+            let hits = crate::land::resolve_land_contact(&mut self.actors[i], &self.terrain);
             self.contacts(hits)
         }
     }
@@ -410,8 +404,7 @@ impl Battle {
                     .map(|_| crate::sensors::Knowledge {
                         sensors: &self.sensors,
                         tick: self.tick,
-                        islands: &self.islands,
-                        terrain: &self.catalog.terrain,
+                        terrain: &self.terrain,
                     }),
                 self.tick.is_multiple_of(gunnery::SURFACE_CONTROL_TICKS),
             );
@@ -436,8 +429,7 @@ impl Battle {
                     .map(|_| crate::sensors::Knowledge {
                         sensors: &self.sensors,
                         tick: self.tick,
-                        islands: &self.islands,
-                        terrain: &self.catalog.terrain,
+                        terrain: &self.terrain,
                     }),
                 actors: &self.actors,
                 shells: &mut self.shells,
@@ -489,7 +481,7 @@ impl Battle {
     /// burst, splash or pass through; torpedoes run and hit, dud or expire;
     /// depth charges sink and detonate.
     ///
-    /// Reads: islands, terrain, the sea surface. Writes: `shells`,
+    /// Reads: terrain, the sea surface. Writes: `shells`,
     /// `torpedoes`, `depth_charges` (ended ones removed), the struck hulls'
     /// damage and capability, `tick.completed`; events into the sink.
     pub fn strike(&mut self, tick: &mut Tick) {
@@ -506,8 +498,7 @@ impl Battle {
                 &mut self.shells[i],
                 &mut self.actors,
                 DT * pace,
-                &self.islands,
-                &self.catalog.terrain,
+                &self.terrain,
                 &|x, z| self.sea.height(x, z, time),
             );
             tick.events.append(&mut emitted);
@@ -521,8 +512,7 @@ impl Battle {
             &mut self.torpedoes,
             &mut self.actors,
             &mut self.aviation,
-            &self.islands,
-            &self.catalog.terrain,
+            &self.terrain,
             &mut tick.events,
         );
         step_charges(

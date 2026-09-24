@@ -5,8 +5,13 @@
     "tools/construction",
     "scripts/construction",
     "scripts/build/blender.ts",
+    "scripts/ships/overlay.ts",
+    "scripts/ships/sweep.ts",
+    "scripts/ships/floating.ts",
     "scripts/browser",
+    "scripts/film",
     "scripts/diagnostics/app.tsx",
+    "scripts/diagnostics/terrain-review.ts",
     "vite.config.ts"
   ]
 }

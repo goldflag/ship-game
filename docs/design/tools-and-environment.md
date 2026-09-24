@@ -94,10 +94,11 @@ Keep generation details in the terrain notes rather than player controls. The du
 and review evidence live under `assets/maps/`; `assets/maps/review/landforms.html` compares the
 fixed views, and `assets/maps/terrain-notes.md` records construction and capture limitations.
 
-Water impacts retain the first PR #80 iteration's long, directional water streaks: curved sheets,
-fine filaments and a low crown that collapse into spray. This is the owner's preferred splash
-appearance. Preserve its silhouette and breakup when optimizing; the later dense parcel column was
-rejected. The rising column stays crisp streaks. Only after its tips stall do lit spray volumes appear
-(a cap, a collapse curtain and a low base surge), thin enough that the falling sheets read through
-them. See the current streaked-water
-review.
+Water impacts follow the owner's reference stills of heavy shell splashes (2026-09-24): a dense
+white column of streaked jets that opens into a V as it rises, billowing spray around its base and a
+low skirt over the sea, a white dome of settling spray once the column collapses, and a lacy foam
+ring on the water. The jets keep the long, directional streaks of the first PR #80 iteration, which
+the owner preferred to a later parcel column of round masses: the column is dense and streaked at
+once, and its tips break into drops. Each jet's width turns to face the camera about a spine fixed in
+the world, so the column keeps its body from every side, the air included. Preserve that silhouette
+and breakup when optimizing, and review changes with the effects review's `splash-*` scenes.

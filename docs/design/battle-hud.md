@@ -58,11 +58,15 @@ allowed up to 220 px width.
 
 ### Navigation minimap
 
-The north-up chart follows the ship and shows its heading, camera view cone, course trail, trial
-target and marker buoys. N, E and W letters mark the edge; "north up" is only in the accessible
-label. The kilometer readout cycles the radius through 1, 2, 4 and 8 km, starting at 8 km. Separate −/+ buttons and keyboard shortcuts
-adjust the five map sizes; endpoint buttons disable at the smallest and largest sizes. Range and
-physical map size remain independent.
+The chart follows the ship and shows its heading, camera view cone, course trail, trial target,
+marker buoys and the coast: land in a muted green over the sea with a fine light coastline, each
+relief band above 100, 300, 600 and 1,000 m a faint step lighter (`ChartLand`). It keeps the
+battle's frame, up being the map's bearing, so the N, E and W letters at the edge turn from their
+north-up places to true directions on a rotated map; the orientation ("north 45° right of up") is
+only in the accessible label. Headings, the view-bearing tape and contact bearings read true. The
+kilometer readout cycles the radius through 1, 2, 4 and 8 km, starting at 8 km. Separate −/+
+buttons and keyboard shortcuts adjust the five map sizes; endpoint buttons disable at the smallest
+and largest sizes. Range and physical map size remain independent.
 
 ### Live gunnery
 

@@ -189,10 +189,10 @@ combat's truth: shells splash and openings flood against the same `seaHeight`.
 ## Water colour
 
 The selected **A · Steel blue** palette uses `waterColor #2d373c` and `transmissionColor #49575e`
-across all four maps and the port, a muted, cool blue-gray. Absorption is map-specific (Atlantic
-`#945b57`, Pacific `#b67b45`, Arctic `#916d59`, Indian `#a97851`) and the port inherits the Atlantic
-swatches. The pigment is emitted radiance: `VisualEnvironment` scales it for night (see below), always
-starting from the original map swatches. Foam is lit like any white surface by the sky and the sun or
+across every map and the port, a muted, cool blue-gray. Absorption is map-specific (North Atlantic
+`#945b57`, Iron Bottom Sound `#b67b45`, Vestfjord `#916d59`, Sunda Strait `#a97851`, Strait of Dover
+`#8a6a55`) and the port inherits the Atlantic swatches. The pigment is emitted radiance:
+`VisualEnvironment` scales it for night (see below), always starting from the original map swatches. Foam is lit like any white surface by the sky and the sun or
 moon, so it needs no night scaling. The sky's environment lights every material
 at intensity 1.
 
@@ -581,37 +581,54 @@ to port for the current page session. `Game.diagnostics()` exposes the selection
 lighting.
 
 Versioned map definitions live in `assets/maps/environments.v1.json`, consumed through
-`src/maps/catalog.ts`. Each map supplies water, absorption and transmission colours, wave and wind
+`src/maps/catalog.ts` (`OceanMap`). There are five: the open **North Atlantic** and four real places
+where naval battles were fought, **Iron Bottom Sound**, **Vestfjord**, **Sunda Strait** and the
+**Strait of Dover**. Each map supplies water, absorption and transmission colours, wave and wind
 multipliers, wave-foam opacity, sun elevation, azimuth and intensity, cloud coverage, altitude and
-thickness, atmospheric scattering and fog. Map selection does not rebuild the ocean; the port restores
-every overridden parameter on return. `/scripts/diagnostics/ocean-maps.html` (`reviewMap(id, weather)`,
-`reviewLandform(index, overview)`) captures each map in a paused battle.
+thickness, atmospheric scattering and fog, plus:
 
-The map scripts under `assets/maps/` rebuild an illustrated guide of the four settings from real
-captures into ignored `.build/reviews/maps/`. These are independently authored, region-inspired
-gameplay landscapes, not surveyed coastlines or calibrated regional weather.
+- `bearing`: the true bearing of the chart's top (0, 315, 75, 295 and 45°). The game frame is the
+  chart's (x east of the chart centre, z toward its bottom), so true north lies `bearing` degrees
+  counter-clockwise of chart up. Charts, the helm compass and every heading or bearing readout show
+  true values (`trueBearing`).
+- `battle`: the actions fought there, with dates, which the map tiles and the loading screen show;
+  the open Atlantic has none and shows its region.
+- `land.terrain`: the baked heightfield `public/maps/terrain/<id>.ntf`, or null for open sea.
 
-Coastal maps widen a central clear lane according to the largest fleet, then place islands relative to
-the midpoint of the two spawn lines. The shared CPU island-height function drives the rendered mesh,
-chart outline, camera clearance, projectile contact and conservative hull clearance; the ocean draws
-shoreline foam where the water column is shallow. Bots blend an outward course near shores. Land
-contact removes inward ship motion without grounding damage; full bathymetry, tides, beaching, route
-planning and terrain blast propagation are outside this first map implementation. Shells can fly over
-high ground and stop on it; torpedoes stop at submerged coastal slopes. Ground impacts currently reuse
-the small hard-surface impact effect.
+The authored sun `azimuth` (map and time-of-day presets alike, and the clock's sun path) is a true
+direction in the sky's convention (a compass bearing B is azimuth 180 − B); `battleEnvironment` turns
+it by the map's bearing into the chart frame, so the sun stands where it would over the real place.
+`water.windDirection` stays in the chart frame, where the simulation reads it. The port keeps the
+Atlantic, whose bearing is 0. Map selection does not rebuild the ocean; the port restores every
+overridden parameter on return. `/scripts/diagnostics/ocean-maps.html` (`reviewMap(id, weather)`,
+`captureMap()`) captures each map in a paused battle; `scripts/browser/terrain-review.ts` reviews the land itself
+(see the rendering section of [battle terrain](../assets/maps/terrain-notes.md#rendering)).
 
-Original island recipes and capture scripts stay under `assets/maps/`. The renderer uses eroded
-heightfields with asymmetric ridges and connected drainage valleys, triplanar rock and vegetation
-textures, slope-dependent snow and rock, and clustered tree impostors. See the
-[terrain recipe and review notes](../assets/maps/terrain-notes.md). Terrain meshes are generated at
-launch and disposed when switching maps. The rendered land surface is a finite tessellation of the
-continuous CPU height function, so very close grazing contacts remain approximate.
+The coasts are surveyed elevation data, baked once per map into a 96 km square heightfield at 40 m
+(`scripts/maps/bake-terrain.py`; framing, sources and attribution in the
+[terrain notes](../assets/maps/terrain-notes.md)). `src/maps/heightfield.ts` decodes it and
+`crates/naval-sim/src/terrain.rs` decodes the same bytes, with the same bilinear height and the same
+deployment-clearance scan. A battle places the chart in its world (`PlacedTerrain`, world = chart +
+offset): custom and online battles centre it between the default spawn lines (`customTerrainOffset`,
+`[0, −spawnDistance / 2]`), missions on the mission area (`MISSION_TERRAIN_OFFSET`, `[0, 0]`). Every
+chart keeps a clear lane for the default spawns at 1–20 km apart; a spawn is legal only with no land
+sample within 300 m (`DEPLOYMENT_CLEARANCE_M`), which the deployment chart and the Rust battle both
+check.
+
+The page fetches a map's heightfield once (`loadMapTerrain`): choosing the waters in the battle dialog
+starts it, and the deployment chart shows **Charting the coast…** and keeps Start disabled rather than
+judging ships against open sea until it arrives. `Game` charts the map as the first loading stage of a
+custom, fleet-command or online battle, before a session reads it. Sessions expose the placed terrain as
+`BattleSession.terrain`; the rendered land (`createBattleLandscape`), camera clearance, rangefinder
+sight lines and the charts all read it. The navigation and deployment charts draw the coastline and
+relief bands above 100, 300, 600 and 1,000 m, traced from the heightfield by marching squares
+(`src/maps/chartContours.ts`, cached per field).
 
 ## Reviewing the ocean in the real game
 
 `bun scripts/browser/ocean-review.ts --tag <name>` renders the fixed scenes of
 `/scripts/diagnostics/ocean-review.html` (port, near, wide, grazing, sun, storm, calm, dusk, night,
-islands, 5 and 20 km zoom, air, submerged, periscope, a ninety-second wake, and wakes seen from 2 km
+a real coast, 5 and 20 km zoom, air, submerged, periscope, a ninety-second wake, and wakes seen from 2 km
 up after three minutes, close astern, through a turn, behind a destroyer and across the morning
 glitter: `wakeAir`, `wakeStern`, `wakeTurn`, `wakeDestroyer`, `wakeGlint`) into
 `.build/ocean-review/<name>/`; `--measure` adds serialised frame costs and `--param realism=off` renders

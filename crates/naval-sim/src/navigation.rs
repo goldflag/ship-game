@@ -1,17 +1,15 @@
 //! Persistent captain navigation. Orders own destinations; local safety never
 //! replaces an escort with an attack or changes the player's route.
 use crate::{
-    environment::{Island, avoid_land},
-    geometry::wrap_angle,
-    machinery::system_health,
-    mobility::SHIP_PACE,
-    motion::HelmCommand,
-    vessel::Vessel,
+    environment::avoid_land, geometry::wrap_angle, machinery::system_health, mobility::SHIP_PACE,
+    motion::HelmCommand, terrain::Terrain, vessel::Vessel,
 };
 use serde::{Deserialize, Serialize};
 
 pub const MAX_WAYPOINTS: usize = 32;
-const SHORE_BUFFER_M: f64 = 150.0;
+/// Planning clearance beyond half the hull length. Routes, destinations and escort
+/// slots keep it; a ship already inside it may only leave (`clear_departure`).
+pub const SHORE_BUFFER_M: f64 = 150.0;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, ts_rs::TS)]
 #[ts(rename = "MovementOrder")]
@@ -471,127 +469,77 @@ pub fn formation_report(
     report
 }
 
-/// Conservative ellipses enclose every authored coastline lobe plus the hull
-/// and shoal margin. Graph edges are checked continuously, not at coarse samples.
-fn clear_segment(from: [f64; 2], to: [f64; 2], islands: &[Island], margin: f64) -> bool {
-    islands.iter().all(|i| {
-        let rx = i.rx * 1.22 + margin;
-        let rz = i.rz * 1.22 + margin;
-        let p = [(from[0] - i.x) / rx, (from[1] - i.z) / rz];
-        let d = [(to[0] - from[0]) / rx, (to[1] - from[1]) / rz];
-        let n = d[0] * d[0] + d[1] * d[1];
-        let t = if n > 0.0 {
-            (-(p[0] * d[0] + p[1] * d[1]) / n).clamp(0.0, 1.0)
-        } else {
-            0.0
-        };
-        (p[0] + t * d[0]).hypot(p[1] + t * d[1]) > 1.0
-    })
-}
-
 /// A ship can drift into the extra planning buffer while its entire hull is
 /// still clear of shore. Let its first leg leave that buffer, but never enter
-/// it from outside, move closer to the island, or relax physical hull clearance.
-fn clear_departure(from: [f64; 2], to: [f64; 2], islands: &[Island], margin: f64) -> bool {
-    islands.iter().all(|island| {
-        let one = std::slice::from_ref(island);
-        if clear_segment(from, to, one, margin) {
-            return true;
-        }
-        if clear_segment(from, from, one, margin)
-            || !clear_segment(from, to, one, (margin - SHORE_BUFFER_M).max(0.0))
-        {
-            return false;
-        }
-        let rx = island.rx * 1.22 + margin;
-        let rz = island.rz * 1.22 + margin;
-        // Nonnegative derivative of squared elliptical distance: this entire
-        // straight leg moves outward, including at its closest point (the start).
-        (from[0] - island.x) * (to[0] - from[0]) / (rx * rx)
-            + (from[1] - island.z) * (to[1] - from[1]) / (rz * rz)
-            >= 0.0
-    })
+/// it from outside, head toward the coast, or relax physical hull clearance
+/// (`margin - SHORE_BUFFER_M`); once out of the buffer the leg keeps the full
+/// margin.
+fn clear_departure(from: [f64; 2], to: [f64; 2], terrain: &Terrain, margin: f64) -> bool {
+    if terrain.segment_clear(from, to, margin) {
+        return true;
+    }
+    let start = terrain.clearance(from[0], from[1]);
+    let physical = (margin - SHORE_BUFFER_M).max(0.0);
+    if start >= margin || !terrain.segment_clear(from, to, physical) {
+        return false;
+    }
+    let length = (to[0] - from[0]).hypot(to[1] - from[1]);
+    if length <= 1e-9 {
+        return false;
+    }
+    let direction = [(to[0] - from[0]) / length, (to[1] - from[1]) / length];
+    let away = terrain.escape(from[0], from[1]);
+    if direction[0] * away[0] + direction[1] * away[1] < 0.0 {
+        return false;
+    }
+    // Leaving the buffer takes at most its width plus the clearance grid's slack.
+    let exit = margin - start + SHORE_BUFFER_M;
+    exit >= length
+        || terrain.segment_clear(
+            [from[0] + direction[0] * exit, from[1] + direction[1] * exit],
+            to,
+            margin,
+        )
 }
 
-pub fn destination_is_clear(a: &Vessel, destination: [f64; 2], islands: &[Island]) -> bool {
-    clear_segment(
+pub fn destination_is_clear(a: &Vessel, destination: [f64; 2], terrain: &Terrain) -> bool {
+    terrain.segment_clear(
         destination,
         destination,
-        islands,
         a.definition().hull.length * 0.5 + SHORE_BUFFER_M,
     )
 }
 
-/// A small visibility graph is rebuilt only when the destination changes or a
-/// blocked route is retried. Node order and equal-cost choices are deterministic.
+/// Routes are replanned only when the destination changes or a blocked leg is
+/// retried. A ship inside the planning buffer first leaves it straight along the
+/// escape direction; `Terrain::plan_path` then routes on at the full margin.
 fn plan_path(
     from: [f64; 2],
     to: [f64; 2],
-    islands: &[Island],
+    terrain: &Terrain,
     margin: f64,
 ) -> Option<Vec<[f64; 2]>> {
-    if !clear_segment(to, to, islands, margin) {
+    if !terrain.segment_clear(to, to, margin) {
         return None;
     }
-    if clear_departure(from, to, islands, margin) {
+    if clear_departure(from, to, terrain, margin) {
         return Some(vec![to]);
     }
-    let mut nodes = vec![from, to];
-    for i in islands {
-        for n in 0..16 {
-            let angle = n as f64 * std::f64::consts::TAU / 16.0;
-            let p = [
-                i.x + (i.rx * 1.22 + margin + 180.0) * 1.08 * angle.cos(),
-                i.z + (i.rz * 1.22 + margin + 180.0) * 1.08 * angle.sin(),
-            ];
-            if clear_segment(p, p, islands, margin) {
-                nodes.push(p);
-            }
-        }
+    let start = terrain.clearance(from[0], from[1]);
+    if start >= margin {
+        return terrain.plan_path(from, to, margin);
     }
-    let mut costs = vec![f64::INFINITY; nodes.len()];
-    let mut prev = vec![usize::MAX; nodes.len()];
-    let mut visited = vec![false; nodes.len()];
-    costs[0] = 0.0;
-    for _ in 0..nodes.len() {
-        let Some(u) = (0..nodes.len())
-            .filter(|&n| !visited[n] && costs[n].is_finite())
-            .min_by(|&a, &b| costs[a].total_cmp(&costs[b]))
-        else {
-            break;
-        };
-        if u == 1 {
-            break;
-        }
-        visited[u] = true;
-        for v in 0..nodes.len() {
-            if visited[v] {
-                continue;
-            }
-            let clear = if u == 0 {
-                clear_departure(nodes[u], nodes[v], islands, margin)
-            } else {
-                clear_segment(nodes[u], nodes[v], islands, margin)
-            };
-            if clear {
-                let cost = costs[u] + distance(nodes[u], nodes[v]);
-                if cost < costs[v] {
-                    costs[v] = cost;
-                    prev[v] = u;
-                }
-            }
-        }
-    }
-    if !costs[1].is_finite() {
+    let away = terrain.escape(from[0], from[1]);
+    let exit_distance = margin - start + SHORE_BUFFER_M;
+    let exit = [
+        from[0] + away[0] * exit_distance,
+        from[1] + away[1] * exit_distance,
+    ];
+    if !clear_departure(from, exit, terrain, margin) || !terrain.segment_clear(exit, exit, margin) {
         return None;
     }
-    let mut path = vec![];
-    let mut u = 1;
-    while u != 0 {
-        path.push(nodes[u]);
-        u = prev[u];
-    }
-    path.reverse();
+    let mut path = vec![exit];
+    path.extend(terrain.plan_path(exit, to, margin)?);
     Some(path)
 }
 
@@ -735,7 +683,7 @@ pub fn safe_correction(
 pub fn command(
     a: &Vessel,
     actors: &[Vessel],
-    islands: &[Island],
+    terrain: &Terrain,
     order: &Movement,
     state: &mut NavigationState,
     tick: u64,
@@ -745,7 +693,7 @@ pub fn command(
     command_observed(
         a,
         actors,
-        islands,
+        terrain,
         order,
         state,
         tick,
@@ -759,7 +707,7 @@ pub fn command(
 pub fn command_observed(
     a: &Vessel,
     actors: &[Vessel],
-    islands: &[Island],
+    terrain: &Terrain,
     order: &Movement,
     state: &mut NavigationState,
     tick: u64,
@@ -838,8 +786,8 @@ pub fn command_observed(
                     destination[1] + station_velocity[1] * 15.0,
                 ];
                 let obstructed_slot =
-                    !clear_segment(point(leader), destination, islands, margin + 100.0)
-                        || !clear_segment(destination, next_station, islands, margin + 150.0);
+                    !terrain.segment_clear(point(leader), destination, margin + 100.0)
+                        || !terrain.segment_clear(destination, next_station, margin + 150.0);
                 if obstructed_slot {
                     state.column_until_tick = tick + 600;
                 }
@@ -862,7 +810,7 @@ pub fn command_observed(
                 }
                 let error = [destination[0] - at[0], destination[1] - at[1]];
                 let range = error[0].hypot(error[1]);
-                if clear_segment(at, destination, islands, margin) {
+                if terrain.segment_clear(at, destination, margin) {
                     // Once the guide has stopped, use sternway for a nearby station
                     // behind us instead of circling through neighboring columns.
                     let along =
@@ -897,7 +845,7 @@ pub fn command_observed(
                             a,
                             actors,
                             contacts,
-                            islands,
+                            terrain,
                             state,
                             a.motion.heading,
                             0.0,
@@ -926,7 +874,7 @@ pub fn command_observed(
                         a.motion.heading
                     };
                     let command =
-                        sail(a, actors, contacts, islands, state, heading, speed, maximum);
+                        sail(a, actors, contacts, terrain, state, heading, speed, maximum);
                     if maximum < a.definition().handling.forward_speed * 0.85
                         && maximum + 0.5 < leader.motion.speed.abs()
                         && state.status != NavigationStatus::Avoiding
@@ -944,7 +892,7 @@ pub fn command_observed(
                     a,
                     actors,
                     contacts,
-                    islands,
+                    terrain,
                     state,
                     a.motion.heading,
                     0.,
@@ -966,7 +914,7 @@ pub fn command_observed(
             a,
             actors,
             contacts,
-            islands,
+            terrain,
             state,
             a.motion.heading,
             0.0,
@@ -979,9 +927,9 @@ pub fn command_observed(
     let obstructed = state
         .path
         .first()
-        .is_some_and(|p| !clear_departure(at, *p, islands, margin));
+        .is_some_and(|p| !clear_departure(at, *p, terrain, margin));
     if (changed || state.path.is_empty() || obstructed) && tick >= state.next_plan_tick {
-        state.path = plan_path(at, destination, islands, margin).unwrap_or_default();
+        state.path = plan_path(at, destination, terrain, margin).unwrap_or_default();
         state.path_target = Some(destination);
         state.next_plan_tick = tick + 60;
     }
@@ -1000,7 +948,7 @@ pub fn command_observed(
         requested.min(braking_speed.max(final_speed))
     };
     let heading = (next[0] - at[0]).atan2(at[1] - next[1]);
-    sail(a, actors, contacts, islands, state, heading, speed, maximum)
+    sail(a, actors, contacts, terrain, state, heading, speed, maximum)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1008,7 +956,7 @@ fn sail(
     a: &Vessel,
     actors: &[Vessel],
     contacts: Option<&[crate::sensors::ContactTrack]>,
-    islands: &[Island],
+    terrain: &Terrain,
     state: &mut NavigationState,
     heading: f64,
     speed: f64,
@@ -1044,5 +992,5 @@ fn sail(
         rudder,
         ..Default::default()
     };
-    avoid_land(&a.motion, command, islands)
+    avoid_land(a, command, terrain)
 }

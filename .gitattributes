@@ -23,9 +23,16 @@ assets/**/*.py !filter !diff !merge text
 assets/**/*.ts !filter !diff !merge text
 assets/**/*.svg !filter !diff !merge text
 
-# Install the repository-local driver with bun run git:setup after cloning.
-# Real same-field conflicts remain unmerged; binary outputs keep normal Git behavior.
+# Install the repository-local driver with bun run git:setup after cloning. It merges records by stable ID
+# and rewrites the file in its own exact style; real conflicts keep base-aware line markers. Binary outputs
+# keep normal Git behavior.
 assets/parts/guns.json merge=ship-catalog
+assets/parts/library.json merge=ship-catalog
+assets/parts/construction.json merge=ship-catalog
+assets/parts/construction-library.json merge=ship-catalog
+assets/ships/*/blueprint.json merge=ship-catalog
+assets/gameplay/hydrostatics.v1.json merge=ship-catalog
+src/ships/presetCatalog.json merge=ship-catalog
 
 # Build outputs and vendored bundles: keep them out of `git diff`, `git log -p` and review, where one
 # regenerated model prints tens of thousands of lines. Blueprints are authoring inputs and keep their diffs.
@@ -38,3 +45,6 @@ assets/ships/*/generated/** linguist-generated
 assets/gameplay/hydrostatics.v1.json linguist-generated -diff
 vendor/*/build/** linguist-vendored -diff
 docs/**/*.html linguist-generated -diff
+
+# Baked battle terrain (scripts/maps/bake-terrain.py): compressed heightfields, never hand-edited.
+public/maps/terrain/*.ntf binary

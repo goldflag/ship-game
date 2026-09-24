@@ -1,5 +1,6 @@
 //! A strike whose report dies shifts to a ship the pilot can see, or returns
 //! armed. It never orbits a sunk contact until endurance runs out.
+use naval_sim::terrain::Terrain;
 use naval_sim::{
     aviation::{ActiveFlights, AirContext, AirOrder, AirRules, Aviation, EndurancePolicy},
     catalog::Catalog,
@@ -38,8 +39,7 @@ fn observe(actors: &[Vessel], air: &Aviation, reports: &mut Sensors, tick: u64) 
     reports.update(
         tick,
         &sensors::entities(actors, air),
-        &[],
-        &[],
+        &Terrain::open_sea(),
         sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
         &sensors::VisualRules::default(),
     );
@@ -50,8 +50,7 @@ fn step(actors: &[Vessel], air: &mut Aviation, reports: &Sensors, tick: u64) {
             knowledge: Some(Knowledge {
                 sensors: reports,
                 tick,
-                islands: &[],
-                terrain: &[],
+                terrain: &naval_sim::terrain::OPEN_SEA,
             }),
             actors,
             shells: &mut vec![],

@@ -26,7 +26,7 @@ export async function compareWater(review: any, Baseline: typeof CombatEffects, 
   const oldTarget = renderer.getRenderTarget(), clearColor = renderer.getClearColor(new Color()), clearAlpha = renderer.getClearAlpha();
   if (isolated) {
     stage.fogNode = game.scene.fogNode;
-    const names = ['Ballistic water sheets', 'Ballistic water body', 'Water droplets and mist', 'Wind-carried water mist'];
+    const names = ['Splash water jets', 'Splash spray billows', 'Water droplets and mist', 'Wind-carried water mist'];
     for (const effects of Object.values(variants)) {
       for (const child of effects.root.children) child.visible = names.includes(child.name);
     }

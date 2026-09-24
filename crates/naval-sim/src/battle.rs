@@ -11,13 +11,14 @@ use crate::{
     catalog::Catalog,
     collisions::HullImpact,
     depth_charges::{self, DepthCharge},
-    environment::{Island, SeaState},
+    environment::SeaState,
     geometry::*,
     gunnery::PlayerGunOrders,
     impact::{DamageEvent, DepthChargeEffect, TorpedoEffect},
     motion::HelmCommand,
     rules::{DT, Outcome, Rules, Survivor, TeamId},
     shell::Shell,
+    terrain::{DEPLOYMENT_CLEARANCE_M, Terrain},
     torpedoes::{self, Torpedo},
     vessel::{CompiledShip, Controller, Vessel},
 };
@@ -52,7 +53,7 @@ pub struct BattleSetup {
     pub map_id: String,
     pub weather: String,
     /// Metres between the default spawn lines, 1000..=20000: team a at z = 0,
-    /// team b at z = -spawnDistance, islands laid out around the midpoint.
+    /// team b at z = -spawnDistance, the map's chart centred on the midpoint.
     pub spawn_distance: f64,
     /// Metres per second, 0..=30; null takes the weather preset's wind.
     pub wind_speed: Option<f64>,
@@ -106,7 +107,9 @@ pub struct Battle {
     pub outcome: Option<Outcome>,
     pub seed: u32,
     pub sea: SeaState,
-    pub islands: Vec<Island>,
+    /// The map's terrain in this battle's world: open sea, or a real chart centred
+    /// between the default spawn lines (custom, online) or on the mission area.
+    pub terrain: Terrain,
     pub map_id: String,
     pub sequence: i64,
     pub dispersion: u32,
@@ -178,6 +181,9 @@ impl Battle {
             )
         }
         .map_err(|e| e.to_string())?;
+        // Build the chart's clearance grid and relief pyramid during admission
+        // rather than on the first tick that steers, fires or looks near land.
+        environment.terrain.prepare();
         let mut actors = vec![];
         let mut slots = [0usize; 2];
         let mut displacement = vec![];
@@ -260,16 +266,13 @@ impl Battle {
                     other.motion.id
                 )));
             }
-            if let Some(island) = environment.islands.iter().find(|i| {
-                let mut expanded = (*i).clone();
-                expanded.rx += 250.0;
-                expanded.rz += 250.0;
-                expanded.radius(p.x, p.z) <= 1.05
-            }) {
-                return Err(format!(
-                    "Deployment is too close to land: ship {:?} at x {}, z {} is within about 250 m of island {} (centre x {:.0}, z {:.0})",
-                    a.motion.id, p.x, p.z, island.id, island.x, island.z
-                ));
+            if environment
+                .terrain
+                .land_within(p.x, p.z, DEPLOYMENT_CLEARANCE_M)
+            {
+                return Err(deployment(format!(
+                    "is within {DEPLOYMENT_CLEARANCE_M} m of land"
+                )));
             }
             a.motion.x = p.x;
             a.motion.z = p.z;
@@ -316,7 +319,7 @@ impl Battle {
             outcome: None,
             seed: setup.seed,
             sea: environment.sea,
-            islands: environment.islands,
+            terrain: environment.terrain,
             map_id: setup.map_id,
             sequence: 0,
             dispersion: 0,
@@ -371,10 +374,14 @@ impl Battle {
                 "wind direction must be finite".into(),
             ));
         }
+        if !(0.0..=30.0).contains(&wind_mps) {
+            return Err(crate::catalog::ContentError::Setup(format!(
+                "windSpeed {wind_mps} outside 0..=30 m/s"
+            )));
+        }
         let sea = self
             .catalog
-            .resolve_environment(&self.map_id, "clear", self.seed, 1, 5000.0, Some(wind_mps))?
-            .sea;
+            .resolve_sea(&self.map_id, "clear", self.seed, Some(wind_mps))?;
         self.sea = SeaState {
             direction: direction_deg.rem_euclid(360.0).to_radians(),
             phase: self.sea.phase,
@@ -759,8 +766,7 @@ fn step_torpedoes(
     torpedoes: &mut Vec<Torpedo>,
     actors: &mut [Vessel],
     air: &mut Aviation,
-    islands: &[Island],
-    fields: &[crate::environment::TerrainField],
+    terrain: &Terrain,
     events: &mut Vec<DamageEvent>,
 ) {
     for i in (0..torpedoes.len()).rev() {
@@ -786,7 +792,7 @@ fn step_torpedoes(
             velocity: t.velocity,
             diameter_m: w.diameter_m,
         };
-        let land = crate::environment::first_land_hit(islands, fields, from, to);
+        let land = terrain.first_hit(from, to);
         if let Some((at, point)) = land
             && hit.is_none_or(|(_, _, ht, _)| at < ht)
         {
@@ -959,8 +965,7 @@ mod torpedo_contact_tests {
             &mut rounds,
             &mut actors,
             &mut air,
-            &[],
-            &[],
+            &Terrain::open_sea(),
             &mut events,
         );
         assert!(rounds.is_empty(), "contact must consume the projectile");

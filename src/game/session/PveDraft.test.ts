@@ -7,7 +7,7 @@ beforeAll(async () => {
   await init({ module_or_path: await Bun.file(new URL('../../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() });
   manifest = new Uint8Array(await Bun.file(new URL('../../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
 });
-const request: PveRequest = { version: 1, seed: 8171, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal',
+const request: PveRequest = { version: 1, seed: 8171, mapId: 'iron-bottom-sound', weather: 'clear', difficulty: 'normal',
   ships: [{ id: 'own-destroyer', presetId: 'fletcher', groupId: 'front' }], groups: [{ id: 'front', name: 'Vanguard', station: 'front' }] };
 test('real WASM planner exposes owned deployment only and remains usable after an invalid placement', () => {
   const planner = new PvePlanner(manifest, JSON.stringify(request));

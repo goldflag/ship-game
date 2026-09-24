@@ -306,3 +306,16 @@ test('damage control rides on the ship card and sets crew priority with one pres
   expect(html.indexOf('aria-label="Damage control"')).toBeGreaterThan(html.indexOf('aria-label="Ship condition and helm"'));
   expect(html.slice(html.indexOf('class="fleet-reports"'), html.indexOf('class="fleet-fps"'))).not.toContain('Damage control');
 });
+
+test('the helm compass and course read true bearings on a turned chart', () => {
+  const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
+  // Steaming chart-up and looking 30° to starboard on Iron Bottom Sound, whose chart is up 315°.
+  const data: Telemetry = { ship: { ...sim.ship, heading: 0 }, viewBearing: Math.PI / 6, order: 1, camera: 'Chase', fps: 60, trail: [], mapId: 'iron-bottom-sound' };
+  const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+  expect(html).toContain('aria-label="Ship heading 315 degrees"');
+  expect(html).toContain('<span class="fleet-bearing-course">315°</span>');
+  expect(html).toContain('aria-label="View bearing 345 degrees"');
+  const open = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={{ ...data, mapId: 'north-atlantic' }} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+  expect(open).toContain('aria-label="Ship heading 0 degrees"');
+  expect(open).toContain('aria-label="View bearing 030 degrees"');
+});

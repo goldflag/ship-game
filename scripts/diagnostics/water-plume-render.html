@@ -6,7 +6,7 @@
 <script type="module">
 import * as THREE from 'three/webgpu';
 import { WaterPlumes } from '/src/game/WaterPlumes.ts';
-import { effectTexture } from '/src/game/EffectParticles.ts';
+import { EffectLighting } from '/src/game/EffectLighting.ts';
 
 // Exercise the production material, sheet buffers and depth test with either
 // depth convention. This supplements the full ocean/game visual and performance review.
@@ -18,7 +18,7 @@ async function check(reversedDepthBuffer) {
   const scene = new THREE.Scene(); scene.background = new THREE.Color('#19364a');
   const camera = new THREE.PerspectiveCamera(52, 1, .1, 10000);
   camera.position.set(0, 22, 95); camera.lookAt(0, 22, 0); camera.updateMatrixWorld();
-  const map = effectTexture('water'), plumes = new WaterPlumes(384, map);
+  const lighting = new EffectLighting(), plumes = new WaterPlumes(640, lighting);
   scene.add(plumes.mesh);
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 384;
   const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -40,8 +40,9 @@ async function check(reversedDepthBuffer) {
     emit(); plumes.advance(1.5); plumes.publish(camera);
     const single = await pixels(), singleSheets = plumes.count;
     plumes.advance(0); plumes.publish(camera); const paused = await pixels();
-    plumes.setSun(new THREE.Vector3(-.55, .74, -.39).normalize(), .08);
-    const night = await pixels(); plumes.setSun(new THREE.Vector3(-.55, .74, -.39).normalize());
+    // Moonlight: the environment dims the effects' direct and sky light (VisualEnvironment.syncLighting).
+    lighting.setIllumination(new THREE.Color(1, 1, 1), .4, .12);
+    const night = await pixels(); lighting.setIllumination(new THREE.Color(1, 1, 1), 5.8, 1.75);
     let dayLight = 0, nightLight = 0;
     for (let i = 0; i < single.length; i += 4) if (single[i] - empty[i] > 30) {
       dayLight += single[i] + single[i+1] + single[i+2]; nightLight += night[i] + night[i+1] + night[i+2];
@@ -72,7 +73,7 @@ async function check(reversedDepthBuffer) {
       figure.append(caption, preview); document.body.append(figure);
     }
     return result;
-  } finally { plumes.dispose(); map.dispose(); renderer.dispose(); }
+  } finally { plumes.dispose(); lighting.dispose(); renderer.dispose(); }
 }
 window.waterRenderResults = [];
 try {

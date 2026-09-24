@@ -10,6 +10,8 @@ import { effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 import { EffectLighting } from './EffectLighting';
 import { rejectTemporalHistory } from './TemporalAntialiasing';
 import { WaterPlumes } from './WaterPlumes';
+import { applySpraySprite } from './SprayMaterial';
+import { smokeBillowTexture } from './SmokeSpriteMaterial';
 import { shellGeometry } from '../../assets/effects/naval/shellGeometry';
 import { ShellTrails } from './ShellTrails';
 import { BlastEffects } from './BlastEffects';
@@ -48,7 +50,7 @@ function randomFor(seed: number): () => number {
 export class CombatEffects {
   readonly root = new THREE.Group();
   private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), shellGlow: effectTexture('glow'), foam: effectTexture('foam'), tracer: effectTexture('tracer'),
-    droplet: effectTexture('droplet'), water: effectTexture('water') };
+    droplet: effectTexture('droplet'), billow: smokeBillowTexture() };
   private readonly volumeMap = effectVolumeTexture();
   private readonly ownsLighting: boolean;
   /** Scene light, wind and depth, shared with ship fires and funnel exhaust. */
@@ -56,12 +58,13 @@ export class CombatEffects {
   private readonly sun: EffectLighting['sunDirection'];
   private readonly wind: THREE.Vector3;
   private readonly smoke: EffectParticlePool;
-  private readonly spouts = new WaterPlumes(384, this.maps.water);
-  // Aerated spray scatters far more sky light into its shaded side than smoke,
-  // so it shares the smoke march with a brighter ambient term.
-  private readonly sprayVolumes: EffectParticlePool;
-  private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
-  private readonly mist = new EffectParticlePool(192, this.maps.smoke, false, undefined, true);
+  // Splash water, created in its drawing order: the billowing spray around a column's base, the jets rising
+  // out of it (their streaks run on over the billows), drops, then mist.
+  /** The dense, lumpy spray around a splash's base and the low wall of it rolling out over the sea. */
+  private readonly billows: EffectParticlePool;
+  private readonly spouts: WaterPlumes;
+  private readonly spray: EffectParticlePool;
+  private readonly mist: EffectParticlePool;
   private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke, false, undefined, false, true);
   private readonly flakSmoke: EffectParticlePool;
   private readonly airbursts = new Map<number, CombatEvent>();
@@ -107,12 +110,15 @@ export class CombatEffects {
     this.ownsLighting = !lighting;
     this.lighting = lighting ?? new EffectLighting();
     this.sun = this.lighting.sunDirection; this.wind = this.lighting.wind;
+    this.billows = new EffectParticlePool(320, this.maps.billow, false, undefined, false, true);
+    applySpraySprite(this.billows.mesh.material, this.lighting, this.maps.billow);
+    this.spouts = new WaterPlumes(640, this.lighting);
+    this.spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
+    this.mist = new EffectParticlePool(192, this.maps.smoke, false, undefined, true);
     const volumes = { direct: this.lighting.direct, ambient: this.lighting.ambient, flashes: this.flashes };
     this.smoke = new EffectParticlePool(256, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.lighting.sceneDepth, 16, true, volumes), false, true);
     this.flakSmoke = new EffectParticlePool(256, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.lighting.sceneDepth, 10, true, volumes), false, true);
-    this.sprayVolumes = new EffectParticlePool(256, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.lighting.sceneDepth, 10, true,
-      { direct: this.lighting.direct, ambient: this.lighting.ambient.mul(2.1) }), false, true);
-    this.pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.sprayVolumes, this.spray, this.fire];
+    this.pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.billows, this.spray, this.fire];
     this.localFires = new LocalizedFireEffects(this.lighting);
     this.blasts = new BlastEffects({ volumes: this.smoke, fire: this.fire, foam: this.foam, mist: this.mist, spray: this.spray, spouts: this.spouts,
       illuminate: (position, power, duration, distance) => this.illuminate(position, power, duration, distance) }, this.lighting);
@@ -126,7 +132,7 @@ export class CombatEffects {
     this.smoke.mesh.name = 'Propellant and impact volumes';
     this.spray.mesh.name = 'Water droplets and mist';
     this.mist.mesh.name = 'Wind-carried water mist';
-    this.sprayVolumes.mesh.name = 'Splash spray volumes';
+    this.billows.mesh.name = 'Splash spray billows';
     this.root.add(this.spouts.mesh);
     this.pools.forEach(pool => this.root.add(pool.mesh));
     this.depthChargeBodies.name = 'Depth charge bodies';
@@ -145,7 +151,8 @@ export class CombatEffects {
     this.lighting.setWind(speed, direction);
   }
   setSun(direction: THREE.Vector3, intensity = 1): void {
-    this.lighting.setSun(direction, intensity); this.spouts.setSun(direction, intensity);
+    // The water jets and spray billows read the same lighting.
+    this.lighting.setSun(direction, intensity);
     // Tint also reaches existing airborne water when the environment changes.
     this.spray.mesh.material.color.setScalar(intensity);
     this.mist.mesh.material.color.setScalar(intensity);
@@ -444,24 +451,24 @@ export class CombatEffects {
     const lean = (2 + 5 * (1 - Math.min(1, Math.abs(this.direction.y)))) * rootSize;
     this.position.y = surfaceY + .35;
     this.spouts.emit(this.position, size, this.direction, random);
-    // Coherent sheets carry most of the water; small fragments fringe the
+    // Coherent jets carry most of the water; small fragments fringe the
     // column and low crown. Match their launch envelope so breakup is continuous.
     for (let i = 0; i < 144; i++) {
       const p = this.spray.emit(this.position), angle = random() * Math.PI * 2;
       const crown = i < 36;
       const speed = (crown ? 8 + random() * 13 : 1 + random() ** 2 * 7) * rootSize;
-      // Column drops tear from the sheets, so none outrun the tallest tips.
+      // Column drops tear from the jets, so none outrun the tallest tips.
       p.velocity.set(Math.cos(angle) * speed + this.direction.x * lean,
         (crown ? 7 + random() * 10 : 13 + random() * 24) * rootSize * lift,
         Math.sin(angle) * speed + this.direction.z * lean);
-      p.size = (.07 + random() ** 2 * .26) * size; p.growth = .015 * size;
+      p.size = (.1 + random() ** 2 * .35) * size; p.growth = .015 * size;
       p.life = 2 * p.velocity.y / 9.81 + .4; p.age = -random() * .16;
       p.drag = .12; p.gravity = 9.81; p.waterline = true; p.surfaceY = surfaceY;
       p.wind = .04; p.opacity = .8; p.color.copy(WATER).multiplyScalar(.8 + random() * .2);
       // Fast drops smear along their flight like rain and round out at their apex.
       p.align = 'streak'; p.stretch = 3 + random() * 3;
     }
-    if (size >= .45) this.splashSpray(size, rootSize, lift, lean, random, surfaceY);
+    this.splashBillows(size, rootSize, lift, lean, random, surfaceY);
     // A translucent veil separates from the rising water, then a second low
     // veil forms where it rains back. Wind catches mist more than heavy drops.
     for (let i = 0; i < 18; i++) {
@@ -480,48 +487,51 @@ export class CombatEffects {
     // ShipWake stamps the remaining foam onto the ocean's own displaced surface.
   }
 
-  /** Lit spray around the streaks. The rising sheets stay crisp; their stalled
-   * tips shed a soft cap, the collapsing column leaves a misty curtain, and the
-   * water raining back rolls a low surge out across the sea. Each stage is a few
-   * marched volumes that linger downwind after the sheets have gone. */
-  private splashSpray(size: number, rootSize: number, lift: number, lean: number, random: () => number, surfaceY: number): void {
-    const heavy = size >= .6, peak = 38 * rootSize * lift;
-    const puff = (delay: number, life: number, angle: number, radius: number, height: number, drift: number) => {
-      const p = this.sprayVolumes.emit(this.position);
-      p.position.x += Math.cos(angle) * radius + this.direction.x * lean * drift;
-      p.position.z += Math.sin(angle) * radius + this.direction.z * lean * drift;
-      p.position.y = surfaceY + height;
-      p.age = -delay; p.life = life; p.heat = 0; p.fadeIn = .35;
-      p.color.setRGB(.93, .96, 1); p.seed = random() * 100;
-      return p;
-    };
-    // The cap sinks after the water that carried it; only its finest mist hangs back.
-    for (let i = 0; i < (heavy ? 3 : 2); i++) {
-      const angle = random() * Math.PI * 2;
-      const p = puff((1.5 + random() * .8) * rootSize, 8 + random() * 3, angle, (1 + random() * 3) * size, (.7 + random() * .2 - i * .08) * peak, 2);
-      p.velocity.set(Math.cos(angle) * 2.5 * rootSize, .5, Math.sin(angle) * 2.5 * rootSize);
-      p.drag = .6; p.gravity = 1.7 * rootSize; p.wind = .9; p.fadeIn = .9;
-      p.size = (heavy ? 9 : 7) * size; p.growth = 6 * size; p.growthDecay = .35; p.diffusion = 1.1 * size;
-      p.opacity = heavy ? .5 : .4; p.density = .3; p.cooling = 2; p.dissipationTime = 5;
+  /** The dense spray around the column's base: billows ride its slower water up into a lumpy lower mass that
+   * hangs and settles once the jets fall, and a low wall of spray rolls outward across the sea. Spray is water
+   * and air together, so it falls slowly under drag and ends up hovering above the sea as the column collapses. */
+  private splashBillows(size: number, rootSize: number, lift: number, lean: number, random: () => number, surfaceY: number): void {
+    const heavy = size >= .45, body = heavy ? 6 : 3, skirt = heavy ? 7 : 4;
+    for (let i = 0; i < body; i++) {
+      const p = this.billows.emit(this.position), angle = random() * Math.PI * 2, radius = random() * 4 * size;
+      // Stacked from the sea up: each billow stalls at its own height.
+      const stack = i / (body - 1), spread = (1 + random() * 2) * rootSize;
+      p.position.x += Math.cos(angle) * radius; p.position.z += Math.sin(angle) * radius;
+      p.position.y = surfaceY + (2 + random() * 3) * size;
+      p.velocity.set(Math.cos(angle) * spread + this.direction.x * lean * .6, (6 + stack * 13 + random() * 4) * rootSize * lift,
+        Math.sin(angle) * spread + this.direction.z * lean * .6);
+      p.drag = 1.1; p.gravity = 2.4; p.wind = .5;
+      // The jets lead: the billows gather a moment later from the water they shed.
+      p.size = (4 + random() * 2.5) * size; p.growth = (8 + random() * 4) * size; p.growthDecay = .5;
+      p.life = 7 + random() * 3; p.age = -(.12 + random() * .15); p.fadeIn = .35; p.opacity = .92;
+      p.angle = random() * Math.PI * 2; p.spin = (random() - .5) * .25; p.color.setRGB(.94, .97, 1);
     }
-    for (let i = 0; i < (heavy ? 2 : 1); i++) {
-      const angle = random() * Math.PI * 2;
-      const p = puff((2.6 + random() * .8) * rootSize, 7 + random() * 2, angle, (1 + random() * 3) * size, (.35 + i * .2 + random() * .08) * peak, 1.8);
-      p.velocity.set(Math.cos(angle) * 1.5 * rootSize, -1, Math.sin(angle) * 1.5 * rootSize);
-      p.drag = .8; p.gravity = 1.2; p.wind = .8; p.fadeIn = .7;
-      p.size = 9 * size; p.growth = 7 * size; p.growthDecay = .4; p.diffusion = .6 * size;
-      p.opacity = .45; p.density = .22; p.cooling = 2; p.dissipationTime = 5;
+    const turn = random() * Math.PI * 2;
+    for (let i = 0; i < skirt; i++) {
+      const angle = turn + (i + random() * .6) / skirt * Math.PI * 2, speed = (7 + random() * 5) * rootSize;
+      const p = this.billows.emit(this.position);
+      p.position.x += Math.cos(angle) * 4 * size; p.position.z += Math.sin(angle) * 4 * size;
+      p.position.y = surfaceY + (2.5 + random() * 2) * size;
+      p.velocity.set(Math.cos(angle) * speed, (1.5 + random() * 2) * rootSize, Math.sin(angle) * speed);
+      p.drag = 1.1; p.gravity = .6; p.wind = .8;
+      p.size = (5 + random() * 2.5) * size; p.growth = (8 + random() * 3) * size; p.growthDecay = .35;
+      p.life = 9 + random() * 4; p.age = -(.05 + random() * .15); p.fadeIn = .3; p.opacity = .85;
+      p.angle = random() * Math.PI * 2; p.spin = (random() - .5) * .2; p.color.setRGB(.94, .97, 1);
     }
-    const surge = heavy ? 7 : 4, turn = random() * Math.PI * 2;
-    for (let i = 0; i < surge; i++) {
-      const angle = turn + (i + random() * .5) / surge * Math.PI * 2;
-      const p = puff((2.1 + random() * .9) * rootSize, 10 + random() * 4, angle, 4 * size, 1.5 * size, 1.5);
-      const speed = (5 + random() * 3) * rootSize;
-      p.velocity.set(Math.cos(angle) * speed, .5, Math.sin(angle) * speed);
-      p.drag = .7; p.gravity = .1; p.wind = 1;
-      p.size = 8 * size; p.growth = 8 * size; p.growthDecay = .4; p.diffusion = .5 * size;
-      p.volumeAspect = 1.8; p.volumeYaw = angle + Math.PI / 2; p.volumeAxisY = 0;
-      p.opacity = .5; p.density = .3; p.cooling = 3.5; p.dissipationTime = 7;
+    if (!heavy) return;
+    // The column's collapse: the falling water gathers into a dense dome of spray that settles and spreads.
+    const peak = 38 * rootSize * lift;
+    for (let i = 0; i < 5; i++) {
+      const angle = random() * Math.PI * 2, radius = (3 + random() * 5) * size, delay = (2.2 + random()) * rootSize;
+      const p = this.billows.emit(this.position);
+      p.position.x += Math.cos(angle) * radius + this.direction.x * lean * 1.5;
+      p.position.z += Math.sin(angle) * radius + this.direction.z * lean * 1.5;
+      p.position.y = surfaceY + (.15 + i * .06 + random() * .08) * peak;
+      p.velocity.set(Math.cos(angle) * 2 * rootSize, -1.5, Math.sin(angle) * 2 * rootSize);
+      p.drag = 1.2; p.gravity = 1.2; p.wind = .7;
+      p.size = (10 + random() * 4) * size; p.growth = (8 + random() * 3) * size; p.growthDecay = .3;
+      p.life = 8 + random() * 3; p.age = -delay; p.fadeIn = .7; p.opacity = .8;
+      p.angle = random() * Math.PI * 2; p.spin = (random() - .5) * .15; p.color.setRGB(.94, .97, 1);
     }
   }
 
@@ -538,7 +548,7 @@ export class CombatEffects {
   }
   diagnostics() {
     const blasts = this.blasts.diagnostics();
-    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count + this.localFires.diagnostics().smoke, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count + this.sprayVolumes.count,
+    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count + this.localFires.diagnostics().smoke, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count + this.billows.count,
       flashes: this.fire.count + this.localFires.diagnostics().flames, foam: this.foam.count, shellTrails: this.shellTrails.diagnostics(),
       /** Fragments, their smoke trails and smouldering holes. */
       blasts: { soot: blasts.soot, debris: blasts.debris, smoulders: blasts.smoulders, trails: blasts.trails },

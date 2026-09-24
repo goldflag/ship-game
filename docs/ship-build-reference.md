@@ -98,6 +98,11 @@ library variants are not model inputs. Python 3 is required to fingerprint recip
 | Missing/corrupt retained source or model | Regenerate that stage; intact independent stages can be reused |
 | Deleted `.build/ships/` staging | Restore from verified retained outputs; no forced geometry rebuild |
 | `--force` | Execute geometry, export, validation and thumbnail for every selected ship |
+| `--no-refresh` | Publish without refreshing the hydrostatic table and runtime content |
+
+After publishing a ship listed in `src/ships/presets.ts`, `ship:build` refreshes what the game loads with it: that
+ship's hydrostatic table when its content hash moved (`ship:hydrostatics <id>`, under 10 s; the whole fleet takes
+about 11 s), then `multiplayer:content` (about 2 s). `ship:build all` refreshes once after every ship finishes.
 
 `fingerprints.ts` defines the explicit geometry input contract. Recipes receive
 that projection, including inspection volumes; runtime-only fields are not
@@ -138,5 +143,7 @@ The authoring audit rejects raw game model/cache paths, the Bismarck baseline an
 ## Shared recipe inputs
 
 Presets may share original text recipes under `assets/` using optional `recipe-inputs.json`: `{ "version": 1, "files": ["assets/ships/convoy/geometry-v2.py"] }`. The register and listed files enter the content hash and pre-publication input check. Baselines, reference folders and parent traversal are rejected. Rebuild each declared consumer after changing a shared recipe.
+
+A parts catalog the recipe reads a few entries from belongs under `records` instead of `files`, with the IDs it uses: `"records": { "assets/parts/construction.json": ["hood-forward-funnel"] }`. Every top-level list of records with those `id`/`partId` values and every map keyed by them (`builders`) is cut to the declared entries; other fields stay whole. The fingerprint hashes only that cut, so publishing another part leaves the ship current. During `ship:build` the recipe reads the cut copies through `catalog_records.catalog(path)` (declare `assets/parts/catalog_records.py` in `files`); an undeclared entry is simply absent, a declared ID missing from the catalog fails the fingerprint, and a direct read of the full file fails the build. `assets/parts/library.json` needs no declaration of records: it is already cut to the builders of the ship's fitted mounts.
 
 Resolve authoring inputs first during integration, run `ship:check all`, then apply its narrow repair. See the [integration workflow](integration-workflow.md).

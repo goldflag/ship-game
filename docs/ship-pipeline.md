@@ -8,8 +8,8 @@ additional structures and shapes that sections cannot represent; explain any
 main-hull exception in the ship README. See [agent hull authoring](construction-authoring.md#adjustable-hull-first).
 
 The workflow below documents Blender-recipe ships and the shared acceptance
-requirements. `ship:new` and `ship:register` handle construction sources only; a
-new Blender-recipe preset follows [Blender-recipe presets](#blender-recipe-presets).
+requirements. A new Blender-recipe preset follows [Blender-recipe presets](#blender-recipe-presets):
+`ship:new --legacy` scaffolds it and `ship:register` accepts it.
 When the owner asks for a premade ship "using the Blender pipeline" or "like Yamato
 or Bismarck", that is the path, and the custom-hull preference above does not apply.
 
@@ -62,7 +62,7 @@ Keep the approved decisions in the conversation until scaffolding, then add a sh
 Run commands from the repository root. Replace `my-ship` with the lowercase ship ID.
 
 1. **Agree the brief and approve references.** Complete the [collaborative briefing and reference checkpoint](#start-a-new-ship-collaboratively) before historical geometry or appearance work. Inspect the accepted primary model/configuration, record known scale/waterline limitations, and follow the selected source policy throughout the task. Use the source viewer for reference approval and the [local comparison app](../tools/ship-overlay/README.md) once our model is built and registered.
-2. **Scaffold only when new:** `bun run ship:new my-ship` for a construction ship. It refuses existing directories and creates a minimal starter, not a finished historical ship. A Blender-recipe preset has no scaffold yet: copy the layout listed in [Blender-recipe presets](#blender-recipe-presets). Add the approved brief to its README after scaffolding; do not precreate the ship directory just to store the brief. Inspect the existing scene through the [authoring loop](ship-build-reference.md#blender-mcp-authoring-loop), with Blender MCP or background renders. For existing ships, inspect this worktree's `generated/source.blend`; for new ships, build the starter to get an inspectable scene.
+2. **Scaffold only when new:** `bun run ship:new my-ship` for a construction ship, or `bun run ship:new my-ship --legacy` for a [Blender-recipe preset](#blender-recipe-presets). It refuses existing directories and creates a minimal starter, not a finished historical ship. Add the approved brief to its README after scaffolding; do not precreate the ship directory just to store the brief. Inspect the existing scene through the [authoring loop](ship-build-reference.md#blender-mcp-authoring-loop), with Blender MCP or background renders. For existing ships, inspect this worktree's `generated/source.blend`; for new ships, build the starter to get an inspectable scene.
 3. **Iterate visually and author durable inputs.** Search `bun run part:list` and inspect matching components in `bun run model:viewer` before creating gun geometry. Reuse the exact registered variant through `assets/parts/library.py` and declare the dependencies from `part:inputs`; see [shared components](shared-components.md). Installed model previews are inspection-only, not source assets. Use MCP or background Blender for focused edits, object/pivot inspection and fresh screenshots after meaningful changes. Compare against the primary reference and correct visible mismatches before adding detail. Persist accepted interactive changes in source, then rebuild to verify they survive. Edit the blueprint for hull, mounts, protection, machinery, compartments and connections; reuse or extend catalog parts for distinct equipment. Edit `build.py` or a versioned original component asset for geometry. Generated-scene edits alone are lost on rebuild. Shared text recipes must be declared in [`recipe-inputs.json`](ship-build-reference.md#shared-recipe-inputs). Preserve stable IDs, joints and sockets. Use runtime meters, +Y up, -Z bow, +X starboard, waterline Y=0; apply the documented Blender conversion exactly once.
 4. **Complete gameplay data.** Update internals and compartment containment after hull changes. Author applicable [local damage/fire profiles](ship-runtime-contract.md#local-damage-fires-and-combat-loss) and equipment extensions; inspect authoring-helper scope before running them. Combat behavior must come from definitions/components, with no ship-name branches. Author a wing secondary's `bearingDeg` as the centre of its beam arc, as before: side secondaries rest trained fore or aft automatically, clamped to that arc ([rest rule](gunnery.md#rest-and-idle-secondaries)).
 5. **Compile and build:**
@@ -71,7 +71,7 @@ Run commands from the repository root. Replace `my-ship` with the lowercase ship
    bun run ship:build my-ship
    ```
    Compile validates inputs and writes staging data. Build runs isolated local Blender, validates the exported hull/joints/muzzles, and publishes matching `public/models/<id>.glb` and `.json`, retained Blender source and thumbnail. Export diagnostics stay in `.build/ships/<id>/export.json`. No reference archive or report folder is required. Read [build details](ship-build-reference.md) for hashes, locks and recovery.
-6. **Register a new playable preset.** Run `bun run ship:register my-ship` to add one `preset('my-ship')` entry per line to [`src/ships/presets.ts`](../src/ships/presets.ts) (construction ships only; add a Blender-recipe preset's line by hand), then run `bun run ship:hydrostatics` and `bun run multiplayer:content` to derive runtime assets and menu metadata. `ship:new` does not register it. Register after the first successful build and before comparison-app or in-game inspection: both discover ships through this roster. Registration makes the candidate inspectable; it is not visual acceptance. This is the authoritative runtime/fleet-check roster; do not duplicate it in package scripts or shared prose. See [runtime representation and loading](ship-runtime-performance.md) for the derived binary contract and measurements.
+6. **Register a new playable preset.** Run `bun run ship:register my-ship` to add one `preset('my-ship')` entry per line to [`src/ships/presets.ts`](../src/ships/presets.ts) (for a Blender-recipe preset it also adds the funnel count to `src/game/ShipFunnelSmoke.test.ts`), then run `bun run ship:hydrostatics` and `bun run multiplayer:content` to derive runtime assets and menu metadata. `ship:new` does not register it. Register after the first successful build and before comparison-app or in-game inspection: both discover ships through this roster. Registration makes the candidate inspectable; it is not visual acceptance. This is the authoritative runtime/fleet-check roster; do not duplicate it in package scripts or shared prose. See [runtime representation and loading](ship-runtime-performance.md) for the derived binary contract and measurements.
 7. **Review the built geometry:** `bun run ship:review my-ship`. Reopen the rebuilt scene, through MCP or background renders, and verify accepted edits survived the clean build. Inspect all five fixed views plus close-ups, approved primary-model comparisons, with historical overlays only when the selected reference policy includes them; also inspect the actual exported GLB with the local comparison app. Complete every [visual acceptance check](ship-model-review.md): physical attachment, priority proportions, detailed exposed guns and clearance through articulation. Resolve known failures in authoring inputs, rebuild and repeat the affected checks.
 8. **Verify in-game and finish.** Load the exact published ship/hash. Check full traverse/elevation/recoil, independently positioned neighboring mounts, fitted weapons, free aim, firing, hits, damage, flooding and reset. In port, inspect Armor and Internals, isolate a volume, return to Statistics, launch and return to port. Use the shared inspection/statistics adapters for new properties. Run the checks below and summarize results to the user. Update the ship README only for lasting configuration or limitation changes; leave raw results in `.build/`.
 
@@ -81,17 +81,19 @@ For national cloth ensigns and articulated sensors, see [ensigns and radar rigs]
 
 A premade ship built as a Blender recipe (Bismarck, Yamato, Iowa, King George V, Hood, Alaska) keeps its geometry in `build.py` and its gameplay data in `blueprint.json`. The steps above apply, with these differences.
 
-**Layout.** There is no scaffold; copy the layout of a recent preset such as Alaska or Hood:
+**Layout.** `bun run ship:new my-ship --legacy [--name "Name"] [--part gun-part-id]` writes this layout from `scripts/ships/legacy-template/`, modelled on Alaska, and runs `author-blueprint.py` once. Its placeholder cruiser (loft, deckhouses, funnel, two turrets of `--part`, armour and rooms) compiles and builds, so there is a scene to inspect at once; replace every table with measured values. `recipe-inputs.json` starts with the part's `part:inputs` and the appearance files.
 
 | File | Holds |
 | --- | --- |
 | `author-blueprint.py` | Writes `blueprint.json` from measured tables: hull stations, structures, mounts, armour |
 | `build.py`, plus region modules on a large ship | The Blender geometry recipe |
 | `appearance.json` | Material roles bound to named paints and finishes ([ship appearance](ship-appearance.md)) |
-| `recipe-inputs.json` | Every shared recipe file the build reads, as `assets/` paths only |
+| `recipe-inputs.json` | Every shared recipe file the build reads, as `assets/` paths only, and the [catalog entries](ship-build-reference.md#shared-recipe-inputs) it reads under `records` |
 | `README.md` | The approved brief, the build route and accepted approximations |
 
-After the first successful build, add the ship's line to `src/ships/presets.ts` by hand (`ship:register` rejects a Blender-recipe blueprint) and its funnel count to the table in `src/game/ShipFunnelSmoke.test.ts`.
+After the first successful build, `bun run ship:register my-ship` checks the published outputs, adds the ship's line to `src/ships/presets.ts` and its funnel count to the table in `src/game/ShipFunnelSmoke.test.ts`.
+
+**Measuring.** Trace deck and deckhouse outlines with `ship:slice <ref> --plan <y> --sym --parts hull,misc,other`, and see the windows, doors and markings a GameModels3D reference paints into its textures with `ship:reference <ref> --render` ([reference workflow](reference-workflow.md)).
 
 **Gameplay data, in order.** Run the authoring helpers once the hull and structures have settled, and always pass the ship ID: with no arguments, stability and damage control rewrite a fixed list of other ships.
 
@@ -100,24 +102,30 @@ After the first successful build, add the ship's line to `src/ships/presets.ts` 
 3. `bun assets/ships/author-stability.ts my-ship`. It fills `stability` only when absent; remove the field to recompute after a hull change.
 4. `bun assets/ships/author-damage-control.ts my-ship` writes the shared fleet defaults over any existing `damageControl`.
 
-**After every `ship:build`,** run `bun run ship:hydrostatics` and then `bun run multiplayer:content`. The hydrostatic table is keyed by the definition's content hash, so any blueprint or recipe change leaves it stale, and the game refuses a model whose definition version differs.
+**After the first build** of a new preset, register it, then run `bun run ship:hydrostatics my-ship` and `bun run multiplayer:content`. From then on, `ship:build` refreshes both itself. The hydrostatic table is keyed by the definition's content hash, and the game refuses a model whose definition version differs, so a stale table or stale content breaks loading.
 
 **Traps.**
 
 - Turret clearance (`mountClearance`) tests barrels against every `obstructions` box, not only the listed structures. One box around a stepped or L-shaped deckhouse freezes nearby mounts at rest; use fore-and-aft strips of 3 m or less.
+- `ship:check` warns when two `structures` share a top plane that nothing above covers: the renderer z-fights there wherever the recipe draws the blocks, and hits pay two coincident plates. Trim one footprint, or end one block where the other begins. Admiral Hipper, Cleveland, Bismarck, Yamato, Alaska, King George V, Mogami and Enterprise predate the check.
 - `surface.py` refuses a hull texture wider than 4096 px. Lower the hull binding's `pixelsPerMeter` for a long hull (Hood uses 15).
 - A recipe can call the registered builders in `construction-library.json`: load `construction/geometry.py` as `sys.modules['geometry']` first and strip each object's `nodeId`. Library builders under `scripts/` cannot be declared in `recipe-inputs.json`; call `blender_components.create_gun_mount` instead.
-- `assets/parts/library.json` is fingerprinted per fitted part, but `construction-library.json` and `construction.json` are hashed whole. A recipe that declares them goes stale whenever any part is published; `ship:check all` lists it.
-- A GameModels3D reference is not centred on our midships. Measure the fore-and-aft offset once (2.29 m on Iowa, 1.995 m on Alaska) and apply it to every comparison.
+- Declare `construction-library.json` and `construction.json` under `records` with the builder and part IDs the recipe uses, and read them through `catalog_records.catalog()` (Hood's `registered()` does). Listed under `files` they are hashed whole, and the ship goes stale whenever any part is published. `assets/parts/library.json` is already fingerprinted per fitted part.
+- A GameModels3D reference is not centred on our midships (about 2.3 m on Iowa, 2.0 m on Alaska). `ship:overlay` measures the fore-and-aft offset (waterline half-breadths, then side and top silhouettes; within 3 cm of the hand-measured values) and prints it; pass it to any other comparison.
 - GameModels3D paints windows and doors into its textures. Compare against a textured render before removing detail that seems absent from the geometry; Iowa lost its bridge windows this way.
 
-**Review.** The overlay comparison found most proportion errors on Hood and Alaska: render our GLB and the reference from the same orthographic camera, ours-only and reference-only in contrasting colours, for side, top, front and the bridge. Add close views of the bridge glazing and of the underwater stern (screws, rudders, shafts) to the fixed views; distant views hide both.
+**Attachment and clearance.** Run both after every geometry change; each exits 1 on a failure and writes its details to `.build/ships/<id>/`. They read the retained `generated/source.blend`, or the published GLB with `--glb` (construction ships always use the GLB).
+
+- `bun run ship:floating <id>` searches out from the hull through touching parts (intersecting, within 6 cm, or embedded) and lists every part or cluster it never reaches, by assembly. Merged rail and wire meshes count as attached but carry nothing (`--leaf`).
+- `bun run ship:sweep <id>` poses every mount through its installed traverse, elevation and recoil against the fixed ship and the other mounts at rest, then neighbouring mounts against each other, and replays each contact through the simulation's interlock resolver. A contact the interlocks stop first is covered; one the mount can reach fails. `--mounts main-*` narrows it while iterating; a whole ship takes a few minutes.
+
+**Review.** The overlay comparison found most proportion errors on Hood and Alaska. `bun run ship:overlay my-ship` renders the published GLB and the ship's suggested reference (cached with `ship:reference` if needed; `--reference` picks another) from the same orthographic camera, ours-only red and reference-only blue, as side, top, front, bridge and aft shots with IoU in `summary.json`, all under `.build/ships/<id>/overlay/`. `--box x0,y0,z0,x1,y1,z1` adds views clipped to a region, and `--camera` takes a `ui:shot` pose (`bowQuarter`, `az,el[,m]`). Add close views of the bridge glazing and of the underwater stern (screws, rudders, shafts) to the fixed views; distant views hide both.
 
 **Subagents.** Lessons from the Iowa, Yamato, Hood and Alaska builds of September 2026, which each took about two hours from request to PR:
 
 - One agent builds the skeleton: hull lines, blueprint, first `build.py` and comparison tools. They share one frame and one set of measurements. A new ship is best done by that agent alone.
 - Region agents pay off only for detail passes on a large ship, and only after a foundation commit: one recipe module per region, a shared vocabulary module, and a written brief with an ownership table (files, structure IDs, mounts) and absolute tool paths. Use three or four; Iowa's six cost almost three times a single-agent build and finished no sooner.
-- Region modules run in the recipe's shared globals, so each wraps its work in a function. Merge blueprint edits by record ID (the `git:setup` merge driver covers `assets/parts/guns.json` only), and expect overlapping, coplanar blocks at region seams.
+- Region modules run in the recipe's shared globals, so each wraps its work in a function. The `git:setup` merge driver merges blueprint edits by record ID (mounts, structures, compartments); expect overlapping, coplanar blocks at region seams.
 - Each worktree agent spends 5–10 minutes bootstrapping. Tell agents to commit early and often, so work survives a rate limit or a stopped agent.
 - Finish with one agent auditing what no region owns: glazing, screws and rudders, rigging ends, underwater fittings and close views.
 - `ship:build` holds a per-ship lock, and parallel Blender builds contend for CPU and disk. Check free disk space before launching worktree agents.
@@ -131,7 +139,7 @@ All four checks in [ship model review](ship-model-review.md) are required for ne
 | Change | Required verification |
 | --- | --- |
 | Blueprint, simulation or equipment behavior | Relevant simulation tests, `bun run build`; rebuild affected models when definitions/hashes change; exercise changed behavior in-game |
-| Model geometry or articulation | `ship:build <id>`, `ship:review <id>`, `ship:check <id>`, all affected visual checks and in-game articulation; relevant simulation tests and `bun run build` |
+| Model geometry or articulation | `ship:build <id>`, `ship:review <id>`, `ship:check <id>`, `ship:floating <id>`, `ship:sweep <id>`, all affected visual checks and in-game articulation; relevant simulation tests and `bun run build` |
 | Shared catalog, compiler or geometry recipe | `ship:check all`; rebuild every affected/stale asset, then repeat relevant model/runtime checks |
 | Thumbnail presentation only | `ship:thumbnail <id>` for affected presets, inspect thumbnails, `ship:check all` and `bun run build` |
 | Reference research only | Present a new or materially changed reference set for approval; update concise accepted source links and lasting limitations in the ship README. Keep downloads and captures local. |

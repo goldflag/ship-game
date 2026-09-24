@@ -146,10 +146,14 @@ const scenes = {
   galeClose: async () => { await battle({ wind: 15 }); look([120, 40, 150], [0, 0, 0], 50); },
   dusk: async () => { await battle({ hours: 17.8 }); look(...WIDE); },
   night: async () => { await battle({ hours: 0 }); look(...NEAR); },
-  islands: async () => {
-    await battle({ map: 'pacific-islands' });
-    const island = game.simulation.islands[0];
-    look([island.x + island.rx * 1.25, Math.max(180, island.height * .32), island.z + island.rz * .65], [island.x, island.height * .28, island.z], 60);
+  /** The first real coast west of the player (Guadalcanal on Iron Bottom Sound) from 1.4 km off: shallows and surf. */
+  coast: async () => {
+    await battle({ map: 'iron-bottom-sound' });
+    const { terrainHeight } = await import('/src/maps/heightfield.ts');
+    const terrain = game.simulation.terrain;
+    let x = 0;
+    while (x > -40000 && terrainHeight(terrain, x, 0) <= 0) x -= 50;
+    look([x + 1400, 180, 600], [x, 60, 0], 60);
   },
   /** Low abeam along the player's waterline: where a hull shows its bottom over a trough or sinks under a crest. */
   waterline: async () => { await battle(); look([170, 7, 30], [0, 1, -10], 45); },

@@ -31,6 +31,17 @@ function plume(stage: EffectsStage) {
   return { exhaust, mouth, sample, downwind: Math.atan2(oldest.z - mouth[2], oldest.x - mouth[0]) };
 }
 
+/** Four 38 cm shells straddling ship 1 at a 20° fall, over about a third of a second: two short, one over, one short
+ * near the bow. `shift` moves the pattern along the hull. */
+function salvo(stage: EffectsStage, side: number, shift = 0): void {
+  const fall: [number, number, number][] = [[side * 70, -115, 0], [side * 32, -35, .12], [side * -48, 45, .22], [side * 58, 105, .34]];
+  let time = 0;
+  for (const [x, z, at] of fall) {
+    stage.advance(at - time); time = at;
+    stage.splash(1, { offset: [x, 0, z + shift], descentDeg: 20 });
+  }
+}
+
 export const scenes: Record<string, Scene> = {
   /** Main-battery broadside from the firing ship's disengaged quarter. */
   async muzzle(stage, shoot) {
@@ -157,6 +168,92 @@ export const scenes: Record<string, Scene> = {
     stage.camera({ ship: 1, offset: [stage.facing() * 330, 30, 120], look: [stage.facing() * 60, 25, 20], fov: 45 });
     stage.splash(1); stage.splash(1, { caliberM: .2, offset: [stage.facing() * 95, 0, -40] });
     await timeline(stage, shoot, [.2, .6, 1.2, 2, 3.5, 6]);
+  },
+  /** A straddling 38 cm salvo seen from above and abeam, as in an aerial photograph of a fall of shot. */
+  async 'splash-salvo'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 400, 190, 230], look: [side * 15, 12, 5], fov: 36 });
+    salvo(stage, side);
+    await timeline(stage, shoot, [.35, .8, 1.4, 2.2, 3.2, 4.5, 6.5, 9, 13]);
+  },
+  /** The same salvo from low over the water, a few hundred metres off the target's engaged side. */
+  async 'splash-beam'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 520, 40, 160], look: [side * 20, 30, 0], fov: 40 });
+    salvo(stage, side);
+    await timeline(stage, shoot, [.5, 1.2, 2.2, 3.5, 5.5, 9]);
+  },
+  /** One heavy shell falling short beside the hull, seen from just above the water: the rise, the fan of jets and the collapse. */
+  async 'splash-low'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 300, 7, 40], look: [side * 20, 32, 0], fov: 42 });
+    stage.splash(1, { offset: [side * 45, 0, 10], descentDeg: 16 });
+    await timeline(stage, shoot, [.12, .3, .6, 1, 1.6, 2.4, 3.4, 4.8, 7]);
+  },
+  /** Splashes against the sun and with the sun behind the camera: backlit spray and its sunlit face. */
+  async 'splash-sun'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const center = stage.splash(1, { offset: [stage.facing() * 80, 0, 0], descentDeg: 20 });
+    const sun = (stage.game as unknown as { effectLighting: { sunDirection: { value: { x: number; z: number } } } }).effectLighting.sunDirection.value;
+    const sunward = Math.atan2(sun.z, sun.x);
+    const view = (angle: number) => stage.camera({ position: [center[0] + Math.cos(angle) * 320, 14, center[2] + Math.sin(angle) * 320],
+      target: [center[0], 28, center[2]], fov: 40 });
+    stage.advance(1.6);
+    view(sunward); await shoot('sun behind 1.6 s');
+    view(sunward + Math.PI); await shoot('toward sun 1.6 s');
+    view(sunward + Math.PI / 2); await shoot('side lit 1.6 s');
+    stage.advance(2.4);
+    view(sunward); await shoot('sun behind 4 s');
+    view(sunward + Math.PI); await shoot('toward sun 4 s');
+    view(sunward + Math.PI / 2); await shoot('side lit 4 s');
+  },
+  /** The beam view of a salvo at dusk, by moonlight and under a storm sky: spray must take the scene's light, never glow. */
+  async 'splash-weather'(stage, shoot) {
+    const side = stage.facing();
+    for (const [label, weather] of [['dusk', { timeHours: 18.4 }], ['night', { timeHours: 23 }], ['storm', { timeHours: 13, cloudCover: 1, windSpeed: 17 }]] as const) {
+      stage.reset(); stage.weather(weather);
+      stage.camera({ ship: 1, offset: [side * 520, 40, 160], look: [side * 20, 30, 0], fov: 40 });
+      salvo(stage, side);
+      stage.advance(2.2 - stage.elapsed); await shoot(`${label} 2.2 s`);
+      stage.advance(4.3); await shoot(`${label} 6.5 s`);
+    }
+  },
+  /** A salvo seen through binoculars at 9 km, the way most splashes are seen in battle. */
+  async 'splash-range'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 8600, 30, 2600], look: [0, 20, 0], fov: 4.5 });
+    salvo(stage, side);
+    await timeline(stage, shoot, [.8, 2, 3.5, 6]);
+  },
+  /** Mixed calibres at 600 m: 38, 20.3, 15 and 12.7 cm, so each size reads as its own splash. */
+  async 'splash-calibres'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 620, 30, 0], look: [side * 60, 22, 0], fov: 42 });
+    [.38, .203, .15, .127].forEach((caliberM, i) => stage.splash(1, { caliberM, offset: [side * 70, 0, -120 + i * 80], descentDeg: 18 }));
+    await timeline(stage, shoot, [.8, 1.6, 3, 5]);
+  },
+  /** Paired GPU cost of the splash effects: one close salvo, then eight splashes at 1 km. */
+  async 'splash-cost'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    const side = stage.facing();
+    stage.camera({ ship: 1, offset: [side * 300, 7, 40], look: [side * 20, 32, 0], fov: 42 });
+    stage.splash(1, { offset: [side * 45, 0, 10], descentDeg: 16 });
+    stage.advance(1.6);
+    stage.note('close splash 1.6 s', await stage.effectsCost());
+    await shoot('close 1.6 s');
+    stage.advance(2.4);
+    stage.note('close splash 4 s', await stage.effectsCost());
+    stage.reset();
+    stage.camera({ ship: 1, offset: [side * 1000, 60, 200], look: [side * 20, 20, 0], fov: 40 });
+    salvo(stage, side); salvo(stage, side, 140);
+    stage.advance(1.4);
+    stage.note('8 splashes 1.4 s at 1 km', await stage.effectsCost());
+    await shoot('8 at 1 km');
   },
   /** Magazine ignition: the largest single event in a battle. */
   async magazine(stage, shoot) {

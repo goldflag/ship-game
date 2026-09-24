@@ -2,6 +2,7 @@ import init, { LocalRuntime, PvePlanner } from '../../generated/naval-wasm/naval
 import manifestUrl from '../../../.build/naval-content/index.json?url';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
+import type { Command } from '../../multiplayer/generated/Command';
 import { assetUrl } from '../../assetUrl';
 import type { FrameUpdate } from './frameDelta';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
@@ -19,12 +20,20 @@ let detail: string[] = [];
 type ContentIndex = {
   ships: { id: string; contentHash: string; sha256: string; encoding: string; url: string }[];
   hydrostatics: { id: string }[];
+  /** Baked heightfields by terrain id; each map names its own in `land.terrain`. */
+  terrain: { id: string; sha256: string; url: string }[];
+  maps: { maps: { id: string; land?: { terrain?: string | null } }[] };
   [key: string]: unknown;
 };
 let content: Promise<ContentIndex> | undefined;
 let trialInit: { setup: BattleSetup; construction: LocalConstructionInput } | undefined;
+const base64 = (bytes: Uint8Array) => {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 16384) binary += String.fromCharCode(...bytes.subarray(i, i + 16384));
+  return btoa(binary);
+};
 async function createRuntime(setup: BattleSetup, construction?: LocalConstructionInput): Promise<LocalRuntime> {
-  const manifest = await loadContent(setup.ships.map((s) => s.presetId));
+  const manifest = await loadContent(setup.ships.map((s) => s.presetId), setup.mapId);
   if (!construction) return new LocalRuntime(manifest, JSON.stringify(setup));
   const catalogs = await Promise.all(
     [...new Set(construction.sources.map((s) => s.construction.catalogRevision))].map((revision) => loadConstructionCatalog(revision)),
@@ -47,7 +56,10 @@ async function createRuntime(setup: BattleSetup, construction?: LocalConstructio
     throw error;
   }
 }
-async function loadContent(ids?: string[]): Promise<Uint8Array> {
+/** The simulation manifest for one admission: the chosen designs (all of them without `ids`) and only the terrain
+ * `mapId`'s land names, or none. The simulation verifies every entry's SHA-256 and refuses a map whose terrain is
+ * missing only when a battle resolves that map. */
+async function loadContent(ids?: string[], mapId?: string): Promise<Uint8Array> {
   const index = await (content ??= (async () => {
     const [, response] = await Promise.all([
       init().then((wasm) => {
@@ -66,15 +78,29 @@ async function loadContent(ids?: string[]): Promise<Uint8Array> {
   for (const { url, ...entry } of selected) {
     const response = await fetch(assetUrl(url));
     if (!response.ok) throw new Error('Unable to load battle ship: ' + entry.id);
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += 16384) binary += String.fromCharCode(...bytes.subarray(i, i + 16384));
-    ships.push({ ...entry, json: btoa(binary) });
+    ships.push({ ...entry, json: base64(new Uint8Array(await response.arrayBuffer())) });
+  }
+  const terrainId = mapId === undefined ? undefined : index.maps.maps.find((m) => m.id === mapId)?.land?.terrain;
+  const terrain = [];
+  for (const { url, ...entry } of index.terrain.filter((t) => t.id === terrainId)) {
+    const response = await fetch(assetUrl(url));
+    if (!response.ok) throw new Error('Unable to load battle terrain: ' + entry.id);
+    terrain.push({ ...entry, data: base64(new Uint8Array(await response.arrayBuffer())) });
   }
   // No persistent full manifest/definition strings in the worker after admission.
   return new TextEncoder().encode(
-    JSON.stringify({ ...index, ships, hydrostatics: index.hydrostatics.filter((t) => selected.some((s) => s.id === t.id)) }),
+    JSON.stringify({ ...index, ships, terrain, hydrostatics: index.hydrostatics.filter((t) => selected.some((s) => s.id === t.id)) }),
   );
+}
+/** A development order for any ship, applied as its owner's when the battle reaches `tick` (`LocalRuntime::direct`). */
+export interface DirectedOrder { shipId: string; command: Command; tick: number }
+function direct({ shipId, command, tick }: DirectedOrder): void {
+  try {
+    runtime!.direct(shipId, JSON.stringify(command));
+    self.postMessage({ type: 'direct', shipId, command: command.type, tick, accepted: true });
+  } catch (error) {
+    self.postMessage({ type: 'direct', shipId, command: command.type, tick, accepted: false, message: String(error) });
+  }
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
 // LocalWorkerOperation correlates setup replies by this order and retires the
@@ -90,7 +116,7 @@ self.onmessage = (
     | { type: 'restart' }
     | { type: 'trial-reset' }
     | { type: 'trial-action'; action: TrialAction }
-    | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[]; wind?: { speed: number; direction: number } }
+    | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[]; wind?: { speed: number; direction: number }; direct?: DirectedOrder[] }
   >,
 ) => {
   chain = chain.then(async () => {
@@ -107,7 +133,7 @@ self.onmessage = (
         self.postMessage({ type: 'validated' });
         return;
       } else if (message.type === 'plan') {
-        const next = new PvePlanner(await loadContent(), JSON.stringify(message.request));
+        const next = new PvePlanner(await loadContent(undefined, message.request.mapId), JSON.stringify(message.request));
         planner?.free();
         planner = next;
         self.postMessage({ type: 'briefing', briefing: JSON.parse(planner.briefing()) });
@@ -171,7 +197,17 @@ self.onmessage = (
         detail = ids;
         // Keep the runtime's bounded fixed-step API; high speed batches never
         // alter timestep or block the rendering/input thread.
-        for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
+        // Directed orders (the film driver) land at their own tick whatever the batch size, so a battle stepped a tick at a
+        // time and one stepped six at a time receive them at the same moment.
+        const due = [...(message.direct ?? [])].sort((a, b) => a.tick - b.tick);
+        for (let left = message.ticks; left > 0;) {
+          const now = runtime.tick();
+          while (due.length && due[0].tick <= now) direct(due.shift()!);
+          const ticks = Math.min(6, left, due.length ? due[0].tick - now : 6);
+          runtime.step(ticks);
+          left -= ticks;
+        }
+        due.forEach(direct);
       }
       // Rust walks the frame once and writes only what moved, so the worker
       // parses a FrameUpdate instead of parsing, normalizing and diffing a frame.

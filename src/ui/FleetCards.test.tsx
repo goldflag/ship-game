@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { OwnFleetCard, type OwnFleetShip } from './OwnFleet';
-import { EnemyFleet } from './EnemyFleet';
+import { EnemyFleet, bearingLabel } from './EnemyFleet';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { AirCluster, BattleComparison } from './fleetStats';
 import type { FleetFormation } from './fleetFormations';
@@ -218,4 +218,12 @@ test('the enemy card says so plainly when nothing has been reported', () => {
   expect(html).toContain('No contacts reported. Send ships or aircraft forward to search.');
   expect(html).not.toContain('Aircraft seen');
   expect(html).toContain('—');
+});
+
+test('contact bearings read true on a turned chart', () => {
+  expect(bearingLabel(0, -1000)).toBe('000°');
+  expect(bearingLabel(1000, 0)).toBe('090°');
+  // Iron Bottom Sound's chart is up 315°: dead ahead on the chart is a true 315°, chart east a true 045°.
+  expect(bearingLabel(0, -1000, 315)).toBe('315°');
+  expect(bearingLabel(1000, 0, 315)).toBe('045°');
 });

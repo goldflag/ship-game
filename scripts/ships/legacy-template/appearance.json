@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "id": "__SHIP_ID__-starter-v1",
+  "basis": "Scaffold placeholder: one grey for hull and upperworks, dark painted-steel decks and a red-oxide bottom. Replace with the approved paint scheme (docs/ship-appearance.md); swatches are the recipe's linear-RGB material colors.",
+  "wear": "in-commission",
+  "materials": {
+    "naval": { "paint": "__SHIP_ID__-hull-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "__SHIP_ID__-hull-grey", "finish": "painted-steel" },
+    "antifouling": { "paint": "__SHIP_ID__-red-oxide", "finish": "underwater-coating" },
+    "deck": { "paint": "__SHIP_ID__-deck-grey", "finish": "painted-deck" },
+    "roof": { "paint": "__SHIP_ID__-deck-grey", "finish": "painted-deck" },
+    "edge": { "paint": "__SHIP_ID__-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "__SHIP_ID__-mid-fittings", "finish": "painted-steel" }
+  }
+}

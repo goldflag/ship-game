@@ -34,9 +34,18 @@ struct Manifest {
     air_profiles: Vec<crate::aviation::AirRules>,
     ships: Vec<ManifestShip>,
     hydrostatics: Vec<crate::hydro_table::HydrostaticTable>,
-    terrain: Vec<crate::environment::TerrainField>,
+    terrain: Vec<ManifestTerrain>,
     maps: serde_json::Value,
     conditions: serde_json::Value,
+}
+/// One baked heightfield: the bytes of `public/maps/terrain/<id>.ntf`, base64, and
+/// their SHA-256. A browser worker carries only the terrain its battle needs.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ManifestTerrain {
+    id: String,
+    sha256: String,
+    data: String,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -65,7 +74,9 @@ pub struct Catalog {
     pub fleet_entries: BTreeMap<String, FleetEntry>,
     pub identities: Vec<ContentIdentity>,
     pub manifest_hash: String,
-    pub terrain: Vec<crate::environment::TerrainField>,
+    /// Decoded heightfields by terrain id (a map's `land.terrain`), shared by every
+    /// battle on that map. Derived query structures are built on first use.
+    pub terrain: BTreeMap<String, Arc<crate::terrain::Heightfield>>,
     pub maps: serde_json::Value,
     pub conditions: serde_json::Value,
     pub missions: BTreeMap<String, crate::mission::MissionRules>,
@@ -247,7 +258,7 @@ impl Catalog {
             fleet_entries: BTreeMap::new(),
             identities: Vec::new(),
             manifest_hash: sha256(bytes),
-            terrain: manifest.terrain,
+            terrain: BTreeMap::new(),
             maps: manifest.maps,
             conditions: manifest.conditions,
             missions,
@@ -255,12 +266,22 @@ impl Catalog {
         };
         catalog.map_ids().map_err(ContentError::Invalid)?;
         catalog.weather_ids().map_err(ContentError::Invalid)?;
-        if catalog
-            .terrain
-            .iter()
-            .any(|f| f.samples.len() != 257 * 257 || f.samples.iter().any(|v| !v.is_finite()))
-        {
-            return Err(ContentError::Invalid("invalid baked terrain".into()));
+        for entry in manifest.terrain {
+            let invalid =
+                |why: String| ContentError::Invalid(format!("terrain {:?} {why}", entry.id));
+            if entry.id.is_empty() || catalog.terrain.contains_key(&entry.id) {
+                return Err(invalid("is empty or listed twice".into()));
+            }
+            use base64::Engine;
+            let bytes = base64::engine::general_purpose::STANDARD
+                .decode(entry.data.as_bytes())
+                .map_err(|e| invalid(format!("is not base64: {e}")))?;
+            if sha256(&bytes) != entry.sha256 {
+                return Err(invalid("has a mismatched SHA-256 digest".into()));
+            }
+            let field = crate::terrain::Heightfield::decode(&bytes)
+                .map_err(|e| invalid(format!("does not decode: {e}")))?;
+            catalog.terrain.insert(entry.id.clone(), Arc::new(field));
         }
         if catalog.aircraft.values().any(|p| {
             !p.pitch.is_finite()
@@ -354,9 +375,13 @@ impl Catalog {
         if catalog.definitions.is_empty() {
             return Err(ContentError::Invalid("empty catalog".into()));
         }
+        // Every map's sea resolves in every weather, and its land names a terrain id
+        // or open sea. A map whose terrain this manifest does not carry (a browser
+        // worker's subset) fails only when a battle actually resolves it.
         for map in catalog.map_ids().map_err(ContentError::Invalid)? {
+            catalog.map_terrain(&map)?;
             for weather in catalog.weather_ids().map_err(ContentError::Invalid)? {
-                catalog.resolve_environment(&map, &weather, 0, 8, 5000.0, None)?;
+                catalog.resolve_sea(&map, &weather, 0, None)?;
             }
         }
         Ok(catalog)
@@ -570,6 +595,116 @@ fn environment_ids(value: &serde_json::Value, key: &str) -> Result<Vec<String>, 
         return Err(error());
     }
     Ok(ids)
+}
+#[cfg(test)]
+mod terrain_tests {
+    use super::*;
+    use serde_json::json;
+
+    fn load(manifest: &serde_json::Value) -> Result<Catalog, ContentError> {
+        Catalog::load(&serde_json::to_vec(manifest).unwrap())
+    }
+
+    /// Every baked chart travels with its digest, and a tampered or broken
+    /// entry is refused by name before any battle can resolve it.
+    #[test]
+    fn terrain_entries_are_verified_by_name() {
+        let manifest: serde_json::Value = serde_json::from_slice(&installed_manifest()).unwrap();
+        let id = manifest["terrain"][0]["id"].as_str().unwrap().to_owned();
+        let refused = |patch: &dyn Fn(&mut serde_json::Value)| {
+            let mut bad = manifest.clone();
+            patch(&mut bad);
+            load(&bad)
+                .err()
+                .expect("the manifest should be refused")
+                .to_string()
+        };
+        assert_eq!(
+            refused(&|m| m["terrain"][0]["sha256"] = json!("0".repeat(64))),
+            format!("Invalid content: terrain {id:?} has a mismatched SHA-256 digest")
+        );
+        assert!(
+            refused(&|m| m["terrain"][0]["data"] = json!("not base64!"))
+                .starts_with(&format!("Invalid content: terrain {id:?} is not base64"))
+        );
+        assert_eq!(
+            refused(&|m| {
+                let first = m["terrain"][0].clone();
+                m["terrain"].as_array_mut().unwrap().push(first);
+            }),
+            format!("Invalid content: terrain {id:?} is empty or listed twice")
+        );
+        // Bytes whose digest matches but that are not a heightfield.
+        let junk = b"NTF0 not a heightfield";
+        assert!(
+            refused(&|m| {
+                use base64::Engine;
+                m["terrain"][0]["data"] =
+                    json!(base64::engine::general_purpose::STANDARD.encode(junk));
+                m["terrain"][0]["sha256"] = json!(sha256(junk));
+            })
+            .starts_with(&format!(
+                "Invalid content: terrain {id:?} does not decode: Invalid terrain"
+            ))
+        );
+        let map = &mut manifest.clone();
+        map["maps"]["maps"][1]["land"]["terrain"] = json!(7);
+        let name = map["maps"]["maps"][1]["id"].as_str().unwrap().to_owned();
+        assert_eq!(
+            load(map).err().unwrap().to_string(),
+            format!(
+                "Invalid content: environment for map {name:?}: land.terrain is 7, not a terrain id or null"
+            )
+        );
+    }
+
+    /// A browser worker's manifest carries only its battle's terrain: it loads,
+    /// resolves that map and open sea, and refuses another map by name only when
+    /// a battle asks for it.
+    #[test]
+    fn a_manifest_without_a_maps_terrain_fails_only_that_map() {
+        let mut manifest: serde_json::Value =
+            serde_json::from_slice(&installed_manifest()).unwrap();
+        let entries = manifest["terrain"].as_array().unwrap().clone();
+        let kept = entries
+            .iter()
+            .find(|t| t["id"] == "vestfjord")
+            .unwrap()
+            .clone();
+        manifest["terrain"] = json!([kept]);
+        let catalog = load(&manifest).unwrap();
+        assert_eq!(catalog.terrain.keys().collect::<Vec<_>>(), ["vestfjord"]);
+        let fjord = catalog
+            .resolve_environment("vestfjord", "clear", 1, 4, 6000.0, None)
+            .unwrap();
+        assert!(fjord.terrain.has_land());
+        assert_eq!(fjord.terrain.offset, [0.0, -3000.0]);
+        assert!(
+            !catalog
+                .resolve_environment("north-atlantic", "clear", 1, 4, 6000.0, None)
+                .unwrap()
+                .terrain
+                .has_land()
+        );
+        let error = catalog
+            .resolve_environment("sunda-strait", "clear", 1, 4, 6000.0, None)
+            .err()
+            .unwrap()
+            .to_string();
+        assert_eq!(
+            error,
+            "Invalid battle setup: map \"sunda-strait\" needs terrain \"sunda-strait\", which \
+             this content does not carry (loaded terrain: vestfjord)"
+        );
+        manifest["terrain"] = json!([]);
+        let error = load(&manifest)
+            .unwrap()
+            .resolve_environment("sunda-strait", "clear", 1, 4, 6000.0, None)
+            .err()
+            .unwrap()
+            .to_string();
+        assert!(error.ends_with("(loaded terrain: none)"), "{error}");
+    }
 }
 #[cfg(test)]
 mod environment_tests {

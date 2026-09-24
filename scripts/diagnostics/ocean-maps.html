@@ -28,22 +28,7 @@ window.reviewMap=async(id,weather='map')=>{
  game.ocean.time=60;
  for(let i=0;i<40;i++){await new Promise(requestAnimationFrame);await game.frame(performance.now());}
  output.textContent=id+' · '+weather;
- return {mapId:game.simulation.mapId,islands:game.simulation.islands.length,errors:window.errors};
-};
-window.reviewLandform=async(index=0,overview=false)=>{
- const island=game.simulation.islands[index];
- game.sky.cloudsEnabled=!overview;
- if(overview){
-  game.camera.position.set(island.x+island.rx*1.8,island.height*1.8+700,island.z+island.rz*1.6);
-  game.camera.lookAt(island.x,island.height*.25,island.z);
- }else{
-  game.camera.position.set(island.x+island.rx*1.25,Math.max(180,island.height*.32),island.z+island.rz*.65);
-  game.camera.lookAt(island.x,island.height*.28,island.z);
- }
- game.camera.updateMatrixWorld();
- game.sky.resetHistory();
- for(let i=0;i<64;i++){await new Promise(requestAnimationFrame);await game.frame(performance.now());}
- return {island:island.id,clouds:game.sky.cloudsEnabled,triangles:game.renderer.info.render.triangles,calls:game.renderer.info.render.calls,errors:window.errors};
+ return {mapId:game.simulation.mapId,terrain:game.simulation.terrain?.field?'charted':'open sea',errors:window.errors};
 };
 window.captureMap=async()=>{await new Promise(requestAnimationFrame);await game.frame(performance.now());await game.renderer.backend.device.queue.onSubmittedWorkDone();return game.renderer.domElement.toDataURL('image/png');};
 window.ready=true;output.textContent='Ready';

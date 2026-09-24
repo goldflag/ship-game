@@ -103,7 +103,7 @@ export function smokeRadiance(lighting: EffectLighting, n: THREE.Node<'vec3'>, t
 
 /** Quad frame from screen derivatives: exact for any planar, affinely mapped quad (spin and stretch
  * included), so billboards need no extra per-instance attributes. Returns the world axes of +u, +v. */
-function quadAxes() {
+export function quadAxes() {
   const p = positionWorld, t = uv();
   const dpx = dFdx(p), dpy = dFdy(p), dtx = dFdx(t), dty = dFdy(t);
   const raw = dtx.x.mul(dty.y).sub(dtx.y.mul(dty.x));

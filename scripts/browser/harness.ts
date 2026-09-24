@@ -32,6 +32,9 @@ export const GPU_ERROR = /GPUValidationError|GPUOutOfMemoryError|GPUInternalErro
 export interface HarnessOptions {
   /** Query parameters for the harness page, e.g. `{ battle: 'fletcher;;bismarck', range: 8000 }`. */
   params?: Record<string, string | number>;
+  /** Another page to drive instead of the harness page, e.g. `/scripts/diagnostics/terrain-review.html`. It answers the
+   * readiness polling through its own `window.review` (`ready`, `errors`, `stage`). */
+  page?: string;
   /** Bill's display; representative for port, editor and HUD captures. */
   viewport?: { width: number; height: number };
   /** Headless Chromium reaches the port but its WebGPU frame loop stalls, so headed is the default. */
@@ -125,7 +128,7 @@ export async function launchHarness(options: HarnessOptions = {}): Promise<Harne
     });
     if (options.hmr === false) await dropHotUpdates(page);
     const query = new URLSearchParams(Object.entries(params).map(([key, value]) => [key, String(value)]));
-    const pageUrl = `${url}${HARNESS_PAGE}?${query}`;
+    const pageUrl = `${url}${options.page ?? HARNESS_PAGE}?${query}`;
     stage = 'page';
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: deadlines.page * 1000 });
     note('page loaded');

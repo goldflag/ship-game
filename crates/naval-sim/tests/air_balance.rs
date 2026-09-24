@@ -1,6 +1,7 @@
 //! Controlled engagements use the real pilots, local visual reports, gun
 //! solutions, fitted AA mounts, ammunition and damage. Start already airborne
 //! so launch/recovery queues do not hide whether the interception works.
+use naval_sim::terrain::Terrain;
 use naval_sim::{
     anti_aircraft,
     aviation::{AirContext, AirOrder, Aviation},
@@ -175,8 +176,7 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
         reports.update(
             tick,
             &sensors::entities(&actors, &air),
-            &[],
-            &[],
+            &Terrain::open_sea(),
             conditions,
             &rules,
         );
@@ -210,16 +210,14 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
         reports.update(
             tick,
             &sensors::entities(&actors, &air),
-            &[],
-            &[],
+            &Terrain::open_sea(),
             conditions,
             &rules,
         );
         let knowledge = Some(Knowledge {
             sensors: &reports,
             tick,
-            islands: &[],
-            terrain: &[],
+            terrain: &naval_sim::terrain::OPEN_SEA,
         });
         let health = |air: &Aviation| {
             ids.iter()
