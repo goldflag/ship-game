@@ -100,7 +100,7 @@ def funnel_casing():
  for sign in [-1,1]:
   # Side ladders from the searchlight gallery to the rim, after ladders from the 01 deck to the galleries.
   wall_ladder('Funnel casing ladder',(-2.3,sign*2.84,GALLERY),23.08,(1,0))
-  wall_ladder('Funnel after ladder',(-7.35,sign*1.05,8.3),GALLERY,(0,1))
+  wall_ladder('Funnel after ladder',(-7.35,sign*1.05,10.38),GALLERY,(0,1))
   # Louvred fan-room intakes on the uptake base between the hangars' ends and the gallery column.
   vent('Funnel fan room intake',(-3.1,sign*2.83,10.05),(1.4,.14,1.25),sign)
  # Lower gallery round the after end, on struts to the casing.
@@ -121,12 +121,34 @@ def funnel_gallery():
  extrude('Funnel searchlight gallery',pts,GALLERY-.18,.18,materials['roof'],supercol)
  rail('Funnel searchlight gallery',[(-z,-x,GALLERY+.005) for x,z in outline],.9,1.5,False,col=supercol)
  rings=jacket_rings()
- for x,z in [(5.9,1.9),(6.1,3.7),(5.8,5.9),(4.9,8.6),(3.1,9.2),(1.9,8.32)]:
+ for x,z in [(5.9,1.9),(6.1,3.7),(5.8,5.9),(5.0,8.5),(4.0,9.35),(2.9,9.2),(1.9,8.32)]:
   for sign in [-1,1]:
-   p=(-z,-sign*x,GALLERY-.2);w=nearest_wall(rings,p,GALLERY-1.6)
+   p=(-z,-sign*x,GALLERY-.2);w=nearest_wall(rings,p,GALLERY-1.8)
    rod('Gallery bracket',p,w,.07,materials['naval'],supercol,vertices=6)
+ # A curved walkway round the casing front joins the two forward searchlight bowls (pgsb708, 18.55 m),
+ # with a small siren platform above it.
+ cz=-.72;r0=2.62
+ for level,r1,a0,a1,rails in [(18.6,3.88,.72,math.pi-.72,True),(20.62,4.15,1.05,math.pi-1.05,True)]:
+  ang=[a0+(a1-a0)*i/12 for i in range(13)]
+  outer=[(-(cz-r1*math.sin(a)),-r1*math.cos(a)) for a in ang];inner=[(-(cz-r0*math.sin(a)),-r0*math.cos(a)) for a in reversed(ang)]
+  extrude('Funnel front walkway' if level<20 else 'Funnel siren platform',outer+inner,level-.1,.1,materials['roof'],supercol)
+  if rails:rail('Funnel front walkway',[(x,y,level+.005) for x,y in outer],.9,1.3,False,col=supercol)
+  for a in ang[1:-1:3]:
+   rod('Funnel front walkway bracket',(-(cz-(r1-.15)*math.sin(a)),-(r1-.15)*math.cos(a),level-.12),(-(cz-(r0+.03)*math.sin(a)),-(r0+.03)*math.cos(a),level-1.3),.06,materials['naval'],supercol,vertices=6)
+ # Fan room round the after foot of the casing: a low louvred house with a railed roof.
+ fan=[(-6.35,-2.9),(-8.4,-2.9),(-8.4,2.9),(-6.35,2.9)]
+ extrude('Funnel fan room',fan,8.3,2.0,materials['naval'],supercol,.03)
+ extrude('Funnel fan room roof',[(-6.35,-2.96),(-8.46,-2.96),(-8.46,2.96),(-6.35,2.96)],10.3,.08,materials['roof'],supercol)
+ rail('Funnel fan room',[(-6.4,-2.92,10.385),(-8.42,-2.92,10.385),(-8.42,2.92,10.385),(-6.4,2.92,10.385)],.85,1.3,False,col=supercol)
+ for yy in [-1.6,1.6]:
+  # Louvred intake on the after face: frame, dark recess and horizontal louvres.
+  box('Funnel fan room louvre frame',(-8.45,yy,9.25),(.1,1.5,1.2),materials['naval'],detailcol)
+  box('Funnel fan room louvre recess',(-8.51,yy,9.25),(.025,1.3,.98),materials['dark'],detailcol)
+  for k in range(8):box('Funnel fan room louvre',(-8.54,yy,8.8+k*.13),(.09,1.36,.045),materials['edge'],detailcol)
  for sign in [-1,1]:
-  cyl('Gallery lobe column',B(sign*3.76,(8.3+GALLERY-.18)/2,7.95),.42,GALLERY-.18-8.3,materials['naval'],supercol,14)
+  vent('Funnel fan room side louvre',(-7.4,sign*2.97,9.3),(1.5,.14,1.1),sign)
+  # Mushroom-headed exhaust cowls bent over the fan-room roof.
+  polyline('Funnel fan exhaust cowl',[(-8.0,sign*1.0,10.38),(-8.0,sign*1.0,11.35),(-8.25,sign*1.0,11.65),(-8.55,sign*1.0,11.4)],.16,materials['naval'],supercol,vertices=8)
 def forward_housing(name,sign):
  # pgsb708's forward searchlights stand in deep bowls on the casing sides: an ellipsoidal quarter shell
  # (outboard 3.0 m, fore and aft 2.05 m, 2.95 m deep below its 19.75 m rim) carried straight in to the casing,
@@ -158,9 +180,9 @@ def funnel_searchlights():
  for sign in [-1,1]:
   forward_housing('Funnel forward searchlight housing',sign)
   x,y,_=B(sign*4.06,0,-1.45)
-  searchlight('Funnel forward 1.5 m searchlight',x,y,18.7,-sign*1.25)
+  searchlight('Funnel forward 1.5 m searchlight',x,y,18.7,-sign*1.25,.92)
   x,y,_=B(sign*3.76,0,7.42)
-  searchlight('Funnel after 1.5 m searchlight',x,y,GALLERY+.06,-sign*2.15)
+  searchlight('Funnel after 1.5 m searchlight',x,y,GALLERY+.06,-sign*2.15,.92)
 # ---------------------------------------------------------------- hangars
 HANGAR_EAVE=11.38;HANGAR_RIDGE=13.03
 def draw_side_hangar(s):
@@ -182,13 +204,14 @@ def draw_side_hangar(s):
   polyline(s['id']+' roof seam',[(x,sign*(outer+.1),HANGAR_EAVE+.03),(x,sign*(outer-2.75),HANGAR_RIDGE+.03),(x,sign*(inner+.32),HANGAR_EAVE+.03)],.022,materials['edge'])
  for x in [x0+1.9,x0+4.6,x0+7.3]:porthole(s['id']+' scuttle',(x,sign*(outer+.05),10.4),(0,sign,0),.16)
  door(s['id']+' watertight door',x0+1.1,sign*(outer+.05),8.43,sign)
- # The after end opens onto the handling deck by the catapult: folding doors under the gable.
- xx=x0-.035;opening=outer-inner-.9;leaves=6;mid=sign*(inner+outer)/2
- for i in range(leaves):
-  yy=mid-sign*opening/2+sign*opening*(i+.5)/leaves
-  box(s['id']+' folding door',(xx,yy,8.4+1.4),(.10,opening/leaves-.035,2.8),materials['naval'],detailcol)
-  for dz in [.6,1.5,2.4]:box(s['id']+' door stiffener',(xx-.065,yy,8.4+dz),(.07,opening/leaves-.13,.055),materials['edge'],detailcol)
- rod(s['id']+' door track',(xx,mid-sign*(opening/2+.1),11.3),(xx,mid+sign*(opening/2+.1),11.3),.07,materials['edge'],detailcol,vertices=6)
+ # pgsb708 shows plain gable ends; vertical stiffeners break up the after one.
+ ridge=outer-2.75
+ def roof_at(a):
+  if a>=ridge:return HANGAR_RIDGE-(a-ridge)/2.75*(HANGAR_RIDGE-HANGAR_EAVE)
+  return HANGAR_EAVE+max(0,a-inner-.32)/(ridge-inner-.32)*(HANGAR_RIDGE-HANGAR_EAVE)
+ for f in [.25,.5,.75]:
+  a=inner+(outer-inner)*f;top=roof_at(a)-.05
+  box(s['id']+' gable stiffener',(x0-.05,sign*a,(8.35+top)/2),(.08,.12,top-8.35),materials['edge'],detailcol)
 for _sid in ['hangar-port','hangar-starboard']:structure_drawers[_sid]=draw_side_hangar
 def hangars():
  # The double hangar keeps its forward folding doors; its sides carry ventilation.
@@ -342,38 +365,37 @@ def crane(sign):
  lbox('Aircraft crane operating platform',-.4,.2,3.12,3.2,3.5,.1,'roof')
  rail('Aircraft crane operating platform',[tuple(L(u,v,3.17)) for u,v in [(1.15,1.95),(-1.95,1.95),(-1.95,-1.55),(1.15,-1.55)]],.9,1.4,False)
  ladder('Aircraft crane base ladder',tuple(L(-2.25,1.2,.36)),tuple(L(-2.25,1.2,3.1)),.42)
- # Rear gantry: two posts from the base to the topping-sheave housing, braced forward to the operating platform.
+ # Rear gantry: two posts from the base to the topping-sheave housing, whose arms reach forward to a spreader.
  for v in [-.75,1.15]:
   beam('Aircraft crane gantry post',L(-2.0,v,.4),L(-2.0,v,4.0),.22,.3,materials['naval'])
-  rod('Aircraft crane gantry brace',tuple(L(-1.9,v,3.9)),tuple(L(-.6,v,3.15)),.06,materials['naval'],detailcol,vertices=6)
  rod('Aircraft crane sheave housing',tuple(L(-2.0,-.95,4.05)),tuple(L(-2.0,1.35,4.05)),.6,materials['naval'],detailcol,vertices=8)
  for v in [-.98,1.38]:rod('Aircraft crane sheave boss',tuple(L(-2.0,v,4.05)),tuple(L(-2.0,v+(-.08 if v<0 else .08),4.05)),.22,materials['edge'],detailcol,vertices=8)
- rod('Aircraft crane topping spreader',tuple(L(.9,-1.1,4.65)),tuple(L(.9,1.5,4.65)),.09,materials['edge'],detailcol,vertices=8)
- for v in [-1.1,1.5]:rod('Aircraft crane spreader stay',tuple(L(.9,v,4.65)),tuple(L(-1.7,v*.8,4.2)),.05,materials['edge'],detailcol,vertices=5)
+ for v in [-.9,1.3]:beam('Aircraft crane topping arm',L(-1.75,v,4.4),L(.95,v,4.7),.16,.26,materials['naval'])
+ rod('Aircraft crane topping spreader',tuple(L(.95,-1.15,4.7)),tuple(L(.95,1.55,4.7)),.1,materials['edge'],detailcol,vertices=8)
  # Jib: two tapered box legs from hinge pins at the frame heads to the head sheaves, with three diaphragms
  # and a wide spreader near the top that takes the topping lift.
  foot,head=Vector((1.7,0,2.75)),Vector((16.3,0,16.05))
  def leg(t,side):
-  p=foot+(head-foot)*t;spread=1.62*(1-t)+.26*t;return L(p.x,.2+side*spread,p.z)
+  p=foot+(head-foot)*t;spread=1.62*(1-t)+.26*t;return L(p.x,.2*(1-t)+.05*t+side*spread,p.z)
  for side in [-1,1]:
-  for a,b,w,h in [(0,.52,.34,.56),(.5,1,.27,.44)]:
+  for a,b,w,h in [(0,.52,.42,.7),(.5,1,.32,.52)]:
    beam('Aircraft crane jib box girder',leg(a,side),leg(b,side),w,h,materials['naval'])
-  rod('Aircraft crane jib hinge pin',tuple(L(foot.x,.2+side*1.35,foot.z)),tuple(L(foot.x,.2+side*1.95,foot.z)),.14,materials['edge'],detailcol,vertices=8)
- for t in [.22,.46,.66]:beam('Aircraft crane jib diaphragm',leg(t,-1),leg(t,1),.26,.36,materials['naval'])
+  rod('Aircraft crane jib hinge pin',tuple(L(foot.x,.2+side*1.3,foot.z)),tuple(L(foot.x,.2+side*1.95,foot.z)),.14,materials['edge'],detailcol,vertices=8)
+ for t in [.22,.46,.66]:beam('Aircraft crane jib diaphragm',leg(t,-1),leg(t,1),.3,.42,materials['naval'])
  t=.79;a,b=leg(t,-1),leg(t,1);c=(a+b)/2;dv=(b-a).normalized()
  rod('Aircraft crane jib spreader',tuple(c-dv*.95),tuple(c+dv*.95),.1,materials['edge'],detailcol,vertices=8)
- hp=L(head.x+.2,.2,head.z+.1)
- beam('Aircraft crane head block',L(head.x-.7,.2,head.z-.45),L(head.x+.35,.2,head.z+.15),.62,.5,materials['naval'])
+ hp=L(head.x+.2,.05,head.z+.1)
+ beam('Aircraft crane head block',L(head.x-.7,.05,head.z-.45),L(head.x+.35,.05,head.z+.15),.66,.56,materials['naval'])
  for dv2 in [-.2,.2]:
-  a=L(head.x+.25,.2+dv2-.06,head.z+.1);b=L(head.x+.25,.2+dv2+.06,head.z+.1)
+  a=L(head.x+.25,.05+dv2-.06,head.z+.1);b=L(head.x+.25,.05+dv2+.06,head.z+.1)
   rod('Aircraft crane head sheave',tuple(a),tuple(b),.42,materials['edge'],detailcol,vertices=14)
  hook=hp-Vector((0,0,2.3))
  for dv2 in [-.1,.1]:rod('Aircraft crane fall',tuple(hp+N*dv2-Vector((0,0,.35))),tuple(hook+N*dv2+Vector((0,0,.35))),.018,materials['dark'],detailcol,vertices=5)
  cyl('Aircraft crane hook block',tuple(hook+Vector((0,0,.2))),.2,.45,materials['edge'],detailcol,10)
  ring('Aircraft crane hook',tuple(hook-Vector((0,0,.12))),tuple(D),.13,.035,materials['edge'],10)
  # Topping lift from the sheave housing to the spreader, hoist rope from the winch drum over the head sheave.
- for f in [-.7,0,.7]:rod('Aircraft crane topping lift',tuple(L(-2.0,.2+f*.8,4.2)),tuple(c+dv*f),.018,materials['dark'],detailcol,vertices=5)
- for v in [-.2,.6]:rod('Aircraft crane hoist rope',tuple(L(.55,v,1.6)),tuple(L(head.x+.05,.2,head.z-.25)),.018,materials['dark'],detailcol,vertices=5)
+ for f in [-.7,0,.7]:rod('Aircraft crane topping lift',tuple(L(.95,.2+f*1.2,4.75)),tuple(c+dv*f),.018,materials['dark'],detailcol,vertices=5)
+ for v in [-.2,.6]:rod('Aircraft crane hoist rope',tuple(L(.55,v,1.6)),tuple(L(head.x+.05,.05,head.z-.25)),.018,materials['dark'],detailcol,vertices=5)
 def cranes():
  for sign in [-1,1]:crane(sign)
 # ---------------------------------------------------------------- catapult
