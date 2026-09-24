@@ -24,9 +24,9 @@ for (const id of ids) {
     }
     b.modules = b.modules.filter(m => m.id !== 'support-director');
     const directors: [string, number, number, number, boolean][] = [
-      ['dct-forward',22.3,0,16.35,true],['dct-after',-45,0,8.1,true],
-      ['hacs-p-forward',15.1,2.35,21.2,false],['hacs-s-forward',15.1,-2.35,21.2,false],
-      ['hacs-p-after',-40,3.2,9.2,false],['hacs-s-after',-40,-3.2,9.2,false],
+      ['dct-forward',20.71,0,18.2771,true],['dct-after',-50.13,0,7.2871,true],
+      ['hacs-p-forward',13.21,4.004,20.6121,false],['hacs-s-forward',13.21,-4.004,20.6121,false],
+      ['hacs-p-after',-43.32,3.879,9.7881,false],['hacs-s-after',-43.32,-3.879,9.7881,false],
     ];
     for (const [name,x,y,z,main] of directors) own({ id: `equipment-${name}`, name: main ? `${name === 'dct-forward' ? 'Forward' : 'Aft'} main director` : name.replaceAll('-', ' '), kind: 'fire-control', placement: 'fixed', center: [-y,deck+z+1.6,-x], size: main ? [3.7,3.2,3.6] : [2.2,2.7,2.7], hp:65, protectionMm:10, immersionToleranceM: .3,
       servesMountIds: b.mounts.filter(m => main ? m.battery === 'main' : m.battery === 'secondary' && !m.id.startsWith('pom-pom') && Math.sign(m.position[0]) === Math.sign(-y)).map(m => m.id) });

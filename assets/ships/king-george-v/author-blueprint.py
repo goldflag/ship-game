@@ -1,4 +1,9 @@
-"""Original KGV 1941 dimensional reconstruction. Run before flood/stability authoring.
+"""Original KGV 1941 dimensional reconstruction (retained study; superseded for the hull and superstructure).
+
+The September 2026 accuracy pass re-seated the ship on the GameModels3D waterline: author-hull.py now
+writes the hull from authoring/lines.json and author-structures.py the superstructure blocks, and every
+other record moved with the deck. This script still carries the 1940 Vickers datum, so a full run
+would reset the blueprint to the old hull; it refuses unless --legacy-datum is given.
 
 The editable blueprint is the versioned asset. This retained construction study
 records how its initial stations, compartments and component facets were made.
@@ -166,6 +171,8 @@ newIds={p['id'] for p in parts};catalog['parts']=[p for p in catalog['parts'] if
 if '--catalog-only' in __import__('sys').argv:
     print('Updated the three original KGV gun components; existing fitted blueprint retained.')
     raise SystemExit(0)
+if '--legacy-datum' not in __import__('sys').argv:
+    raise SystemExit('Refusing to rewrite blueprint.json with the retired 1940 datum; see the docstring and README.')
 
 b=dict(schemaVersion=1,id='king-george-v',name='HMS King George V',configuration='Early 1941 Home Fleet exterior, before December AA refit; 1940 standard mean-draft datum',
  coordinates='meters-y-up-bow-negative-z',modelUrl='/models/king-george-v.glb',
