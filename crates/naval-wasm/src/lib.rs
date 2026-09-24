@@ -367,7 +367,7 @@ mod construction_trial_tests {
             mission_rules: None,
             air_rules: None,
         };
-        let manifest = std::fs::read("../../.build/naval-content/manifest.json").unwrap();
+        let manifest = naval_sim::catalog::installed_manifest();
         let setup = serde_json::to_string(&setup).unwrap();
         let mut runtime =
             LocalRuntime::with_construction(&manifest, &setup, "[]", "[]", true).unwrap();

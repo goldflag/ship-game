@@ -24,13 +24,8 @@ use std::{
 
 fn catalog() -> Arc<Catalog> {
     static C: OnceLock<Arc<Catalog>> = OnceLock::new();
-    C.get_or_init(|| {
-        Arc::new(
-            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
-                .unwrap(),
-        )
-    })
-    .clone()
+    C.get_or_init(|| Arc::new(Catalog::load(&naval_sim::catalog::installed_manifest()).unwrap()))
+        .clone()
 }
 #[derive(Default)]
 struct Metrics {
