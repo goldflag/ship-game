@@ -130,16 +130,22 @@ for s in D['structures']:
     if s['id'].startswith('elevator'):
         pivot=empty(s['id']+'.lift',(0,0,0),col);o.parent=pivot
     if s.get('exhaust'):
-        x=-s['exhaust']['position'][2]
-        rod(s['id']+' mouth-lip',(x-4.4,-19.4,12.85),(x+4.4,-19.4,12.85),.08,M['edge'],col)
-        mesh(s['id']+' exhaust darkness',[(x-4.4,-19.28,12.05),(x+4.4,-19.28,12.05),(x+4.4,-19.28,13.62),(x-4.4,-19.28,13.62)],[(0,1,2,3)],M['dark'],col)
-        for dx in range(-4,5):rod(s['id']+' mouth grille',(x+dx,-19.44,12.06),(x+dx,-19.44,13.6),.038,M['edge'],col)
-        for z in [12.1,12.5,13,13.5]:rod(s['id']+' horizontal grille',(x-4.35,-19.45,z),(x+4.35,-19.45,z),.027,M['edge'],col)
+        # Downturned trunk (pjsa108): an octagonal mouth rim, a dark recessed
+        # opening behind a grille, and two struts from the hull to the trunk.
+        v=s['surface']['vertices'];ring=[(-z,-x,y) for x,y,z in v[-8:]]
+        x=-s['exhaust']['position'][2];depth=-.18
+        for a,b in zip(ring,ring[1:]+ring[:1]):rod(s['id']+' mouth rim',a,b,.09,M['edge'],col,vertices=6)
+        recess=[(px,py-depth,pz) for px,py,pz in ring]
+        mesh(s['id']+' exhaust darkness',recess,[tuple(range(8)),tuple(reversed(range(8)))],M['dark'],col)
+        ys=[p[2] for p in ring];zlo,zhi=min(ys)+.08,max(ys)-.08;yy=ring[0][1]-depth*.5
+        for dx in range(-4,5):
+            rod(s['id']+' mouth grille',(x+dx,yy,zlo+(.9 if abs(dx)>3.3 else 0)),(x+dx,yy,zhi-(.9 if abs(dx)>3.3 else 0)),.035,M['edge'],col,vertices=6)
+        for zz in [10.4,10.95,11.5,12.05]:rod(s['id']+' horizontal grille',(x-4.3,yy,zz),(x+4.3,yy,zz),.03,M['edge'],col,vertices=6)
         funnel_support=SupportSurface([o])
-        for dx in [-3.6,3.6]:
-            foot=hull_support.along((x+dx,-20,5.3),(0,1,0),20)
-            head=funnel_support.along((x+dx,-17.3,10),(0,0,1),10)
-            rod(s['id']+' hull brace',foot,head,.13,M['naval'],col)
+        for dx in [-3.2,3.2]:
+            foot=hull_support.along((x+dx,-20,7.2),(0,1,0),20)
+            head=funnel_support.along((x+dx,-17.2,7.0),(0,0,1),10)
+            rod(s['id']+' hull strut',foot,head,.13,M['naval'],col)
 
 outline=[(-z,-x) for x,z in S['flight-deck']['footprint']]
 def span(y):
@@ -306,7 +312,7 @@ def open_runs(a,b,blocked):
     return runs
 for sign in [-1,1]:
     wall=13.0;y=sign*(wall+.675)
-    blocked=mount_spans(sign,3.6)+([(-7.4,15.4),(31.0,46.5)] if sign<0 else [])
+    blocked=mount_spans(sign,3.6)+([(-11.6,11.0),(31.0,46.5)] if sign<0 else [])
     for a,b in open_runs(-84,50,blocked):
         box('Hangar side gallery',((a+b)/2,y,10.0),(b-a,1.35,.15),M['steel-deck'],COL['Hangars'])
         railing([(a,y+sign*.65),(b,y+sign*.65)],10.08,'Hangar side gallery',COL['Hangars'],.95)
@@ -463,12 +469,22 @@ for x,y in [(42.6,-13.35)]:
 for module in D['modules']:
     if not module['id'].startswith('director-'):continue
     x,y,z=-module['center'][2],-module['center'][0],module['center'][1]
-    cyl('Director platform',(x,y,z-.92),1.35,.22,M['naval'],COL['Island'],32)
     if module['id']=='director-starboard-forward':
+        cyl('Director platform',(x,y,z-.92),1.35,.22,M['naval'],COL['Island'],32)
         floor=S['bridge-roof']['baseY']+S['bridge-roof']['height']
         cyl('Island director support trunk',(x,y,(floor+z-.92)/2),.70,z-.92-floor,M['naval'],COL['Island'],28)
     else:
-        for dx in [-.6,.6]:rod('Director gallery support',(x+dx,math.copysign(12.98,y),10.4),(x+dx,y,z-1.02),.09,M['naval'],COL['Island'])
+        # pjsa108: a round splinter tub on a tapered pedestal faired into the hull side.
+        sg=1 if y>0 else -1;R=1.55;floor=z-.92;wall=13.0
+        cyl('Director tub floor',(x,y,floor),R,.22,M['naval'],COL['Island'],24)
+        tub_wall('Director splinter tub',x,y,R,floor+.11,floor+1.25,COL['Island'],24)
+        box('Director tub neck',(x,sg*(wall+abs(y))/2,floor),(1.8,abs(y)-wall+.1,.22),M['naval'],COL['Island'])
+        foot=6.2;hb=loft_breadth(H,x,foot)
+        top=[(x-1.1,sg*(wall-.04)),(x+1.1,sg*(wall-.04)),(x+.8,sg*(abs(y)+.5)),(x-.8,sg*(abs(y)+.5))]
+        bottom=[(x-.45,sg*(hb-.04)),(x+.45,sg*(hb-.04)),(x+.3,sg*(hb+.3)),(x-.3,sg*(hb+.3))]
+        prism('Director pedestal',top,floor-.11,bottom,foot,M['naval'],COL['Island'])
+        seat=hull_support.along((x,sg*(hb+4),8.0),(0,-sg,0),8)
+        rod('Director tub strut',seat,(x,sg*(abs(y)+.9),floor-.1),.1,M['naval'],COL['Island'])
     cyl('Type 94 director pedestal',(x,y,z-.48),.48,.8,M['naval'],COL['Island'],24)
     cyl('Type 94 director enclosure',(x,y,z+.06),.80,.62,M['naval'],COL['Island'],24,r2=.7)
     rod('Type 94 optical baseline',(x,y-2.25,z+.23),(x,y+2.25,z+.23),.12,M['naval'],COL['Island'],vertices=16)
@@ -525,18 +541,33 @@ for z in [FD+.3,18,21,24,27,30,31.4]:
 for z,width in [(26.6,7.7),(30.8,4.8)]:
     rod('Signal yard',(MX,MY-width/2,z),(MX,MY+width/2,z),.063,M['naval'],COL['Island'])
     for sign in [-1,1]:rod('Signal yard stay',(MX,MY,z+2),(MX,MY+sign*width/2,z),.014,M['edge'],COL['Island'],vertices=4)
-for x,y in [(-80,15.5),(-65,15.5),(-48,15.5),(-32,15.5),(-65,-18.0),(-34,-18.0)]:
-    pivot=empty('radio-'+str(int(x))+('-port' if y>0 else '-starboard')+'.fold',(x,y,FD-.4),COL['Island'])
+# Folding wireless masts: square lattice towers (pjsa108). The four with a reference
+# counterpart stand at its positions; the fold IDs keep the original stations.
+RADIO={(-80,15.5):-79.25,(-65,15.5):-65,(-48,15.5):-46.6,(-32,15.5):-32,(-65,-18.0):-63.6,(-34,-18.0):-33.4}
+for (key,y),x in RADIO.items():
+    pivot=empty('radio-'+str(int(key))+('-port' if y>0 else '-starboard')+'.fold',(x,y,FD-.4),COL['Island'])
     rod('Radio mast gallery seat',(x,math.copysign(12.98,y),13.0),(x,y,FD-.4),.10,M['naval'],COL['Island'])
     rod('Radio mast hinge cross-seat',(x-.4,y,FD-.4),(x+.4,y,FD-.4),.075,M['naval'],COL['Island'])
     before=set(scene.objects)
-    for dx in [-.28,.28]:rod('Radio mast chord',(dx,0,0),(0,0,9.8),.043,M['naval'],COL['Island'])
-    for i in range(9):rod('Radio mast lacing',(-.28*(1-i/10),0,i),(.28*(1-(i+1)/10),0,i+1),.019,M['edge'],COL['Island'],vertices=6)
+    def corner(h,i):
+        w=.36*(1-h/12.0);return Vector(((1 if i in (0,1) else -1)*w,(1 if i in (0,3) else -1)*w,h))
+    box('Radio mast heel plate',(0,0,.05),(.95,.95,.1),M['naval'],COL['Island'])
+    box('Radio mast cap plate',(0,0,8.4),(.34,.34,.08),M['naval'],COL['Island'])
+    for i in range(4):rod('Radio mast chord',corner(0,i),corner(8.4,i),.04,M['naval'],COL['Island'],vertices=6)
+    levels=[0,1.4,2.8,4.2,5.6,7.0,8.4]
+    for h0,h1 in zip(levels,levels[1:]):
+        for i in range(4):
+            j=(i+1)%4
+            rod('Radio mast lacing',corner(h0,i),corner(h1,j),.017,M['edge'],COL['Island'],vertices=4)
+            rod('Radio mast batten',corner(h1,i),corner(h1,j),.017,M['edge'],COL['Island'],vertices=4)
+    rod('Radio topmast',(0,0,8.2),(0,0,10.2),.05,M['naval'],COL['Island'],r2=.03,vertices=8)
+    rod('Radio mast yard',(-1.4,0,8.9),(1.4,0,8.9),.03,M['naval'],COL['Island'],vertices=6)
     for world_z in [23.0,23.8,24.15]:
-        h=world_z-(FD-.4);half=.28*(1-h/9.8)
-        rod('Aerial attachment crossbar',(-half,0,h),(half,0,h),.021,M['naval'],COL['Island'])
+        h=world_z-(FD-.4)
+        rod('Aerial attachment crossbar',(-.5,0,h),(.5,0,h),.021,M['naval'],COL['Island'],vertices=6)
     for o in set(scene.objects)-before:o.parent=pivot;o['assemblyId']=pivot.name
-for y,xs in [(15.5,[-80,-65,-48,-32]),(-18.0,[-65,-34])]:
+for y,keys in [(15.5,[-80,-65,-48,-32]),(-18.0,[-65,-34])]:
+    xs=[RADIO[(k,y)] for k in keys]
     for x0,x1 in zip(xs,xs[1:]):
         for z in [23.0,23.8,24.15]:rod('Wireless aerial',(x0,y,z),(x1,y,z),.013,M['edge'],COL['Island'],vertices=4)
 
