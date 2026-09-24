@@ -146,15 +146,9 @@ for mid, name, pos, bearing, trav in [('pom-pom-p', 'Port pom-pom', [-12.75, 9.2
 # ---------------------------------------------------------------- superstructure tiers
 # Outlines [runtime x, runtime z], measured at mid-tier and simplified to symmetric plan shapes.
 P = {
-'shelter-deck-forward':[[-13.5,-5.85],[-13.5,-0.45],[-14.9,1.55],[-14.9,5.35],[-13.0,8.85],[-13.1,10.65],[-15.0,13.45],[-15.0,17.65],[-13.3,20.25],[-13.2,22.85],[-14.9,27.95],[-14.5,41.35],[-13.65,42.8],[13.65,42.8],[14.5,41.35],[14.9,27.95],[13.2,22.85],[13.3,20.25],[15.0,17.65],[15.0,13.45],[13.1,10.65],[13.0,8.85],[14.9,5.35],[14.9,1.55],[13.5,-0.45],[13.5,-5.85],[14.9,-9.05],[15.4,-13.95],[14.5,-18.95],[14.5,-22.65],[11.3,-25.85],[11.1,-30.35],[11.8,-32.05],[10.9,-33.65],[10.9,-36.85],[7.3,-40.25],[4.6,-46.75],[5.1,-47.25],[2.9,-47.95],[2.25,-50.8],[0,-51.4],[-2.25,-50.8],[-2.9,-47.95],[-5.1,-47.25],[-4.6,-46.75],[-7.3,-40.25],[-10.9,-36.85],[-10.9,-33.65],[-11.8,-32.05],[-11.1,-30.35],[-11.3,-25.85],[-14.5,-22.65],[-14.5,-18.95],[-15.4,-13.95],[-14.9,-9.05]],
+'shelter-deck-forward':[[-13.5,-5.85],[-13.5,-0.45],[-14.9,1.55],[-14.9,5.35],[-13.0,8.85],[-13.1,10.65],[-15.0,13.45],[-15.0,17.65],[-13.3,20.25],[-13.2,22.85],[-14.9,27.95],[-14.5,41.35],[-13.65,42.8],[13.65,42.8],[14.5,41.35],[14.9,27.95],[13.2,22.85],[13.3,20.25],[15.0,17.65],[15.0,13.45],[13.1,10.65],[13.0,8.85],[14.9,5.35],[14.9,1.55],[13.5,-0.45],[13.5,-5.85],[14.75,-9.05],[14.65,-13.95],[14.5,-18.95],[14.5,-22.65],[11.3,-25.85],[11.1,-30.35],[11.8,-32.05],[10.9,-33.65],[10.9,-36.85],[7.3,-40.25],[4.6,-46.75],[5.1,-47.25],[2.9,-47.95],[2.25,-50.8],[0,-51.4],[-2.25,-50.8],[-2.9,-47.95],[-5.1,-47.25],[-4.6,-46.75],[-7.3,-40.25],[-10.9,-36.85],[-10.9,-33.65],[-11.8,-32.05],[-11.1,-30.35],[-11.3,-25.85],[-14.5,-22.65],[-14.5,-18.95],[-14.65,-13.95],[-14.75,-9.05]],
 'shelter-deck-aft':[[-2.9,62.75],[-1.45,64.3],[1.45,64.3],[2.9,62.75],[3.9,59.95],[13.65,42.8],[-13.65,42.8],[-3.9,59.95]],
-'forward-superstructure':[[8.15,-29.2],[7.5,-40.05],[4.5,-46.85],[4.8,-47.25],[3.25,-47.75],[0.95,-51.1],[0,-51.3],[-0.95,-51.1],[-3.25,-47.75],[-4.8,-47.25],[-4.5,-46.85],[-7.5,-40.05],[-8.15,-29.2],[-5.35,-29.5],[-4.55,-28.3],[-3.65,-29.5],[3.65,-29.5],[4.55,-28.3],[5.35,-29.5]],
-'bridge-base':[[5.0,-42.25],[6.6,-42.05],[4.6,-47.35],[3.3,-47.95],[1.05,-51.3],[0.05,-51.6],[-1.05,-51.3],[-3.3,-47.95],[-4.6,-47.35],[-6.6,-42.05],[-5.0,-42.25],[-5.7,-43.15],[-5.35,-43.5],[-2.25,-43.5],[-1.65,-40.0],[1.65,-40.0],[2.25,-43.5],[5.35,-43.5],[5.7,-43.15]],
-'bridge-flag':[[5.1,-28.65],[5.1,-32.25],[4.65,-32.7],[3.6,-32.15],[3.7,-33.95],[2.55,-34.8],[2.45,-35.95],[3.3,-36.55],[2.7,-38.15],[1.05,-39.8],[-1.05,-39.8],[-2.7,-38.15],[-3.3,-36.55],[-2.45,-35.95],[-2.55,-34.8],[-3.7,-33.95],[-3.6,-32.15],[-4.65,-32.7],[-5.1,-32.25],[-5.1,-28.65],[-4.25,-27.9],[-3.45,-28.15],[-2.15,-26.5],[2.15,-26.5],[3.45,-28.15],[4.25,-27.9]],
-'bridge-middle':[[3.5,-34.05],[2.2,-34.95],[2.3,-37.65],[0.95,-39.0],[-0.95,-39.0],[-2.3,-37.65],[-2.2,-34.95],[-3.5,-34.05],[-3.5,-32.45],[-2.65,-31.1],[-2.25,-31.5],[2.25,-31.5],[2.65,-31.1],[3.5,-32.45]],
-'bridge-upper':[[-2.75,-28.3],[2.75,-28.3],[5.3,-30.05],[3.95,-32.8],[3.05,-31.1],[2.3,-31.8],[2.2,-34.45],[2.65,-34.9],[3.95,-33.7],[4.7,-36.55],[3.15,-36.8],[0.95,-39.0],[-0.95,-39.0],[-3.15,-36.8],[-4.7,-36.55],[-3.95,-33.7],[-2.65,-34.9],[-2.2,-34.45],[-2.3,-31.8],[-3.05,-31.1],[-3.95,-32.8],[-5.3,-30.05]],
-'bridge-navigation':[[-3.6,-31.25],[-1.9,-29.95],[-2.8,-29.35],[-2.8,-28.6],[2.8,-28.6],[2.8,-29.35],[1.9,-29.95],[3.6,-31.25],[4.3,-34.05],[3.95,-34.7],[2.3,-35.25],[2.3,-37.85],[0.95,-39.3],[-0.95,-39.3],[-2.3,-37.85],[-2.3,-35.25],[-3.95,-34.7],[-4.3,-34.05]],
-'bridge-compass':[[2.5,-34.35],[1.6,-35.75],[2.1,-36.45],[1.6,-37.25],[2.2,-37.85],[1.6,-39.05],[0.75,-39.5],[-0.75,-39.5],[-1.6,-39.05],[-2.2,-37.85],[-1.6,-37.25],[-2.1,-36.45],[-1.6,-35.75],[-2.5,-34.35],[-2.2,-31.95],[-2.8,-31.15],[-2.25,-30.5],[-1.45,-32.0],[1.45,-32.0],[2.25,-30.5],[2.8,-31.15],[2.2,-31.95]],
+'forward-superstructure':[[8.33,-29.57],[7.5,-40.05],[4.5,-46.85],[4.8,-47.25],[3.25,-47.75],[0.95,-51.1],[0,-51.3],[-0.95,-51.1],[-3.25,-47.75],[-4.8,-47.25],[-4.5,-46.85],[-7.5,-40.05],[-8.33,-29.57],[-5.0,-29.57],[-4.7,-28.35],[-4.35,-29.57],[4.35,-29.57],[4.7,-28.35],[5.0,-29.57]],
 }
 
 
@@ -186,29 +180,65 @@ def structure(id, name, footprint, base, top, material='naval'):
     b['structures'].append(dict(id=id, name=name, footprint=footprint, baseY=round(base, 4), height=round(top - base, 4), material=material))
 
 
-structure('shelter-deck-forward', 'Shelter deck and forecastle superstructure', P['shelter-deck-forward'], DECK_MID, 9.2)
+def sym(half):
+    """Mirror a starboard half outline, listed from the after centreline round to the forward one."""
+    pts = [[round(x, 3), round(z, 3)] for x, z in half]
+    return pts + [[-x, z] for x, z in reversed(pts) if x > 1e-6]
+
+
+# The shelter deck is plated in fore and aft; amidships (WELL) it roofs an open-sided well over the
+# upper deck, carried on pillars round the boiler-room casings.
+WELL = (-9.3, 26.6)
+structure('shelter-deck-forward', 'Shelter deck and forecastle superstructure', clip_aft(P['shelter-deck-forward'], WELL[0]), DECK_MID, 9.2)
+structure('shelter-deck-well-roof', 'Shelter deck over the well', clip_fore(clip_aft(P['shelter-deck-forward'], WELL[1]), WELL[0]), 8.95, 9.2)
+structure('shelter-deck-midships', 'Shelter deck abaft the well', clip_fore(P['shelter-deck-forward'], WELL[1]), DECK_MID, 9.2)
+structure('well-casing-forward', 'Boiler-room casing in the well', sym([(0, WELL[0]), (8.6, WELL[0]), (8.6, -4.4), (5.2, -4.4), (5.2, -1.9), (8.6, -1.9), (8.6, 7.4), (8.2, 8.0), (0, 8.0)]), DECK_MID, 8.95)
+structure('well-casing-aft', 'Engine-room casing in the well', sym([(0, 9.8), (5.2, 9.8), (5.2, 11.0), (6.05, 11.0), (6.05, WELL[1]), (0, WELL[1])]), DECK_MID, 8.95)
 structure('shelter-deck-aft', 'After shelter deck over the quarterdeck break', P['shelter-deck-aft'], 2.48, 9.2)
 structure('forward-superstructure', 'Forward superstructure', P['forward-superstructure'], 9.2, 12.0)
-structure('bridge-base', 'Conning-tower platform', P['bridge-base'], 12.0, 14.13)
-structure('conning-tower', 'Armoured conning tower', ellipse(-47.55, 3.2, 3.95, 24), 12.0, 16.5)
-structure('conning-tower-hood', 'Conning-tower hood', ellipse(-45.95, 2.5, 2.15, 20), 16.5, 18.4)
-structure('bridge-lower', 'Lower bridge trunk', rect(-2.2, 2.2, -37.8, -32.8), 12.0, 15.0)
+# Bridge, measured tier by tier on the reference: enclosed houses are solid tiers; the open decks
+# (14.15, 16.55, 19.8 m) are thin plates whose bulwarks the recipe draws. The houses stop under each deck.
 for side, sign in [('port', -1), ('starboard', 1)]:
-    structure('signal-house-' + side, side.title() + ' signal house', [[sign * 2.8, -37.0], [sign * 5.0, -37.0], [sign * 5.1, -28.4], [sign * 2.8, -28.4]], 12.0, 15.0)
-structure('bridge-flag', 'Admiral bridge', clip_fore(P['bridge-flag'], -37.5), 15.0, 17.3)
-structure('bridge-flag-deck', 'Admiral bridge deck', P['bridge-flag'], 17.3, 18.0)
-structure('bridge-middle', 'Bridge trunk', P['bridge-middle'], 18.0, 20.3)
-structure('bridge-upper', 'Upper bridge', clip_aft(P['bridge-upper'], -30.5), 20.3, 22.3)
-structure('bridge-navigation', 'Navigating bridge', clip_aft(P['bridge-navigation'], -30.5), 22.3, 23.4)
-structure('bridge-compass', 'Compass platform', clip_aft(P['bridge-compass'], -30.8), 23.4, 24.6)
+    structure('searchlight-sponson-' + side, side.title() + ' searchlight sponson',
+              [[sign * x, z] for x, z in [(6.5, -26.0), (7.7, -26.1), (8.65, -27.3), (9.3, -27.5), (9.3, -30.1), (8.9, -30.8), (8.2, -31.15), (8.33, -29.57), (6.5, -29.57)]], 11.85, 12.0)
+structure('bridge-base', 'Conning-tower platform', sym([(0, -40.0), (2.27, -40.0), (1.9, -41.0), (1.9, -43.65), (4.8, -43.65), (4.8, -41.9), (5.35, -41.7), (6.45, -41.8),
+                                                       (6.9, -40.85), (7.05, -40.9), (4.68, -46.5), (4.5, -47.65), (3.05, -47.75), (0, -47.75)]), 12.0, 14.13)
+structure('conning-tower', 'Armoured conning tower', ellipse(-47.55, 3.2, 3.95, 24), 12.0, 16.5)
+structure('conning-tower-hood', 'Conning-tower hood', ellipse(-46.37, 2.52, 2.55, 24), 16.5, 17.3)
+structure('conning-tower-hood-upper', 'Conning-tower hood, upper tier', ellipse(-45.9, 1.75, 1.72, 20), 17.3, 18.36)
+structure('conning-tower-sight-hood', 'Conning-tower sighting hood', sym([(0, -46.85), (1.58, -46.85), (2.0, -47.25), (2.08, -47.6), (1.88, -48.05), (1.05, -48.67), (0, -48.92)]), 17.3, 17.8)
+structure('bridge-lower', 'Lower bridge trunk', sym([(0, -33.97), (1.9, -33.97), (2.18, -34.25), (2.2, -37.8), (1.1, -38.3), (0, -38.3)]), 12.0, 16.4)
+for side, sign in [('port', -1), ('starboard', 1)]:
+    structure('signal-house-' + side, side.title() + ' signal house', [[sign * x, z] for x, z in [(2.85, -28.45), (5.07, -28.45), (5.07, -32.2), (4.7, -32.8), (3.45, -32.85), (2.85, -32.3)]], 12.0, 14.0)
+    structure('bridge-side-house-' + side, side.title() + ' flag deck house', [[sign * x, z] for x, z in [(2.83, -28.45), (5.07, -28.45), (5.07, -32.15), (4.65, -32.85), (2.83, -30.5)]], 14.15, 16.4)
+structure('bridge-deck-lower', 'Lower bridge deck', sym([(0, -26.9), (2.05, -26.9), (1.8, -27.2), (1.8, -27.7), (2.8, -27.72), (3.1, -28.42), (5.07, -28.45), (5.07, -33.2), (2.27, -40.0), (0, -40.0)]), 14.0, 14.15)
+structure('bridge-flag', 'Admiral bridge deck', sym([(0, -26.85), (2.38, -26.85), (2.8, -28.4), (5.05, -28.45), (5.05, -33.3), (4.43, -33.9), (3.38, -37.5), (1.1, -39.77), (0, -39.77)]), 16.4, 16.55)
+structure('bridge-middle', 'Admiral bridge house', sym([(0, -29.6), (2.38, -29.6), (3.4, -29.8), (3.62, -30.2), (3.6, -30.6), (2.85, -30.7), (2.93, -32.05), (3.48, -32.45),
+                                                        (3.48, -34.2), (2.2, -34.75), (2.28, -37.7), (0.9, -39.08), (0, -39.08)]), 16.55, 19.65)
+structure('bridge-upper-deck', 'Upper bridge deck', sym([(0, -28.38), (1.7, -28.38), (3.0, -28.57), (4.7, -29.57), (5.23, -30.3), (5.18, -30.8), (4.85, -31.23), (3.68, -31.65), (3.78, -32.5),
+                                                         (3.88, -32.65), (3.88, -33.05), (4.68, -36.65), (4.5, -36.83), (3.15, -36.83), (0.9, -39.08), (0, -39.08)]), 19.65, 19.8)
+structure('bridge-aft-house', 'Upper bridge after house', rect(-2.8, 2.8, -29.62, -28.48), 19.8, 22.25)
+structure('bridge-upper', 'Upper bridge', sym([(0, -31.57), (2.15, -31.57), (2.28, -31.75), (2.2, -34.7), (4.2, -34.67), (4.68, -36.5), (4.55, -36.8), (2.2, -36.83), (2.18, -37.8), (0.9, -39.08), (0, -39.1)]), 19.8, 22.25)
+structure('bridge-navigation', 'Navigating bridge', sym([(0, -30.45), (2.45, -30.42), (2.7, -30.77), (3.2, -30.77), (3.62, -31.5), (4.23, -34.6), (4.38, -34.8), (2.2, -34.8), (2.18, -38.1), (0.9, -39.38), (0, -39.38)]), 22.25, 23.35)
+structure('bridge-compass', 'Compass platform house', sym([(0, -30.75), (2.2, -30.62), (2.73, -31.25), (2.6, -31.52), (2.18, -31.65), (2.18, -35.1), (0, -35.1)]), 23.35, 24.55)
 structure('forward-funnel-casing', 'Forward funnel casing', [[-5.5, -27.2], [5.5, -27.2], [5.5, -17.0], [4.0, -16.6], [-4.0, -16.6], [-5.5, -17.0]], 9.2, 10.97)
 structure('forward-funnel', 'Forward funnel', ellipse(-22.42, 2.9, 3.9, 32), 10.97, 23.32)
 structure('midships-deckhouse', 'Midships deckhouse', [[-5.1, -14.5], [5.1, -14.5], [5.2, -8.9], [5.25, 3.3], [3.5, 4.6], [-3.5, 4.6], [-5.25, 3.3], [-5.2, -8.9]], 9.2, 10.97)
 structure('midships-deckhouse-upper', 'Midships deckhouse, upper tier', [[-5.1, -14.5], [5.1, -14.5], [5.1, -7.8], [-5.1, -7.8]], 10.97, 12.93)
 structure('searchlight-tower', 'Midships searchlight tower', rect(-1.35, 1.35, -13.7, -9.7), 12.93, 15.99)
 structure('after-funnel', 'After funnel', ellipse(-2.82, 2.9, 3.9, 32), 10.97, 23.32)
-structure('after-control-tower', 'After control position', [[-2.8, 34.3], [2.8, 34.3], [4.0, 35.6], [3.2, 38.5], [2.4, 42.0], [1.2, 44.6], [-1.2, 44.6], [-2.4, 42.0], [-3.2, 38.5], [-4.0, 35.6]], 9.2, 16.25)
-structure('after-deckhouse', 'After deckhouse', [[-2.8, 49.0], [2.8, 49.0], [2.8, 53.2], [-2.8, 53.2]], 9.2, 11.79)
+# After control position: a full-width lower block to 13.3 m, a narrower upper house, and the screened
+# roof carrying the HACS, searchlights and pom-pom director; searchlight lobes off the lower block.
+structure('after-control-tower', 'After control position', sym([(0, 34.25), (1.3, 34.25), (1.3, 34.9), (2.8, 34.9), (2.95, 35.48), (3.8, 35.48), (4.05, 35.7), (4.12, 37.5), (4.12, 37.95),
+                                                                 (3.78, 38.8), (3.78, 39.45), (3.45, 40.1), (3.35, 41.2), (2.43, 41.25), (1.7, 44.08), (0, 44.08)]), 9.2, 13.3)
+structure('after-control-tower-upper', 'After control position, upper house', sym([(0, 35.4), (2.85, 35.38), (3.23, 35.7), (3.68, 36.35), (3.68, 36.8), (3.4, 37.33), (1.7, 37.5), (1.7, 41.25),
+                                                                                    (1.88, 41.25), (0.93, 43.55), (0.15, 44.08), (0, 44.08)]), 13.3, 16.1)
+structure('after-control-tower-roof', 'After control position roof', sym([(0, 35.1), (1.55, 35.5), (2.5, 35.02), (3.2, 35.17), (3.98, 35.9), (4.12, 36.6), (4.03, 37.15), (3.73, 37.6), (3.18, 37.95),
+                                                                          (2.5, 39.48), (0, 43.6)]), 16.1, 16.25)
+for side, sign in [('port', -1), ('starboard', 1)]:
+    structure('searchlight-lobe-' + side, side.title() + ' after searchlight platform',
+              [[sign * x, z] for x, z in [(2.8, 34.9), (3.2, 34.0), (4.4, 33.6), (5.3, 33.5), (6.4, 33.9), (7.0, 35.0), (6.5, 36.1), (5.3, 36.6), (4.12, 37.5), (4.05, 35.7), (3.8, 35.48), (2.95, 35.48)]], 13.15, 13.3)
+structure('after-deckhouse', 'After deckhouse', sym([(0, 49.67), (3.35, 49.67), (3.68, 50.6), (3.68, 52.73), (0, 52.73)]), 9.2, 11.79)
 structure('after-deckhouse-roof', 'After gun platform', [[-4.7, 45.8], [4.7, 45.8], [4.8, 51.5], [3.6, 53.9], [0, 54.3], [-3.6, 53.9], [-4.8, 51.5]], 11.79, 11.91, 'roof')
 
 # Coarse firing-clearance proxies: each footprint split into <=10 m slices, kept inside the visual.
