@@ -78,14 +78,15 @@ def prism(name,outline,base,height,material='naval'):
  n=len(outline);vv=[(x,y,z) for z in [base,base+height] for x,y in outline]
  return mesh(name,vv,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],material)
 
-def perimeter_wall(name,outline,z,height=.88,thickness=.055,skip_aft=False):
+def perimeter_wall(name,outline,z,height=.88,thickness=.055,skip=None):
  # Thin independent splinter plates leave the actual platform surface visible. A gallery that ends against
- # its house (skip_aft) has no plate across its after edge.
- aft=min(p[0] for p in outline)
+ # its house has no plate across that end (skip 'aft' or 'fore').
+ aft=min(p[0] for p in outline);fore=max(p[0] for p in outline)
  for i,(a,b) in enumerate(zip(outline,outline[1:]+outline[:1])):
   ax,ay=a;bx,by=b;length=math.hypot(bx-ax,by-ay)
   if length<.02:continue
-  if skip_aft and max(ax,bx)<aft+.05:continue
+  if skip=='aft' and max(ax,bx)<aft+.05:continue
+  if skip=='fore' and min(ax,bx)>fore-.05:continue
   ob=box(name+' plate '+str(i),((ax+bx)/2,(ay+by)/2,z+height/2),(length,thickness,height),'naval')
   ob.rotation_euler.z=math.atan2(by-ay,bx-ax)
   rod(name+' top rail',(ax,ay,z+height),(bx,by,z+height),.027,'edge',vertices=6)
@@ -127,24 +128,28 @@ DECK=6.26
 # Blueprint deckhouses, gallery decks and their splinter bulwarks. Outlines and heights are measured on the
 # approved GameModels3D pasc108 model (see authoring/author-structures.py).
 COL=collections['Superstructure']
-GALLERIES={'bridge-03-deck':1.25,'bridge-04-deck':1.45,'bridge-navigation-deck':1.0,'aft-platform':1.0}
+GALLERIES={'bridge-03-deck':(1.25,'aft'),'bridge-04-deck':(1.45,'aft'),'bridge-navigation-deck':(1.4,'aft'),'aft-platform':(1.0,None),'aft-deckhouse-tail':(1.0,'fore')}
 COVERED={'conning-tower','forward-upper-deck','bridge-lower','bridge-flag','aft-deckhouse'}
 for s in D.get('structures',[]):
  if s['id'] in ['forward-funnel','after-funnel'] or s['id'].startswith('aa-platform'):continue
  ASSEMBLY=s['id'];outline=[(-z,-x) for x,z in s['footprint']]
  authored_structure(s,mesh,materials,COL)
  if s['height']>.5 and s['id'] not in COVERED:prism(s['name']+' deck rim',outline,s['baseY']+s['height'],.075,'roof')
- if s['id'] in GALLERIES:perimeter_wall(s['name'],outline,s['baseY']+s['height'],GALLERIES[s['id']],skip_aft=s['id'].startswith('bridge'))
+ if s['id'] in GALLERIES:perimeter_wall(s['name'],outline,s['baseY']+s['height'],GALLERIES[s['id']][0],skip=GALLERIES[s['id']][1])
 structure_support=SupportSurface([hull,*COL.objects]);funnel_shells={}
 def wall(x,z,sign,reach=14):
  """Half-breadth of the outboard face of the superstructure at authoring x and height z on side sign (+1 port)."""
  return abs(structure_support.along((x,sign*reach,z),(0,-sign,0),reach).y)
 # Oval stacks above the uptake casings: the fore face rakes aft, the top carries a raked smoke hood.
-FUNNELS={'forward-funnel':(-2.18,-1.58,1.5,2.9,1.45,2.7,15.10,23.0,18.6),'after-funnel':(16.37,17.17,1.5,2.95,1.4,2.75,15.80,22.5,18.9)}
-def stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,z,grow=0,n=36):
- t=(z-base)/(top-base);c=c0+(c1-c0)*t;rx=rx0+(rx1-rx0)*t+grow;rz=rz0+(rz1-rz0)*t+grow
- return [(-c+rz*math.cos(math.tau*i/n),rx*math.sin(math.tau*i/n),z) for i in range(n)]
-for name,(c0,c1,rx0,rz0,rx1,rz1,base,top,walk) in FUNNELS.items():
+# (base centre z, top centre z, base half-breadth, base half-length, top half-breadth, top half-length, base,
+#  top, hood rise, walkway height, walkway overhang abeam and aft, walkway arc)
+FUNNELS={'forward-funnel':(-2.21,-1.52,1.5,2.93,1.6,2.42,15.10,23.6,1.1,18.5,1.45,.8,(40,320)),
+ 'after-funnel':(16.57,17.05,1.5,2.74,1.4,2.45,15.80,23.0,.8,19.8,.55,.55,(0,360))}
+def stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,z,grow=0,n=36,growx=None,arc=(0,360)):
+ t=(z-base)/(top-base);c=c0+(c1-c0)*t;rx=rx0+(rx1-rx0)*t+(grow if growx is None else growx);rz=rz0+(rz1-rz0)*t+grow
+ a0,a1=[math.radians(v) for v in arc];full=arc==(0,360);m=n if full else n+1
+ return [(-c+rz*math.cos(a0+(a1-a0)*i/n),rx*math.sin(a0+(a1-a0)*i/n),z) for i in range(m)]
+for name,(c0,c1,rx0,rz0,rx1,rz1,base,top,rise,walk,wx,wz,arc) in FUNNELS.items():
  ASSEMBLY=name
  # Author the identified shell first so the rigid export bucket retains its ID.
  funnel_shells[name]=authored_structure(S[name],mesh,materials,COL)
@@ -153,7 +158,7 @@ for name,(c0,c1,rx0,rz0,rx1,rz1,base,top,walk) in FUNNELS.items():
  ellipse(name+' exhaust',X1,0,top+.305,rz1-.1,rx1-.1,.018,'dark')
  # Raked smoke hood: a grating rising 1.1 m toward the fore edge, carried on four posts.
  n=24;rim=[(X1+(rz1+.05)*math.cos(math.tau*i/n),(rx1+.05)*math.sin(math.tau*i/n)) for i in range(n)]
- lift=lambda x:top+.55+1.1*(x-(X1-rz1))/(2*rz1)
+ lift=lambda x:top+.4+rise*(x-(X1-rz1))/(2*rz1)
  mesh(name+' smoke hood',[(x,y,lift(x)) for x,y in rim]+[(x,y,lift(x)+.06) for x,y in rim],[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'dark')
  for i in range(1,8):
   xx=X1-rz1+2*rz1*i/8;half=(rx1+.05)*math.sqrt(max(0,1-((xx-X1)/(rz1+.05))**2))
@@ -164,10 +169,11 @@ for name,(c0,c1,rx0,rz0,rx1,rz1,base,top,walk) in FUNNELS.items():
  for z in [base+1.2,(base+top)/2+.9,top-.9]:
   pts=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,z,.02,32)
   for a,b in zip(pts,pts[1:]+pts[:1]):rod('Stack band',a,b,.028,'edge',vertices=6)
- inner=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,walk,0,32);outer=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,walk,.75,32)
- k=len(inner);mesh(name+' walkway',inner+outer,[(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k)],'roof')
- rail=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,walk+1.0,.72,32)
- for a,b in zip(rail,rail[1:]+rail[:1]):rod('Funnel handrail',a,b,.029,'edge',vertices=6)
+ inner=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,walk,-.02,32,arc=arc);outer=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,walk,wz,32,wx,arc)
+ k=len(inner);closed=arc==(0,360)
+ mesh(name+' walkway',inner+outer,[(i,(i+1)%k,(i+1)%k+k,i+k) for i in range(k if closed else k-1)],'roof')
+ rail=stack_ring(c0,c1,rx0,rz0,rx1,rz1,base,top,walk+1.0,wz-.03,32,wx-.03,arc)
+ for a,b in zip(rail,rail[1:]+(rail[:1] if closed else [])):rod('Funnel handrail',a,b,.029,'edge',vertices=6)
  for p in rail[::4]:rod('Funnel handrail stanchion',(p[0],p[1],walk),p,.025,'edge',vertices=6)
  for p,q in zip(inner[::8],outer[::8]):rod('Walkway bracket',(p[0],p[1],walk-.9),(q[0],q[1],walk-.02),.05,'naval',vertices=6)
  for sign in [-1,1]:
@@ -241,7 +247,7 @@ director('forward-dp-director',13.228,23.723)
 director('after-dp-director',-28.212,19.101)
 # Masts on the reference axes. The foremast carries the SG at its topmast, the mainmast the SK on its
 # platform (the preset's 1943 radar fit; the reference places a bedspring forward and a dish aft).
-FORE=((8.66,12.62),(7.13,33.0));MAIN=((-22.4,8.70),(-22.9,29.2))
+FORE=((8.66,12.62),(7.13,33.0));MAIN=((-21.9,8.70),(-23.35,29.2))
 ASSEMBLY='foremast'
 (fx0,fz0),(fx1,fz1)=FORE
 rod('foremast pole',(fx0,0,fz0),(fx1,0,fz1+.4),.32,'naval',r2=.2,vertices=16)
@@ -264,21 +270,22 @@ rod('Forward mast top',(4.2,0,39.3),(4.2,0,39.9),.025,'edge',vertices=6)
 for side in [-1,1]:rod('Signal halyard',(pole_x(31.6),side*5.2,31.6),(11.5,side*2.4,17.4),.012,'edge',vertices=5)
 ASSEMBLY='mainmast'
 (mx0,mz0),(mx1,mz1)=MAIN
-rod('mainmast pole',(mx0,0,mz0),(mx1,0,mz1+.3),.3,'naval',r2=.2,vertices=16)
+rod('mainmast pole',(mx0,0,mz0),(mx1,0,mz1+.3),.45,'naval',r2=.25,vertices=16)
+main_x=lambda z:mx0+(mx1-mx0)*(z-mz0)/(mz1-mz0)
 for side in [-1,1]:rod('mainmast leg',(-20.0,side*2.6,8.70),(mx0-.2,0,mz0+13.5),.14,'naval',r2=.1,vertices=10)
 box('Mainmast platform',(-23.2,0,29.2),(6.6,3.0,.12),'roof')
 for a,b in [((-19.9,-1.5),(-26.5,-1.5)),((-26.5,-1.5),(-26.5,1.5)),((-26.5,1.5),(-19.9,1.5)),((-19.9,1.5),(-19.9,-1.5))]:
  for h in [.5,1.0]:rod('Mainmast platform rail',(*a,29.26+h),(*b,29.26+h),.022,'edge',vertices=5)
 for x in [-20.2,-26.2]:
  for y in [-1.4,1.4]:rod('Mainmast platform bracket',(x,y,29.15),(mx1+(x-mx1)*.25,0,27.6),.05,'naval',vertices=6)
-rod('mainmast topmast',(-21.2,0,29.2),(-21.2,0,36.3),.13,'naval',r2=.06,vertices=12)
-rod('mainmast yard',(-22.9,-4.9,28.0),(-22.9,4.9,28.0),.08,'naval',r2=.05,vertices=12)
-for side in [-1,1]:rod('mainmast yard brace',(-22.9,0,30.0),(-22.9,side*4.0,28.0),.033,'edge',vertices=6)
+rod('mainmast topmast',(-21.2,0,29.2),(-21.2,0,35.8),.13,'naval',r2=.06,vertices=12)
+rod('mainmast yard',(main_x(28.0),-4.9,28.0),(main_x(28.0),4.9,28.0),.08,'naval',r2=.05,vertices=12)
+for side in [-1,1]:rod('mainmast yard brace',(main_x(29.2),0,29.2),(main_x(28.0),side*4.0,28.0),.033,'edge',vertices=6)
 before=set(scene.objects)
 radar_grid('SK search array',-25.1,0,31.35,4.9,3.1)
 for y in [-.8,.8]:rod('SK pedestal',(-25.1,y,29.26),(-25.1,y,29.8),.08,'naval',vertices=8)
 radar_pivot('radar-sk.yaw',(-25.1,0,29.26),set(scene.objects)-before)
-rod('Main aerial',(4.2,0,39.2),(-21.2,0,36.0),.013,'edge',vertices=5)
+rod('Main aerial',(4.2,0,39.2),(-21.2,0,35.6),.013,'edge',vertices=5)
 # Aircraft handling: two catapults on turntables at the reference quarter stations, stern cranes whose jibs
 # stow forward and outboard, and the hangar hatch.
 COL=collections['Aircraft handling']
@@ -346,10 +353,12 @@ def bofors(mount):
  global ASSEMBLY
  ASSEMBLY=mount['id'];w=mount['weapon'];px,pz,py=mount['position'];x,y,z=-py,-px,pz
  # Keep the repaired stationary foundation outside the aiming hierarchy.
+ # The stern quad stands off the centreline of its round sponson, as on the reference.
+ tx,ty=TUB_CENTRE.get(mount['id'],(x,y))
  floor=aa_support.below(x,y,z+.5)
- if z-.20-floor>.015:cyl(ASSEMBLY+' fixed foundation',(x,y,(floor+z-.20)/2),1.9,z-.20-floor+.02,'naval',vertices=32)
- cyl('40 mm gun tub deck',(x,y,z-.10),2.6,.20,'roof',vertices=40)
- tub('40 mm splinter shield',x,y,z,2.58,.94)
+ if z-.20-floor>.015:cyl(ASSEMBLY+' fixed foundation',(tx,ty,(floor+z-.20)/2),1.9,z-.20-floor+.02,'naval',vertices=32)
+ cyl('40 mm gun tub deck',(tx,ty,z-.10),2.6,.20,'roof',vertices=40)
+ tub('40 mm splinter shield',tx,ty,z,2.58,.94)
  frame=[cyl('Bofors pedestal',(0,0,.36),.50,.72,'edge',vertices=20),
         box('Bofors carriage',(0,0,.9),(1.1,1.95,.8),'naval')]
  for lateral in [-1.0,1.0]:
@@ -364,8 +373,12 @@ def bofors(mount):
   clip=box('40 mm clip guide',start-direction*.58+Vector((0,0,.24)),(.32,.20,.38),'naval');clip.rotation_euler.y=-elevation
   barrels.append([barrel,breech,clip])
  articulate_aa(mount,COL,frame,barrels)
+TUB_CENTRE={'bofors-12':(-101.3,0)}
 for mount in D['mounts']:
  if mount['partId']=='us-40mm-bofors-baltimore-quad':bofors(mount)
+# Mk 51 director tubs on the after 04 platform wings (the directors themselves are not in the preset's fit).
+ASSEMBLY='aft-04-platform'
+for side in [-1,1]:tub('Director tub',-24.37,side*3.1,17.30,.85,1.0)
 # Twenty-four single 20 mm at the reference stations (23 of them hardpoints; the 24th pairs the one on the
 # after deckhouse tail), in splinter tubs; where the reference raises one on a pedestal, a pedestal carries it.
 OERLIKONS=[(-94.38,1.705,8.727),(-35.17,1.419,8.69),(-28.19,5.40,8.69),(-26.09,5.844,8.69),(-1.13,8.985,8.973),
@@ -387,7 +400,7 @@ for i,(k,side) in enumerate([(k,side) for k in range(len(OERLIKONS)) for side in
  rod('20 mm drum',(x-.08,y,z+1.42),(x+.15,y,z+1.42),.18,'dark',vertices=14)
 # Deck fittings and railing use per-assembly meshes, retaining logical ownership.
 COL=collections['Deck fittings']
-STEM_BULWARK=91.4
+STEM_BULWARK=80.0
 for side in [-1,1]:
  ASSEMBLY='hull-rails-port' if side>0 else 'hull-rails-starboard'
  points=[]
@@ -401,12 +414,12 @@ for side in [-1,1]:
   for h in [.35,.68,1.0]:rod('Guardrail',(a[0],a[1],a[2]+h),(b[0],b[1],b[2]+h),.012,'naval',vertices=5)
  # The forecastle bulwark: the shell plating continues above the deck from the stem to abreast the anchors.
  ASSEMBLY='hull'
- xs=[STEM_BULWARK+(99.1-STEM_BULWARK)*i/24 for i in range(25)]
- top=lambda x:interp([(STEM_BULWARK,deckz(STEM_BULWARK)+.95),(STEM_BULWARK+.9,9.62),(99.1,9.6)],x)
+ xs=[STEM_BULWARK+(L/2-STEM_BULWARK)*i/60 for i in range(61)]
+ top=lambda x:interp([(STEM_BULWARK,deckz(STEM_BULWARK)),(STEM_BULWARK+.8,deckz(STEM_BULWARK+.8)+1.15),(91.7,deckz(91.7)+1.15),(92.2,9.63),(99.1,9.6),(L/2,9.92)],x)
  ring=[]
  for x in xs:
-  w=width(x);d=deckz(x)-.05;t=top(x);o=w+.22*(t-d)
-  ring.append([(x,side*w,d),(x,side*o,t),(x,side*(o-.08),t),(x,side*(w-.08),d)])
+  w=width(x);d=deckz(x)-.05;t=top(x);o=w+.22*(t-d);k=min(1,max(0,(L/2-x)/.6))
+  ring.append([(x,side*w,d),(x,side*o,t),(x,side*max(0,o-.08*k),t),(x,side*max(0,w-.08*k),d)])
  v=[p for r in ring for p in r];f=[]
  for j in range(len(ring)-1):
   for k in range(3):f.append((j*4+k,j*4+k+1,(j+1)*4+k+1,(j+1)*4+k))
@@ -462,29 +475,45 @@ for x in [-62,-58,60,66,83]:
 # Four staggered screws on the reference shaft stations, the balanced rudder, the centreline skeg and the
 # bilge keels.
 COL=collections['Underwater fittings']
+hull_support=SupportSurface([hull])
 for i,(y,x,z,radius) in enumerate([(-7.02,-71.38,-5.17,1.64),(-3.49,-86.5,-5.17,1.64),(3.49,-86.5,-5.17,1.64),(7.02,-71.38,-5.17,1.64)]):
  ASSEMBLY=f'shaft-{i+1}'
  rod('Propeller shaft',(x+24,y*.98,z+.4),(x,y,z),.18,'edge',vertices=20)
- for side in [-1,1]:rod('Shaft strut',(x+1.8,y,z),(x+2.8,y+side*1.2,z+2.0),.19,'antifouling',vertices=12)
+ # A V bracket just ahead of the screw, each arm carried up to the shell.
+ sx=x+2.1;sz=z+.4*2.1/24
+ inboard=-1 if y>0 else 1
+ for dy,dz in [(.25,1),(1.1,1.6)]:
+  d=Vector((0,inboard*dy,dz)).normalized();hit=hull_support.along((sx,y,sz),d,8)
+  rod('Shaft strut',(sx,y,sz),tuple(hit+d*.12),.17,'antifouling',vertices=12)
+ cyl('Strut boss',(sx,y,sz),.3,.9,'antifouling',vertices=16).rotation_euler.y=math.pi/2
  rod('Propeller hub',(x-.8,y,z),(x+.8,y,z),.38,'bronze',r2=.22,vertices=24)
+ # Four pitched blades (pitch ratio about 1.1), handed outward, with an elliptical outline.
+ hand=1 if y>0 else -1;pitch=1.1*2*radius;centre=Vector((x,y,z))
+ R=[.22,.36,.5,.64,.78,.9,1.0];C=[.30,.42,.50,.52,.48,.38,.10]
  for blade in range(4):
-  a=math.tau*blade/4
-  shape=[(.18,-.10),(.9,-.45),(1.78,-.34),(2.03,.20),(1.65,.65),(.7,.51)]
-  shape=[(r*radius/2.03,t*radius/2.03) for r,t in shape]
-  vertices=[(x+.28*r,y+r*math.cos(a)-tangent*math.sin(a),z+r*math.sin(a)+tangent*math.cos(a)) for r,tangent in shape]
-  mesh('Propeller blade',vertices,[tuple(range(len(vertices)))],'bronze')
+  a=math.tau*blade/4+.4;u=Vector((0,math.cos(a),math.sin(a)));w=Vector((0,-math.sin(a),math.cos(a)))
+  v=[]
+  for rr,cc in zip(R,C):
+   r=rr*radius;c=cc*radius;phi=math.atan(pitch/(math.tau*r));t=.05*(1.15-rr)
+   chord=(w*math.cos(phi)*hand+Vector((1,0,0))*math.sin(phi)).normalized();normal=chord.cross(u).normalized()
+   mid=centre+u*r+w*(.1*radius*rr*rr*hand)
+   le=mid+chord*c*.5;te=mid-chord*c*.4
+   v+=[tuple(le+normal*t*.3),tuple(te+normal*t),tuple(te-normal*t),tuple(le-normal*t*.3)]
+  f=[(j*4+k,j*4+(k+1)%4,(j+1)*4+(k+1)%4,(j+1)*4+k) for j in range(len(R)-1) for k in range(4)]
+  f+=[(len(v)-4,len(v)-3,len(v)-2,len(v)-1),(3,2,1,0)]
+  mesh('Propeller blade',v,f,'bronze')
 ASSEMBLY='rudder'
 # Traced class rudder silhouette: about 21 ft bottom chord, with the balanced forward cut-out, placed on the
 # reference rudder (fore edge 88.4 m, after edge 95.7 m abaft midships, foot 7.86 m below the waterline).
-stock_x=-91.48;RUDDER_DATUM=-7.366
-outline=[(-4.19,5.10),(.56,4.63),(.56,3.57),(-.64,3.57),(-.64,2.72),(2.99,2.72),(2.21,-.530225),(-4.19,-.530225)]
-verts=[(stock_x+x,side*.22,z+RUDDER_DATUM) for side in [-1,1] for x,z in outline]
+stock_x=-91.48
+outline=[(-95.64,-2.30),(-88.44,-2.78),(-88.44,-5.0),(-89.27,-7.79),(-95.64,-7.79)]
+verts=[(x,side*.18,z) for side in [-1,1] for x,z in outline]
 n=len(outline)
 mesh('Balanced rudder',verts,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'antifouling')
 rod('Rudder stock',(stock_x,0,-2.4),(stock_x,0,1.4),.32,'edge',vertices=20)
 ASSEMBLY='hull'
 keel=lambda x:interp(H['keelHeights'],x+L/2)
-skeg=[(x,-6.82 if x>-72.3 else -6.82+(x+72.3)/(-74.2+72.3)*1.3) for x in [-36.5+(-74.2+36.5)*i/24 for i in range(25)]]
+skeg=[(x,-6.82 if x>-73.0 else -6.82+(x+73.0)/(-75.4+73.0)*2.62) for x in [-36.5+(-75.2+36.5)*i/26 for i in range(27)]]
 sv=[];sf=[]
 for x,bottom in skeg:
  top=keel(x)+.3

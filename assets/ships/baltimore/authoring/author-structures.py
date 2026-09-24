@@ -103,18 +103,23 @@ S.append(block('bridge-navigation-deck', 'Open navigating bridge', mirror([
     (0, -25.08), (1.55, -25.08), (1.8, -24.83), (3.5, -21.63), (3.5, -18.73), (4.5, -17.73), (4.5, -16.83),
     (3.95, -16.28), (3.35, -16.08), (2.6, -15.33), (2.6, -11.23), (2.45, -11.08)]), 17.32, 17.40, 'roof'))
 S.append(block('bridge-pilot-house', 'Pilot house', mirror([
-    (1.3, -18.03), (1.3, -16.23), (1.7, -15.63), (1.7, -15.23), (2.7, -14.03), (2.7, -12.03), (2.55, -11.88)]), 17.40, 19.50))
+    (1.5, -20.63), (2.5, -19.63), (2.5, -19.23), (1.3, -18.03), (1.3, -16.23), (1.7, -15.63), (1.7, -15.23), (2.7, -14.03),
+    (2.7, -12.03), (2.55, -11.88)]), 17.40, 19.50))
+# Sky lookout house on the pilot house roof, under the 5-inch director pedestal.
+S.append(block('bridge-lookout-house', 'Sky lookout house', mirror([
+    (1.3, -19.88), (1.3, -18.63), (2.3, -17.93), (2.7, -17.03), (2.7, -16.53), (3.1, -15.43), (3.1, -11.63), (2.95, -11.48)]), 19.50, 20.80))
 S.append(block('bridge-director-tower', 'Forward 8-inch director tower', mirror([
-    (0, -22.78), (0.55, -22.68), (1.3, -22.03), (1.5, -21.63), (1.5, -20.83), (1.3, -20.43), (1.3, -18.03)]), 17.40, 21.43))
-S.append(block('bridge-director-pedestal', 'Forward 5-inch director pedestal', rounded(0, -13.18, 1.5, 1.5, .6), 19.50, 23.72))
+    (0, -22.78), (0.55, -22.68), (1.3, -22.03), (1.5, -21.63), (1.5, -20.83), (1.3, -20.43), (1.1, -19.88)]), 17.40, 21.43))
+S.append(block('bridge-director-pedestal', 'Forward 5-inch director pedestal', rounded(0, -13.18, 1.5, 1.5, .6), 20.80, 23.72))
 # ---- After superstructure -----------------------------------------------------------------------------------
 S.append(block('after-funnel-base', 'After funnel 01 base', rounded(0, 13.91, 5.1, 1.39, .25), DECK, 8.70))
 S.append(block('after-funnel-casing', 'After funnel uptake casing', rounded(0, 16.27, 3.7, 3.25, .35), DECK, 15.80))
 S.append(block('aft-deckhouse-front', 'After 01 deckhouse, mainmast base', rect(4.1, 19.52, 23.62), DECK, 8.70))
 S.append(block('aft-deckhouse', 'After deckhouse', mirror([
     (1.7, 21.0), (1.7, 22.27), (2.15, 23.62), (2.9, 23.87), (2.9, 37.0), (2.1, 37.4)]), DECK, 12.85))
-S.append(block('aft-deckhouse-tail', 'After deckhouse tail', mirror([
-    (2.1, 37.4), (2.1, 38.97), (1.35, 39.72), (0.95, 39.92)]), DECK, 11.80))
+# The 20 mm gallery abaft the after deckhouse, cantilevered from its end at 11.8 m.
+S.append(block('aft-deckhouse-tail', 'After 20 mm gallery', mirror([
+    (2.1, 37.0), (2.1, 38.97), (1.35, 39.72), (0.95, 39.92)]), 11.70, 11.80, 'roof'))
 S.append(block('aft-platform', 'After 02 gallery deck', mirror([
     (3.35, 22.12), (4.05, 22.12), (4.55, 22.32), (5.1, 22.87), (5.1, 24.37), (3.9, 25.27), (3.9, 27.37), (4.3, 28.17),
     (3.8, 28.87), (3.9, 33.37), (4.9, 34.77), (4.9, 35.97), (3.95, 36.92)]), 12.85, 13.00, 'roof'))
@@ -122,6 +127,11 @@ S.append(block('aft-upper-deck', 'After 03 deckhouse', mirror([
     (1.15, 23.22), (1.7, 23.77), (1.7, 25.57), (2.5, 26.37), (2.5, 29.77), (1.9, 30.37), (1.9, 31.57), (2.5, 32.17),
     (2.5, 33.97), (1.3, 34.97), (1.3, 36.17), (0.35, 36.92)]), 13.00, 15.00))
 S.append(block('aft-director-tower', 'After 5-inch director pedestal', rounded(0, 28.22, 1.5, 1.5, .6), 15.00, 19.10))
+# The 04 level at the head of the after superstructure and its Mk 51 platform wings.
+S.append(block('aft-04-house', 'After 04 house', mirror([
+    (1.25, 23.32), (1.7, 23.77), (1.7, 25.57), (2.0, 25.87), (1.6, 26.27), (1.3, 26.77)]), 15.00, 17.20))
+S.append(block('aft-04-platform', 'After 04 platform', mirror([
+    (1.25, 23.32), (2.55, 23.32), (3.45, 23.12), (4.3, 23.67), (4.5, 24.27), (4.2, 25.2), (3.0, 26.0), (1.6, 26.27)]), 17.20, 17.30, 'roof'))
 S.append(block('aft-main-director-pedestal', 'After 8-inch director pedestal', rounded(0, 35.35, 1.45, 1.5, .6), 15.00, 16.45))
 S.append(block('aft-5in-deckhouse', 'After 5-inch mount deckhouse', mirror([
     (3.35, 39.42), (3.5, 45.77), (2.7, 46.27), (1.85, 45.92)]), DECK, 8.60))
@@ -131,8 +141,8 @@ for side, sign in [('port', -1), ('starboard', 1)]:
 S.append(block('hangar-coaming', 'Hangar hatch coaming', rect(5.0, 64.0, 77.0), 6.30, 6.62, 'edge'))
 S.append(block('stern-aa-sponson', 'Stern 40 mm sponson', ellipse(0, 101.3, 2.65, 2.6), 6.75, 7.41))
 # ---- Funnels: narrow oval stacks above their casings, the fore face raked --------------------------------------
-S.append(oval_stack('forward-funnel', 'Forward Funnel', -2.18, -1.58, 1.5, 2.9, 1.45, 2.7, 15.10, 23.0))
-S.append(oval_stack('after-funnel', 'After Funnel', 16.37, 17.17, 1.5, 2.95, 1.4, 2.75, 15.80, 22.5))
+S.append(oval_stack('forward-funnel', 'Forward Funnel', -2.21, -1.52, 1.5, 2.93, 1.6, 2.42, 15.10, 23.6))
+S.append(oval_stack('after-funnel', 'After Funnel', 16.57, 17.05, 1.5, 2.74, 1.4, 2.45, 15.80, 23.0))
 
 # ---- Mounts on the reference hardpoints (reference z + 0.216) ------------------------------------------------
 SHIFT = .216
