@@ -38,8 +38,10 @@ export function turretArmor(part: GunPart): TurretArmor {
       const centroid = [0, 1, 2].map(i => (a[i] + b[i] + c[i]) / 3);
       if (n.reduce((sum, v, i) => sum + v * (centroid[i] - middle[i]), 0) < 0) n = n.map(v => -v) as Vec3;
       const length = Math.hypot(...n) || 1, [x, y, z] = n.map(v => v / length);
-      const region: TurretRegion = face.finish === 'roof' || y > .7 ? 'roof' : y < -.7 ? 'floor'
-        : -z > Math.SQRT1_2 * Math.hypot(x, z) ? 'face' : z > Math.SQRT1_2 * Math.hypot(x, z) ? 'rear' : 'sides';
+      // Faces lean back as far as 45° (Yamato's), so a forward-facing plate needs a flatter pitch to count as roof.
+      const forward = -z > Math.SQRT1_2 * Math.hypot(x, z);
+      const region: TurretRegion = face.finish === 'roof' || y > (forward ? .75 : .7) ? 'roof' : y < -.7 ? 'floor'
+        : forward ? 'face' : z > Math.SQRT1_2 * Math.hypot(x, z) ? 'rear' : 'sides';
       plates.push({ vertices: [a, b, c], thicknessMm: face.thicknessMm, region });
     }
   }

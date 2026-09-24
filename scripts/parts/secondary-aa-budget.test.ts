@@ -24,7 +24,8 @@ const ceilings: Record<string, number> = {
   'us-5in38-mk32-mod12': 2588,
   'type93-13-twin': 3496,
   'type93-13-single': 1796,
-  'type3-155-triple': 4584,
+  // Rebuilt to the GameModels3D jgs156 visual (was 4584 at 13e3e07).
+  'type3-155-triple': 5648,
   'qf-525-mki-twin': 2742,
   'sk-c28-150-twin': 2300,
   'flak-105-bismarck-1941': 3614,
