@@ -3547,18 +3547,18 @@
       "name": "1.1-inch/75 quadruple mount",
       "kind": "gun",
       "size": [
-        2.719,
-        1.677,
-        3.273
+        3.34,
+        1.9531,
+        2.8905
       ],
       "boundsCenter": [
         0,
-        0.8375,
-        -0.3355
+        0.9765,
+        -0.3057
       ],
       "centerOfGravity": [
         0,
-        0.826,
+        0.94,
         0
       ],
       "placement": "deck",

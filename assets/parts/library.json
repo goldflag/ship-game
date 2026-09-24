@@ -688,6 +688,27 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "us-carrier-mk24": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_five_inch",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-carrier-oerlikon-mk4": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_oerlikon",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-carrier-11in-quad": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_quad",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -732,12 +753,20 @@
       "builder": "open-naval"
     },
     {
+      "partId": "us-5in38-mk24-single",
+      "nation": "United States",
+      "family": "US 5-inch/38",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D AGS022 5in38 Mk24 (Enterprise pasa518) only. Slide shortened aft of the trunnion so the breech end clears the stand at 85 degrees. Standalone and installation review pending.",
+      "builder": "us-carrier-mk24"
+    },
+    {
       "partId": "us-11in75-quad",
       "nation": "United States",
       "family": "1.1-inch/75 quadruple mount",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
-      "builder": "open-naval"
+      "limitations": "Original recipe measured against GameModels3D AGA013 1in Mk2 Mod2 (Pensacola pasc106, approved supplement for Enterprise) only. Standalone and installation review pending.",
+      "builder": "us-carrier-11in-quad"
     },
     {
       "partId": "oerlikon-20mm-single",
@@ -746,6 +775,14 @@
       "review": "unreviewed",
       "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
       "builder": "open-naval"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk4",
+      "nation": "United States",
+      "family": "20 mm Oerlikon",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D AGA003 20mm Oerlikon MK4 (Enterprise pasa518) only. Shield trains with the carriage; standalone and installation review pending.",
+      "builder": "us-carrier-oerlikon-mk4"
     },
     {
       "partId": "us-8in55-mk12-triple",

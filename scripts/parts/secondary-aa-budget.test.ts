@@ -13,7 +13,8 @@ const ceilings: Record<string, number> = {
   'flak38-m43u-20-twin': 2400,
   'flak38-20-single': 2924,
   'flak28-40-single': 2624,
-  'us-11in75-quad': 1764,
+  // Rebuilt to the GameModels3D Pensacola AGA013 visual (was 1764 at 13e3e07).
+  'us-11in75-quad': 2212,
   'us-3in50-single': 1308,
   'qf-2pdr-mkvi-octuple': 3024,
   'type96-25-triple': 4992,
