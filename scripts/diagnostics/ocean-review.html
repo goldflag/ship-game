@@ -162,6 +162,11 @@ const scenes = {
   zoom5km: async () => { await battle({ range: 5000 }); look([0, 29, 0], [5000, 14, 0], zoom(24)); },
   zoom20km: async () => { await battle({ range: 20000 }); look([0, 29, 0], [20000, 14, 0], zoom(24)); },
   air: async () => { await battle(); look([0, 2600, 2400], [0, 0, -1800], 52); },
+  // The chase camera zoomed out to its 1.4 km limit, low and raised: whitecaps must not repeat as a lattice.
+  far: async () => { await battle(); look([900, 520, 1000], [0, 0, 0], 55); },
+  farGale: async () => { await battle({ wind: 15 }); look([900, 520, 1000], [0, 0, 0], 55); },
+  farStorm: async () => { await battle({ wind: 25 }); look([900, 520, 1000], [0, 0, 0], 55); },
+  farHigh: async () => { await battle({ wind: 15 }); look([600, 1150, 700], [0, 0, 0], 55); },
   // Foam patterns must not repeat as a lattice at the air map's scale.
   airGale: async () => { await battle({ wind: 15 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
   airStorm: async () => { await battle({ wind: 25 }); look([0, 2600, 2400], [0, 0, -1800], 52); },
