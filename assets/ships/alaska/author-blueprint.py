@@ -337,7 +337,14 @@ def refine(structures):
     by_id['deckhouse-052']['height'] = round(25.55 - by_id['deckhouse-052']['baseY'], 3)   # open lookout tub
     # The tower-side columns stop at the quad 40 mm decks; the 15 m platform above is cantilevered.
     for sid in ('deckhouse-044', 'deckhouse-045'):
-        by_id[sid]['height'] = round(11.1 - by_id[sid]['baseY'], 3)
+        by_id[sid]['height'] = round(11.0 - by_id[sid]['baseY'], 3)
+    # Coplanar exposed tops (ship:check): duplicate measured blocks go, and a block that shares its top
+    # with the platform or deck over it steps just below it (or the platform sits just on it).
+    out = [t for t in out if t['id'] not in ('deckhouse-069', 'deckhouse-070', 'deckhouse-111', 'deckhouse-119')]
+    by_id['platform-127'].update(baseY=9.059, height=.08)
+    by_id['platform-038'].update(baseY=14.946, height=.08)
+    for sid, top in (('deckhouse-030', 14.87), ('deckhouse-065', 24.03), ('deckhouse-080', 9.0), ('deckhouse-032', 7.05)):
+        by_id[sid]['height'] = round(top - by_id[sid]['baseY'], 3)
     for sid in ('deckhouse-112', 'deckhouse-113'):
         by_id[sid].update(baseY=5.72, height=.06)
     for sid in ('deckhouse-135', 'deckhouse-136'):

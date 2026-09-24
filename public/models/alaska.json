@@ -83780,12 +83780,12 @@
       "id": "deckhouse-030-0",
       "center": [
         0.276,
-        13.846,
+        13.823,
         -23.48
       ],
       "size": [
         1.364,
-        2.14,
+        2.094,
         1.617
       ]
     },
@@ -83793,12 +83793,12 @@
       "id": "deckhouse-030-1",
       "center": [
         0,
-        13.846,
+        13.823,
         -21.663
       ],
       "size": [
         3.808,
-        2.14,
+        2.094,
         1.617
       ]
     },
@@ -84456,12 +84456,12 @@
       "id": "deckhouse-065-0",
       "center": [
         0,
-        23.071,
+        23.011,
         -1.367
       ],
       "size": [
         2.604,
-        2.157,
+        2.038,
         2.32
       ]
     },
@@ -84515,58 +84515,6 @@
         3.265,
         4.966,
         2.007
-      ]
-    },
-    {
-      "id": "deckhouse-069-0",
-      "center": [
-        -11.782,
-        6.894,
-        1.418
-      ],
-      "size": [
-        3.103,
-        4.966,
-        1.612
-      ]
-    },
-    {
-      "id": "deckhouse-069-1",
-      "center": [
-        -11.766,
-        6.894,
-        3.231
-      ],
-      "size": [
-        3.102,
-        4.966,
-        1.613
-      ]
-    },
-    {
-      "id": "deckhouse-070-0",
-      "center": [
-        11.751,
-        6.894,
-        1.418
-      ],
-      "size": [
-        3.073,
-        4.966,
-        1.612
-      ]
-    },
-    {
-      "id": "deckhouse-070-1",
-      "center": [
-        11.759,
-        6.894,
-        3.231
-      ],
-      "size": [
-        3.058,
-        4.966,
-        1.613
       ]
     },
     {
@@ -85100,19 +85048,6 @@
         2.88,
         8.727,
         1.44
-      ]
-    },
-    {
-      "id": "deckhouse-111-0",
-      "center": [
-        0,
-        16.029,
-        35.713
-      ],
-      "size": [
-        2.88,
-        8.727,
-        2.103
       ]
     },
     {
@@ -87246,7 +87181,7 @@
         ]
       ],
       "baseY": 12.776,
-      "height": 2.14,
+      "height": 2.094,
       "material": "naval"
     },
     {
@@ -87304,7 +87239,7 @@
         ]
       ],
       "baseY": 4.474,
-      "height": 2.703,
+      "height": 2.576,
       "material": "naval"
     },
     {
@@ -87597,7 +87532,7 @@
           -15.712
         ]
       ],
-      "baseY": 14.866,
+      "baseY": 14.946,
       "height": 0.08,
       "material": "naval"
     },
@@ -88028,7 +87963,7 @@
         ]
       ],
       "baseY": 4.413,
-      "height": 6.687,
+      "height": 6.587,
       "material": "naval"
     },
     {
@@ -88065,7 +88000,7 @@
         ]
       ],
       "baseY": 4.413,
-      "height": 6.687,
+      "height": 6.587,
       "material": "naval"
     },
     {
@@ -90238,7 +90173,7 @@
         ]
       ],
       "baseY": 21.992,
-      "height": 2.157,
+      "height": 2.038,
       "material": "naval"
     },
     {
@@ -90458,168 +90393,6 @@
         [
           -13.59,
           0.729
-        ]
-      ],
-      "baseY": 4.411,
-      "height": 4.966,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-069",
-      "name": "Aircraft deck deckhouse 4.4-9.4 m",
-      "footprint": [
-        [
-          -13.238,
-          3.409
-        ],
-        [
-          -12.848,
-          3.799
-        ],
-        [
-          -12.356,
-          4.05
-        ],
-        [
-          -11.81,
-          4.137
-        ],
-        [
-          -11.195,
-          4.051
-        ],
-        [
-          -10.7,
-          3.799
-        ],
-        [
-          -10.31,
-          3.409
-        ],
-        [
-          -10.015,
-          2.642
-        ],
-        [
-          -10.059,
-          1.734
-        ],
-        [
-          -10.31,
-          1.24
-        ],
-        [
-          -10.7,
-          0.85
-        ],
-        [
-          -11.195,
-          0.598
-        ],
-        [
-          -11.81,
-          0.512
-        ],
-        [
-          -12.353,
-          0.598
-        ],
-        [
-          -12.848,
-          0.85
-        ],
-        [
-          -13.238,
-          1.24
-        ],
-        [
-          -13.533,
-          2.006
-        ],
-        [
-          -13.488,
-          2.914
-        ]
-      ],
-      "baseY": 4.411,
-      "height": 4.966,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-070",
-      "name": "Aircraft deck deckhouse 4.4-9.4 m",
-      "footprint": [
-        [
-          10.015,
-          2.006
-        ],
-        [
-          10.059,
-          2.914
-        ],
-        [
-          10.31,
-          3.409
-        ],
-        [
-          10.7,
-          3.799
-        ],
-        [
-          11.195,
-          4.051
-        ],
-        [
-          11.81,
-          4.137
-        ],
-        [
-          12.356,
-          4.05
-        ],
-        [
-          12.848,
-          3.799
-        ],
-        [
-          13.238,
-          3.409
-        ],
-        [
-          13.488,
-          2.914
-        ],
-        [
-          13.487,
-          1.732
-        ],
-        [
-          13.238,
-          1.24
-        ],
-        [
-          12.848,
-          0.85
-        ],
-        [
-          12.353,
-          0.598
-        ],
-        [
-          11.81,
-          0.512
-        ],
-        [
-          11.195,
-          0.598
-        ],
-        [
-          10.7,
-          0.85
-        ],
-        [
-          10.31,
-          1.24
         ]
       ],
       "baseY": 4.411,
@@ -90848,7 +90621,7 @@
         ]
       ],
       "baseY": 4.42,
-      "height": 4.631,
+      "height": 4.58,
       "material": "naval"
     },
     {
@@ -92421,63 +92194,6 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-111",
-      "name": "After superstructure deckhouse 11.7-20.4 m",
-      "footprint": [
-        [
-          0,
-          35.13
-        ],
-        [
-          -1.485,
-          34.562
-        ],
-        [
-          -1.64,
-          35.226
-        ],
-        [
-          -1.421,
-          36.045
-        ],
-        [
-          -1.16,
-          36.384
-        ],
-        [
-          -0.819,
-          36.645
-        ],
-        [
-          0,
-          36.865
-        ],
-        [
-          0.819,
-          36.645
-        ],
-        [
-          1.16,
-          36.384
-        ],
-        [
-          1.421,
-          36.045
-        ],
-        [
-          1.64,
-          35.226
-        ],
-        [
-          1.485,
-          34.562
-        ]
-      ],
-      "baseY": 11.665,
-      "height": 8.727,
-      "material": "naval"
-    },
-    {
       "id": "deckhouse-112",
       "name": "After superstructure deckhouse 5.8-5.8 m",
       "footprint": [
@@ -92893,31 +92609,6 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-119",
-      "name": "After superstructure deckhouse 4.4-8.1 m",
-      "footprint": [
-        [
-          -2.381,
-          41.444
-        ],
-        [
-          -3.54,
-          41.444
-        ],
-        [
-          -3.54,
-          42.753
-        ],
-        [
-          -2.381,
-          42.752
-        ]
-      ],
-      "baseY": 4.42,
-      "height": 3.704,
-      "material": "naval"
-    },
-    {
       "id": "deckhouse-120",
       "name": "After superstructure deckhouse 4.4-8.1 m",
       "footprint": [
@@ -93281,7 +92972,7 @@
           50.312
         ]
       ],
-      "baseY": 9.009,
+      "baseY": 9.059,
       "height": 0.08,
       "material": "naval"
     },
@@ -94618,10 +94309,6 @@
       },
       {
         "structureId": "deckhouse-032",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "platform-038",
         "topExtensionM": 0
       },
       {
@@ -97378,5 +97065,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "f16bd445efba767f81b44be416ac168d0fde843288163557a00ce5eb92ef153d"
+  "contentHash": "2473e562a8b592bc998a448b020bd4af142d27e8d253d91a5d5384c55b295f60"
 }

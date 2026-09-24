@@ -267,15 +267,19 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         fx, fy = math.cos(a), math.sin(a)
         pedestal(id, (x, y, z), None, .38, col)
         part('cyl', id, col, 'foot', (x, y, z + .06), .36, .12, 'naval', vertices=16)
-        part('cyl', id, col, 'column', (x, y, z + .55), .13 if kind == 'mk51' else .2, .9, 'naval', vertices=14)
+        part('cyl', id, col, 'column', (x, y, z + .6 if kind == 'mk57' else z + .55), .13 if kind == 'mk51' else .24, 1.0 if kind == 'mk57' else .9, 'naval', vertices=14)
         if kind == 'mk57':
-            head = part('box', id, col, 'director head', (x, y, z + 1.3), (.95, .8, .6), 'naval')
+            head = part('box', id, col, 'director head', (x, y, z + 1.42), (.8, .7, .62), 'naval')
             head.rotation_euler.z = a
-            part('rod', id, col, 'radar post', (x, y, z + 1.58), (x, y, z + 1.74), .05, 'naval', vertices=8)
-            part('cyl', id, col, 'radar dish', (x + fx * .1, y + fy * .1, z + 1.76), .42, .08, 'edge', vertices=16)
+            top_box = part('box', id, col, 'sight box', (x - fx * .08, y - fy * .08, z + 1.86), (.5, .42, .26), 'naval')
+            top_box.rotation_euler.z = a
+            # Radar dish on the director's face, facing its bearing (reference front view: about 0.75 m).
+            part('rod', id, col, 'radar dish', (x + fx * .58, y + fy * .58, z + 1.45), (x + fx * .4, y + fy * .4, z + 1.45), .38, 'edge', r2=.12, vertices=14)
+            part('rod', id, col, 'dish feed', (x + fx * .58, y + fy * .58, z + 1.45), (x + fx * .78, y + fy * .78, z + 1.45), .03, 'dark', vertices=5)
             for s in (-1, 1):
-                part('rod', id, col, 'telescope', (x + fx * .2 - fy * s * .28, y + fy * .2 + fx * s * .28, z + 1.36),
-                     (x + fx * .62 - fy * s * .28, y + fy * .62 + fx * s * .28, z + 1.36), .07, 'dark', vertices=8)
+                part('rod', id, col, 'telescope', (x + fx * .1 - fy * s * .48, y + fy * .1 + fx * s * .48, z + 1.55),
+                     (x + fx * .5 - fy * s * .48, y + fy * .5 + fx * s * .48, z + 1.55), .07, 'dark', vertices=8)
+                part('rod', id, col, 'trunnion arm', (x - fy * s * .35, y + fx * s * .35, z + 1.42), (x - fy * s * .48, y + fx * s * .48, z + 1.55), .05, 'naval', vertices=6)
         else:
             head = part('box', id, col, 'sight head', (x, y, z + 1.2), (.55, .45, .38), 'naval')
             head.rotation_euler.z = a
