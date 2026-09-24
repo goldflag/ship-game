@@ -290,41 +290,106 @@ rod('Derrick heel brace',(CX+1.8,CY,FD),(CX,CY,23.5),.08,M['naval'],COL['Fitting
 rod('Derrick hoist fall',tip,tip+Vector((0,0,-2.1)),.018,M['edge'],COL['Fittings'],vertices=6)
 fit.ring('Derrick hook',tuple(tip+Vector((0,0,-2.1))),.14,.045,'y','edge',16)
 
+# The hull side rises flush to the upper hangar deck and the upper hangar side is
+# flush with it (pjsa108), so the side gallery, webs and fittings sit on that wall.
+hangar_outline=[(-z,-x) for x,z in S['upper-hangar']['footprint']]
+def hangar_side(x,sign):
+    hits=[]
+    for (a,b),(c,d) in zip(hangar_outline,hangar_outline[1:]+hangar_outline[:1]):
+        if min(a,c)<=x<=max(a,c) and a!=c:hits.append(b+(d-b)*(x-a)/(c-a))
+    return max(h*sign for h in hits) if hits else 0
+def mount_spans(sign,clear):
+    return [(-m['position'][2]-clear,-m['position'][2]+clear) for m in D['mounts'] if m['weapon']['caliberM']>.1 and -m['position'][0]*sign>0]
+def open_runs(a,b,blocked):
+    runs=[(a,b)]
+    for lo,hi in blocked:runs=[r for u,v in runs for r in [(u,min(v,lo)),(max(u,hi),v)] if r[1]-r[0]>1.0]
+    return runs
 for sign in [-1,1]:
-    y=sign*11.15
-    box('Hangar maintenance walkway',(-4,y,10.0),(188,1.35,.15),M['steel-deck'],COL['Hangars'])
-    railing([(-98,y+sign*.65),(90,y+sign*.65)],10.08,'Hangar walkway',COL['Hangars'],.88)
+    wall=13.0;y=sign*(wall+.675)
+    blocked=mount_spans(sign,3.6)+([(-7.4,15.4),(31.0,46.5)] if sign<0 else [])
+    for a,b in open_runs(-84,50,blocked):
+        box('Hangar side gallery',((a+b)/2,y,10.0),(b-a,1.35,.15),M['steel-deck'],COL['Hangars'])
+        railing([(a,y+sign*.65),(b,y+sign*.65)],10.08,'Hangar side gallery',COL['Hangars'],.95)
+        for x in range(math.ceil(a+.5),int(b)+1,3):fit.knee('Hangar gallery knee',x,sign*wall,sign*(wall+1.3),9.93,1.2)
     for x in range(-94,93,6):
-        fit.knee('Hangar walkway knee',x,sign*9.1,sign*11.8,9.96,1.35)
-        fit.knee('Flight deck transverse web',x,sign*10.45,sign*13.9,FD-.35,1.4)
-        box('Hangar shell vertical stiffener',(x,sign*10.51,12.12),(.07,.08,3.9),M['naval'],COL['Hangars'])
-    for x in [-88,-65,-34,0,25,65,84]:
-        fit.door('Hangar access door',x,sign*10.55,10.1,.65,1.75)
-        fit.vent('Hangar ventilation louver',x+2.1,sign*10.56,11.9,1.4,.75)
-    for x in [-95,-57,-25,15,80]:fit.ladder('External hangar ladder',(x,sign*11.55,6.0),(x,sign*11.55,10.0),.6)
+        side=hangar_side(x,sign)
+        if side<12.9:continue
+        fit.knee('Flight deck transverse web',x,sign*side,sign*13.95,FD-.35,1.4)
+        box('Hangar shell vertical stiffener',(x,sign*(side+.03),12.2),(.07,.08,4.0),M['naval'],COL['Hangars'])
+    for x in [-80,-65,-25,20,48]:
+        if any(lo<x<hi for lo,hi in blocked):continue
+        fit.door('Hangar access door',x,sign*13.03,10.1,.65,1.75)
+        fit.vent('Hangar ventilation louver',x+2.1,sign*13.04,11.9,1.4,.75)
     for a,b in [(-123,-109),(84,115)]:
         y=sign*(9.6 if a>0 else 10.4)
         for x in range(a,b,3):rod('Safety-net deck boom',(x,y,FD-.2),(x,y+sign*2,FD-.45),.045,M['naval'],COL['Fittings'])
         for offset in [.3,.8,1.3,1.8]:rod('Safety net longitudinal',(a,y+sign*offset,FD-.25-offset*.10),(b,y+sign*offset,FD-.25-offset*.10),.012,M['edge'],COL['Fittings'],vertices=4)
         for x in range(a,b):rod('Safety net crossline',(x,y,FD-.23),(x,y+sign*2,FD-.45),.011,M['edge'],COL['Fittings'],vertices=4)
 
+def tub_wall(name,x,y,radius,bottom,top,col,segments=32,thickness=.06,arc=None):
+    """One bulwark mesh: outer, inner and top faces of a circular (or partial) splinter tub."""
+    a0,a1=arc or (0,math.tau);closed=arc is None;n=segments+(0 if closed else 1)
+    angles=[a0+(a1-a0)*i/segments for i in range(n)]
+    verts=[];faces=[]
+    for a in angles:
+        c,s=math.cos(a),math.sin(a)
+        for r,h in [(radius,bottom),(radius,top),(radius-thickness,top),(radius-thickness,bottom)]:verts.append((x+r*c,y+r*s,h))
+    for i in range(segments):
+        j=(i+1)%n
+        for k in range(3):faces.append((i*4+k,j*4+k,j*4+k+1,i*4+k+1))
+    if not closed:
+        for i in [0,n-1]:faces.append(tuple(i*4+k for k in (range(4) if i else reversed(range(4)))))
+    o=mesh(name,verts,faces,M['naval'],col);return o
+def prism(name,top_pts,top_z,bottom_pts,bottom_z,mat,col):
+    """A lofted solid between two same-count outlines (a tapered web or pedestal)."""
+    n=len(top_pts);verts=[(*p,bottom_z) for p in bottom_pts]+[(*p,top_z) for p in top_pts]
+    faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    o=mesh(name,verts,faces,mat,col);bm=bmesh.new();bm.from_mesh(o.data)
+    bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free();return o
+fit.col=COL['Armament']
 for mount in D['mounts']:
     x,y,z=-mount['position'][2],-mount['position'][0],mount['position'][1]
     heavy=mount['weapon']['caliberM']>.1
-    radius=3.15 if heavy else 1.95 if 'shielded' in mount['partId'] else 1.7
-    sign=1 if y>0 else -1
-    cyl(mount['id']+' sponson floor',(x,y,z-.13),radius,.26,M['naval'],COL['Armament'],48)
-    inner=sign*10.2
-    box(mount['id']+' gallery bridge',(x,(inner+y)/2,z-.16),(radius*1.65,abs(y-inner),.32),M['naval'],COL['Armament'])
-    for dx in [-radius*.62,0,radius*.62]:
-        start=(x+dx,sign*loft_breadth(H,x+dx,5.3),5.3)
-        rod(mount['id']+' deep sponson brace',start,(x+dx,y,z-.24),.14 if heavy else .085,M['naval'],COL['Armament'])
-        fit.col=COL['Armament'];fit.knee(mount['id']+' gallery web',x+dx,inner,y+sign*radius*.7,z-.26,2.15 if heavy else 1.5)
-    for i in range(40):
-        a=i*math.tau/40;b=(i+1)*math.tau/40
-        poly(mount['id']+' splinter tub',[(x+radius*math.cos(a),y+radius*math.sin(a)),(x+radius*math.cos(b),y+radius*math.sin(b)),(x+(radius-.05)*math.cos(b),y+(radius-.05)*math.sin(b)),(x+(radius-.05)*math.cos(a),y+(radius-.05)*math.sin(a))],z,z+(.52 if heavy else .42),M['naval'],COL['Armament'])
+    sign=1 if y>0 else -1;col=COL['Armament']
+    if heavy and x>0:
+        # Forward 12.7 cm pairs: rectangular platforms with chamfered outboard
+        # corners, a 1 m splinter bulwark and knee brackets (pjsa108).
+        inner=hangar_side(x,sign)-.05;outer=abs(y)+1.55;L2=3.0
+        pts=[(x-L2,inner),(x+L2,inner),(x+L2,outer-1.1),(x+L2-1.1,outer),(x-L2+1.1,outer),(x-L2,outer-1.1)]
+        poly(mount['id']+' sponson platform',[(px,sign*py) for px,py in pts],z-.25,z,M['naval'],col)
+        rim=pts[1:]+[pts[0]]
+        for (ax,ay),(bx,by) in zip(rim,rim[1:]):
+            d=Vector((bx-ax,by-ay,0));nrm=Vector((d.y,-d.x,0)).normalized()*.06
+            poly(mount['id']+' splinter bulwark',[(ax,sign*ay),(bx,sign*by),(bx-nrm.x,sign*(by-nrm.y)),(ax-nrm.x,sign*(ay-nrm.y))],z,z+1.0,M['naval'],col)
+            rod(mount['id']+' bulwark cap',(ax,sign*ay,z+1.0),(bx,sign*by,z+1.0),.04,M['edge'],col,vertices=6)
+        for dx in [-2.4,-.8,.8,2.4]:
+            hull_side=loft_breadth(H,x+dx,z-2.0)
+            fit.knee(mount['id']+' platform knee',x+dx,sign*(hull_side-.02),sign*(outer-.3),z-.25,max(.6,z-.25-(z-2.0)))
+        box(mount['id']+' ready-use locker',(x-L2+.6,sign*(inner+.45),z+.38),(.75,.6,.76),M['naval'],col)
+    elif heavy:
+        # After 12.7 cm mounts: round tubs on a tapered pedestal web that fairs
+        # into the hull side, with two diagonal struts (pjsa108).
+        R=3.15;wall=hangar_side(x,sign) or 13.0
+        cyl(mount['id']+' sponson floor',(x,y,z-.13),R,.26,M['naval'],col,32)
+        tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.75,col)
+        box(mount['id']+' tub neck',(x,sign*(wall+abs(y))/2,z-.13),(R*1.4,abs(y)-wall+.05,.26),M['naval'],col)
+        foot=3.6;hb=loft_breadth(H,x,foot)
+        top=[(x-2.0,sign*(wall-.04)),(x+2.0,sign*(wall-.04)),(x+1.5,sign*(abs(y)+.4*R)),(x-1.5,sign*(abs(y)+.4*R))]
+        bottom=[(x-.75,sign*(hb-.04)),(x+.75,sign*(hb-.04)),(x+.45,sign*(hb+.35)),(x-.45,sign*(hb+.35))]
+        prism(mount['id']+' sponson pedestal',top,z-.26,bottom,foot,M['naval'],col)
+        for dx in [-1.9,1.9]:
+            seat=hull_support.along((x+dx*.6,sign*(hb+4),6.2),(0,-sign,0),8)
+            rod(mount['id']+' sponson strut',seat,(x+dx,sign*(abs(y)+.55*R),z-.26),.11,M['naval'],col)
+        box(mount['id']+' ready-use locker',(x-R*.72,sign*(wall+.4),z+.38),(.75,.6,.76),M['naval'],col)
+    else:
+        # 25 mm triples at the flight-deck edge: tub, gallery bridge to the hangar
+        # side and knee brackets on the flush wall.
+        R=1.95 if 'shielded' in mount['partId'] else 1.7;wall=max(12.9,hangar_side(x,sign) or 13.0)
+        cyl(mount['id']+' sponson floor',(x,y,z-.13),R,.26,M['naval'],col,24)
+        tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.9,col,24)
+        box(mount['id']+' gallery bridge',(x,sign*(wall+abs(y))/2,z-.14),(R*1.5,abs(y)-wall+.05,.28),M['naval'],col)
+        for dx in [-R*.6,R*.6]:fit.knee(mount['id']+' gallery web',x+dx,sign*wall,sign*(abs(y)+R*.6),z-.27,1.8)
     guns.create_mount(mount,COL['Armament'],helpers,M)
-    box(mount['id']+' ready-use locker',(x-radius*.72,inner,z+.38),(.75,.6,.76),M['naval'],COL['Armament'])
 
 fit.col=COL['Island']
 # Distinct solid wing bulwarks and the upper windbreak replace uniform rail decks.
@@ -373,16 +438,18 @@ for side in [-1,1]:
     rod('Aft compass-roof stanchion',(34.6,-13.35+side*1.35,19.46),(34.6,-13.35+side*1.35,21.48),.075,M['naval'],COL['Island'])
 # The island continues below the flight-deck edge. The launch sits under it,
 # on a hull-braced gallery rather than being omitted or perched on the roof.
+# The launch now sits outboard of the flush hangar side on the island gallery.
+LY=-14.55
 for x in [33.8,39.0,43.5]:
-    for y in [-14.8,-11.8]:
-        foot=hull_support.along((x,-20,5.25),(0,1,0),20)
+    for y in [-15.9,-14.0]:
+        foot=hull_support.along((x,-20,6.0),(0,1,0),20)
         rod('Island launch-gallery brace',foot,(x,y,9.35),.11,M['naval'],COL['Island'])
-fit.boat('Island motor launch',38.5,-13.4,9.76,9.3,1.85,True)
+fit.boat('Island motor launch',38.5,LY,9.76,9.3,1.85,True)
 for x in [35.7,41.4]:
-    rod('Island launch davit',(x,-15.6,9.60),(x,-15.6,12.50),.08,M['naval'],COL['Island'])
-    rod('Island launch davit head',(x,-15.6,12.5),(x,-13.4,12.5),.08,M['naval'],COL['Island'])
-    rod('Island launch fall',(x,-13.4,12.5),(x,-13.4,11.1),.019,M['edge'],COL['Island'])
-    for side in [-1,1]:rod('Island launch sling',(x,-13.4,11.1),(x,-13.4+side*.75,10.63),.019,M['edge'],COL['Island'])
+    rod('Island launch davit',(x,-15.95,9.60),(x,-15.95,12.50),.08,M['naval'],COL['Island'])
+    rod('Island launch davit head',(x,-15.95,12.5),(x,LY,12.5),.08,M['naval'],COL['Island'])
+    rod('Island launch fall',(x,LY,12.5),(x,LY,11.1),.019,M['edge'],COL['Island'])
+    for side in [-1,1]:rod('Island launch sling',(x,LY,11.1),(x,LY+side*.75,10.63),.019,M['edge'],COL['Island'])
 # Aft roof access and forward optical fittings on the open compass platform.
 for x,y in [(42.6,-13.35)]:
     z=S['bridge-roof']['baseY']+S['bridge-roof']['height']
@@ -397,7 +464,7 @@ for module in D['modules']:
         floor=S['bridge-roof']['baseY']+S['bridge-roof']['height']
         cyl('Island director support trunk',(x,y,(floor+z-.92)/2),.70,z-.92-floor,M['naval'],COL['Island'],28)
     else:
-        for dx in [-.6,.6]:rod('Director gallery support',(x+dx,math.copysign(10.2,y),10.4),(x+dx,y,z-1.02),.09,M['naval'],COL['Island'])
+        for dx in [-.6,.6]:rod('Director gallery support',(x+dx,math.copysign(12.98,y),10.4),(x+dx,y,z-1.02),.09,M['naval'],COL['Island'])
     cyl('Type 94 director pedestal',(x,y,z-.48),.48,.8,M['naval'],COL['Island'],24)
     cyl('Type 94 director enclosure',(x,y,z+.06),.80,.62,M['naval'],COL['Island'],24,r2=.7)
     rod('Type 94 optical baseline',(x,y-2.25,z+.23),(x,y+2.25,z+.23),.12,M['naval'],COL['Island'],vertices=16)
@@ -414,7 +481,7 @@ for z,width in [(26.6,7.7),(30.8,4.8)]:
     for sign in [-1,1]:rod('Signal yard stay',(MX,MY,z+2),(MX,MY+sign*width/2,z),.014,M['edge'],COL['Island'],vertices=4)
 for x,y in [(-80,15.5),(-65,15.5),(-48,15.5),(-32,15.5),(-65,-18.0),(-34,-18.0)]:
     pivot=empty('radio-'+str(int(x))+('-port' if y>0 else '-starboard')+'.fold',(x,y,FD-.4),COL['Island'])
-    rod('Radio mast gallery seat',(x,math.copysign(10,y),13.0),(x,y,FD-.4),.10,M['naval'],COL['Island'])
+    rod('Radio mast gallery seat',(x,math.copysign(12.98,y),13.0),(x,y,FD-.4),.10,M['naval'],COL['Island'])
     rod('Radio mast hinge cross-seat',(x-.4,y,FD-.4),(x+.4,y,FD-.4),.075,M['naval'],COL['Island'])
     before=set(scene.objects)
     for dx in [-.28,.28]:rod('Radio mast chord',(dx,0,0),(0,0,9.8),.043,M['naval'],COL['Island'])
@@ -428,13 +495,23 @@ for y,xs in [(15.5,[-80,-65,-48,-32]),(-18.0,[-65,-34])]:
         for z in [23.0,23.8,24.15]:rod('Wireless aerial',(x0,y,z),(x1,y,z),.013,M['edge'],COL['Island'],vertices=4)
 
 fit.col=COL['Fittings']
-for x in range(-120,121,4):
-    for z in [1.6,3.6,5.5,8.1]:
-        if z>deck(x)-.35:continue
-        for sign in [-1,1]:
-            y=sign*(loft_breadth(H,x,z)+.005)
-            rod('Recessed hull scuttle',(x,y-sign*.013,z),(x,y+sign*.013,z),.12,M['dark'],COL['Hull'],vertices=12)
-            fit.col=COL['Hull'];fit.ring('Scuttle rim',(x,y,z),.129,.018,'y','naval',12)
+# Scuttles: one recessed glass disc and one rim annulus each, merged per side
+# (the old tube-and-ring scuttles spent most of the hull's triangles).
+for sign in [-1,1]:
+    verts=[];faces=[];mats=[]
+    for x in range(-120,121,4):
+        for z in [1.6,3.6,5.5,8.1]:
+            if z>deck(x)-.35:continue
+            if sign<0 and -16<x<16 and z>5:continue  # funnel uptakes
+            y=sign*loft_breadth(H,x,z)
+            n=len(verts);ring=[(math.cos(i*math.tau/8),math.sin(i*math.tau/8)) for i in range(8)]
+            verts.extend((x+.12*c,y+sign*.012,z+.12*s_) for c,s_ in ring)
+            verts.extend((x+r*c,y+sign*.028,z+r*s_) for r in [.12,.155] for c,s_ in ring)
+            disc=tuple(range(n,n+8));faces.append(tuple(reversed(disc)) if sign>0 else disc);mats.append(0)
+            for i in range(8):
+                j=(i+1)%8;q=(n+8+i,n+8+j,n+16+j,n+16+i);faces.append(q if sign>0 else tuple(reversed(q)));mats.append(1)
+    o=mesh('Hull scuttles',verts,faces,M['dark'],COL['Hull']);o.data.materials.append(M['naval'])
+    for f,mi in zip(o.data.polygons,mats):f.material_index=mi
 for sign in [-1,1]:
     for x in [112,119,-116,-122]:
         z=deck(x);y=sign*min(2.5 if x>0 else 3.3,loft_breadth(H,x,z)*.60)
