@@ -136,16 +136,19 @@ for side in [-1,1]:
 def platform(name,outline,z,supports,shield=True):
  prism(name+'.deck',outline,z-.14,z)
  for x,y,base in supports:
-  cyl(name+'.column',(x,y,(base+z-.14)/2),.21,z-.14-base,materials['naval'],vertices=20)
+  cyl(name+'.column',(x,y,(base+z-.14)/2),.55 if name=='mid-aa' else .21,z-.14-base,materials['naval'],vertices=8 if name=='mid-aa' else 20)
   for side in [-1,1]:rod(name+'.knee',(x,y, z-.95),(x,y+side*.75,z-.12),.055,materials['naval'])
  if shield:bulwark(name,outline,z,.73,thick=.055)
  else:rails(name+'.rails',[(x,y,z) for x,y in outline],.85,closed=True)
 platform('bridge-aa',[(29.3,-1.95),(32.7,-1.95),(33.3,-1.35),(33.3,1.35),(32.7,1.95),(29.3,1.95)],8.331,[(30.9,0,deckz(30.9))])
-platform('mid-aa',outline_rect(-21.116,-17.041,-3.978,3.978,.5),6.861,[(-19.1,-2.6,3.39),(-19.1,2.6,3.39)])
-platform('13mm-aa',outline_rect(1.4,4.2,-2.25,2.25,.3),8.139,[(2.7,-1.2,3.43),(2.7,1.2,3.43)],False)
-bulwark('aft-aa-upper',outline_rect(-33.5,-29,-1.93,1.13,.3),6.1575,.69)
-bulwark('aft-aa-lower',outline_rect(-37.15,-33.6,-1.93,1.13,.3),5.538,.67)
-for name,x,z in [('bridge-aa',31,8.33),('13mm-aa',2.7,8.139)]:ladder(name+'.access',(x-1,-1.45,deckz(x)),(x-1,-1.45,z),.5)
+platform('mid-aa',outline_rect(-21.116,-17.041,-3.9,3.9,1.1),6.861,[(-19.1,-1.25,3.39),(-19.1,1.25,3.39)])
+# The 13 mm platform is D-shaped, rounded forward, and sits on the AA tower.
+platform('13mm-aa',[(1.3,-2.3),(3.3,-2.3),(3.9,-1.9),(4.3,-1.0),(4.3,1.0),(3.9,1.9),(3.3,2.3),(1.3,2.3)],8.139,[],False)
+# After AA platforms as measured: the upper one plated on its step, the lower tub on the deckhouse roof.
+platform('aft-aa-upper',outline_rect(-33.7,-29.55,-2.5,2.5,.35),6.1575,[],True)
+bulwark('aft-aa-lower',[(-33.4,-2.17),(-35.94,-2.5),(-36.39,-2.7),(-37.7,-1.6),(-37.7,1.6),(-36.39,2.7),(-35.94,2.5),(-33.4,2.17)],5.538,.67,closed=False)
+ladder('bridge-aa.access',(30,-1.45,deckz(30)),(30,-1.45,8.33),.5)
+ladder('13mm-aa.access',(1.2,-1.45,6.2),(1.2,-1.45,8.139),.5)
 # Midships access is at the port rim, outside the gun and torpedo envelopes.
 for dx in [-.25,.25]:rod('mid-aa.access-rail',(-19.1+dx,3.92,3.4),(-19.1+dx,3.92,7.50),.026,materials['edge'])
 for i in range(13):rod('mid-aa.access-rung',(-19.35,3.92,3.4+i*.288),(-18.85,3.92,3.4+i*.288),.023,materials['naval'])
@@ -167,8 +170,8 @@ for s in [s for s in definition['structures'] if 'funnel' in s['id']]:
  mesh(name+'.dark-throat',throat,[tuple(range(N))],materials['dark'])
  # Domed grating over the mouth: radial and ring bars.
  up=(center-sum(band,Vector())/N).normalized()
- apex=center+up*.35
- dome=lambda p,f:p.lerp(apex,f)+up*(.2*math.sin(f*math.pi/2))
+ apex=center+up*.2
+ dome=lambda p,f:p.lerp(apex,f)+up*(.1*math.sin(f*math.pi/2))
  for k in range(0,N,5):tube_path(name+'.grating',[dome(rim[k],j/6) for j in range(7)],.018,materials['dark'],sides=5)
  for f in [.35,.7]:tube_path(name+'.grating-ring',[dome(p,f) for p in rim],.016,materials['dark'],sides=5,closed=True)
  # Steam pipes up the after quarters, clear of the jacket, on brackets.
@@ -184,23 +187,28 @@ for s in [s for s in definition['structures'] if 'funnel' in s['id']]:
   tube_path(name+'.rung',[p-along*.2-ofs*.02,p-along*.2+ofs*.13,p+along*.2+ofs*.13,p+along*.2-ofs*.02],.016,materials['edge'])
 # Paired broad aft-side intake trunks with curved elbows and open forward mouths.
 # Their feet meet the main deck beside each funnel jacket.
-for name,x,cy,z,rad in [('fore-cowl',12.7,2.58,3.48,.55),('aft-cowl',2.15,1.65,5.04,.48),('search-cowl',-6.35,0,3.41,.56)]:
+# Fore cowls: big trunks beside the fore funnel with bell mouths facing aft (top 8.4 m); after pair in the
+# after face of the 13 mm tower.
+for name,x,cy,z,rad in [('fore-cowl',13.6,2.4,3.36,.92),('aft-cowl',2.75,1.65,4.95,.48)]:
  for sign in ([-1,1] if cy else [1]):
-  y=sign*cy;rise=4.20 if name=='fore-cowl' else 2.60
+  y=sign*cy;rise=5.0 if name=='fore-cowl' else 2.60
   pts=[(x,y,z),(x,y,z+rise-1.1)]
   pts += [(x-1.1+1.1*math.cos(a),y,z+rise-1.1+1.1*math.sin(a)) for a in [i*math.pi/2/16 for i in range(1,17)]]
   tube_path(name+'.intake',pts,rad,materials['naval'],sides=32)
   rod(name+'.mouth',pts[-1],(x-1.16,y,z+rise),rad*.90,materials['dark'],vertices=32)
+  if name=='fore-cowl':
+   # The trunk runs aft at deck level into the torpedo deck, with a rounded top.
+   box(name+'.trunk',(x-1.55,y,4.2),(3.1,1.8,1.7),materials['naval'],bev=.45)
   for dz in [.35,1.55]:
    tube_path(name+'.seam',[(x+rad*math.cos(a),y+rad*math.sin(a),z+dz) for a in [i*math.tau/32 for i in range(32)]],.022,materials['edge'],closed=True)
   for dz in [.55,1.0,1.45,1.9]:
-   tube_path(name+'.rung',[(x+.55,y-rad*.7,z+dz),(x+.85,y-rad*.7,z+dz),(x+.85,y+rad*.7,z+dz),(x+.55,y+rad*.7,z+dz)],.022,materials['naval'])
-# Narrow bilge keels blend into the lower shell, with tapered ends.
+   tube_path(name+'.rung',[(x+rad-.03,y-.25,z+dz),(x+rad+.15,y-.25,z+dz),(x+rad+.15,y+.25,z+dz),(x+rad-.03,y+.25,z+dz)],.022,materials['naval'])
+# Bilge keels at the turn of the bilge from z -10 to 23.5, 0.7 m deep at 45 deg, tapered ends.
 for sign in [-1,1]:
  vs=[]
- for x,spread in [(-25,0),(-23,.58),(9,.58),(12,0)]:
-  z=-1.8;y=sign*(shell_width(x,z)-.025)
-  vs += [(x,y,z),(x,y+sign*spread,z-.34)]
+ for x,spread in [(-23.5,0),(-21.5,.5),(8,.5),(10,0)]:
+  z=-1.85;y=sign*(shell_width(x,z)-.025)
+  vs += [(x,y,z),(x,y+sign*spread,z-.45)]
  ob=mesh('hull.bilge-keel',vs,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(3)],materials['underwater'])
  mod=ob.modifiers.new('Bilge keel plate','SOLIDIFY');mod.thickness=.045
 # Gun installations: the shared builder owns mechanisms; the ship owns the seating.

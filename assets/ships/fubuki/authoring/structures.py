@@ -47,8 +47,9 @@ def loft(rings, cap_bottom=True, cap_top=True):
 # Lower bridge: rounded front, sides tapering aft to a rounded after end (traced at 8.0 m).
 BRIDGE_LOWER = [(0, -22.16), (.74, -22.16), (1.17, -22.45), (1.44, -22.81), (1.47, -23.3), (2.01, -28.12),
                 (1.62, -28.81), (1.13, -29.19), (.59, -29.43), (0, -29.43)]
-# Wheelhouse (10.05-12.75 m): faceted front, pointed wings at z -26.4, straight sides aft (traced at 11.5 m).
-WHEEL = [(0, -22.35), (.6, -22.4), (1.2, -22.65), (1.75, -23.25), (2.25, -23.75), (2.25, -25.45), (3.05, -25.68),
+# Wheelhouse (10.05-12.75 m): faceted front, pointed wings at z -26.4, sides to z -24.3, then the narrower
+# chart-house core rounding to the after end (traced at 11.2-11.5 m).
+WHEEL = [(0, -22.35), (.55, -22.5), (.95, -22.85), (1.2, -23.4), (1.3, -24.25), (2.2, -24.3), (2.25, -25.45), (3.05, -25.68),
          (3.42, -26.2), (3.42, -26.65), (3.05, -27.18), (2.42, -27.32), (2.25, -27.49), (2.17, -28.54), (1.71, -29.38),
          (1.13, -29.79), (.6, -30.0), (0, -30.0)]
 # Its underside is chamfered at the front, meeting the lower bridge face at 10.05 m.
@@ -96,6 +97,25 @@ def funnel(id, name, base_rings, top_front, top_back):
             'height': round(top - base, 4), 'material': 'naval', 'surface': surface}
 
 
+def rrect(w, z0, z1, c=.35):
+    """Starboard half of a chamfered rectangle, aft centre to forward centre (z0 forward, z1 aft)."""
+    return [(0, z1), (w - c, z1), (w, z1 - c), (w, z0 + c), (w - c, z0), (0, z0)]
+
+
+def block(id, name, rings):
+    """Closed loft through half-outline rings [(y, half)] with equal point counts; footprint is the widest ring."""
+    full = [(y, mirror(h)) for y, h in rings]
+    widest = max(full, key=lambda r: max(p[0] for p in r[1]) * (max(p[1] for p in r[1]) - min(p[1] for p in r[1])))[1]
+    base = rings[0][0]; top = rings[-1][0]
+    return {'id': id, 'name': name, 'footprint': widest, 'baseY': base, 'height': round(top - base, 4), 'material': 'naval',
+            'surface': loft(full)}
+
+
+# ---------------------------------------------------------------- midships
+# Torpedo deck under bank 1: a narrow rounded pedestal aft of the fore cowls widening to 2.45 m (traced at 4.2 m).
+TORPEDO_DECK = [(0, -1.8), (2.1, -1.8), (2.4, -2.2), (2.45, -9.3), (1.6, -9.9), (1.05, -10.3), (.8, -11.0), (0, -11.15)]
+
+
 def fore_boot():
     """The fore funnel's flared foot from the main deck into the funnel (the reference has no wider casing here)."""
     rings = FUNNELS['forward-funnel']
@@ -115,9 +135,24 @@ STRUCTURES = [
     prism('bridge-compass', 'Compass house', COMPASS, 13.6, 14.25),
     fore_boot(),
     funnel('forward-funnel', 'Forward Funnel', 5.0, 13.25, 12.75),
-    # After funnel casing: the long deckhouse under the after funnel (traced at 5.8 m, top 6.2 m).
-    prism('aft-uptake', 'After funnel casing', [(0, 7.4), (2.6, 7.4), (3.0, 7.0), (3.0, -1.4), (2.6, -1.9), (0, -1.9)], 3.36, 6.2),
+    prism('fore-torpedo-deck', 'Torpedo deck', TORPEDO_DECK, 3.36, 4.95),
+    # 13 mm AA tower on the after end of the torpedo deck: sloped fore face, after face with the intake mouths;
+    # the AA platform sits on its top (traced at 5.0, 6.0 and 7.0 m).
+    block('aa-13-tower', '13 mm AA tower', [(4.95, rrect(2.88, -4.6, -1.8, .4)), (6.8, rrect(2.88, -3.5, -1.55, .4)),
+                                            (8.0, rrect(2.3, -4.25, -1.3, .4))]),
+    # After funnel casing with the reload lockers along its sides: sides sloping from 3.4 m to 2.9 m (sections at z 3, 6.5).
+    block('aft-uptake', 'After funnel casing', [(3.36, rrect(3.4, -1.9, 7.4, .4)), (6.2, rrect(2.9, -1.9, 7.4, .35))]),
+    # Searchlight tower rising from the casing to the searchlight platform (traced at 6.5, 7.5 and 8.2 m).
+    block('searchlight-tower', 'Searchlight tower', [(6.1, rrect(1.4, 5.6, 8.2, .5)), (7.3, rrect(1.3, 5.85, 7.8, .45)),
+                                                    (8.16, rrect(1.2, 5.5, 7.9, .5))]),
+    # Radio house on the after platform, with its direction-finding loop (traced at 7.5 and 8.2 m).
+    prism('radio-house', 'Radio house', [(0, 10.39), (.7, 10.39), (.9, 10.2), (.9, 9.48), (.6, 9.0), (0, 8.8)], 6.55, 8.75),
     funnel('after-funnel', 'After Funnel', 6.0, 13.2, 12.7),
+    # After deckhouse, its sides carrying the reload lockers (traced at 4.2 and 5.3 m); tapered after end.
+    prism('after-deckhouse', 'After deckhouse', [(0, 38.25), (1.6, 38.25), (1.85, 38.05), (3.1, 36.5), (3.1, 28.95),
+                                                 (2.75, 28.75), (0, 28.75)], 3.36, 5.54),
+    # Step under the upper after AA platform (traced at 5.9 m); the plated platform above is 2.5 m either side.
+    prism('aft-aa-upper-step', 'After AA step', [(0, 32.7), (1.4, 32.7), (1.7, 32.2), (1.7, 29.9), (0, 29.9)], 5.54, 6.02),
 ]
 
 
