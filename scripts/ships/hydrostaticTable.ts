@@ -63,9 +63,10 @@ export const VOLUME_STEPS = 32;
  * the deck edge going under, where a metre of draft suddenly buys much less than
  * it did: cosine spacing for four fifths of the nodes, and a fifth spread normally
  * about 87% of the hull's volume (sigma 8%), where every catalog hull's worst draft
- * error sat with cosine spacing alone. Written out rather than computed: acos and
- * exp round differently on macOS and Linux, and the published table must come out
- * byte-identical wherever it is solved. */
+ * error sat with cosine spacing alone. Written out, so the distribution is a fixed
+ * choice rather than something recomputed through libm. Tables solved on different
+ * platforms still differ in the last float32 bit, since sin and cos round
+ * differently there. */
 const FRACTIONS = [
   0, 0.00376, 0.014984, 0.033504, 0.059039, 0.091208, 0.129524, 0.173414, 0.222215, 0.275194, 0.331555,
   0.390449, 0.450991, 0.512269, 0.573323, 0.632753, 0.68708, 0.731339, 0.765266, 0.792135, 0.814707, 0.83468,
