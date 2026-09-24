@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import type { Pool } from 'pg';
 import type { Auth } from './auth';
 import { createApp } from './app';
-import { devAllowlist, ProgressStorage, readAward, readGrant, readUnlock, settleAward } from './progress';
+import { ProgressStorage, readAdminAction, readAward, readUnlock, settleAward } from './progress';
 import { ShipStorage } from './storage';
 import { emptyProfile } from '../../src/progression/rules';
 import { awardFor, type BattleSummary } from '../../src/progression/xp';
@@ -17,6 +17,7 @@ const summary = (overrides: Partial<BattleSummary> = {}): BattleSummary => ({
 /** The statements ProgressStorage issues, over maps. Advisory locks and transactions are no-ops. */
 function fakePool() {
   const profiles = new Map<string, string>(), awards = new Map<string, { digest: string; award: string }>();
+  const adminActions: { owner: string; admin: string; action: unknown }[] = [];
   const rows = (list: unknown[]) => ({ rows: list, rowCount: list.length });
   const query = async (sql: string, params: any[] = []) => {
     if (/^(BEGIN|COMMIT|ROLLBACK)$|pg_advisory_xact_lock/.test(sql)) return rows([]);
@@ -28,24 +29,27 @@ function fakePool() {
       if (awards.has(key)) throw new Error('duplicate key');
       awards.set(key, { digest: params[2], award: params[3] }); return rows([]);
     }
+    if (sql.startsWith('SELECT 1 FROM auth."user"')) return rows(Object.values(users).some(user => user.id === params[0]) ? [{}] : []);
+    if (sql.startsWith('INSERT INTO progress.admin_actions')) { adminActions.push({ owner: params[0], admin: params[1], action: JSON.parse(params[2]) }); return rows([]); }
     throw new Error('Unexpected query: ' + sql);
   };
-  return { pool: { query, connect: async () => ({ query, release() {} }) } as unknown as Pool, profiles, awards };
+  return { pool: { query, connect: async () => ({ query, release() {} }) } as unknown as Pool, profiles, awards, adminActions };
 }
 
 const origin = 'http://localhost:8788';
-const users: Record<string, { id: string; email: string }> = {
-  captain: { id: 'user-captain', email: 'Captain@Example.test' },
-  admiral: { id: 'user-admiral', email: 'admiral@example.test' },
+const users: Record<string, { id: string; email: string; role?: string | null }> = {
+  captain: { id: 'user-captain', email: 'Captain@Example.test', role: 'user' },
+  admiral: { id: 'user-admiral', email: 'admiral@example.test', role: 'admin' },
+  legacy: { id: 'user-legacy', email: 'legacy@example.test', role: null },
 };
 /** A session per `cookie: session=<name>`. */
 const fakeAuth = { api: { getSession: async ({ headers }: { headers: Headers }) => {
   const user = users[/session=(\w+)/.exec(headers.get('cookie') ?? '')?.[1] ?? ''];
   return user ? { user } : null;
 } }, handler: () => new Response(null, { status: 404 }) } as unknown as Auth;
-function harness(devAccounts = '') {
+function harness() {
   const fake = fakePool();
-  const app = createApp(fakeAuth, new ShipStorage(fake.pool), 'x'.repeat(32), origin, 'http://127.0.0.1:1', new ProgressStorage(fake.pool, devAccounts));
+  const app = createApp(fakeAuth, new ShipStorage(fake.pool), 'x'.repeat(32), origin, 'http://127.0.0.1:1', new ProgressStorage(fake.pool));
   const send = async (path: string, { user = 'captain', method = 'GET', body, headers = {} }: { user?: string; method?: string; body?: unknown; headers?: Record<string, string> } = {}) => {
     const response = await app.request(origin + path, { method, headers: { origin, cookie: `session=${user}`, 'content-type': 'application/json', ...headers },
       body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body) });
@@ -66,18 +70,11 @@ describe('request validation', () => {
     for (const body of [{ id: 'battle-1', summary: summary() }, { summary: summary() }, { id, summary: { ...summary(), durationS: 99999 } }, { id }])
       expect(() => readAward(body)).toThrow(expect.objectContaining({ status: 400, code: 'invalid' }));
   });
-  test('grants are bounded booleans and XP', () => {
-    expect(readGrant({ xp: 5000, unlockAll: true })).toEqual({ xp: 5000, unlockAll: true });
-    expect(readGrant({ reset: true })).toEqual({ reset: true });
-    for (const body of [{ xp: -1 }, { xp: 1_000_001 }, { xp: Infinity }, { xp: '500' }, { unlockAll: 'yes' }, { reset: 1 }, []])
-      expect(() => readGrant(body)).toThrow(expect.objectContaining({ status: 400, code: 'invalid' }));
-  });
-  test('the developer allowlist matches ids, emails without case, or everyone', () => {
-    expect(devAllowlist('')('user-captain', 'captain@example.test')).toBe(false);
-    expect(devAllowlist(' user-captain , other@example.test')('user-captain')).toBe(true);
-    expect(devAllowlist('CAPTAIN@example.test')('user-captain', 'captain@EXAMPLE.test')).toBe(true);
-    expect(devAllowlist('someone-else,')('user-captain', '')).toBe(false);
-    expect(devAllowlist('*')('anyone')).toBe(true);
+  test('admin actions are validated by the shared rules', () => {
+    expect(readAdminAction({ action: 'grant-xp', amount: -200, pool: 'japan' })).toEqual({ action: 'grant-xp', amount: -200, pool: 'japan' });
+    expect(readAdminAction({ action: 'unlock', nodeId: 'yamato' })).toEqual({ action: 'unlock', nodeId: 'yamato' });
+    for (const body of [undefined, [], { action: 'grant-xp', amount: 5, pool: 'mars' }, { action: 'unlock', nodeId: 'us-gearing' }, { action: 'delete' }])
+      expect(() => readAdminAction(body)).toThrow(expect.objectContaining({ status: 400, code: 'invalid' }));
   });
 });
 
@@ -148,22 +145,29 @@ describe('progress routes', () => {
       expect(typeof response.json.error).toBe('string');
     }
   });
-  test('developer grants need PROGRESS_DEV_ACCOUNTS, then grant, unlock and reset', async () => {
-    const closed = harness();
-    const refused = await closed.send('/api/progress/dev', { method: 'POST', body: { xp: 5000 } });
-    expect(refused.status).toBe(403);
-    expect(refused.json.code).toBe('forbidden');
-    expect(refused.json.error).toContain('PROGRESS_DEV_ACCOUNTS');
-    const { send } = harness('captain@example.test');
-    expect((await send('/api/progress/dev', { user: 'admiral', method: 'POST', body: { xp: 5000 } })).status).toBe(403);
-    expect((await send('/api/progress/dev', { method: 'POST', body: { xp: 2_000_000 } })).status).toBe(400);
-    expect((await send('/api/progress/dev', { method: 'POST', body: { xp: 2000 } })).json.profile.freeXp).toBe(2000);
+  test('administrators read and change another account; everyone else is refused', async () => {
+    const { send, adminActions } = harness();
+    for (const user of ['captain', 'legacy']) {
+      const refused = await send('/api/admin/progress/user-captain', { user });
+      expect(refused.status).toBe(403);
+      expect(refused.json.code).toBe('forbidden');
+    }
+    expect((await send('/api/admin/progress/user-captain', { user: 'nobody' })).status).toBe(401);
+    expect((await send('/api/admin/progress/user-nobody', { user: 'admiral' })).status).toBe(404);
+    expect((await send('/api/admin/progress/user-captain', { user: 'admiral', method: 'POST', body: { action: 'grant-xp', amount: 2_000_000, pool: 'all' } })).status).toBe(400);
+    const blocked = await send('/api/admin/progress/user-captain', { user: 'admiral', method: 'POST', body: { action: 'reset' }, headers: { origin: 'https://evil.example' } });
+    expect(blocked.status).toBe(403);
+    const granted = await send('/api/admin/progress/user-captain', { user: 'admiral', method: 'POST', body: { action: 'grant-xp', amount: 2000, pool: 'usa' } });
+    expect(granted.status).toBe(200);
+    expect(granted.json.profile.xp.usa).toBe(2000);
     const unlocked = await send('/api/progress/unlocks', { method: 'POST', body: { nodeId: 'fletcher' } });
-    expect(unlocked.status).toBe(200);
     expect(unlocked.json.spent).toEqual({ nation: 'usa', fromNation: 1800, fromFree: 0 });
-    expect(unlocked.json.profile.unlocked).toEqual(['fletcher']);
-    expect((await send('/api/progress/dev', { method: 'POST', body: { unlockAll: true } })).json.profile.allUnlocked).toBe(true);
-    expect((await send('/api/progress/dev', { method: 'POST', body: { reset: true, xp: 10 } })).json.profile).toEqual(emptyProfile());
+    expect((await send('/api/admin/progress/user-captain', { user: 'admiral', method: 'POST', body: { action: 'unlock', nodeId: 'yamato' } })).json.profile.unlocked).toEqual(['fletcher', 'yamato']);
+    expect((await send('/api/admin/progress/user-captain', { user: 'admiral', method: 'POST', body: { action: 'lock', nodeId: 'gleaves' } })).status).toBe(409);
+    expect((await send('/api/admin/progress/user-captain', { user: 'admiral' })).json.profile.unlocked).toEqual(['fletcher', 'yamato']);
+    expect((await send('/api/admin/progress/user-captain', { user: 'admiral', method: 'POST', body: { action: 'reset' } })).json.profile).toEqual(emptyProfile());
     expect((await send('/api/progress')).json.profile).toEqual(emptyProfile());
+    expect(adminActions.map(entry => [entry.owner, entry.admin, (entry.action as { action: string }).action]))
+      .toEqual([['user-captain', 'user-admiral', 'grant-xp'], ['user-captain', 'user-admiral', 'unlock'], ['user-captain', 'user-admiral', 'reset']]);
   });
 });

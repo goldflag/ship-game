@@ -1,11 +1,9 @@
 import type { Pool, PoolClient } from 'pg';
 // The only runtime imports from src/: the API image copies these three files (deploy/Dockerfile.api).
-import { applyAward, applyGrant, applyUnlock, emptyProfile, ProgressError, sanitizeProfile, type ProgressProfile } from '../../src/progression/rules';
+import { applyAdminAction, applyAward, applyUnlock, emptyProfile, ProgressError, sanitizeProfile, validateAdminAction, type AdminProgressAction, type ProgressProfile } from '../../src/progression/rules';
 import { awardFor, validateSummary, type BattleSummary, type XpAward } from '../../src/progression/xp';
 import { ApiError, digest, lockedTransaction, uuid } from './storage';
 
-export const MAX_GRANT_XP = 1_000_000;
-export interface DeveloperGrant { xp?: number; unlockAll?: boolean; reset?: boolean }
 export interface BattleReport { id: string; summary: BattleSummary; digest: string }
 export interface RecordedAward { digest: string; award: XpAward }
 
@@ -27,16 +25,9 @@ export function readAward(body: unknown): BattleReport {
   try { checked = validateSummary(summary); } catch (error) { invalid((error as Error).message); }
   return { id: id.toLowerCase(), summary: checked, digest: digest(JSON.stringify(checked)) };
 }
-export function readGrant(body: unknown): DeveloperGrant {
-  const { xp, unlockAll, reset } = object(body);
-  if (xp !== undefined && (typeof xp !== 'number' || !Number.isFinite(xp) || xp < 0 || xp > MAX_GRANT_XP)) invalid(`Grant between 0 and ${MAX_GRANT_XP.toLocaleString('en-US')} XP.`);
-  if ((unlockAll !== undefined && typeof unlockAll !== 'boolean') || (reset !== undefined && typeof reset !== 'boolean')) invalid('unlockAll and reset must be true or false.');
-  return { ...(xp === undefined ? {} : { xp }), ...(unlockAll === undefined ? {} : { unlockAll }), ...(reset === undefined ? {} : { reset }) };
-}
-/** `PROGRESS_DEV_ACCOUNTS`: comma-separated user ids or emails; `*` allows every account (local development only). */
-export function devAllowlist(setting = '') {
-  const entries = new Set(setting.split(',').map(entry => entry.trim().toLowerCase()).filter(Boolean));
-  return (id: string, email = '') => entries.has('*') || entries.has(id.toLowerCase()) || (!!email && entries.has(email.toLowerCase()));
+export function readAdminAction(body: unknown): AdminProgressAction {
+  try { return validateAdminAction(object(body)); }
+  catch (error) { throw error instanceof ProgressError ? new ApiError(400, 'invalid', error.message) : error; }
 }
 /** Pays a reported battle once. A retry with the same summary returns what was recorded without paying again. */
 export function settleAward(profile: ProgressProfile, prior: RecordedAward | undefined, report: BattleReport) {
@@ -49,8 +40,7 @@ export function settleAward(profile: ProgressProfile, prior: RecordedAward | und
 }
 
 export class ProgressStorage {
-  readonly allowsDev: (id: string, email?: string) => boolean;
-  constructor(readonly db: Pool, devAccounts = '') { this.allowsDev = devAllowlist(devAccounts); }
+  constructor(readonly db: Pool) {}
   private async read(db: Pool | PoolClient, owner: string) {
     const result = await db.query('SELECT profile FROM progress.profiles WHERE owner_id=$1', [owner]);
     return result.rowCount ? sanitizeProfile(result.rows[0].profile) : emptyProfile();
@@ -83,12 +73,24 @@ export class ProgressStorage {
       return { profile: settled.profile, award: settled.award };
     });
   }
-  /** Developer grants. Callers check `allowsDev` first. Reset keeps award records, so old battles never pay again. */
-  grant(owner: string, grant: DeveloperGrant) {
+  /** An administrator's change to another account's research, recorded in progress.admin_actions.
+   * Reset keeps award records, so old battles never pay again. */
+  async admin(owner: string, adminId: string, action: AdminProgressAction) {
+    const exists = await this.db.query('SELECT 1 FROM auth."user" WHERE id=$1', [owner]);
+    if (!exists.rowCount) throw new ApiError(404, 'not-found', 'No such player.');
     return this.change(owner, async (db, profile) => {
-      const next = grant.reset ? emptyProfile() : applyGrant(profile, grant);
+      let next: ProgressProfile;
+      try { next = applyAdminAction(profile, action); }
+      catch (error) { throw error instanceof ProgressError ? new ApiError(409, error.code, error.message) : error; }
       await this.write(db, owner, next);
+      await db.query('INSERT INTO progress.admin_actions(owner_id,admin_id,action) VALUES($1,$2,$3)', [owner, adminId, JSON.stringify(action)]);
       return next;
     });
+  }
+  /** Reads another account's research; 404 when the account does not exist. */
+  async inspect(owner: string) {
+    const exists = await this.db.query('SELECT 1 FROM auth."user" WHERE id=$1', [owner]);
+    if (!exists.rowCount) throw new ApiError(404, 'not-found', 'No such player.');
+    return this.read(this.db, owner);
   }
 }

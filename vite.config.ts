@@ -39,7 +39,7 @@ export default defineConfig({
     },
   }],
   resolve: { dedupe: ['three'] },
-  server: { proxy: { [apiPrefix + '/auth']: accountsProxy, [apiPrefix + '/ships']: accountsProxy, [apiPrefix + '/progress']: accountsProxy, [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
+  server: { proxy: { [apiPrefix + '/auth']: accountsProxy, [apiPrefix + '/ships']: accountsProxy, [apiPrefix + '/progress']: accountsProxy, [apiPrefix + '/admin']: accountsProxy, [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
   worker: { format: 'es' },
   build: {
     target: 'es2022',

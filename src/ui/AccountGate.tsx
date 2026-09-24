@@ -31,7 +31,8 @@ export function AccountGate() {
     <StartupScreen {...(checking ? { label: 'Checking your account', progress: 0.02 } : report ?? STARTUP_INITIAL)} done={!checking && !!report?.done}/>
   </>;
 }
-function SignIn({unavailable,retry}:{unavailable:boolean;retry():void}) {
+/** The account form. Also the admin page's sign-in (`src/admin`), which passes its own lede and offers no sign-up. */
+export function SignIn({unavailable,retry,lede,allowSignup=true}:{unavailable:boolean;retry():void;lede?:string;allowSignup?:boolean}) {
   const [signup,setSignup]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
   async function submit(event:FormEvent<HTMLFormElement>) {
     event.preventDefault();const data=new FormData(event.currentTarget);setBusy(true);setError('');
@@ -42,7 +43,7 @@ function SignIn({unavailable,retry}:{unavailable:boolean;retry():void}) {
     } catch {setError('Account service is unavailable. Please retry shortly.');} finally {setBusy(false);}
   }
   return <main className="account-screen"><section className="account-form" aria-labelledby="account-title">
-    <h1 id="account-title">Fleet Command</h1><p>{signup?'Create your account to enter the harbor.':'Sign in to command your fleet.'}</p>
+    <h1 id="account-title">Fleet Command</h1><p>{signup?'Create your account to enter the harbor.':lede??'Sign in to command your fleet.'}</p>
     <form onSubmit={submit}>
       {signup&&<label>Display name<input name="name" autoComplete="nickname" required maxLength={80}/></label>}
       <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254}/></label>
@@ -52,7 +53,7 @@ function SignIn({unavailable,retry}:{unavailable:boolean;retry():void}) {
       <button className="account-primary" disabled={busy} type="submit">{busy?'Connecting…':signup?'Create account':'Sign in'}</button>
       {unavailable&&<button type="button" onClick={retry}>Retry connection</button>}
     </form>
-    <button className="account-switch" disabled={busy} onClick={()=>{setSignup(!signup);setError('');}}>{signup?'Already have an account? Sign in':'New captain? Create an account'}</button>
-    <p className="account-note">Your saved ship designs follow you across devices.</p>
+    {allowSignup&&<><button className="account-switch" disabled={busy} onClick={()=>{setSignup(!signup);setError('');}}>{signup?'Already have an account? Sign in':'New captain? Create an account'}</button>
+    <p className="account-note">Your saved ship designs follow you across devices.</p></>}
   </section></main>;
 }

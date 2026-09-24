@@ -88,10 +88,62 @@ export function applyAward(profile: ProgressProfile, award: XpAward): ProgressPr
   for (const id of NATION_IDS) xp[id] += whole(award.nations[id]);
   return { ...profile, xp, freeXp: profile.freeXp + whole(award.free), earned: profile.earned + whole(award.total) };
 }
-/** Developer grant: XP to every nation and the free pool, or everything unlocked. */
+/** Harness grant: XP to every nation and the free pool, or everything unlocked. */
 export function applyGrant(profile: ProgressProfile, grant: { xp?: number; unlockAll?: boolean }): ProgressProfile {
   const amount = whole(grant.xp);
   const xp = { ...profile.xp };
   for (const id of NATION_IDS) xp[id] += amount;
   return { ...profile, xp, freeXp: profile.freeXp + amount, ...(grant.unlockAll ? { allUnlocked: true } : {}) };
+}
+
+/** What an administrator can do to a player's research. Gifts spend no XP; XP amounts may be negative to
+ * correct a balance, which never drops below zero. */
+export type AdminProgressAction =
+  | { action: 'grant-xp'; amount: number; pool: NationId | 'free' | 'all' }
+  | { action: 'unlock'; nodeId: string }
+  | { action: 'lock'; nodeId: string }
+  | { action: 'unlock-all'; value: boolean }
+  | { action: 'reset' };
+export const MAX_ADMIN_XP = 1_000_000;
+/** Checks an admin request's shape. Throws ProgressError('invalid'). */
+export function validateAdminAction(value: unknown): AdminProgressAction {
+  const input = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  const invalid = (reason: string): never => { throw new ProgressError('invalid', `Invalid admin action: ${reason}.`); };
+  switch (input.action) {
+    case 'grant-xp': {
+      const amount = input.amount, pool = input.pool;
+      if (typeof amount !== 'number' || !Number.isInteger(amount) || Math.abs(amount) > MAX_ADMIN_XP) invalid('amount');
+      if (pool !== 'free' && pool !== 'all' && !NATION_IDS.includes(pool as NationId)) invalid('pool');
+      return { action: 'grant-xp', amount: amount as number, pool: pool as NationId | 'free' | 'all' };
+    }
+    case 'unlock': case 'lock':
+      if (typeof input.nodeId !== 'string' || !nodePlace(input.nodeId)?.node.presetId) invalid('ship');
+      return { action: input.action, nodeId: input.nodeId as string };
+    case 'unlock-all':
+      if (typeof input.value !== 'boolean') invalid('value');
+      return { action: 'unlock-all', value: input.value as boolean };
+    case 'reset': return { action: 'reset' };
+    default: return invalid('action');
+  }
+}
+export function applyAdminAction(profile: ProgressProfile, action: AdminProgressAction): ProgressProfile {
+  const add = (value: number, amount: number) => Math.max(0, value + amount);
+  switch (action.action) {
+    case 'grant-xp': {
+      const xp = { ...profile.xp };
+      for (const id of NATION_IDS) if (action.pool === id || action.pool === 'all') xp[id] = add(xp[id], action.amount);
+      const freeXp = action.pool === 'free' || action.pool === 'all' ? add(profile.freeXp, action.amount) : profile.freeXp;
+      return { ...profile, xp, freeXp };
+    }
+    case 'unlock':
+      return profile.unlocked.includes(action.nodeId) || nodePlace(action.nodeId)?.node.starter ? profile : { ...profile, unlocked: [...profile.unlocked, action.nodeId] };
+    case 'lock':
+      if (nodePlace(action.nodeId)?.node.starter) throw new ProgressError('invalid', 'Starters cannot be locked.');
+      return { ...profile, unlocked: profile.unlocked.filter(id => id !== action.nodeId) };
+    case 'unlock-all': {
+      const { allUnlocked: _, ...rest } = profile;
+      return action.value ? { ...rest, allUnlocked: true } : rest;
+    }
+    case 'reset': return emptyProfile();
+  }
 }

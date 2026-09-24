@@ -105,26 +105,39 @@ integration('research progress reads empty, pays each battle once and refuses co
  expect(bad.status).toBe(400);expect((await bad.json()).code).toBe('invalid');
  expect((await request('/api/progress',b,'GET',undefined,{'x-account-id':owner})).status).toBe(401);
 });
-integration('research unlocks spend XP; developer grants need PROGRESS_DEV_ACCOUNTS; stored profiles are repaired',async()=>{
+integration('research unlocks spend XP; administrators change other accounts; stored profiles are repaired',async()=>{
  const short=await request('/api/progress/unlocks',a,'POST',{nodeId:'baltimore'});
  expect(short.status).toBe(409);expect((await short.json()).code).toBe('insufficient-xp');
- const refused=await request('/api/progress/dev',a,'POST',{xp:5000});
+ // New accounts get the Better Auth default role and cannot administer.
+ expect((await admin.query('SELECT role FROM auth."user" WHERE id=$1',[other])).rows[0].role).toBe('user');
+ const refused=await request('/api/admin/progress/'+owner,b);
  expect(refused.status).toBe(403);expect((await refused.json()).code).toBe('forbidden');
- const before=await profileOf(a);
- const dev=createApp(auth,storage,secret,origin,'http://127.0.0.1:1',new ProgressStorage(db,other));
- const devRequest=(cookie:string,body:unknown)=>dev.request(origin+'/api/progress/dev',{method:'POST',headers:{origin,cookie,'content-type':'application/json'},body:JSON.stringify(body)});
- expect((await devRequest(a,{xp:5000})).status).toBe(403);
- const granted=await devRequest(b,{xp:2000});expect(granted.status).toBe(200);
- expect((await granted.json()).profile.freeXp).toBeGreaterThanOrEqual(2000);
- expect(await profileOf(a)).toEqual(before);
- const unlocked=await request('/api/progress/unlocks',b,'POST',{nodeId:'fletcher'});
+ expect((await request('/api/auth/admin/list-users?limit=5',b)).status).toBe(403);
+ await admin.query(`UPDATE auth."user" SET role='admin' WHERE id=$1`,[other]);
+ const listed=await request('/api/auth/admin/list-users?limit=100',b);expect(listed.status).toBe(200);
+ const demoteSelf=await request('/api/auth/admin/set-role',b,'POST',{userId:other,role:'user'});
+ expect(demoteSelf.status).toBe(403);expect((await demoteSelf.json()).code).toBe('CANNOT_REMOVE_OWN_ADMIN_ROLE');
+ expect((await request('/api/auth/admin/set-role',a,'POST',{userId:owner,role:'admin'})).status).toBe(403);
+ const promoted=await request('/api/auth/admin/set-role',b,'POST',{userId:owner,role:'admin'});expect(promoted.status).toBe(200);
+ expect((await admin.query('SELECT role FROM auth."user" WHERE id=$1',[owner])).rows[0].role).toBe('admin');
+ expect((await request('/api/auth/admin/set-role',b,'POST',{userId:owner,role:'user'})).status).toBe(200);
+ expect((await listed.json()).users.some((user:{id:string})=>user.id===owner)).toBe(true);
+ expect((await request('/api/admin/progress/'+crypto.randomUUID(),b)).status).toBe(404);
+ const granted=await request('/api/admin/progress/'+owner,b,'POST',{action:'grant-xp',amount:2000,pool:'usa'});
+ expect(granted.status).toBe(200);expect((await granted.json()).profile.xp.usa).toBeGreaterThanOrEqual(2000);
+ const unlocked=await request('/api/progress/unlocks',a,'POST',{nodeId:'fletcher'});
  expect(unlocked.status).toBe(200);const value=await unlocked.json();
  expect(value.spent.nation).toBe('usa');expect(value.profile.unlocked).toEqual(['fletcher']);
- expect((await request('/api/progress/unlocks',b,'POST',{nodeId:'fletcher'})).status).toBe(409);
- await admin.query(`UPDATE progress.profiles SET profile=profile||'{"freeXp":-50,"unlocked":["fletcher","nowhere"]}'::jsonb WHERE owner_id=$1`,[other]);
- const repaired=await profileOf(b);expect(repaired.freeXp).toBe(0);expect(repaired.unlocked).toEqual(['fletcher']);
- expect((await (await devRequest(b,{reset:true})).json()).profile).toEqual(emptyProfile());
- expect(await profileOf(b)).toEqual(emptyProfile());
+ expect((await request('/api/progress/unlocks',a,'POST',{nodeId:'fletcher'})).status).toBe(409);
+ expect((await (await request('/api/admin/progress/'+owner,b,'POST',{action:'unlock',nodeId:'yamato'})).json()).profile.unlocked).toEqual(['fletcher','yamato']);
+ const logged=await admin.query('SELECT admin_id,action FROM progress.admin_actions WHERE owner_id=$1 ORDER BY id',[owner]);
+ expect(logged.rows.map(row=>[row.admin_id,row.action.action])).toEqual([[other,'grant-xp'],[other,'unlock']]);
+ await expect(db.query('UPDATE progress.admin_actions SET action=action WHERE false')).rejects.toThrow();
+ await admin.query(`UPDATE progress.profiles SET profile=profile||'{"freeXp":-50,"unlocked":["fletcher","nowhere"]}'::jsonb WHERE owner_id=$1`,[owner]);
+ const repaired=await profileOf(a);expect(repaired.freeXp).toBe(0);expect(repaired.unlocked).toEqual(['fletcher']);
+ expect((await (await request('/api/admin/progress/'+owner,b,'POST',{action:'reset'})).json()).profile).toEqual(emptyProfile());
+ expect(await profileOf(a)).toEqual(emptyProfile());
+ await admin.query(`UPDATE auth."user" SET role='user' WHERE id=$1`,[other]);
 });
 integration('deleting an account removes its research progress',async()=>{
  // Created directly: Better Auth rate-limits a further sign-up here.

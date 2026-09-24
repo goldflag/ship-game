@@ -51,10 +51,12 @@ The account-free harness owns every tree ship. `?progress=fresh` switches it to 
 the starters and persists in the browser, so locked states can be tested
 ([browser verification](browser-verification.md)).
 
-## Developer console
+## Administration
 
-Shift-D, then `xp 5000` (every nation and the free pool), `unlock all` or `progress reset`. The harness always
-allows them; the API allows them only for accounts listed in `PROGRESS_DEV_ACCOUNTS` ([deployment](deployment.md)).
+Administrators change a player's research on the admin page, `/admin`: grant or remove XP in any pool, gift or
+remove single ships, open every ship, or reset. Each change is logged. Promoting an account and the API are in
+[accounts](accounts.md#administrators). In the harness, scripts change the local profile with
+`window.harnessProgress.grant({ xp: 5000 })`, `{ unlockAll: true }` or `{ reset: true }`.
 
 ## Adding a ship to a tree
 
