@@ -3,7 +3,6 @@ import manifestUrl from '../../../.build/naval-content/index.json?url';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
 import { assetUrl } from '../../assetUrl';
-import type { FrameUpdate } from './frameDelta';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
@@ -80,6 +79,8 @@ async function loadContent(ids?: string[]): Promise<Uint8Array> {
 // LocalWorkerOperation correlates setup replies by this order and retires the
 // worker if a reply is abandoned; never publish unsolicited setup replies.
 let chain = Promise.resolve();
+/** The envelope `FrameDelta::update` writes by hand ahead of the patch: `{"baseTick":<n|null>,"tick":<n>`. */
+const FRAME_ENVELOPE = /^\{"baseTick":(null|\d+),"tick":(\d+)[,}]/;
 self.onmessage = (
   event: MessageEvent<
     | { type: 'options' }
@@ -173,17 +174,20 @@ self.onmessage = (
         // alter timestep or block the rendering/input thread.
         for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
       }
-      // Rust walks the frame once and writes only what moved, so the worker
-      // parses a FrameUpdate instead of parsing, normalizing and diffing a frame.
+      // Rust walks the frame once and writes only what moved. The update travels
+      // as that text: the session parses it once, where parsing here would add a
+      // structured clone of the parsed tree to both threads. Only the envelope
+      // Rust writes ahead of the patch is read here.
       const stepped = performance.now();
       const json = runtime!.snapshot_delta(detail);
       const serialized = profile ? performance.now() : 0;
-      const update = JSON.parse(json) as FrameUpdate;
+      const envelope = FRAME_ENVELOPE.exec(json);
+      const tick = envelope ? Number(envelope[2]) : NaN;
       const decoded = performance.now();
-      if (!Number.isSafeInteger(update.tick) || update.tick < 0) throw new Error('Invalid battle snapshot.');
+      if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid battle snapshot.');
       const timing = profile
         ? {
-            tick: update.tick,
+            tick,
             ticks: message.type === 'advance' ? message.ticks : 0,
             step: stepped - started,
             serialize: serialized - stepped,
@@ -199,9 +203,9 @@ self.onmessage = (
       self.postMessage({
         type: 'snapshot',
         cost,
-        reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && update.baseTick == null),
+        reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && envelope![1] === 'null'),
         trialAction: message.type === 'trial-action',
-        update,
+        update: json,
         timing,
       });
     } catch (error) {
