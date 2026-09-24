@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { shipPresets } from '../ships/presets';
 import { NATION_IDS, TECH_TREE, modelledNodes, prerequisite, presetNation } from './techTree';
-import { applyAward, applyGrant, applyUnlock, emptyProfile, nodeState, openProfile, ownsPreset, ProgressError, sanitizeProfile } from './rules';
+import { applyAdminAction, applyAward, applyGrant, applyUnlock, emptyProfile, nodeState, openProfile, ownsPreset, ProgressError, sanitizeProfile, validateAdminAction } from './rules';
 import { awardFor, validateSummary, type BattleSummary } from './xp';
 import { canCommandPreset, createHarnessProgressStore } from './store';
 
@@ -136,5 +136,33 @@ describe('harness store', () => {
     } finally {
       if (previous) Object.defineProperty(globalThis, 'localStorage', previous); else delete (globalThis as { localStorage?: unknown }).localStorage;
     }
+  });
+});
+
+describe('admin actions', () => {
+  test('grant XP to one pool or all, never below zero', () => {
+    const base = emptyProfile();
+    const us = applyAdminAction(base, validateAdminAction({ action: 'grant-xp', amount: 900, pool: 'usa' }));
+    expect(us.xp.usa).toBe(900);
+    expect(us.freeXp).toBe(0);
+    const all = applyAdminAction(us, { action: 'grant-xp', amount: 100, pool: 'all' });
+    expect([all.xp.usa, all.xp.japan, all.freeXp]).toEqual([1000, 100, 100]);
+    expect(applyAdminAction(all, { action: 'grant-xp', amount: -5000, pool: 'free' }).freeXp).toBe(0);
+  });
+  test('gift and remove single ships, open everything, reset', () => {
+    const gifted = applyAdminAction(emptyProfile(), validateAdminAction({ action: 'unlock', nodeId: 'yamato' }));
+    expect(ownsPreset(gifted, 'yamato')).toBe(true);
+    expect(gifted.xp.japan).toBe(0);
+    expect(ownsPreset(applyAdminAction(gifted, { action: 'lock', nodeId: 'yamato' }), 'yamato')).toBe(false);
+    expect(() => applyAdminAction(gifted, { action: 'lock', nodeId: 'gleaves' })).toThrow(/Starters/);
+    const open = applyAdminAction(gifted, { action: 'unlock-all', value: true });
+    expect(ownsPreset(open, 'iowa')).toBe(true);
+    expect('allUnlocked' in applyAdminAction(open, { action: 'unlock-all', value: false })).toBe(false);
+    expect(applyAdminAction(open, { action: 'reset' })).toEqual(emptyProfile());
+  });
+  test('requests are validated', () => {
+    for (const bad of [{}, { action: 'grant-xp', amount: 1.5, pool: 'usa' }, { action: 'grant-xp', amount: 5, pool: 'mars' },
+      { action: 'grant-xp', amount: 2_000_000, pool: 'all' }, { action: 'unlock', nodeId: 'us-gearing' }, { action: 'unlock-all', value: 'yes' }])
+      expect(() => validateAdminAction(bad)).toThrow(ProgressError);
   });
 });

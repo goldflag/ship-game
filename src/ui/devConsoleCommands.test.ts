@@ -27,14 +27,6 @@ test('a typed word and number pick settings and set their values', () => {
   expect(matchCommands('').map(({ command }) => command)).toEqual(CONSOLE_COMMANDS);
 });
 
-test('research progress commands grant XP, open every ship or start over', () => {
-  expect(labels('xp 5000')).toEqual([['Grant XP to every nation and the free pool', 5000]]);
-  expect(labels('xp 5e9')).toEqual([]);
-  expect(labels('xp 99999999')).toEqual([['Grant XP to every nation and the free pool', 1_000_000]]);
-  expect(labels('unlock all')).toEqual([['Unlock every ship', undefined]]);
-  expect(labels('progress reset')).toEqual([['Reset research progress', undefined]]);
-});
-
 test('online battles offer only the visual diagnostics', () => {
   // The server owns the weather: no settings, presets or reset; the diagnostics and visual switches stay.
   const online = matchCommands('', true).map(({ command }) => command);

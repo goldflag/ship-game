@@ -16,6 +16,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | `src/ui` | React HUD, port (`Garage.tsx`), battle dialogs (`battle/`), fleet command (`fleet/`), shared controls (`components/`). See [src/ui/AGENTS.md](src/ui/AGENTS.md) |
 | `src/ui/shipbuilding` | The ship editor. See [its guide](src/ui/shipbuilding/AGENTS.md) |
 | `src/progression` | Research trees, unlock rules and battle XP (three files shared with the accounts API) and the browser progress store. See [research progression](docs/progression.md) |
+| `src/admin` | The admin page at `/admin` (players, roles, research grants), loaded without the game. See [accounts](docs/accounts.md#administrators) |
 | `src/ships` | Blueprint and construction types, presets roster, design storage (IndexedDB and account cloud), local compile client |
 | `src/simulation` | Retired TypeScript simulation kept only as test fixtures. Do not extend it; gameplay lives in `crates/naval-sim` |
 | `services` | Accounts API, design storage, compile service (Bun, PostgreSQL) |

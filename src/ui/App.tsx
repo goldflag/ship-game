@@ -14,7 +14,7 @@ import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { currentAccount } from '../accounts/session';
-import { createAccountProgressStore, createHarnessProgressStore } from '../progression/store';
+import { createAccountProgressStore, createHarnessProgressStore, type ProgressStore } from '../progression/store';
 import { ProgressProvider } from './useProgress';
 import { Game } from '../game/Game';
 import { WEBGPU_REQUIRED } from '../game/webgpu';
@@ -87,7 +87,11 @@ export function App(props: AppProps) {
     const account = props.account ? currentAccount() : undefined;
     return account ? createAccountProgressStore(account) : createHarnessProgressStore();
   }, []);
-  useEffect(() => { void progress.refresh(); }, [progress]);
+  useEffect(() => {
+    void progress.refresh();
+    // The account-free harness hands scripts its local profile, e.g. harnessProgress.grant({ xp: 5000 }).
+    if (!props.account) (window as { harnessProgress?: ProgressStore }).harnessProgress = progress;
+  }, [progress]);
   const [admission, setAdmission] = useState<'loading' | 'ready' | 'failed'>('loading');
   useEffect(() => {
     let active = true;

@@ -10,8 +10,5 @@ const database = new Pool({connectionString:required('API_DATABASE_URL'),max:10,
 await database.query('SELECT 1 FROM auth."user" LIMIT 1');
 const limits = [Number(process.env.SHIP_MAX_DESIGNS ?? 100),Number(process.env.SHIP_MAX_BYTES ?? 100*1024*1024)];
 if (limits.some(n=>!Number.isSafeInteger(n)||n<=0)) throw new Error('Invalid account storage limits');
-// Developer XP grants: comma-separated user ids or emails; `*` (every account) is for local development only.
-const devAccounts = process.env.PROGRESS_DEV_ACCOUNTS ?? '';
-if (devAccounts.split(',').some(entry=>entry.trim()==='*')) console.warn('PROGRESS_DEV_ACCOUNTS=* lets every account grant itself research XP');
-const app = createApp(makeAuth(database,origin,authSecret),new ShipStorage(database,...limits as [number,number]),secret,origin,process.env.COMPILER_URL ?? 'http://127.0.0.1:8790',new ProgressStorage(database,devAccounts));
+const app = createApp(makeAuth(database,origin,authSecret),new ShipStorage(database,...limits as [number,number]),secret,origin,process.env.COMPILER_URL ?? 'http://127.0.0.1:8790',new ProgressStorage(database));
 export default {port:Number(process.env.PORT ?? 8788),hostname:process.env.BIND ?? '127.0.0.1',fetch:app.fetch,idleTimeout:120};

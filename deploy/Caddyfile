@@ -20,7 +20,7 @@
     handle /internal/* {
         respond "Not found" 404
     }
-    @accounts path /api/auth/* /api/ships /api/ships/* /api/progress /api/progress/*
+    @accounts path /api/auth/* /api/ships /api/ships/* /api/progress /api/progress/* /api/admin/*
     handle @accounts {
         header Cache-Control no-store
         reverse_proxy api:8788 {

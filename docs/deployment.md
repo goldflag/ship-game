@@ -31,8 +31,8 @@ container replacements.
 `BATTLE_DB_PASSWORD`, `MIGRATION_DB_PASSWORD`, `BETTER_AUTH_SECRET` and
 `SERVICE_SECRET`. Generate independent URL-safe random secrets (at least 32
 characters); never commit them. Optional settings include `SHIP_DOMAIN`, storage
-quotas, edge network, trusted edge proxy CIDR and `PROGRESS_DEV_ACCOUNTS` (user ids or
-emails allowed developer XP grants; empty by default, never `*` in production). Database role creation happens
+quotas, edge network and trusted edge proxy CIDR. Administrators are a database role, not a setting:
+see [accounts](accounts.md#administrators). Database role creation happens
 only on a new volume; changing an environment password does not rotate an
 existing database role.
 
