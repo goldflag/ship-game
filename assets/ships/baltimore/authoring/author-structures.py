@@ -61,15 +61,15 @@ def block(id, name, footprint, base, top, material='naval'):
     return {'id': id, 'name': name, 'footprint': footprint, 'baseY': round(base, 4), 'height': round(top - base, 4), 'material': material}
 
 
-def oval_stack(id, name, c0, c1, rx, rz, base, top, n=28):
-    """A raked oval funnel casing: ring (c0 centre z) at base to ring (c1) at top, as an authored surface."""
-    ring = lambda cz, y: [[round(rx * math.cos(math.tau * i / n), 4), y, round(cz + rz * math.sin(math.tau * i / n), 4)] for i in range(n)]
-    vs = ring(c0, base) + ring(c1, top); tri = []
+def oval_stack(id, name, c0, c1, rx0, rz0, rx1, rz1, base, top, n=28):
+    """A raked oval funnel: ring (centre z c0, half sizes rx0, rz0) at base to ring (c1, rx1, rz1) at top."""
+    ring = lambda cz, rx, rz, y: [[round(rx * math.cos(math.tau * i / n), 4), y, round(cz + rz * math.sin(math.tau * i / n), 4)] for i in range(n)]
+    vs = ring(c0, rx0, rz0, base) + ring(c1, rx1, rz1, top); tri = []
     for i in range(1, n - 1):
         tri += [[0, i + 1, i], [n, n + i, n + i + 1]]
     for i in range(n):
         j = (i + 1) % n; tri += [[i, j, j + n], [i, j + n, i + n]]
-    fp = [[x, z] for x, y, z in ring(c0, base)]
+    fp = [[x, z] for x, y, z in ring(c0, rx0, rz0, base)]
     return {'id': id, 'name': name, 'footprint': fp, 'baseY': base, 'height': round(top - base, 4), 'material': 'naval',
             'surface': {'vertices': vs, 'triangles': tri}}
 
@@ -77,46 +77,50 @@ def oval_stack(id, name, c0, c1, rx, rz, base, top, n=28):
 S = []
 # ---- Forward superstructure --------------------------------------------------------------------------------
 # 01 deckhouse: pointed front abaft turret 2, full-width sponsons under the wing 5-inch mounts, a narrow after
-# part to the forward funnel casing. Top 8.70 m.
+# part to the forward funnel casing.
 S.append(block('forward-deckhouse', 'Forward 01 deckhouse', mirror([
     (1.65, -36.48), (7.1, -27.73), (7.1, -20.33), (7.55, -19.88), (8.9, -19.88), (8.9, -14.88), (5.25, -14.88),
     (5.1, -16.63), (4.65, -17.08), (3.85, -17.08), (3.4, -16.63), (3.4, -11.03), (2.6, -10.53), (2.6, -6.0)]), DECK, 8.70))
 # Forward funnel uptake casing from the main deck to its 15.1 m shelf.
-S.append(block('forward-funnel-casing', 'Forward funnel uptake casing', rounded(0, -2.64, 3.7, 3.36, .35), DECK, 15.10))
-# 02 level: the armoured conning position forms its rounded front.
+S.append(block('forward-funnel-casing', 'Forward funnel uptake casing', rounded(0, -2.63, 3.7, 3.35, .35), DECK, 15.10))
+# 02 level; the armoured conning position forms its rounded front.
 S.append(block('conning-tower', 'Armored conning position', mirror([
-    (0, -24.58), (1.6, -24.58), (2.35, -24.5), (2.7, -24.23), (2.65, -22.4), (2.6, -20.63)]), 8.70, 12.70))
+    (0, -24.58), (1.6, -24.58), (2.35, -24.5), (2.7, -24.23), (2.65, -22.4), (2.6, -20.63)]), 8.70, 12.62))
 S.append(block('forward-upper-deck', 'Forward 02 deckhouse', mirror([
-    (2.6, -20.63), (3.1, -20.13), (3.1, -19.03), (2.6, -18.53), (2.6, -6.0)]), 8.70, 12.70))
-# 03 level with its pointed breakwater front; 04 with the rounded open bridge front.
-S.append(block('bridge-lower', 'Bridge 03 level', mirror([
-    (0, -24.58), (1.35, -24.18), (2.85, -22.38), (3.6, -22.6), (3.6, -11.9), (2.45, -10.88)]), 12.70, 15.10))
-S.append(block('bridge-flag', 'Bridge 04 level', mirror([
-    (0, -26.08), (1.15, -25.88), (2.05, -25.48), (2.7, -24.93), (3.5, -23.43), (3.5, -10.83), (1.25, -8.98)]), 15.10, 17.40))
-# Open navigating bridge level, the sky lookout wings and the pilot house above it.
-S.append(block('bridge-navigation-deck', 'Navigating bridge level', mirror([
-    (0, -25.08), (1.55, -25.08), (1.8, -24.83), (3.5, -21.63), (3.5, -18.73), (2.6, -15.33), (2.6, -11.23), (2.45, -11.08)]), 17.40, 19.50))
-for side, sign in [('port', -1), ('starboard', 1)]:
-    S.append(block(f'bridge-wing-{side}', f'Sky lookout wing, {side}', [[sign * x, z] for x, z in [
-        (3.5, -18.73), (4.5, -17.73), (4.5, -16.83), (3.95, -16.28), (3.5, -16.2)]], 17.25, 17.40, 'roof'))
-S.append(block('bridge-pilot-house', 'Pilot house and 5-inch director base', mirror([
-    (1.3, -18.63), (2.3, -17.93), (2.7, -17.03), (2.7, -16.53), (3.1, -15.43), (3.1, -11.63), (2.95, -11.48)]), 19.50, 21.00))
+    (2.6, -20.63), (3.1, -20.13), (3.1, -19.03), (2.6, -18.53), (2.6, -6.0)]), 8.70, 12.62))
+# The bridge rises in galleries: each level's deck overhangs the house below it and carries a splinter
+# bulwark (drawn by the recipe); the houses stand inside them.
+S.append(block('bridge-03-deck', 'Bridge 03 gallery deck', mirror([
+    (0, -27.08), (0.35, -27.08), (1.05, -26.78), (4.9, -24.03), (4.9, -23.23), (4.55, -22.88), (3.75, -22.68),
+    (3.5, -22.43), (3.5, -10.88)]), 12.62, 12.70, 'roof'))
+S.append(block('bridge-lower', 'Bridge 03 house', mirror([
+    (0, -24.58), (0.15, -24.58), (1.35, -24.18), (2.1, -23.43), (2.6, -22.33), (2.7, -11.13), (2.45, -10.88)]), 12.70, 15.02))
+S.append(block('bridge-04-deck', 'Bridge 04 gallery deck', mirror([
+    (0, -26.18), (0.65, -26.18), (1.85, -25.78), (2.45, -25.38), (3.5, -24.03), (3.5, -10.83), (1.55, -9.08)]), 15.02, 15.10, 'roof'))
+S.append(block('bridge-flag', 'Bridge 04 house', mirror([
+    (0, -24.58), (0.75, -24.48), (1.25, -24.28), (2.4, -22.93), (2.7, -21.73), (2.7, -12.03), (2.55, -11.88)]), 15.10, 17.32))
+S.append(block('bridge-navigation-deck', 'Open navigating bridge', mirror([
+    (0, -25.08), (1.55, -25.08), (1.8, -24.83), (3.5, -21.63), (3.5, -18.73), (4.5, -17.73), (4.5, -16.83),
+    (3.95, -16.28), (3.35, -16.08), (2.6, -15.33), (2.6, -11.23), (2.45, -11.08)]), 17.32, 17.40, 'roof'))
+S.append(block('bridge-pilot-house', 'Pilot house', mirror([
+    (1.3, -18.03), (1.3, -16.23), (1.7, -15.63), (1.7, -15.23), (2.7, -14.03), (2.7, -12.03), (2.55, -11.88)]), 17.40, 19.50))
 S.append(block('bridge-director-tower', 'Forward 8-inch director tower', mirror([
-    (0, -22.68), (0.55, -22.68), (1.3, -22.03), (1.5, -21.63), (1.5, -20.83), (1.3, -20.63), (1.3, -18.63)]), 19.50, 21.43))
-S.append(block('bridge-director-pedestal', 'Forward 5-inch director pedestal', rounded(0, -13.18, 1.5, 1.5, .6), 21.00, 23.72))
+    (0, -22.78), (0.55, -22.68), (1.3, -22.03), (1.5, -21.63), (1.5, -20.83), (1.3, -20.43), (1.3, -18.03)]), 17.40, 21.43))
+S.append(block('bridge-director-pedestal', 'Forward 5-inch director pedestal', rounded(0, -13.18, 1.5, 1.5, .6), 19.50, 23.72))
 # ---- After superstructure -----------------------------------------------------------------------------------
 S.append(block('after-funnel-base', 'After funnel 01 base', rounded(0, 13.91, 5.1, 1.39, .25), DECK, 8.70))
-S.append(block('after-funnel-casing', 'After funnel uptake casing', rounded(0, 16.26, 3.7, 3.26, .35), DECK, 15.80))
+S.append(block('after-funnel-casing', 'After funnel uptake casing', rounded(0, 16.27, 3.7, 3.25, .35), DECK, 15.80))
 S.append(block('aft-deckhouse-front', 'After 01 deckhouse, mainmast base', rect(4.1, 19.52, 23.62), DECK, 8.70))
 S.append(block('aft-deckhouse', 'After deckhouse', mirror([
     (1.7, 21.0), (1.7, 22.27), (2.15, 23.62), (2.9, 23.87), (2.9, 37.0), (2.1, 37.4)]), DECK, 12.85))
 S.append(block('aft-deckhouse-tail', 'After deckhouse tail', mirror([
     (2.1, 37.4), (2.1, 38.97), (1.35, 39.72), (0.95, 39.92)]), DECK, 11.80))
-S.append(block('aft-platform', 'After 02 platform', mirror([
+S.append(block('aft-platform', 'After 02 gallery deck', mirror([
     (3.35, 22.12), (4.05, 22.12), (4.55, 22.32), (5.1, 22.87), (5.1, 24.37), (3.9, 25.27), (3.9, 27.37), (4.3, 28.17),
     (3.8, 28.87), (3.9, 33.37), (4.9, 34.77), (4.9, 35.97), (3.95, 36.92)]), 12.85, 13.00, 'roof'))
 S.append(block('aft-upper-deck', 'After 03 deckhouse', mirror([
-    (1.15, 23.22), (1.7, 23.77), (1.7, 25.57), (2.5, 26.37), (2.5, 33.97), (1.3, 34.97), (1.3, 36.17), (0.35, 36.92)]), 13.00, 15.00))
+    (1.15, 23.22), (1.7, 23.77), (1.7, 25.57), (2.5, 26.37), (2.5, 29.77), (1.9, 30.37), (1.9, 31.57), (2.5, 32.17),
+    (2.5, 33.97), (1.3, 34.97), (1.3, 36.17), (0.35, 36.92)]), 13.00, 15.00))
 S.append(block('aft-director-tower', 'After 5-inch director pedestal', rounded(0, 28.22, 1.5, 1.5, .6), 15.00, 19.10))
 S.append(block('aft-main-director-pedestal', 'After 8-inch director pedestal', rounded(0, 35.35, 1.45, 1.5, .6), 15.00, 16.45))
 S.append(block('aft-5in-deckhouse', 'After 5-inch mount deckhouse', mirror([
@@ -124,9 +128,11 @@ S.append(block('aft-5in-deckhouse', 'After 5-inch mount deckhouse', mirror([
 for side, sign in [('port', -1), ('starboard', 1)]:
     S.append(block(f'after-5in-pedestal-{side}', f'After 5-inch mount pedestal, {side}',
                    [[sign * x, z] for x, z in rounded(7.85, 30.1, 2.05, 2.4, .6)], DECK, 8.60))
-# ---- Funnels: narrow raked ovals above their casings --------------------------------------------------------
-S.append(oval_stack('forward-funnel', 'Forward Funnel', -1.95, -1.55, 1.52, 2.88, 15.10, 22.90))
-S.append(oval_stack('after-funnel', 'After Funnel', 16.55, 16.95, 1.52, 2.78, 15.80, 22.20))
+S.append(block('hangar-coaming', 'Hangar hatch coaming', rect(5.0, 64.0, 77.0), 6.30, 6.62, 'edge'))
+S.append(block('stern-aa-sponson', 'Stern 40 mm sponson', ellipse(0, 101.3, 2.65, 2.6), 6.75, 7.41))
+# ---- Funnels: narrow oval stacks above their casings, the fore face raked --------------------------------------
+S.append(oval_stack('forward-funnel', 'Forward Funnel', -2.18, -1.58, 1.5, 2.9, 1.45, 2.7, 15.10, 23.0))
+S.append(oval_stack('after-funnel', 'After Funnel', 16.37, 17.17, 1.5, 2.95, 1.4, 2.75, 15.80, 22.5))
 
 # ---- Mounts on the reference hardpoints (reference z + 0.216) ------------------------------------------------
 SHIFT = .216
@@ -144,23 +150,32 @@ HP = {  # mount id: (x, y, z_ref, bearing)
     'bofors-10': (-7.218, 6.239, 38.414, 240), 'bofors-11': (7.218, 6.239, 38.414, 120),
     'bofors-12': (-1.285, 7.614, 101.003, 180),
 }
+# The reference hardpoint is the foot of each gunhouse. Our catalog gunhouses start 0.05 m (8-inch) and
+# 0.25 m (5-inch) above their mount datum, and the 40 mm tub deck is the datum itself.
+LIFT = {'main': .05, 'secondary': .25}
 for m in b['mounts']:
     x, y, z, brg = HP[m['id']]
-    m['position'] = [x, y, round(z + SHIFT, 4)]
+    lift = 0 if m['partId'].startswith('us-40mm') else LIFT[m['battery']]
+    m['position'] = [x, round(y - lift, 4), round(z + SHIFT, 4)]
     m['bearingDeg'] = brg
 mounts = {m['id']: m for m in b['mounts']}
 for r in b['localDamage']['regions']:
     if r.get('mountId') in mounts:
         r['center'] = list(mounts[r['mountId']]['position'])
 
-# 40 mm tubs: the elevated ones stand on pedestals rising from the main deck, the others on the deck.
-# Hit and clearance proxies only; the recipe draws the tubs and pedestals.
+# 40 mm tubs. Beside the funnels they stand on pedestals rising from the main deck; the others sit on the deck.
+# The recipe draws the tubs; these are their hit and clearance proxies (the tub deck lies 0.2 m below the mount).
+PEDESTALS = {'bofors-04': (7.7, -6.08, 1.9, 2.4), 'bofors-06': (5.8, 6.32, 2.4, 2.4), 'bofors-08': (8.05, 18.32, 1.75, 2.4)}
 tubs = [('bofors-02', 'bofors-03'), ('bofors-04', 'bofors-05'), ('bofors-06', 'bofors-07'), ('bofors-08', 'bofors-09'), ('bofors-10', 'bofors-11')]
 for i, pair in enumerate(tubs):
     for sign, mid in zip([-1, 1], pair):
         x, y, z = mounts[mid]['position']
-        base = deck_at(z)
-        S.append(block(f'aa-platform-{sign}-{i}', '40 mm gallery and splinter tub', ellipse(x, z, 2.2, 2.2, 24), round(base, 3), y + .94))
+        base = round(deck_at(z), 3)
+        if pair[0] in PEDESTALS:
+            px, pz, hx, hz = PEDESTALS[pair[0]]
+            S.append(block(f'aa-pedestal-{sign}-{i}', '40 mm tub pedestal', rounded(sign * px, pz + SHIFT, hx, hz, .6), DECK, round(y - .2, 3)))
+            base = round(y - .2, 3)
+        S.append(block(f'aa-platform-{sign}-{i}', '40 mm splinter tub', ellipse(x, z, 2.6, 2.6, 24), base, round(y + .94, 3)))
 
 # ---- Directors and the records that follow them --------------------------------------------------------------
 DIRECTORS = {  # module id: (z, base y, Mk 34?)
@@ -183,6 +198,8 @@ b['obstructions'] = [
     {'id': 'aft-house', 'center': [0, 11.6, 30.5], 'size': [5.8, 10.8, 16.8]},
 ]
 b['viewpoints']['bridge'] = [0, 19.3, -24.2]
+# The ensign staff stands on the stern 40 mm sponson's after rim.
+b['rig']['ensigns'][0]['position'] = [0, 10.9, 103.5]
 b['structures'] = S
 
 
