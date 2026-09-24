@@ -414,11 +414,20 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             for dx in (-.35, .35):
                 tag(cyl('bollards.post', (x + dx, y, z + .4), .17, .7, 'edge', dcol, 16), 'mooring')
                 tag(cyl('bollards.cap', (x + dx, y, z + .78), .22, .07, 'edge', dcol, 16), 'mooring')
+    def reel(x, y, floor, radius=.45, length=1.1):
+        """Hose reel: two cheeks, a wound drum and two feet (a light stand-in for the shared reel,
+        whose modelled rope windings cost 2,000 triangles each)."""
+        axle = floor + radius + .18
+        for s in (-1, 1):
+            tag(box('reel.foot', (x, y + s * length / 2, floor + .35), (.16, .14, .7), 'naval', dcol), 'reels')
+            tag(rod('reel.cheek', (x, y + s * (length / 2 - .05), axle), (x, y + s * (length / 2 + .05), axle), radius, 'naval', dcol, vertices=16), 'reels')
+        tag(rod('reel.hose', (x, y - length / 2, axle), (x, y + length / 2, axle), radius * .8, 'canvas', dcol, vertices=16), 'reels')
+        tag(rod('reel.crank', (x, y + length / 2 + .05, axle), (x, y + length / 2 + .25, axle), .04, 'edge', dcol, vertices=6), 'reels')
+
     for (rx, ry, rzz) in [(-.4, 6.9, -80.3), (3.3, 6.9, -80.3), (-3.3, 6.9, -80.3), (1.6, 6.9, -80.3), (-10.3, 5.3, 5.4), (10.3, 5.3, 5.4), (3.9, 5.3, 76.1), (0, 5.4, 76.9), (-3.9, 5.3, 76.1)]:
         x, y, z = P(rx, ry, rzz)
         floor = support.below(x, y, z + 1)
-        F.col = dcol
-        F.reel('reel', x, y, floor, .45, 1.1)
+        reel(x, y, floor)
     for s in (-1, 1):
         x, y, z = P(s * 6.8, 6.5, -78.7)
         floor = support.below(x, y, z + 1)
