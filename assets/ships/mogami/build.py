@@ -350,11 +350,12 @@ bollards(0,-91.8,math.pi/2)
 for x,z in ((-3.0,-89.6),(2.5,-92.7)):vent(x,z,.3,.55)
 # Forecastle abaft the windlasses: hatches, skylight, reels and the winches forward of No. 2 barbette.
 for x,z,l,w in ((.46,-75.5,1.8,1.1),(.46,-70.0,1.7,.86),(.46,-73.4,.53,.8),(-.47,-70.4,.83,1.53),(3.3,-62.5,1.8,1.1),(-1.98,-58.0,1.4,1.2),(-5.1,-51.4,1.0,.66),(5.1,-51.4,1.0,.66)):hatch(x,z,l,w)
+# Reels and winches sit under the gunhouse overhang of No. 1/No. 2: kept low enough for it to pass over.
 for x,z in ((.48,-71.4),(-.8,-71.6),(-2.2,-69.2),(-3.25,-67.3),(2.0,-68.8),(2.8,-67.8)):
- bx,by,d=on_deck(x,z);detail().reel('Cable reel',bx,by,d,.35,.8)
+ bx,by,d=on_deck(x,z);detail().reel('Cable reel',bx,by,d,.27,.8)
 for x,z in ((-1.5,-56.6),(2.07,-58.9)):
- bx,by,d=on_deck(x,z);box('Deck winch bed',(bx,by,d+.1),(1.0,2.0,.2),'edge');rod('Deck winch drum',(bx,by-.7,d+.65),(bx,by+.7,d+.65),.34,'naval',vertices=14)
- box('Deck winch motor',(bx,by+.95,d+.55),(.7,.5,.9),'naval')
+ bx,by,d=on_deck(x,z);box('Deck winch bed',(bx,by,d+.08),(1.0,2.0,.16),'edge');rod('Deck winch drum',(bx,by-.7,d+.44),(bx,by+.7,d+.44),.27,'naval',vertices=14)
+ box('Deck winch motor',(bx,by+.95,d+.36),(.7,.5,.56),'naval')
 for x,z in ((-.95,-57.9),(.58,-57.4),(1.35,-57.4),(1.62,-58.1),(0,-58.6),(-1.68,-62.1),(3.2,-53.5),(2.7,-54.2),(-1.3,-69.3)):vent(x,z,.25,.55)
 for sy in (-1,1):
  bx,by,d=on_deck(sy*6.55,-58.7);rod('Boat davit',(bx,by,d),(bx,by,d+2.0),.08,'naval');rod('Boat davit arm',(bx,by,d+2.0),(bx,by-sy*.45,d+2.2),.07,'naval')
@@ -373,12 +374,13 @@ qx,qy,qd=on_deck(1.0,84.85);cyl('After capstan',(qx,qy,qd+.25),.36,.5,'naval');c
 for x,z in ((.29,70.9),(0,56.5),(-.35,82.2),(0,78.6),(.76,79.1),(-1.44,58.05),(-2.1,55.0),(-3.13,60.2),(1.08,55.45)):vent(x,z,.25,.6)
 qx,qy,qd=on_deck(0,94.8);box('Skylight',(qx,qy,qd+.25),(.62,.62,.5),'naval')
 for x,z in ((2.6,66.6),(4.1,61.0)):
- bx,by,d=on_deck(x,z);detail().reel('Cable reel',bx,by,d,.35,.8)
+ bx,by,d=on_deck(x,z);detail().reel('Cable reel',bx,by,d,.27,.8)
 # Bulwarked gun decks around the quarterdeck 25 mm mounts (reference: 0.8 m).
 for sy in (-1,1):
- cx,cz=sy*3.33,83.05;pts=[]
+ m=next(m for m in D['mounts'] if m['id']==('aa-12' if sy>0 else 'aa-11'))
+ cx,cz=m['position'][0],m['position'][2];pts=[]
  for k in range(8):
-  a=(k+.5)*math.tau/8;pts.append(P(cx+1.38*math.cos(a)/math.cos(math.pi/8),cz+1.96*math.sin(a)/math.cos(math.pi/8)))
+  a=(k+.5)*math.tau/8;pts.append(P(cx+1.45*math.cos(a)/math.cos(math.pi/8),cz+1.96*math.sin(a)/math.cos(math.pi/8)))
  z=deck(pts[0][0])
  for a,b in zip(pts,pts[1:]+pts[:1]):
   o=box('Gun deck bulwark',((a[0]+b[0])/2,(a[1]+b[1])/2,z+.4),(math.dist(a,b)+.05,.06,.8),'naval');o.rotation_euler.z=math.atan2(b[1]-a[1],b[0]-a[0])
