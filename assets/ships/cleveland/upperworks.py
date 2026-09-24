@@ -99,6 +99,13 @@ def build_upperworks(D, helpers, materials, col, F):
     for x in [-.35, .35]:
         pts = [(x, 15.34, front(15.34) - .12), (x, 21.0, front(21.0) - .12), (x, 21.35, front(21.0) - .22), (x, 22.9, -5.77 - .1)]
         path(name + '.fore pipe', pts, .07, n=8)
+    # Whistle platform on the fore side of the cowl and the ladder up the funnel's fore face to it.
+    plate(name + '.whistle platform', [(-.8, -7.15), (.8, -7.15), (.8, -5.9), (-.8, -5.9)], 22.75, .1)
+    rail(name + '.whistle rail', [(-.8, -5.95), (-.8, -7.15), (.8, -7.15), (.8, -5.95)], 22.75, .9, .8)
+    for x in [-.7, .7]:
+        tube(name + '.whistle bracket', (x, 22.66, -7.05), (x, 21.2, front(21.2) - .02), .05, n=6)
+    tag(cyl(name + '.whistle', B((.35, 23.15, -6.6)), .12, .7, boot, col, 8), name)
+    F.ladder(name + '.ladder', B((.65, 15.34, front(15.34) - .3)), B((.65, 22.75, front(22.75) - .3)), .45)
     # After funnel: S-bent exhaust pipe up the fore face to above the cowl.
     name = 'after-funnel'
     s_pipe = [(0, 12.8, 4.62), (0, 14, 4.64), (0, 15, 4.81), (0, 16, 5.02), (0, 17, 5.15), (0, 18, 5.26), (0, 19, 5.36), (0, 20, 5.40),
