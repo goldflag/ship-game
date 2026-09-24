@@ -354,17 +354,17 @@ def crane(sign):
   ob=box(name,tuple(L(u,v,w)),(su,sv,sw),materials[mat],detailcol);ob.rotation_euler.z=yaw;return ob
  cyl('Aircraft crane slewing ring',tuple(L(0,.2,.12)),2.1,.24,materials['edge'],detailcol,28)
  lbox('Aircraft crane turntable',0,.2,.36,4.0,3.5,.24,'roof')
- for v in [-1.4,1.8]:
+ for v in [-1.55,1.45]:
   # Side frames: tall plates with a lightening opening, rising toward the jib foot and the gantry.
-  outline=[(-2.0,.48),(1.95,.48),(1.95,2.6),(1.5,3.05),(-1.1,3.05),(-2.0,2.6)]
+  outline=[(-2.0,.48),(1.95,.48),(1.95,2.85),(1.45,3.25),(-1.1,3.25),(-2.0,2.6)]
   hole=[(-1.2,1.0),(.9,1.0),(.9,2.15),(-1.2,2.15)]
   prism('Aircraft crane side frame',[tuple(L(u,v-.07,w)) for u,w in outline],[tuple(L(u,v+.07,w)) for u,w in outline],materials['naval'],detailcol)
   for dv in [-.075,.075]:decal('Aircraft crane frame opening',[tuple(L(u,v+dv,w)) for u,w in hole],N*dv,materials['dark'])
- lbox('Aircraft crane machinery house',-.9,.2,1.35,2.0,3.0,1.75)
- lbox('Aircraft crane motor casing',1.45,.2,.95,.9,1.2,.9,'edge')
- for v,r in [(-.55,.55),(.95,.55)]:
-  rod('Aircraft crane winch drum',tuple(L(.55,v-.55,1.05)),tuple(L(.55,v+.55,1.05)),r,materials['edge'],detailcol,vertices=14)
-  for dv in [-.58,.58]:rod('Aircraft crane drum flange',tuple(L(.55,v+dv-.03,1.05)),tuple(L(.55,v+dv+.03,1.05)),r+.14,materials['naval'],detailcol,vertices=14)
+ lbox('Aircraft crane machinery house',-.9,-.05,1.35,2.0,2.8,1.75)
+ lbox('Aircraft crane motor casing',1.45,-.05,.95,.9,1.2,.9,'edge')
+ for v,r in [(-.6,.55),(.5,.55)]:
+  rod('Aircraft crane winch drum',tuple(L(.55,v-.47,1.05)),tuple(L(.55,v+.47,1.05)),r,materials['edge'],detailcol,vertices=14)
+  for dv in [-.5,.5]:rod('Aircraft crane drum flange',tuple(L(.55,v+dv-.03,1.05)),tuple(L(.55,v+dv+.03,1.05)),r+.14,materials['naval'],detailcol,vertices=14)
  lbox('Aircraft crane operating platform',-.4,.2,3.12,3.2,3.5,.1,'roof')
  rail('Aircraft crane operating platform',[tuple(L(u,v,3.17)) for u,v in [(1.15,1.95),(-1.95,1.95),(-1.95,-1.55),(1.15,-1.55)]],.9,1.4,False)
  ladder('Aircraft crane base ladder',tuple(L(-2.25,1.2,.36)),tuple(L(-2.25,1.2,3.1)),.42)
@@ -377,20 +377,20 @@ def crane(sign):
  rod('Aircraft crane topping spreader',tuple(L(.95,-1.15,4.7)),tuple(L(.95,1.55,4.7)),.1,materials['edge'],detailcol,vertices=8)
  # Jib: two tapered box legs from hinge pins at the frame heads to the head sheaves, with three diaphragms
  # and a wide spreader near the top that takes the topping lift.
- foot,head=Vector((1.7,0,2.75)),Vector((16.3,0,16.05))
+ foot,head=Vector((1.7,0,2.95)),Vector((16.3,0,16.05))
  def leg(t,side):
-  p=foot+(head-foot)*t;spread=1.5*(1-t)+.26*t;return L(p.x,.05+side*spread,p.z)
+  p=foot+(head-foot)*t;spread=1.5*(1-t)+.26*t;return L(p.x,-.1+side*spread,p.z)
  for side in [-1,1]:
-  for a,b,w,h in [(0,.52,.36,.62),(.5,1,.3,.5)]:
+  for a,b,w,h in [(0,.52,.36,.52),(.5,1,.3,.46)]:
    beam('Aircraft crane jib box girder',leg(a,side),leg(b,side),w,h,materials['naval'])
-  rod('Aircraft crane jib hinge pin',tuple(L(foot.x,.05+side*1.25,foot.z)),tuple(L(foot.x,.05+side*1.95,foot.z)),.14,materials['edge'],detailcol,vertices=8)
+  rod('Aircraft crane jib hinge pin',tuple(L(foot.x,-.1+side*1.25,foot.z)),tuple(L(foot.x,-.1+side*1.95,foot.z)),.14,materials['edge'],detailcol,vertices=8)
  for t in [.22,.46,.66]:beam('Aircraft crane jib diaphragm',leg(t,-1),leg(t,1),.3,.42,materials['naval'])
  t=.79;a,b=leg(t,-1),leg(t,1);c=(a+b)/2;dv=(b-a).normalized()
  rod('Aircraft crane jib spreader',tuple(c-dv*.95),tuple(c+dv*.95),.1,materials['edge'],detailcol,vertices=8)
- hp=L(head.x+.2,.05,head.z+.1)
- beam('Aircraft crane head block',L(head.x-.7,.05,head.z-.45),L(head.x+.35,.05,head.z+.15),.66,.56,materials['naval'])
+ hp=L(head.x+.2,-.1,head.z+.1)
+ beam('Aircraft crane head block',L(head.x-.7,-.1,head.z-.45),L(head.x+.35,-.1,head.z+.15),.66,.56,materials['naval'])
  for dv2 in [-.2,.2]:
-  a=L(head.x+.25,.05+dv2-.06,head.z+.1);b=L(head.x+.25,.05+dv2+.06,head.z+.1)
+  a=L(head.x+.25,-.1+dv2-.06,head.z+.1);b=L(head.x+.25,-.1+dv2+.06,head.z+.1)
   rod('Aircraft crane head sheave',tuple(a),tuple(b),.42,materials['edge'],detailcol,vertices=14)
  hook=hp-Vector((0,0,2.3))
  for dv2 in [-.1,.1]:rod('Aircraft crane fall',tuple(hp+N*dv2-Vector((0,0,.35))),tuple(hook+N*dv2+Vector((0,0,.35))),.018,materials['dark'],detailcol,vertices=5)
@@ -398,7 +398,7 @@ def crane(sign):
  ring('Aircraft crane hook',tuple(hook-Vector((0,0,.12))),tuple(D),.13,.035,materials['edge'],10)
  # Topping lift from the sheave housing to the spreader, hoist rope from the winch drum over the head sheave.
  for f in [-.7,0,.7]:rod('Aircraft crane topping lift',tuple(L(.95,.2+f*1.2,4.75)),tuple(c+dv*f),.018,materials['dark'],detailcol,vertices=5)
- for v in [-.2,.6]:rod('Aircraft crane hoist rope',tuple(L(.55,v,1.6)),tuple(L(head.x+.05,.05,head.z-.25)),.018,materials['dark'],detailcol,vertices=5)
+ for v in [-.2,.6]:rod('Aircraft crane hoist rope',tuple(L(.55,v,1.6)),tuple(L(head.x+.05,-.1,head.z-.25)),.018,materials['dark'],detailcol,vertices=5)
 def cranes():
  for sign in [-1,1]:crane(sign)
 # ---------------------------------------------------------------- catapult
