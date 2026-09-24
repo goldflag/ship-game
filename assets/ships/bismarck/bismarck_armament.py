@@ -41,7 +41,9 @@ aa_support=None
 def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
  # Foundations use the authored deck edges. Outboard sponsons span back to a
  # wall with knees; a light gun is never left floating beside a narrowed house.
- if z>deckz(x)+.8:
+ # A region that builds this mount's own tub or pedestal lists it in own_foundations.
+ if mount is not None and mount['id'] in own_foundations:pass
+ elif z>deckz(x)+.8:
   candidates=[]
   for s in DEF['structures']:
    pts=[(-zz,-xx) for xx,zz in s['footprint']];top=s['baseY']+s['height']
@@ -143,5 +145,3 @@ def aa_mounts():
  for mount in DEF['mounts']:
   if mount['weapon']['caliberM']<=.13:
    a,b,c=mount['position'];aa_mount(mount['name'],-c,-a,b,mount['weapon']['caliberM'],bearing=-math.radians(mount['bearingDeg']),mount=mount)
- for sign in [-1,1]:
-  aa_mount('Quad 2 cm April 1941 fit',17.395,sign*4.092,24.65,.020,bearing=sign*.82,quad=True)

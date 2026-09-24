@@ -29,3 +29,9 @@ def derrick():
  rod('After derrick post',(-43,0,12.3),(-43,0,26.8),.13,materials['edge'],detailcol,.05,12)
  rod('After derrick boom',(-43,0,16.0),(-48,0,21.5),.09,materials['edge'],detailcol,vertices=10)
  rod('After derrick cable',(-43,0,26.5),(-48,0,21.5),.018,materials['dark'],detailcol,vertices=5)
+def build():
+ # Region entry point, after the forward and midships regions.
+ with legacy_frame():stairs_and_intakes()
+ main_director();searchlight_aft();mainmast();aerials();derrick()
+def after_mounts():
+ pass

@@ -150,3 +150,8 @@ def underwater():
    vs.extend([(x,sign*w,z),(x,sign*(w+extension),z-.45),(x,sign*(w+extension),z-.52),(x,sign*w,z-.07)])
   fs=[(i*4+j,i*4+(j+1)%4,(i+1)*4+(j+1)%4,(i+1)*4+j) for i in range(len(stations)-1) for j in range(4)]+[(3,2,1,0),tuple(range((len(stations)-1)*4,len(stations)*4))]
   mesh('Closed tapered bilge keel',vs,fs,materials['oxide'],undercol)
+def build():
+ # Region entry point, after the superstructure regions; the loft itself runs first of all (loft()).
+ staffs()
+def after_mounts(aa_support):
+ deck_fittings(aa_support);underwater()

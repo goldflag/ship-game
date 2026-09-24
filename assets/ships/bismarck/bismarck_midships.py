@@ -213,3 +213,9 @@ def cranes_and_catapult():
   for xx in [-9.9,-8.2]:rod('Trolley wheel',(xx-.10,yy,6.92),(xx+.10,yy,6.92),.20,materials['edge'],detailcol,vertices=16)
 
  for ob in set(bpy.data.objects)-catapult_before:ob.location.z+=2.65
+def build():
+ # Region entry point, after the forward region.
+ with legacy_frame():funnel_details()
+ funnel_searchlights();hangars();boats();cranes_and_catapult()
+def after_mounts():
+ pass

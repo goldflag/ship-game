@@ -91,13 +91,16 @@ def ring(name,center,normal,radius,tube=.035,mat=None,n=20):
  pts=[c+radius*(u*math.cos(math.tau*i/n)+v*math.sin(math.tau*i/n)) for i in range(n)]
  polyline(name,pts,tube,mat or materials['edge'],closed=True,vertices=5)
 def porthole(name,center,normal,r=.17):
- c=Vector(center);n=Vector(normal).normalized()
- rod(name+' mounting sleeve',c-n*.10,c+n*.016,r+.015,materials['naval'],detailcol,vertices=14)
- rod(name+' dark glazing',c,c+n*.022,r,materials['dark'],detailcol,vertices=14)
- ring(name+' rim',c+n*.026,n,r+.02,.023,n=14)
- # A short eyebrow casts a legible shadow without a textured decal.
- u=n.cross(Vector((0,0,1))).normalized();pts=[c+n*.03+u*(r*1.12*math.cos(a))+Vector((0,0,r*1.12*math.sin(a))) for a in [math.pi*.15+i*math.pi*.7/6 for i in range(7)]]
- polyline(name+' eyebrow',pts,.03,materials['naval'])
+ # A scuttle in about 70 triangles (there are several hundred): a flanged collar set into the plating,
+ # dark glazing in a ten-sided disc and a short eyebrow that still throws a legible shadow.
+ c=Vector(center);n=Vector(normal).normalized();u=n.cross(Vector((0,0,1)))
+ if u.length<.1:u=n.cross(Vector((0,1,0)))
+ u.normalize();v=n.cross(u)
+ rod(name+' collar',c-n*.06,c+n*.03,r+.04,materials['naval'],detailcol,vertices=10)
+ mesh(name+' dark glazing',[tuple(c+n*.034+r*(u*math.cos(math.tau*i/10)+v*math.sin(math.tau*i/10))) for i in range(10)],[tuple(range(10))],materials['dark'],detailcol)
+ up=Vector((0,0,1)) if abs(n.z)<.7 else v
+ side=n.cross(up).normalized();pts=[c+n*.035+side*(r*1.15*math.cos(a))+up*(r*1.15*math.sin(a)) for a in [math.pi*.2+i*math.pi*.6/3 for i in range(4)]]
+ polyline(name+' eyebrow',pts,.028,materials['naval'],vertices=4)
 def ladder(name,start,end,width=.58):
  a,b=Vector(start),Vector(end);delta=b-a;side=Vector((0,width/2,0))
  if abs(delta.y)>abs(delta.x):side=Vector((width/2,0,0))
@@ -152,6 +155,14 @@ def house_side(pts,x,sign):
    hits.append((y,normal))
  return (max(hits,key=lambda h:h[0]) if sign>0 else min(hits,key=lambda h:h[0])) if hits else (0,Vector((0,sign,0)))
 structures={s['id']:s for s in DEF['structures']}
+# Region hooks, filled when the region modules are imported (before anything is built):
+# structure_drawers[id]=fn(s) draws that blueprint structure instead of draw_structure(s);
+# own_foundations holds AA mount IDs whose region builds the tub, platform or pedestal itself,
+# so the armament pass adds no automatic foundation, sponson or deck seating under them.
+structure_drawers={}
+own_foundations=set()
+# Named empties exported as landmark.<name>; a region that moves one of these updates its entry.
+landmarks={'funnel-cap':(-2.6,0,24.3),'mainmast-top':(-22.5,0,48.5),'fore-director':(13.32,0,31.1),'conning-director':(25.0,0,19.55),'aft-director':(-37.8,0,17.5)}
 @contextmanager
 def legacy_frame():
  # The bridge, stair and funnel detail pass was authored 2 m forward of the blueprint frame

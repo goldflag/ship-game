@@ -132,3 +132,16 @@ def foretop_searchlight():
  searchlight('Foretop 1.5 m searchlight',20.2,0,24.71,0)
 def foremast():
  pole_mast('foremast',6.4,5.73,40.3)
+def quad_20mm():
+ # The two upper quad 2 cm fittings are decorative (no blueprint mount); the armament pass's
+ # aa_mount builds them after the firing mounts, on the same support snapshot.
+ import bismarck_armament as armament
+ for sign in [-1,1]:
+  armament.aa_mount('Quad 2 cm April 1941 fit',17.395,sign*4.092,24.65,.020,bearing=sign*.82,quad=True)
+def build():
+ # Region entry point, after the hull, blueprint structures and main/secondary batteries exist.
+ with legacy_frame():bridge_details()
+ directors();night_rangefinders();aa_directors();foretop_searchlight();foremast()
+def after_mounts():
+ # Runs after the armament pass has built every AA mount.
+ quad_20mm()

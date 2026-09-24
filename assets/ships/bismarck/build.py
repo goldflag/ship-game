@@ -11,30 +11,18 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bismarck_kit import *
 import bismarck_hull as hull, bismarck_armament as armament, bismarck_forward as forward, bismarck_aft as aft, bismarck_midships as midships
 hull.loft()
-for s in DEF['structures']:draw_structure(s)
+for s in DEF['structures']:structure_drawers.get(s['id'],draw_structure)(s)
 armament.batteries()
-with legacy_frame():
- forward.bridge_details()
- aft.stairs_and_intakes()
- midships.funnel_details()
-forward.directors()
-aft.main_director()
-forward.night_rangefinders()
-forward.aa_directors()
-midships.funnel_searchlights()
-aft.searchlight_aft()
-forward.foretop_searchlight()
-forward.foremast()
-aft.mainmast()
-aft.aerials()
-hull.staffs()
-aft.derrick()
-midships.hangars()
-midships.boats()
-midships.cranes_and_catapult()
+# Each region owns its module; run order matters only where a support query samples earlier work.
+forward.build()
+midships.build()
+aft.build()
+hull.build()
 armament.aa_mounts()
-hull.deck_fittings(armament.aa_support)
-hull.underwater()
+forward.after_mounts()
+midships.after_mounts()
+aft.after_mounts()
+hull.after_mounts(armament.aa_support)
 for ob in scene.objects:
  if ob.type=='MESH' and not ob.get('assemblyId'):ob['assemblyId']='superstructure' if ob.users_collection[0] in [supercol,detailcol] else 'hull-underwater' if ob.users_collection[0]==undercol else 'hull'
 # Inspectable volumes are omitted from the playable export; the game reads the
@@ -46,7 +34,7 @@ for a in DEF['armor']:
 for c in DEF['compartments']:
  x,y,z=c['center'];sx,sy,sz=c['size'];ob=box(c['name'],(-z,-x,y),(sz,sx,sy),materials['edge'],simcol);ob['exportRole']='simulation';ob.hide_render=True
 simcol.hide_render=True;simcol.hide_viewport=True
-for name,loc in [('funnel-cap',(-2.6,0,24.3)),('mainmast-top',(-22.5,0,48.5)),('fore-director',(13.32,0,31.1)),('conning-director',(25.0,0,19.55)),('aft-director',(-37.8,0,17.5))]:
+for name,loc in landmarks.items():
  ob=bpy.data.objects.new('landmark.'+name,None);scene.collection.objects.link(ob);ob.location=loc;ob['nodeId']='landmark.'+name
 OUT.mkdir(parents=True,exist_ok=True)
 from blender_rig import create_flagstaffs
