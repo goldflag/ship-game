@@ -511,8 +511,8 @@ export class Game {
     this.shipWeather.settle();
     ocean.setSky(sky.oceanSky);
     // Clouds shade the sun on ships and islands through the sun's own shadow maps, and the sea
-    // through its shadow hook. The Sky Pro comparison casts no cloud shadows, as before.
-    if (sky.renderer === 'game') this.cloudShadow = position => sky.cloudShadow(position);
+    // through its shadow hook, except over the port's berth. The Sky Pro comparison casts no cloud shadows, as before.
+    if (sky.renderer === 'game') this.cloudShadow = this.environment.clearBerth(position => sky.cloudShadow(position));
     this.sunShadows.cloud = this.cloudShadow;
     const sunlight = this.sunLight;
     this.fitSunShadow();

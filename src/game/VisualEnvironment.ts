@@ -1,4 +1,5 @@
-import { Color, HemisphereLight, MathUtils, PointLight, Vector3, type DirectionalLight, type Object3D, type PerspectiveCamera } from 'three/webgpu';
+import { Color, HemisphereLight, MathUtils, PointLight, Vector2, Vector3, type DirectionalLight, type Node, type Object3D, type PerspectiveCamera } from 'three/webgpu';
+import { float, mix, smoothstep, uniform } from 'three/tsl';
 import type { OceanApi } from './ocean/contracts';
 import type { CelestialLight, SkyApi, SkyScene } from './sky/contracts';
 import { windrowCoverage } from './ocean/waves/whitecaps';
@@ -60,20 +61,6 @@ export const WHITECAP_LIFETIME = 1;
 /** The map foam value whose whitecaps cover what the wind calls for (the Atlantic's); other maps scale their coverage
  * by their value over this one, so a calmer-looking sea has fewer whitecaps, not greyer ones. */
 const REFERENCE_FOAM = .45;
-/** Sky Pro's sky and the ocean are tuned by eye against the raw sun.
- * Three's lit meshes turn the same intensity into about twice the light a Cycles
- * render of the same GLB shows: 0.29-albedo Kure gray reached sRGB 200 in port.
- * Only the scene's DirectionalLight is scaled; the sky, sea and smoke keep the raw sun.
- * The daylight shares below are their ACES calibration divided by the display look's
- * 0.9 exposure (`DISPLAY_LOOK`), so sunlit Kure gray still reads mid-gray, about sRGB 130. */
-const MESH_SUNLIGHT = .55;
-/** Share of the authored hemisphere fill, and of sky reflection, that reaches lit
- * meshes in full daylight. Neither is occluded, so at full strength shaded faces
- * read nearly as bright as sunlit ones. Without a strong sun the fill is all a
- * backlit hull has, so the shares return to 1 as the sun fades. */
-const MESH_FILL = .33, MESH_SKY = .66;
-/** Direct light at which the daylight shares start and complete. */
-const FILL_DAYLIGHT = [1, 4] as const;
 /** Moonlight on meshes, as a multiple of the moon the sea and sky see, and the night's
  * multiple of the authored fill. At the sun's shares a moonlit hull read almost black
  * against the sea; these lift decks and superstructure to a readable gray. Only meshes
@@ -82,18 +69,22 @@ const MESH_MOONLIGHT = 1.5, MESH_NIGHT_FILL = 1.6;
 
 /** Lightning's colour on lit meshes: the blue-white of a return stroke, as the rain veil glows toward it. */
 const BOLT_TINT = new Color(.8, .87, 1);
-/** Most irradiance lightning may lay on the meshes around the camera: about a third of the noon sun's on them. A stroke within a
+/** Most irradiance lightning may lay on the meshes around the camera: about a sixth of the noon sun's on them. A stroke within a
  * couple of kilometres is brighter for its instant, but the sea and the air around the ships do not flash with them, and a
  * hull lit like day on a dark sea reads as a searchlight. */
 export const BOLT_CEILING = 1;
 
-/** Shares of the active celestial light that reach lit meshes (see the constants above): the scene
- * DirectionalLight's multiple of the light's intensity, the hemisphere fill's multiple of the scene's
- * authored ambient, and the sky reflection's intensity. The sea and sky keep the raw light. */
+/** Shares of the active celestial light that reach lit meshes: the scene DirectionalLight's multiple of the light's
+ * intensity, the hemisphere fill's multiple of the scene's authored ambient, and the sky reflection's intensity.
+ *
+ * By day meshes take the light the sky and sea take: the whole sun, fill and sky reflection. They once took about half the
+ * sun, a third of the fill and two thirds of the sky, calibrated under ACES, whose pre-scale turned 0.29-albedo Kure gray to
+ * sRGB 200 in port. Under AgX (`DisplayTransform`), with ship occlusion shading the fill in recesses, those cuts left hulls
+ * dark wherever the sun stood high: at noon a hull side is lit by the sky and the sea, and read sRGB 70 against a sea of 100.
+ * At the full light a sunlit hull reads about sRGB 140 and the brightest 1 % of a ship about 210, short of the tone curve's
+ * shoulder. By night meshes take more than the moon (`MESH_MOONLIGHT`, `MESH_NIGHT_FILL`). */
 export function meshLightShares(light: Pick<CelestialLight, 'intensity' | 'night'>): { sun: number; fill: number; sky: number } {
-  const daylight = MathUtils.smoothstep(light.intensity, ...FILL_DAYLIGHT);
-  return { sun: light.night ? MESH_MOONLIGHT : MESH_SUNLIGHT, fill: light.night ? MESH_NIGHT_FILL : MathUtils.lerp(1, MESH_FILL, daylight),
-    sky: MathUtils.lerp(1, MESH_SKY, daylight) };
+  return light.night ? { sun: MESH_MOONLIGHT, fill: MESH_NIGHT_FILL, sky: 1 } : { sun: 1, fill: 1, sky: 1 };
 }
 
 /** The harbor's sheltered daylight, wherever the developer console overrides nothing: the sun, air and
@@ -104,6 +95,10 @@ export const PORT_LIGHT = {
   clouds: { coverage: .38, altitude: 1700, thickness: 2400, horizonCoverage: .06, ambient: 1.1, baseShadow: .2 },
   ambient: 1.75,
 } as const;
+/** The berth's clearing: in port no cloud shades the ship or the water within `reach` metres of her, and the clouds' shadow
+ * returns by `fade`, as through a gap in the deck over the harbor. The port is where a ship is looked at, and a passing
+ * cumulus left her in shade for minutes at a time. The clouds themselves still cross the sky. */
+export const PORT_CLEARING = { reach: 350, fade: 900 } as const;
 /** Sky and ground colours of the hemisphere fill every lit mesh takes. */
 export const MESH_FILL_COLORS = { sky: '#dcebf2', ground: '#65757e' } as const;
 
@@ -126,6 +121,9 @@ export class VisualEnvironment {
   private skyScene?: SkyScene;
   private mapId: OceanMapId = DEFAULT_MAP;
   private inPort = false;
+  /** The berth's position on the sea (x, z) and whether its clearing applies (`PORT_CLEARING`). */
+  private readonly berth = uniform(new Vector2());
+  private readonly clearing = uniform(0);
   private battle: BattleScene = { timeOfDay: 'map', weather: 'map', conditions: {} };
   private overrides: EnvironmentOverrides = {};
   private chartFog = false;
@@ -293,6 +291,15 @@ export class VisualEnvironment {
     const end = this.inPort ? 5600 : this.resolved().environment.fog.end;
     return this.overrides.visibilityKm === undefined ? end : this.overrides.visibilityKm * 1000;
   }
+  /** `shadow`, the clouds' transmittance of the sun at a world position, with the port's clearing over the berth
+   * (`PORT_CLEARING`). The sun's shadow maps and the sea both take it, so ship and water agree. */
+  clearBerth(shadow: (position: Node<'vec3'>) => Node<'float'>): (position: Node<'vec3'>) => Node<'float'> {
+    const { reach, fade } = PORT_CLEARING;
+    return position => {
+      const clear = float(1).sub(smoothstep(reach, fade, position.xz.sub(this.berth).length())).mul(this.clearing);
+      return mix(shadow(position), float(1), clear);
+    };
+  }
   /** Share the sky's active celestial light: the sun, warmed by the air when low, or the moon
    * once it outshines the sun. It reaches the sea, the scene light and its shadows, and smoke,
    * including on paused frames. A lightning flash lifts the diffuse fill for its instant and lights meshes from the stroke. */
@@ -300,8 +307,11 @@ export class VisualEnvironment {
     const sky = this.sky;
     if (!sky) return;
     const { direction, color, intensity, night, flash, bolt } = sky.light, shares = meshLightShares(sky.light);
-    // Irradiance `intensity × (1 km / r)²`: a point of that many candela, at the meshes' share of direct light like the sun's.
-    const candela = bolt.intensity * 1e6 * MESH_SUNLIGHT, near = bolt.position.distanceToSquared(this.viewpoint);
+    const anchor = this.sinks.sunAnchor.position;
+    this.berth.value.set(anchor.x, anchor.z);
+    this.clearing.value = this.shelteredLight ? 1 : 0;
+    // Irradiance `intensity × (1 km / r)²`: a point of that many candela.
+    const candela = bolt.intensity * 1e6, near = bolt.position.distanceToSquared(this.viewpoint);
     this.boltLight.position.copy(bolt.position);
     this.boltLight.intensity = Math.min(candela, BOLT_CEILING * Math.max(near, 1));
     if (this.ocean) {
