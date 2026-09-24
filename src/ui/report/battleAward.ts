@@ -5,7 +5,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { BattleSummary, XpAward } from '../../progression/xp';
 import type { ProgressStore } from '../../progression/store';
-import { NATION_IDS, techNation } from '../../progression/techTree';
+import { NATION_IDS, presetPlace, techNation } from '../../progression/techTree';
+import { nodeState, type ProgressProfile } from '../../progression/rules';
 
 export type AwardState =
   | { status: 'tallying' }
@@ -94,4 +95,22 @@ export function awardSplit(award: XpAward): string {
   const parts = NATION_IDS.filter(id => (award.nations[id] ?? 0) > 0).map(id => `${techNation(id).name} ${award.nations[id]!.toLocaleString('en-US')}`);
   if (award.free > 0) parts.push(`Free ${award.free.toLocaleString('en-US')}`);
   return parts.join(' · ');
+}
+
+/** How far the battle took the player toward a ship they can research next. */
+export interface UnlockProgress { name: string; line: string; before: number; after: number; cost: number }
+/** The next ship this battle's XP counts toward: the one after the ship sailed in its own line, else the cheapest open
+ * node of the nation that earned most. XP counts as the nation's balance plus free XP, which an unlock draws on too.
+ * Nothing when every ship is owned (the harness) or the nation has nothing left to research. */
+export function unlockProgress(profile: ProgressProfile, award: XpAward, presetId: string | undefined): UnlockProgress | undefined {
+  if (profile.allUnlocked) return undefined;
+  const sailed = presetId ? presetPlace(presetId) : undefined;
+  const nation = sailed?.nation.id ?? [...NATION_IDS].sort((a, b) => (award.nations[b] ?? 0) - (award.nations[a] ?? 0)).find(id => (award.nations[id] ?? 0) > 0);
+  if (!nation) return undefined;
+  const open = techNation(nation).lines.flatMap(line => line.nodes.map(node => ({ line, node })))
+    .filter(({ node }) => ['available', 'short'].includes(nodeState(profile, node.id)));
+  const pick = open.find(({ line }) => line.id === sailed?.line.id) ?? open.reduce<typeof open[number] | undefined>((best, next) => !best || next.node.cost < best.node.cost ? next : best, undefined);
+  if (!pick) return undefined;
+  const balance = profile.xp[nation] + profile.freeXp, gained = (award.nations[nation] ?? 0) + award.free, cost = pick.node.cost;
+  return { name: pick.node.name, line: pick.line.label, cost, after: Math.min(balance, cost), before: Math.min(Math.max(0, balance - gained), cost) };
 }

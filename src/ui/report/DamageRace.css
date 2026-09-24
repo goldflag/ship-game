@@ -1,0 +1,17 @@
+/* Damage race: two fleet lines on a faint grid, sinkings flagged above in stacked rows, the hold after the decision shaded. */
+.aar-race-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:calc(var(--flag-rows, 1) * 15px + 14px); }
+.aar-race-head b { margin-left:16px; font-size:12px; font-weight:600; color:var(--aar-team); }
+.after-action [data-team='friendly'] { --aar-team:var(--aar-mint); } .after-action [data-team='enemy'] { --aar-team:var(--aar-salmon); }
+.aar-chart { position:relative; height:140px; margin-bottom:24px; }
+.aar-chart svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.aar-chart path { fill:none; stroke:var(--aar-team); stroke-width:2; vector-effect:non-scaling-stroke; }
+.aar-chart path.aar-area { fill:var(--aar-team); stroke:none; opacity:.08; }
+.aar-chart path.aar-grid { stroke:#cfdfdf26; stroke-width:1; }
+.aar-chart .aar-mark { top:calc(-15px - var(--row, 0) * 15px); bottom:0; }
+.aar-mark { position:absolute; top:0; bottom:0; padding-left:6px; color:var(--aar-team); font-size:11.5px; line-height:13px; white-space:nowrap; pointer-events:none; }
+.aar-mark[data-flip='true'] { padding:0 6px 0 0; transform:translateX(-100%); } .aar-mark[data-flip='true'] i { left:auto; right:0; }
+.aar-mark i { position:absolute; left:0; top:0; bottom:0; border-left:1px dashed var(--aar-team); opacity:.6; }
+.aar-hold { position:absolute; top:0; bottom:0; right:0; background:#e0c58d1a; border-left:1px solid #e0c58d55; }
+.aar-hold small { position:absolute; right:calc(100% + 6px); bottom:4px; color:var(--aar-dim); font-size:11px; white-space:nowrap; }
+.aar-axis span { position:absolute; top:calc(100% + 6px); transform:translateX(-50%); font-size:11px; color:var(--aar-dim); }
+.aar-axis span:first-child { transform:none; } .aar-axis span:last-child { transform:translateX(-100%); }

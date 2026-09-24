@@ -29,6 +29,8 @@ const FOLLOW_ELEVATION = Math.atan2(12, Math.hypot(45, 12));
 const POINTER_LOCK_RETRY_MS = 1000;
 const FREE_SPEED = 120, FREE_MIN_SPEED = 5, FREE_MAX_SPEED = 3000, FREE_FAST = 4;
 const FREE_MAX_TILT = Math.PI / 2 - .02;
+/** A decided battle's end screen circles the ship at about 3° a second, settling a little above her deck line. */
+const CIRCLE_RATE = .052, CIRCLE_ELEVATION = .2, CIRCLE_SETTLE_S = 1.2;
 
 export class CameraRig {
   mode: CameraMode = 'Chase';
@@ -87,6 +89,8 @@ export class CameraRig {
   private freeSpeed = FREE_SPEED;
   private freeMove = { x: 0, y: 0, z: 0, fast: false };
   private aimLockHeld = false;
+  /** The end screen's slow circle: where it started (so it eases out of the view the battle ended on) and where it is. */
+  private circling?: { azimuth: number; elevation: number; distance: number; look: Vector3; time: number };
 
   constructor(readonly camera: PerspectiveCamera, private canvas: HTMLCanvasElement, private bridge: Vec3 = [0, 29, -31],
     private actions: { pause(): void; aim(): void; aimLock(held: boolean): void } = { pause() {}, aim() {}, aimLock() {} }) {
@@ -345,7 +349,37 @@ export class CameraRig {
     this.azimuth = this.inPort || this.inspecting ? 1.08 : this.lastShip?.heading ?? 0;
     this.elevation = this.inPort || this.inspecting ? PORT_ELEVATION : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
   }
+  /** A decided battle's end screen: circle the ship the camera rides, easing out of the current view onto an orbit of
+   * about two hull lengths. Reduced motion keeps the view where it is. `false` gives the camera back to the rig. */
+  circle(on: boolean): void {
+    if (!on || this.inPort) { this.circling = undefined; return; }
+    const ship = this.lastShip;
+    if (this.circling || !ship || this.reducedMotion) return;
+    this.exitBinoculars(); this.setShellView(); this.setFreeCamera(false);
+    const offset = this.camera.position.clone().sub(this.desired.set(ship.x, this.followedPosition.y, ship.z));
+    const flat = Math.hypot(offset.x, offset.z), distance = Math.max(offset.length(), 1);
+    const look = new Vector3();
+    this.camera.getWorldDirection(look).multiplyScalar(distance).add(this.camera.position);
+    this.circling = { azimuth: Math.atan2(offset.x, offset.z), elevation: Math.atan2(offset.y, flat), distance, look, time: 0 };
+  }
+  get circlingShip(): boolean { return !!this.circling; }
+  private updateCircle(ship: ShipState, height: number, dt: number): void {
+    const circle = this.circling!;
+    circle.time += dt;
+    circle.azimuth += CIRCLE_RATE * dt;
+    const settle = 1 - Math.exp(-circle.time / CIRCLE_SETTLE_S);
+    const distance = MathUtils.lerp(circle.distance, MathUtils.clamp(this.hullLength * 1.9, 220, 900), settle);
+    const elevation = MathUtils.lerp(circle.elevation, CIRCLE_ELEVATION, settle), radius = Math.cos(elevation) * distance;
+    this.camera.position.set(ship.x + Math.sin(circle.azimuth) * radius, height + Math.sin(elevation) * distance, ship.z + Math.cos(circle.azimuth) * radius);
+    this.constrainCameraHeight(this.camera.position);
+    this.camera.lookAt(this.look.copy(circle.look).lerp(this.target.set(ship.x, height + 8, ship.z), settle));
+    this.camera.updateMatrixWorld();
+    // The chase resumes from here without a jump when the circle ends.
+    this.followedPosition.set(ship.x, height, ship.z);
+    this.followedShipId = ship.id;
+  }
   setInPort(inPort: boolean): void {
+    this.circling = undefined;
     this.setRangeLock();
     this.setShellView(); this.setFreeCamera(false);
     this.inPort = inPort;
@@ -387,6 +421,7 @@ export class CameraRig {
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     this.lastShip = ship;
     this.updateProjection(dt, snap);
+    if (this.circling) { this.updateCircle(ship, height, dt); return; }
     this.displayedDistance = snap || this.reducedMotion ? this.distance : MathUtils.lerp(this.displayedDistance, this.distance, 1 - Math.exp(-12 * dt));
     if (this.freeCamera) {
       const cos = Math.cos(this.freeElevation), { x, y, z, fast } = this.freeMove;

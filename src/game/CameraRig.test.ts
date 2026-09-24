@@ -847,3 +847,25 @@ test('the rig reports its optics glide and zoom easing until the view arrives', 
   expect(rig.transitioning).toBe(false);
   rig.dispose();
 });
+
+test('a decided battle circles the ship from where the camera was, settling two hull lengths out and looking at her', () => {
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement);
+  const ship = createShipState();
+  rig.update(ship, 0, 0, true);
+  const start = camera.position.clone();
+  rig.circle(true);
+  expect(rig.circlingShip).toBe(true);
+  rig.update(ship, 0, 0);
+  expect(camera.position.distanceTo(start)).toBeLessThan(1e-6);
+  const bearing = () => Math.atan2(camera.position.x - ship.x, camera.position.z - ship.z);
+  const first = bearing();
+  for (let frame = 0; frame < 600; frame++) { ship.z -= 10 / 60; rig.update(ship, 0, 1 / 60); }
+  expect(Math.hypot(camera.position.x - ship.x, camera.position.y, camera.position.z - ship.z)).toBeCloseTo(250.5 * 1.9, 0);
+  expect(bearing() - first).toBeCloseTo(.52, 1);
+  const toShip = new Vector3(ship.x, 8, ship.z).sub(camera.position).normalize();
+  expect(camera.getWorldDirection(new Vector3()).dot(toShip)).toBeGreaterThan(.999);
+  rig.circle(false);
+  expect(rig.circlingShip).toBe(false);
+  rig.dispose();
+});

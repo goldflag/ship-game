@@ -1,0 +1,36 @@
+/* Your battle: your ship on the left, the fleets on the right. No panels; hairlines and text shadow over the dimmed sea. */
+.aar-log { display:grid; grid-template-columns:minmax(0,1fr) minmax(360px,520px); gap:24px 64px; max-width:1640px; margin:0 auto; padding-top:6px; }
+.aar-log-ship { display:grid; align-content:start; gap:20px; min-width:0; }
+.aar-log-name { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.aar-log-name strong { font:500 34px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; }
+.aar-log-name > span { color:var(--aar-muted); font-size:14px; }
+.aar-log-name .aar-hull { width:150px; align-self:center; }
+.aar-log-read { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px; }
+.aar-log-read dt { font:600 10.5px/1 'Barlow',sans-serif; letter-spacing:.12em; text-transform:uppercase; color:#a9bbc0; }
+.aar-log-read dd { margin:6px 0 3px; font:500 36px/1.05 'Barlow Condensed',sans-serif; }
+.aar-log-read dd span { font-size:17px; color:var(--aar-muted); }
+.aar-log-read small { color:var(--aar-muted); font-size:12.5px; }
+.aar-log-hurt { display:grid; gap:10px; }
+.aar-log-hurt ul { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:26px; }
+.aar-log-hurt li { display:grid; grid-template-columns:auto minmax(0,1fr); gap:3px 12px; align-items:baseline; }
+.aar-log-hurt b { font:500 26px/1 'Barlow Condensed',sans-serif; }
+.aar-log-hurt span { font-size:13px; } .aar-log-hurt small { display:block; color:var(--aar-muted); font-size:12px; }
+.aar-log-hurt i { grid-column:1 / -1; height:3px; background:var(--aar-salmon); }
+.aar-log-side { display:grid; align-content:start; gap:14px; min-width:0; }
+.aar-went { display:grid; gap:14px; margin-bottom:10px; }
+.aar-went-head, .aar-went-foot { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.aar-went-head button, .aar-roster button { padding:0; background:none; border:0; color:#f0f5f3; font:500 20px/1.05 'Barlow Condensed',sans-serif; letter-spacing:.02em; text-shadow:inherit; cursor:pointer; text-align:left; }
+.aar-went-head button:hover, .aar-roster button:hover { color:#e0c58d; }
+.aar-went-head span { color:var(--aar-muted); font-size:12px; text-align:right; }
+.aar-went-bar { display:flex; gap:2px; height:7px; margin:6px 0 4px; background:#c9dce014; }
+.aar-went-bar i { min-width:2px; background:#b7c7cb55; } .aar-went-bar i[data-you='true'] { background:#e0c58d; }
+.aar-went-foot { font-size:12.5px; color:var(--aar-muted); } .aar-went-foot b { font:500 17px/1 'Barlow Condensed',sans-serif; color:#e0c58d; }
+.aar-roster { display:grid; gap:6px; padding-top:12px; border-top:1px solid var(--aar-line); }
+.aar-roster .aar-eyebrow { color:var(--aar-team); }
+.aar-roster li { display:grid; grid-template-columns:minmax(0,1fr) auto 72px; gap:12px; align-items:baseline; padding:3px 0; }
+.aar-roster button { font-size:17px; overflow:clip; text-overflow:ellipsis; white-space:nowrap; }
+.aar-roster li > span { color:var(--aar-muted); font-size:12.5px; }
+.aar-roster li[data-lost='true'] button { color:#aebfc3; } .aar-roster li[data-lost='true'] > span { color:var(--aar-salmon); }
+.aar-roster li[data-you='true'] button { color:#e0c58d; }
+.aar-roster b { text-align:right; font-weight:500; }
+@media (max-width:1200px) { .aar-log { grid-template-columns:minmax(0,1fr); } .aar-log-read { grid-template-columns:repeat(2,minmax(0,1fr)); } }

@@ -6,6 +6,24 @@ import { XpAward } from './report/XpAward';
 import './BattleEndNotice.css';
 
 export const BATTLE_EXIT_DELAY_MS = 15_000;
+/** A decided battle plays on this long before its end screen, so the last salvo lands and the loser is seen to go down. */
+export const BATTLE_END_HOLD_MS = 5_000;
+
+/** Wall-clock, like the exit: the simulation runs at 1x once decided. Returns the cancel. */
+export function holdBattleEnd(onShow: () => void) {
+  const timeout = setTimeout(onShow, BATTLE_END_HOLD_MS);
+  return () => clearTimeout(timeout);
+}
+
+/** Whether a decided battle is still holding its end screen back. Holds afresh for each decision. */
+export function useBattleEndHold(decided: boolean): boolean {
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    setShown(false);
+    return decided ? holdBattleEnd(() => setShown(true)) : undefined;
+  }, [decided]);
+  return decided && !shown;
+}
 
 /** Wall-clock deadline: independent of simulation speed, pause and HUD visibility. */
 export function scheduleBattleExit(onSeconds: (seconds: number) => void, onExit: () => void) {

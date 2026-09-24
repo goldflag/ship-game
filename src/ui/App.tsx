@@ -1,5 +1,5 @@
 import { savedReference } from '../ships/constructionCloud';
-import { BattleEndNotice } from './BattleEndNotice';
+import { BattleEndNotice, useBattleEndHold } from './BattleEndNotice';
 import { AfterActionReport, type ReportAction } from './report/AfterActionReport';
 import { useBattleAward } from './report/battleAward';
 import { battleSummary, passiveOpposition, stableBattleId, startBattle, type BattleStart } from '../progression/battleSummary';
@@ -766,12 +766,25 @@ function Harbor({ account, startup }: AppProps) {
     }
   };
 
-  const battleOver = phase === 'sailing' && ready && !error && !battleLoading && !pveRestarting && !trial && data.combat && data.combat.result !== 'active' ? data.combat.result : undefined;
+  const decided = phase === 'sailing' && ready && !error && !battleLoading && !pveRestarting && !trial && data.combat && data.combat.result !== 'active' ? data.combat.result : undefined;
   // An interrupted or abandoned battle has nothing to report; it keeps the short notice and its countdown.
-  const ended = battleOver ? game.current?.simulation : undefined;
-  const report = ended && !['infrastructure', 'abandoned'].includes(data.combat?.outcome?.reason ?? '') ? ended.debrief : undefined;
+  const interrupted = ['infrastructure', 'abandoned'].includes(data.combat?.outcome?.reason ?? '');
+  const ended = decided ? game.current?.simulation : undefined;
+  const debrief = ended && !interrupted ? ended.debrief : undefined;
   // Research XP: the claim reports the settled debrief once under this battle's id, or at once when the end screen goes.
-  const xpSummary = battleStart.current && battleSummary(battleStart.current, battleOver, data.combat?.outcome, report);
+  const xpSummary = battleStart.current && battleSummary(battleStart.current, decided, data.combat?.outcome, debrief);
+  // The battle plays on under the HUD for a few seconds before its end screen; an interruption says so at once.
+  const holding = useBattleEndHold(!!decided && !interrupted);
+  const battleOver = holding ? undefined : decided;
+  const report = battleOver && debrief;
+  // The end screen opens on the sea: the camera circles the ship it rides until the screen goes.
+  const circling = !!report;
+  useEffect(() => {
+    const current = game.current;
+    if (!circling || !current) return;
+    current.circleShip(true);
+    return () => current.circleShip(false);
+  }, [circling]);
   const xp = useBattleAward(research, battleStart.current?.id, xpSummary,
     xpSummary && passiveOpposition(xpSummary) ? 'Targets that neither move nor shoot earn no XP.' : undefined);
   const reportActions: ReportAction[] = ended?.networked

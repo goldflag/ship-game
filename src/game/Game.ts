@@ -1112,7 +1112,7 @@ export class Game {
       this.environment.update(this.camera, dt);
       this.fleetVisibility.update(this.fleetViews, this.camera, this.sunShadows!, this.inPort || warmingUp, this.rig.magnification);
       this.fleetViews.forEach(view => { if (view.renderActive || view === this.playerView) view.updateArticulation(alpha); });
-      const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
+      const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway && !this.rig.circlingShip;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim, realDt, this.playerView!);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       const showTorpedoAim = showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false';
@@ -1309,6 +1309,9 @@ export class Game {
   capturePointer(): void { if (this.controls().capturePointer) this.rig.capturePointer(); }
   /** Hand the cursor to an overlay panel; `capturePointer` takes it back when the controls allow. */
   releasePointer(): void { this.rig.releasePointer(); }
+  /** The end screen of a decided battle: the camera circles the ship it rides until called with `false`. The fleet
+   * chart, when open, keeps its own camera. */
+  circleShip(on: boolean): void { this.rig.circle(on && !this.inPort && !this.airOperationsOpen); }
   /** Developer console: compare the analytic bow waves against the native wake field alone. */
   toggleBowWaves(): boolean { return this.shipWake?.toggleBowWaves() ?? false; }
   /** Developer console: switch one ocean realism feature to compare it with the look tuned to the replaced library. */

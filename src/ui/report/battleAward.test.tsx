@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { BattleSummary, XpAward as Award } from '../../progression/xp';
-import { AWARD_MAX_WAIT_MS, AWARD_SETTLE_MS, AwardClaim, awardSplit, type AwardClock, type XpReadout } from './battleAward';
+import { AWARD_MAX_WAIT_MS, AWARD_SETTLE_MS, AwardClaim, awardSplit, unlockProgress, type AwardClock, type XpReadout } from './battleAward';
+import { emptyProfile, openProfile } from '../../progression/rules';
 import { XpAward } from './XpAward';
 
 const summary = (integrity: number): BattleSummary => ({ mode: 'custom', result: 'victory', durationS: 600,
@@ -100,4 +101,12 @@ describe('XP readout', () => {
     expect(html).toContain('+0 XP');
     expect(html).toContain('Targets that neither move nor shoot earn no XP.');
   });
+});
+
+test('XP counts toward the next ship in the line sailed, or the cheapest open one, and nothing when every ship is owned', () => {
+  const profile = { ...emptyProfile(), xp: { ...emptyProfile().xp, usa: 1338 }, freeXp: 38 };
+  expect(unlockProgress(profile, award, 'gleaves')).toEqual({ name: 'Fletcher', line: 'Destroyers', before: 1000, after: 1376, cost: 1800 });
+  expect(unlockProgress(profile, award, 'local-design')?.name).toBe('Fletcher');
+  expect(unlockProgress({ ...profile, xp: { ...profile.xp, usa: 5000 } }, award, 'gleaves')).toMatchObject({ after: 1800, cost: 1800 });
+  expect(unlockProgress(openProfile(), award, 'gleaves')).toBeUndefined();
 });
