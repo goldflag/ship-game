@@ -26,7 +26,14 @@ export async function loadReference(root: string, vehicle: string): Promise<Refe
   } catch {}
   const isAircraft = /^p[a-z]a[a-z]\d{3}$/.test(vehicle);
   let url = isAircraft ? 'https://gamemodels3d.com/en/games/worldofwarships/misc/fighter' : `https://gamemodels3d.com/en/games/worldofwarships/vehicles/${vehicle}`;
-  const page = (await download(url)).toString('utf8');
+  let page = (await download(url)).toString('utf8');
+  let dataRoot = DATA_ROOT;
+  // Some vehicle pages (Iowa since 2026-09) drop the model scheme; the Russian-server mirror and its data still carry it.
+  if (!isAircraft && !/scheme\s*:\s*/.test(page)) {
+    url = `https://gamemodels3d.com/en/games/worldofwarships/russia/vehicles/${vehicle}`;
+    page = (await download(url)).toString('utf8');
+    dataRoot = DATA_ROOT.replace('/data/current/', '/data/russia/');
+  }
   const aircraft = isAircraft ? aircraftReferences(page).find((a) => a.id === vehicle) : undefined;
   if (isAircraft && !aircraft) throw new Error('Unknown WoWS aircraft ID. Choose an aircraft from the GameModels3D aircraft library.');
   const metadata = aircraft ? { index: aircraft.id, name: aircraft.name } : embeddedJson(page, /var\s+_vehicle\s*=\s*/);
@@ -61,7 +68,7 @@ export async function loadReference(root: string, vehicle: string): Promise<Refe
         try {
           data = await readFile(`${local}.model`);
         } catch {
-          data = await download(`${DATA_ROOT}${path}.model`);
+          data = await download(`${dataRoot}${path}.model`);
         }
         let decoded: string;
         try {
@@ -83,7 +90,7 @@ export async function loadReference(root: string, vehicle: string): Promise<Refe
           materialData = await readFile(`${local}.material`);
         } catch {
           try {
-            materialData = await download(`${DATA_ROOT}${path}.material`);
+            materialData = await download(`${dataRoot}${path}.material`);
           } catch {
             materialData = undefined;
           }

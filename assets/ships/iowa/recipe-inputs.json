@@ -1,9 +1,14 @@
 {
   "version": 1,
   "files": [
-    "assets/ships/iowa/fittings.py",
+    "assets/ships/iowa/details.py",
+    "assets/ships/iowa/forward.py",
+    "assets/ships/iowa/tower.py",
+    "assets/ships/iowa/midships.py",
+    "assets/ships/iowa/aft.py",
+    "assets/ships/iowa/deck.py",
+    "assets/ships/iowa/aa.py",
     "assets/ships/iowa/main_battery.py",
-    "assets/ships/iowa/superstructure.py",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json",
     "assets/ships/iowa/appearance.json",

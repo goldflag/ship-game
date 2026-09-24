@@ -168,7 +168,7 @@ def interp(points,s):
         if a<=s<=b:return v+(w-v)*(s-a)/(b-a)
     return points[0][1] if s<points[0][0] else points[-1][1]
 
-exec((Path(__file__).parent/'superstructure.py').read_text(),globals())
+exec((Path(__file__).parent/'details.py').read_text(),globals())
 
 H=D['hull'];deckz=lambda x:interp(H['deckHeights'],x+H['length']/2)
 def surface_height(x,y,ceiling):
@@ -192,8 +192,6 @@ for s in D['structures']:
     obj.data.materials.append(materials['roof'])
     for face in obj.data.polygons:
         if face.normal.z>.8:face.material_index=1
-    poly=[(-z,-x) for x,z in s['footprint']];top=s['baseY']+s['height']
-    if s.get('exhaust'):funnel_details(s,obj)
 
 for m in D['mounts']:
     if m['weapon']['caliberM']<.1:continue
@@ -206,7 +204,9 @@ for m in D['mounts']:
             max(.02,z-deckz(x)),'hullgray',COL,64)
         create_library_mount(m,COL,helpers,{**materials,'roof':materials['armor_roof']})
         continue
-    gunhouse=create_gun_mount(m,COL,helpers,materials,deckz)
+    # The fixed barbette stands on the deck actually below the mount (01 sponson or 02 deck).
+    support=surface_height(-m['position'][2],-m['position'][0],m['position'][1])
+    gunhouse=create_gun_mount(m,COL,helpers,materials,lambda x,support=support:support)
     yaw=next(o for o in scene.objects if o.get('nodeId')==m['id']+'.yaw')
     before=set(scene.objects)
     if m['battery']!='main':
@@ -236,18 +236,11 @@ for m in D['mounts']:
 COL=collections['Light AA']
 for m in D['mounts']:
     if m['weapon']['caliberM']>=.1:continue
-    before=set(scene.objects)
-    ASSEMBLY=m['id'];a,z,c=m['position'];x,y=-c,-a
-    is_bofors=m['weapon']['caliberM']>.03;radius=2.36 if is_bofors else 1.20
-    if is_bofors:tub(m['name'],x,y,z,radius,.85)
-    else:cyl(m['name']+' deck',(x,y,z-.055),radius,.11,'roof',vertices=24)
-    parent_mount=next((p for p in D['mounts'] if p['id']==m.get('parentMountId')),None)
-    support=parent_mount['position'][1]+parent_mount['weapon']['gunhouseSize'][2] if parent_mount else surface_height(x,y,z)
-    if z>deckz(x)+.18:
-        rod(m['name']+' support',(x,y,support-.05),(x,y,z-.06),.20,'naval',vertices=12)
-        inner=y-math.copysign(min(2.0,abs(y)),y) if abs(y)>.1 else y
-        for dx in [-radius*.65,radius*.65]:rod(m['name']+' knee',(x+dx,inner,support),(x+dx,y,z-.08),.085,'naval',vertices=8)
+    # Installations (tubs, galleries, platforms) are built by the region files;
+    # a mount on a turret roof trains with that turret.
+    before=set(scene.objects);ASSEMBLY=m['id']
     create_gun_mount(m,COL,helpers,materials,deckz)
+    parent_mount=next((p for p in D['mounts'] if p['id']==m.get('parentMountId')),None)
     if parent_mount:
         parent=next(o for o in scene.objects if o.get('nodeId')==parent_mount['id']+'.yaw')
         bpy.context.view_layer.update()
@@ -255,8 +248,10 @@ for m in D['mounts']:
             if obj.parent is None:
                 world=obj.matrix_world.copy();obj.parent=parent;obj.matrix_parent_inverse=Matrix.Identity(4);obj.matrix_world=world
 
-# Additional independently authored fittings are executed in this recipe scope.
-exec((Path(__file__).parent/'fittings.py').read_text(),globals())
+# Region recipes, then the light AA mechanisms and any remaining default AA
+# installations, all executed in this recipe scope (see details.py).
+for part in ['forward','tower','midships','aft','deck','aa']:
+    exec((Path(__file__).parent/(part+'.py')).read_text(),globals())
 # Consolidate static fittings within their exact assembly/joint frame. This
 # keeps the editable source small without welding independent moving parts.
 bpy.context.view_layer.update()
