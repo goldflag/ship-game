@@ -74,40 +74,8 @@ def posts(name,pts,z0,z1,material,col,w=.05):
  return mesh(name,v,f,material,col)
 
 
-def closed25(id,P,late=False):
- # Type 96 triple in its closed splinter housing: round back, flat face and a
- # deep three-gun slot that runs back over the roof.
- R,af,w,an=1.8,1.25,1.1,-.35
- def plan(R,af,an):
-  tf=math.acos(af/R)
-  return [(an,w),(af,w)]+[(R*math.cos(t),R*math.sin(t)) for t in (tf+(math.tau-2*tf)*i/10 for i in range(11))]+[(af,-w),(an,-w)]
- top=.4 if late else .3
- hood(id+' splinter housing',P,[(plan(R,af,an),-.28),(plan(R,af,an),1.0),(plan(R-.1,1.15,an-.15),1.32),(plan(R-top,1.2-top,an-.35),1.52)],naval,AA)
- obox(id+' slot apron',P,(af+an)/2,0,.1,af-an,2*w,.76,naval,AA)
- obox(id+' triple cradle',P,an+.3,0,.78,.62,2*w-.12,.46,edge,AA)
- for b in (-w/3,w/3):rib(id+' slot divider',P,b,an-.3,.48,af-an+.3,1.04,naval,AA)
- for b in (-.74,0,.74):rod(id+' 25 mm barrel',P(an+.2,b,.86),P(af+.5,b,1.02),.062,edge,AA,r2=.045,vertices=8)
-
-def light25(id,P):
- # Open Type 96 triple: pedestal, cradle, three barrels with top magazines, layer seats.
- x,y,z=P(0,0,0);cyl(id+' pedestal',(x,y,z+.42),.3,.84,naval,AA,10)
- obox(id+' cradle',P,0,0,1.02,.95,.9,.36,naval,AA)
- for b in (-.55,.55):obox(id+' side frame',P,-.05,b,.95,1.0,.07,.7,naval,AA)
- for b in (-.25,0,.25):
-  rod(id+' 25 mm barrel',P(-.35,b,1.08),P(1.8,b,1.46),.052,edge,AA,r2=.04,vertices=8)
-  obox(id+' magazine',P,.05,b,1.34,.32,.1,.26,naval,AA)
- for b in (-.78,.78):
-  obox(id+' layer seat',P,-.55,b,.62,.34,.3,.07,naval,AA)
-  obox(id+' seat post',P,-.55,b,.3,.06,.06,.6,edge,AA)
- rod(id+' sight bar',P(.35,-.7,1.35),P(.35,.7,1.35),.025,edge,AA,vertices=6)
-
-def single25(id,P):
- x,y,z=P(0,0,0)
- lathe(id+' pedestal',[(.4,z),(.4,z+.06),(.2,z+.12),(.12,z+.82),(.17,z+.9)],x,y,naval,AA,10)
- obox(id+' cradle',P,0,0,1.0,.55,.22,.26,naval,AA)
- rod(id+' 25 mm barrel',P(-.45,0,1.0),P(1.45,0,1.34),.05,edge,AA,r2=.04,vertices=8)
- obox(id+' magazine',P,.05,0,1.24,.32,.09,.26,naval,AA)
- obox(id+' shoulder rest',P,-.55,-.22,.98,.12,.3,.22,edge,AA)
+# The 25 mm Type 96 mounts are drawn by their own builders, one per reference visual.
+import yamato_type96 as type96
 
 
 def build():
@@ -160,7 +128,7 @@ def build():
     floor=support.below(x,y,z-.02)
     # Drums overhanging the hull side finish in a conical skirt, as on pjsb018.
     lathe('25 mm mount drum',[(.85,floor-1.0),(.95,floor-.6),(r,floor-.08),(r,z-.06),(r+.05,z-.06),(r+.05,z)],x,y,naval,AA,20)
-    closed25(id,frame(x,y,z,side*90),late)
+    (type96.closed_triple_1945 if late else type96.closed_triple)(id,x,y,z,side*90)
    owned(id,make)
   for i,(x,y,z,deg) in enumerate(light):
    y*=side;id=f'aa-open-{tag}-{i+1}'
@@ -174,11 +142,11 @@ def build():
      stem=.5 if x<-120 else .3
      prof=[(stem,floor),(stem,z-1.2),(2.0,z-.05)] if z-floor>1.3 else [(1.0,floor),(2.0,z-.05)]
      lathe(id+' raised tub',prof+[(2.03,z+.9),(1.97,z+.9),(1.97,z)],x,y,naval,AA,20)
-    light25(id,frame(x,y,z,side*deg if deg!=180 else 180))
+    type96.open_triple(id,x,y,z,side*deg if deg!=180 else 180)
    owned(id,make)
   for i,(x,y,z,deg) in enumerate(single):
    y*=side;id=f'aa-single-{tag}-{i+1}'
-   owned(id,lambda x=x,y=y,deg=deg,id=id:single25(id,frame(x,y,support.below(x,y,8.5 if x>0 else 6.6),side*deg)))
+   owned(id,lambda x=x,y=y,deg=deg,id=id:type96.single(id,x,y,support.below(x,y,8.5 if x>0 else 6.6),side*deg))
 
  # Shelter-deck doors and vents on the flat faces between the tower lobes;
  # life buoys hang on the deck-edge rail beside the end drums.
