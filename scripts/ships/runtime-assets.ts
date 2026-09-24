@@ -5,6 +5,7 @@ import hydrostatics from '../../assets/gameplay/hydrostatics.v1.json';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 import { runtimeProjection } from '../../src/ships/runtimeProjection';
 import { encodeRuntimeDefinition } from '../../src/ships/runtimeEncoding';
+import { perRecordJson } from '../git/json-format';
 const hash = (s: string | Uint8Array) => createHash('sha256').update(s).digest('hex');
 /** Read the canonical roster without evaluating/loading its definitions. */
 export async function presetIds(root = process.cwd()): Promise<string[]> {
@@ -41,10 +42,9 @@ export async function runtimeAssets(root = process.cwd(), check = false) {
     summaries[id] = { ...summary, hull, armorMaxMm, ...(construction ? { construction: { catalogRevision: construction.catalogRevision } } : {}), runtime: { url, sha256, hydro, sourceSha256: hash(source), bytes: bytes.length } };
     ships.push({ id, contentHash: definition.contentHash, sha256, encoding: 'nsd1-base64', json: Buffer.from(bytes).toString('base64') });
   }
-  // Keep one generated record per ship so independent ship rebuilds merge on
-  // separate lines. Preserve hashes: they detect stale published inputs.
-  const metadata = '{\n' + Object.entries(summaries).map(([id, value]) =>
-    '  ' + JSON.stringify(id) + ': ' + JSON.stringify(value)).join(',\n') + '\n}\n';
+  // One generated record per ship, each after its own key line, so independent ship rebuilds merge as
+  // separate hunks (and the git:setup driver merges the rest). Preserve hashes: they detect stale published inputs.
+  const metadata = perRecordJson(summaries);
   const path = join(root, 'src/ships/presetCatalog.json');
   if (check) { if (await readFile(path, 'utf8') !== metadata) throw new Error('Stale preset metadata'); }
   else await Bun.write(path, metadata);
