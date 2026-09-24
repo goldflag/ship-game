@@ -117,7 +117,8 @@ def rails(name,points,height=.94,closed=False,spacing=1.8):
         d=total*j/count;i=max(0,min(len(path)-2,next((k for k in range(len(path)-1) if lengths[k+1]>=d),len(path)-2)))
         t=(d-lengths[i])/max(1e-9,lengths[i+1]-lengths[i]);dense.append(tuple(path[i].lerp(path[i+1],t)))
     # Source's lowered foregun lifelines leave the barrel sweep unobstructed.
-    def height_at(x):return .52 if name=='rails.perimeter' and 35<x<49 else height
+    # The source's lowered lifelines leave the foregun and the deck-edge single 25 mm sweeps unobstructed.
+    def height_at(x):return .52 if name=='rails.perimeter' and (35<x<49 or 31.4<x<33.3 or -48.1<x<-46.2) else height
     for p in dense:rod(name+'.stanchion',p,(p[0],p[1],p[2]+height_at(p[0])),.024,materials['edge'],vertices=6)
     for ratio in [1/3,2/3,1]:tube_path(name+'.lifeline',[(x,y,z+height_at(x)*ratio) for x,y,z in dense],.010 if ratio<1 else .017,materials['edge'],sides=6,closed=closed)
 
@@ -282,10 +283,12 @@ for yy in [.62,-2.3]:rod('aftmast.leg',(-21.16,yy,4.2),(-21.3,MY,12.4),.07,mater
 rod('aftmast.yard',(-21.44,MY-1.43,13.35),(-21.44,MY+1.43,13.35),.035,materials['edge'])
 for sign in [-1,1]:rod('aftmast.yard-stay',(-21.44,MY+sign*1.43,13.35),(-21.55,MY,15.0),.009,materials['dark'],vertices=5)
 ladder('aftmast.ladder',(-19.45,MY,4.25),(-21.25,MY,13.8),.32)
-for xx,yy,zz in [(FX-.13,0,22.5),(-21.55,MY,14.95)]:rod('rigging.aerial-crossbar',(xx,yy-.48,zz),(xx,yy+.48,zz),.035,materials['edge'])
+# Aerial spreaders belong to their masts; the aerial wires hang between them.
+rod('foremast.aerial-spreader',(FX,-.48,22.5),(FX,.48,22.5),.035,materials['edge'])
+rod('aftmast.aerial-spreader',(-21.545,MY-.48,14.95),(-21.545,MY+.48,14.95),.035,materials['edge'])
 for sign in [-1,1]:
  for xx,zz in [(57,6),(-57,2.9)]:rod('rigging.deck-padeye',(xx,sign*.2,deckz(xx)),(xx,sign*.2,zz),.028,materials['edge'])
- rod('rigging.aerial',(FX-.13,sign*.45,22.5),(-21.55,MY+sign*.45,14.95),.009,materials['dark'],vertices=5)
+ rod('rigging.aerial',(FX,sign*.45,22.5),(-21.545,MY+sign*.45,14.95),.009,materials['dark'],vertices=5)
  rod('rigging.bow-stay',(FX,0,22.6),(57,sign*.2,6),.009,materials['dark'],vertices=5)
  rod('rigging.stern-stay',(-21.6,MY,15.1),(-57,sign*.2,2.9),.009,materials['dark'],vertices=5)
  for xx,yy in [(25,1.95),(19.5,1.2)]:rod('rigging.shroud',(FX,0,20),(xx,sign*yy,8.86),.01,materials['dark'],vertices=5)
@@ -344,7 +347,7 @@ helpers=dict(mesh=mesh,cyl=cyl,rod=rod,box=box)
 sys.path.insert(0,str(ROOT/'assets/parts'))
 from library import create_mount as create_shared_mount
 for mount in [m for m in definition['mounts'] if m['battery']=='main']:
- create_shared_mount(mount,col,dict(helpers,deck_height=(lambda xx:5.15) if mount['id']=='main-2' else deckz),materials)
+ create_shared_mount(mount,col,dict(helpers,deck_height=(lambda xx:5.05) if mount['id']=='main-2' else deckz),materials)
 # Type 96 triple recipe reused from the original catalog collection.
 module=importlib.util.spec_from_file_location('ijn_original',ROOT/'assets/parts/ijn-carrier-guns/geometry.py');ijn=importlib.util.module_from_spec(module);module.loader.exec_module(ijn)
 for m in [m for m in definition['mounts'] if 'triple' in m['id']]:
@@ -393,6 +396,9 @@ for m in [m for m in definition['mounts'] if 'single' in m['id']]:
  lc(rod(name+'.sight-bracket',(-.1,0,-.05),(-.1,.17,.31),.018,materials['naval']),elev)
  lc(tube_path(name+'.ring-sight',[(.13,.17+.10*math.cos(j*math.tau/24),.31+.10*math.sin(j*math.tau/24)) for j in range(24)],.009,materials['edge'],closed=True),elev)
  lc(rod(name+'.sight-rail',(-.35,.17,.31),(.13,.17,.31),.012,materials['edge']),elev)
+ # Cross wires carry the ring sight on its rail.
+ lc(rod(name+'.sight-wire',(.13,.17,.21),(.13,.17,.41),.006,materials['edge'],vertices=5),elev)
+ lc(rod(name+'.sight-wire',(.13,.07,.31),(.13,.27,.31),.006,materials['edge'],vertices=5),elev)
 # Reference-matched original Type 93 quadruple launchers.
 for l in definition['torpedoLaunchers']:refined_torpedo_launcher(l)
 # Depth charge dumpers, projector and original ready-charge rack.
@@ -417,6 +423,8 @@ for xx in [-45.3,-44.8]:
 for yy in [-1.4,1.4]:
  for xx in [-45.6,-44.5]:rod('charge-rack.post',(xx,yy,deckz(xx)),(xx,yy,4.2),.04,materials['naval'])
  tube_path('charge-rack.rails',[(-45.6,yy,3.45),(-44.5,yy,3.45),(-44.5,yy,4.2),(-45.6,yy,4.2)],.035,materials['edge'])
+# The ready charges rest on a slatted shelf between the rack posts.
+box('charge-rack.shelf',(-45.05,0,3.45),(1.18,2.84,.04),materials['naval'],bev=.005)
 # Boats in original cradles, with gunwales, ribs and supported davits.
 for sign in [-1,1]:
  cx,cy,z=-3.83,sign*4.49,4.85;L=8;B=2.05

@@ -116,12 +116,14 @@ def refined_bridge():
         # Ring buoy, brackets and the small paired deck ventilator cowls.
         center=Vector((24.45,sign*2.81,8.16))
         rod('bridge.buoy-bracket',(24.45,sign*2.03,8.16),center,.035,materials['naval'])
+        rod('bridge.buoy-clip',center-Vector((0,0,.36)),center+Vector((0,0,.36)),.025,materials['naval'])
         tube_path('bridge.lifebuoy',[center+Vector((.33*math.cos(j*math.tau/40),0,.33*math.sin(j*math.tau/40))) for j in range(40)],.074,materials['canvas'],closed=True)
-        for x in [23.0,25.0]:
-            path=[(x,sign*2.4,4.72),(x,sign*2.4,5.8),(x+.10,sign*2.4,6.24),(x+.42,sign*2.4,6.48)]
-            tube_path('bridge.deck-vent',path,.16,materials['naval'],sides=20)
-            rod('bridge.deck-vent-hood',path[-1],(x+.69,sign*2.4,6.52),.19,materials['naval'],r2=.25,vertices=24)
-            rod('bridge.deck-vent-mouth',(x+.69,sign*2.4,6.52),(x+.705,sign*2.4,6.52),.215,materials['dark'],vertices=24)
+        # Low cowl ventilators on the forecastle deck beside the bridge, as measured (0.7 m tall).
+        for x,y in [(24.72,3.24),(30.0,3.97)]:
+            d=deckz(x);path=[(x,sign*y,d-.02),(x,sign*y,d+.32),(x+.06,sign*y,d+.5),(x+.2,sign*y,d+.56)]
+            tube_path('bridge.deck-vent',path,.1,materials['naval'],sides=16)
+            rod('bridge.deck-vent-hood',path[-1],(x+.36,sign*y,d+.58),.12,materials['naval'],r2=.17,vertices=20)
+            rod('bridge.deck-vent-mouth',(x+.36,sign*y,d+.58),(x+.37,sign*y,d+.58),.15,materials['dark'],vertices=20)
         # The reference's low solid outboard screens below the AA sweep.
         pts=[(x,sign*(width(x)-.19)) for x in [23.2,27.0,31.0,34.0]]
         bulwark('bridge.deck-screen',pts,4.72,.62,closed=False)
