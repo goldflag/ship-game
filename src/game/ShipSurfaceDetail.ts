@@ -4,7 +4,6 @@ import {
   positionGeometry, positionView, pow, select, smoothstep, texture, uniform, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
-import { isConstructionPaint } from './constructionWear';
 
 /** Physically scaled surface detail for ship paint and teak, evaluated in each mesh's own
  * (pre-batching) geometry space, so it follows turrets and every other articulated owner.
@@ -13,39 +12,28 @@ import { isConstructionPaint } from './constructionWear';
  * read through shared nodes:
  * - plating: 2 m strakes, 8 m butts with staggered offsets, welded seams and slight
  *   dishing between frames as a height gradient, plus a low-frequency roughness field;
- * - teak: 16 cm planks with staggered 5 m butts, caulking, grain and relief.
+ * - teak: 16 cm planks with staggered 5.12 m butts, caulking, grain and relief, stretched to
+ *   each deck's declared plank size (`deckPlanks`).
  * Relief is applied as a surface gradient (Mikkelsen) from the per-pixel derivatives of
  * the geometry and view positions, so it needs no tangents and holds for batched,
  * instanced and mirrored meshes alike. Mipmaps average the gradients towards zero, so
  * the detail recedes with distance and the approved scheme reads unchanged.
  *
- * Construction ships draw their plating from a finish tile on the same seams: weld beads between
- * shrinkage hollows, a line of grime along every seam and each plate's own shade, roller strips
- * and marks as painted, on decks and roofs too, so even a fresh ship reads as plated steel. They
- * also wear their paint here, by the amounts and distances their assembly measured per vertex
- * (`shipWear`, see constructionWear): metric mottling from the plating tile's alpha, runoff
- * streaks from a third tile hanging below top edges and, shorter and closer set, below every
- * strake seam, rust bleeding from the seams, a tide stain at the rest waterline and soot at
- * funnel tops. Premade ships bake their finish and carry no wear; their paint takes the same
- * program and draws exactly as before. */
+ * Every ship, premade or player-built, draws its plating from a finish tile on the same seams:
+ * weld beads between shrinkage hollows, a line of grime along every seam and each plate's own
+ * shade, roller strips and marks as painted, on decks and roofs too, so even a fresh ship reads
+ * as plated steel. Paint wears here too, by the amounts and distances measured per vertex when
+ * the model was assembled or loaded (`shipWear`, see constructionWear): metric mottling from the
+ * plating tile's alpha, runoff streaks from a third tile hanging below top edges and, shorter
+ * and closer set, below every strake seam, rust bleeding from the seams, a tide stain at the
+ * rest waterline and soot at funnel tops. Paint that wears nothing takes the same program and
+ * skips all of it. */
 
-/** Paint classes that get plating. Canvas, glass, rope, dark recesses and metals do not. */
-const PLATED_FINISHES = new Set(['painted-steel', 'painted-deck', 'underwater-coating']);
-const PLATED_ROLES = new Set(['naval', 'hullgray', 'roof', 'underwater']);
-/** Fittings share painted-steel with the hull but are single castings or small welded parts. */
-const FITTING_PAINT = /-(edge|fittings|raft|light)$/;
+/** Whether a source material's paint is welded steel plate (per vertex, so materials that share one palette entry keep their
+ * own class). The same paints weather (constructionWear). */
+export { isPlatedPaint } from './constructionWear';
 
 export type ShipSurfaceMode = 'surface' | 'teak';
-
-/** Whether a source material's paint is welded steel plate (per vertex, so materials that
- * share one palette entry keep their own class). */
-export function isPlatedPaint(material: THREE.MeshStandardMaterial): boolean {
-  if (material.metalness > .1 || material.userData.deckSubstrate === 'timber') return false;
-  const { surfaceFinish, componentMaterialRole } = material.userData;
-  if (typeof surfaceFinish === 'string') return PLATED_FINISHES.has(surfaceFinish) && !FITTING_PAINT.test(String(material.userData.paintId ?? ''));
-  if (typeof componentMaterialRole === 'string') return PLATED_ROLES.has(componentMaterialRole);
-  return isConstructionPaint(material);
-}
 
 const scale = new THREE.Vector3(), extent = new THREE.Vector3();
 /** A mesh broad enough to be built from plates: at least two sides of two metres. Doors,
@@ -57,13 +45,21 @@ export function isPlateSized(mesh: THREE.Mesh): boolean {
   return [extent.x, extent.y, extent.z].filter(side => Math.abs(side) >= 2).length >= 2;
 }
 
-/** Planked teak whose repeating texture carries no relief of its own: the exporter's baked
- * procedural teak and the construction timber finish. Declared decking with its own plank
- * relief and whole-deck images (recognition markings) keep their authored planks. */
+/** A timber deck's planks, all in metres: their width, their length between butts and the width of the caulked seams
+ * between them. Premade decks declare theirs in their appearance (`decking`), which the model carries as material extras;
+ * player-built timber takes the default, the shared teak tile's own 16 cm by 5.12 m. */
+export interface DeckPlanks { width: number; length: number; seam: number }
+export function deckPlanks(material: THREE.Material): DeckPlanks {
+  const { deckPlankWidth: width, deckPlankLength: length, deckSeamWidth: seam } = material.userData;
+  const within = (value: unknown, low: number, high: number): value is number => typeof value === 'number' && value >= low && value <= high;
+  return { width: within(width, .05, .5) ? width : TEAK.plank, length: within(length, .5, 20) ? length : TEAK.butt, seam: within(seam, .001, .02) ? seam : TEAK.caulk };
+}
+
+/** Every timber deck, premade or player-built, is planked by the shared teak at its own plank size (`deckPlanks`). Its stain is
+ * the mean of a repeating map, or the colour of a whole-deck image, which keeps the markings and boundaries it paints. A
+ * timber surface with a normal map of its own keeps its authored planks. */
 export function shipSurfaceMode(material: THREE.MeshStandardMaterial): ShipSurfaceMode {
-  const map = material.map;
-  const timber = material.name.startsWith('Teak decking') || material.userData.deckSubstrate === 'timber';
-  return timber && map && !material.normalMap && map.wrapS === THREE.RepeatWrapping && map.wrapT === THREE.RepeatWrapping ? 'teak' : 'surface';
+  return material.userData.deckSubstrate === 'timber' && !material.normalMap ? 'teak' : 'surface';
 }
 
 // Plating tile: 16 m square, eight 2 m strakes, two 8 m plates per strake.
@@ -73,7 +69,7 @@ export const STREAK = { along: 16, down: 16, width: 1024, height: 256 } as const
 /** The construction wear presets' amounts, which the runoff tile's channels are drawn for. */
 export const WEAR_LEVELS = [.1, .4, .7, 1] as const;
 // Teak tile: 16 planks of 16 cm across, 20.48 m along with four 5.12 m butts per plank.
-export const TEAK = { across: 2.56, along: 20.48, width: 512, length: 2048, plank: .16, butt: 5.12, gradientScale: .5 } as const;
+export const TEAK = { across: 2.56, along: 20.48, width: 512, length: 2048, plank: .16, butt: 5.12, caulk: .004, gradientScale: .5 } as const;
 
 const fract = (x: number) => x - Math.floor(x);
 const hash = (a: number, b = 0, c = 0) => fract(Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453);
@@ -281,7 +277,7 @@ export function streakTexels(width: number = STREAK.width, height: number = STRE
  * (plank tone and grain, 0.5 = ×1), G caulking coverage, B,A height gradient across/along. */
 export function teakTexels(width: number = TEAK.width, length: number = TEAK.length): Uint8Array {
   const { across: tileAcross, along: tileAlong, plank, butt } = TEAK, sx = tileAcross / width, sz = tileAlong / length;
-  const planks = Math.round(tileAcross / plank), caulk = .004, groove = .0035, n = width * length;
+  const planks = Math.round(tileAcross / plank), caulk = TEAK.caulk, groove = .0035, n = width * length;
   const height = new Float32Array(n), albedo = new Float32Array(n), seams = new Float32Array(n);
   const rowOf = new Int32Array(width), inPlankOf = new Float32Array(width), edgeOf = new Float32Array(width);
   for (let x = 0; x < width; x++) {
@@ -351,18 +347,19 @@ function dataTexture(pixels: Uint8Array, width: number, height: number, name: st
 
 /** Relief strength, for review. */
 export const surfaceRelief = uniform(1);
-/** Wear on construction ships' paint, for review: 0 draws none, 1 as designed. */
+/** Paint wear and the plating finish, for review and frame-cost measurement: 0 draws neither (each ship's plain paint and the
+ * plain plating relief), 1 as designed. */
 export const surfaceWear = uniform(1);
-/** −1 draws each construction ship's own wear; 0 or more draws that amount on all of them instead (review). */
+/** −1 draws each ship's own wear; 0 or more draws that amount on all of them instead (review). */
 export const wearOverride = uniform(-1);
-/** Construction ships' plating as welded and painted (seams, relief, each plate's shade), for review: 0 draws the
- * premade tile's plating instead, 1 as designed. */
+/** Plating as welded and painted (seams, relief, each plate's shade), for review: 0 draws the plain plating relief
+ * instead, 1 as designed. */
 export const plateFinish = uniform(1);
 
 /** Worn paint, per unit of wear amount where a pair gives [at none, added per unit]. Tints are linear colour
  * multipliers at full coverage. */
 const WEAR = {
-  /** Peak tone swing of the mottling: ±11 % in commission (0.4), as the premade ships' maintained finish. */
+  /** Peak tone swing of the mottling: ±11 % in commission (0.4), the maintained finish Blender once baked into premade paint. */
   mottle: .27,
   /** Share of the streak tint a fully covered streak takes. */
   streak: [.35, .45],
@@ -373,7 +370,7 @@ const WEAR = {
   sootReach: [1, 3], sootDarkness: [.5, .45], soot: [.09, .085, .08],
 } as const;
 
-/** Construction paint as applied, on every such ship however fresh; pairs give [fresh, added per unit of wear]. */
+/** Paint as applied, on every ship however fresh; pairs give [fresh, added per unit of wear]. */
 const APPLIED = {
   /** Peak tone swing across plates, roller strips and marks, and cloudiness. */
   tone: .17,
@@ -390,8 +387,11 @@ const APPLIED = {
   band: .25, bandReach: .25,
 } as const;
 
-type Nodes = { plateNormal: Node<'vec3'>; paintColor: Node<'vec3'>; paintRoughness: Node<'float'>; plainRoughness: Node<'float'>; teakNormal: Node<'vec3'>; teakRoughness: Node<'float'>; teakPattern: Node<'float'> };
+type Nodes = { plateNormal: Node<'vec3'>; paintColor: Node<'vec3'>; paintRoughness: Node<'float'>; plainRoughness: Node<'float'>; teak: THREE.DataTexture };
 let nodes: Nodes | undefined;
+type TeakNodes = { teakNormal: Node<'vec3'>; teakRoughness: Node<'float'>; teakPattern: Node<'float'> };
+/** Planked teak per plank size; a fleet has a handful. */
+const teakNodes = new Map<string, TeakNodes>();
 
 /** Surface relief from an object-space height gradient `gradient` (height per metre in
  * geometry space) through the screen derivatives of geometry and view positions. */
@@ -412,7 +412,7 @@ function shipSurfaceNodes(): Nodes {
   const finish = dataTexture(finishTexels(), PLATE.size, PLATE.size, 'Construction plating finish');
   // Roughness, metalness, plated-paint flag; `w` is the wet band's rest height (HullWetBand).
   const surface = attribute<'vec4'>('shipSurface', 'vec4');
-  // Paint that wears (on construction ships) carries its wear amount; premade paint carries none.
+  // Paint that wears carries its ship's wear amount; paint of a ship with none, and paint that does not wear, carry none.
   const worn = attribute<'vec4'>('shipWear', 'vec4');
   const p = positionGeometry, n = normalGeometry.normalize();
   // Triplanar weights in geometry space: beam-facing sides, end bulkheads and decks.
@@ -421,10 +421,10 @@ function shipSurfaceNodes(): Nodes {
   const gradient = (s: Node<'vec4'>, scale: number) => s.xy.mul(2).sub(1).mul(scale);
   const gs = gradient(side, PLATE.gradientScale), ge = gradient(end, PLATE.gradientScale);
   const plating = Fn(() => {
-    // Premade decks carry their own coverings, so their plating relief stays on vertical faces.
+    // Paint that does not wear keeps the plain plating relief, on vertical faces only.
     const relief = vec3(ge.x.mul(w.z), gs.y.mul(w.x).add(ge.y.mul(w.z)), gs.x.mul(w.x)).toVar();
-    If(worn.x.greaterThan(1e-4).and(plateFinish.greaterThan(.5)), () => {
-      // Construction plating as welded, on decks and roofs too.
+    If(worn.x.mul(surfaceWear).greaterThan(1e-4).and(plateFinish.greaterThan(.5)), () => {
+      // Plating as welded, on decks and roofs too.
       const fs = gradient(texture(finish, p.zy.div(PLATE.tile)), FINISH.gradientScale), fe = gradient(texture(finish, p.xy.div(PLATE.tile)), FINISH.gradientScale);
       const ft = gradient(texture(finish, p.zx.div(PLATE.tile)), FINISH.gradientScale);
       relief.assign(vec3(fe.x.mul(w.z).add(ft.y.mul(w.y)), fs.y.mul(w.x).add(fe.y.mul(w.z)), fs.x.mul(w.x).add(ft.x.mul(w.y))));
@@ -436,12 +436,12 @@ function shipSurfaceNodes(): Nodes {
   // ±8 % about the authored roughness; paint stays matte.
   const plateRoughness = plainRoughness.mul(roughness.sub(.5).mul(surface.z.mul(.16)).add(1));
 
-  // Construction paint: colour (rgb) and roughness (a) multipliers, exactly 1 on premade paint.
+  // Paint as applied and worn: colour (rgb) and roughness (a) multipliers, exactly 1 on paint that wears nothing.
   const wearing = Fn(() => {
     const factor = vec4(1).toVar();
     // Streak gradients come from the continuous position, taken here in uniform control flow.
     const dx = dFdx(positionGeometry).toVar(), dy = dFdy(positionGeometry).toVar();
-    If(worn.x.greaterThan(1e-4), () => {
+    If(worn.x.mul(surfaceWear).greaterThan(1e-4), () => {
       // Fresh nodes throughout: one shared with the other outputs would be declared inside this branch.
       const q = positionGeometry, m = normalGeometry.normalize(), m4 = pow(abs(m), vec3(4)), tri = m4.div(m4.x.add(m4.y).add(m4.z));
       const amount = select(wearOverride.greaterThanEqual(0), wearOverride, worn.x).mul(surfaceWear).toVar();
@@ -516,18 +516,31 @@ function shipSurfaceNodes(): Nodes {
   const paintColor = materialColor.mul(wearing.rgb);
   const paintRoughness = plateRoughness.mul(wearing.w);
 
+  return nodes = { plateNormal: perturbed(plating), paintColor, paintRoughness, plainRoughness, teak };
+}
+
+/** The shared teak drawn at a deck's plank size: the tile stretched to its plank width and butt length, its caulking darkened
+ * for seams wider or narrower than the tile's (within half to one and a half times). */
+function planked(planks: DeckPlanks): TeakNodes {
+  const key = `${planks.width}|${planks.length}|${planks.seam}`, cached = teakNodes.get(key);
+  if (cached) return cached;
+  const { teak, plainRoughness } = shipSurfaceNodes(), p = positionGeometry, n = normalGeometry.normalize();
+  const across = planks.width / TEAK.plank, along = planks.length / TEAK.butt, seam = Math.min(1.5, Math.max(.5, planks.seam / (TEAK.caulk * across)));
   // Teak in ship plan: x across the beam, z along the length; planks run fore and aft.
-  const t = texture(teak, vec2(p.x.div(TEAK.across), p.z.div(TEAK.along)));
+  const t = texture(teak, vec2(p.x.div(TEAK.across * across), p.z.div(TEAK.along * along)));
   const up = smoothstep(.55, .8, n.y);
   // Caulking contrast recedes once a texel of pitch is well under a pixel.
   const footprint = dFdx(p).length().max(dFdy(p).length());
   const seamFade = mix(float(1), float(.35), smoothstep(.012, .06, footprint));
-  // Renormalised so the mean stays the map's mean tone at every fade.
-  const caulk = t.y.mul(CAULK_DARKENING).mul(seamFade), mean = seamFade.mul(1 - teakAlbedoRatio).add(teakAlbedoRatio);
+  // Renormalised so the mean stays the stain at every fade.
+  const caulk = t.y.mul(CAULK_DARKENING * seam).mul(seamFade), mean = seamFade.mul(seam * (1 - teakAlbedoRatio)).add(teakAlbedoRatio);
   const teakPattern = mix(float(1), t.x.mul(2).mul(caulk.oneMinus()).div(mean), up);
-  const teakGradient = vec3(t.z.mul(2).sub(1), 0, t.w.mul(2).sub(1)).mul(TEAK.gradientScale).mul(up);
+  // The tile's height gradients are per metre of the tile; stretched, they are shallower.
+  const teakGradient = vec3(t.z.mul(2).sub(1).div(across), 0, t.w.mul(2).sub(1).div(along)).mul(TEAK.gradientScale).mul(up);
   const teakRoughness = plainRoughness.mul(t.y.mul(.1).add(t.x.sub(.5).mul(-.12)).mul(up).add(1));
-  return nodes = { plateNormal: perturbed(plating), paintColor, paintRoughness, plainRoughness, teakNormal: perturbed(teakGradient), teakRoughness, teakPattern };
+  const made = { teakNormal: perturbed(teakGradient), teakRoughness, teakPattern };
+  teakNodes.set(key, made);
+  return made;
 }
 
 let enabled = true;
@@ -538,11 +551,13 @@ export function applyShipSurfaceDetail(material: THREE.MeshStandardNodeMaterial,
   material.userData.shipSurfaceMode = mode;
   const shared = shipSurfaceNodes();
   if (mode === 'teak') {
-    const map = material.map!;
-    // Keep the authored stain: the map's mean tone carries it; the planks come from the shared teak.
-    material.colorNode = on ? vec4(texture(map).level(float(16)).rgb.mul(shared.teakPattern), float(1)) : null;
-    material.normalNode = on ? shared.teakNormal : null;
-    material.roughnessNode = on ? shared.teakRoughness : shared.plainRoughness;
+    const map = material.map, teak = planked(deckPlanks(material));
+    // The planks come from the shared teak. A repeating map is a finish tile, so only its mean tone, the stain, is kept; a
+    // whole-deck image keeps its markings; with no map the paint colour is the stain.
+    const stain = !map ? vec3(1) : map.wrapS === THREE.RepeatWrapping ? texture(map).level(float(16)).rgb : texture(map).rgb;
+    material.colorNode = on ? vec4(stain.mul(teak.teakPattern), float(1)) : null;
+    material.normalNode = on ? teak.teakNormal : null;
+    material.roughnessNode = on ? teak.teakRoughness : shared.plainRoughness;
   } else {
     material.colorNode = on ? shared.paintColor : null;
     material.normalNode = on && !material.normalMap ? shared.plateNormal : null;

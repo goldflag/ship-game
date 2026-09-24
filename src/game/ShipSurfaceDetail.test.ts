@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { finishTexels, isPlatedPaint, PLATE, plateTexels, setShipSurfaceDetail, STREAK, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
+import { deckPlanks, finishTexels, isPlatedPaint, PLATE, plateTexels, setShipSurfaceDetail, STREAK, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
 
 const channel = (pixels: Uint8Array, c: number) => pixels.filter((_, i) => i % 4 === c);
 const mean = (values: ArrayLike<number>) => Array.from(values).reduce((a, b) => a + b, 0) / values.length;
@@ -83,9 +83,20 @@ test('ship palette classifies plated paint per vertex and teak per material, and
   const fitting = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 40), paint({ surfaceFinish: 'painted-steel', paintId: 'x-authored-edge' }));
   const canvas = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 40), paint({ componentMaterialRole: 'canvas' }));
   const map = new THREE.Texture(); map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  const teakMaterial = new THREE.MeshStandardMaterial({ map }); teakMaterial.name = 'Teak decking - original procedural planks';
+  const teakMaterial = new THREE.MeshStandardMaterial({ map }); teakMaterial.userData = { deckSubstrate: 'timber' };
   const deck = new THREE.Mesh(new THREE.BoxGeometry(10, .2, 40), teakMaterial);
-  root.add(hull, door, fitting, canvas, deck); palette.apply(root);
+  // Timber of another plank size draws other planks; a timber surface with its own relief keeps it.
+  const us = new THREE.MeshStandardMaterial({ map }); us.userData = { deckSubstrate: 'timber', deckPlankWidth: .127, deckPlankLength: 3.048, deckSeamWidth: .003 };
+  const usDeck = new THREE.Mesh(new THREE.BoxGeometry(10, .2, 40), us);
+  const relief = new THREE.MeshStandardMaterial({ map, normalMap: new THREE.Texture() }); relief.userData = { deckSubstrate: 'timber' };
+  const reliefDeck = new THREE.Mesh(new THREE.BoxGeometry(10, .2, 40), relief);
+  root.add(hull, door, fitting, canvas, deck, usDeck, reliefDeck); palette.apply(root);
+  expect(usDeck.material).not.toBe(deck.material);
+  expect((usDeck.material as unknown as THREE.MeshStandardNodeMaterial).userData.shipSurfaceMode).toBe('teak');
+  expect((usDeck.material as unknown as THREE.MeshStandardNodeMaterial).normalNode).not.toBe((deck.material as unknown as THREE.MeshStandardNodeMaterial).normalNode);
+  expect((reliefDeck.material as unknown as THREE.MeshStandardNodeMaterial).userData.shipSurfaceMode).toBe('surface');
+  expect(deckPlanks(us)).toEqual({ width: .127, length: 3.048, seam: .003 });
+  expect(deckPlanks(teakMaterial)).toEqual({ width: TEAK.plank, length: TEAK.butt, seam: TEAK.caulk });
   const plated = (mesh: THREE.Mesh) => mesh.geometry.getAttribute('shipSurface').getZ(0);
   expect([hull, door, fitting, canvas].map(plated)).toEqual([1, 0, 0, 0]);
   expect(hull.material).toBe(canvas.material);

@@ -5,7 +5,7 @@ import { componentMaterial } from '../ships/componentMaterials';
 import { createConstructionFittingModel } from './constructionFittingModel';
 import { createConstructionHull } from './constructionModel';
 import { createConstructionPropellerSupports } from './constructionPropellerModel';
-import { applyConstructionWear, isConstructionPaint, wearsPaint, WEAR_NONE } from './constructionWear';
+import { applyConstructionWear, applyPremadeWear, isConstructionPaint, wearsPaint, WEAR_NONE } from './constructionWear';
 import { isPlatedPaint } from './ShipSurfaceDetail';
 
 const surface = (id: string, primitiveId: string, face: string, vertices: Vec3[], normal: Vec3, paint = 'naval-gray', panelId?: string): ConstructionSurface =>
@@ -111,4 +111,67 @@ test('player-built paint both wears and draws plating, as the models name it; ti
     'custom-fitting': [false, true, true], 'custom-fitting.light-gray': [true, true, true], 'custom-fitting.teak-natural': [false, false, false],
     'construction.propeller.underwater-paint': [true, true, true], 'construction.propeller.shaft-steel': [false, false, false],
   });
+});
+
+test('premade appearance paint wears where it is plated steel: not fittings, canvas, timber, linoleum or metal', () => {
+  const bound = (paintId: string, surfaceFinish: string, extra: Record<string, unknown> = {}) => {
+    const m = new THREE.MeshStandardMaterial({ metalness: 0 }); m.name = paintId; m.userData = { paintId, surfaceFinish, ...extra }; return m;
+  };
+  const wears = (m: THREE.MeshStandardMaterial) => [wearsPaint(m), isPlatedPaint(m)];
+  expect(wears(bound('x-authored-hullgray', 'painted-steel'))).toEqual([true, true]);
+  expect(wears(bound('x-authored-roof', 'painted-deck'))).toEqual([true, true]);
+  expect(wears(bound('x-authored-antifouling', 'underwater-coating'))).toEqual([true, true]);
+  // A named legacy role still follows its appearance binding, not its component role.
+  expect(wears(bound('naval', 'painted-steel'))).toEqual([true, true]);
+  for (const fitting of ['x-authored-edge', 'x-authored-canvas', 'x-authored-raft', 'x-authored-light']) expect(wears(bound(fitting, 'painted-steel'))).toEqual([false, false]);
+  expect(wears(bound('x-authored-wood', 'wood'))).toEqual([false, false]);
+  expect(wears(bound('x-authored-deck', 'wood', { deckSubstrate: 'timber' }))).toEqual([false, false]);
+  expect(wears(bound('x-authored-linoleum', 'linoleum'))).toEqual([false, false]);
+  const metal = bound('x-authored-naval', 'painted-steel'); metal.metalness = .5;
+  expect(wears(metal)).toEqual([false, false]);
+});
+
+test('premade wear: hull sides hang from the sheer, walls from their tops, funnels soot from their top, all know the waterline', () => {
+  const paint = (paintId: string, extra: Record<string, unknown> = {}) => {
+    const m = new THREE.MeshStandardMaterial({ roughness: .78, metalness: 0 }); m.userData = { paintId, surfaceFinish: 'painted-steel', ...extra }; return m;
+  };
+  const box = (size: Vec3, at: Vec3, material: THREE.Material) => { const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material); mesh.position.set(...at); return mesh; };
+  // A glTF node of several primitives: a group with the node's extras over one mesh per material. The sheer falls from 8 m
+  // at the bow (z −10) to 6 m aft; the timber deck on top wears nothing.
+  const hull = new THREE.Group(); hull.userData = { assemblyId: 'hull', nodeId: 'hull.surface' };
+  const side = new THREE.BufferGeometry();
+  side.setAttribute('position', new THREE.Float32BufferAttribute([3, -3, -10, 3, 8, -10, 3, -3, 0, 3, 7, 0, 3, -3, 10, 3, 6, 10], 3));
+  side.setIndex([0, 2, 1, 1, 2, 3, 2, 4, 3, 3, 4, 5]);
+  const deck = new THREE.Mesh(new THREE.PlaneGeometry(6, 20).rotateX(-Math.PI / 2).translate(0, 7, 0), paint('x-authored-deck', { surfaceFinish: 'wood', deckSubstrate: 'timber' }));
+  hull.add(new THREE.Mesh(side, paint('x-authored-hullgray')), deck);
+  const house = box([4, 4, 4], [0, 10, 0], paint('x-authored-naval')); house.userData.assemblyId = 'superstructure';
+  // A funnel: its jacket, the base under it and the cap on it stand as one; the gallery round it is not the funnel.
+  const funnel = (assemblyId: string, size: Vec3, at: Vec3) => { const mesh = box(size, at, paint('x-authored-naval')); mesh.userData.assemblyId = assemblyId; return mesh; };
+  const jacket = funnel('funnel-jacket', [3, 8, 4], [0, 16, 2]), base = funnel('funnel-base', [4, 4, 5], [0, 10, 2]);
+  const cap = funnel('funnel-cap', [3, .5, 4], [0, 20.25, 2]), gallery = funnel('funnel-searchlight-gallery', [6, 1, 7], [0, 16, 2]);
+  const rail = box([.1, 1, 6], [2.9, 8.5, -3], paint('x-authored-edge'));
+  const root = new THREE.Group(); root.add(hull, house, jacket, base, cap, gallery, rail); root.updateMatrixWorld(true);
+  applyPremadeWear(root, .4);
+
+  for (const w of wearAt(root, [3, 0, -10])) { expect(w[0]).toBe(.4); expect(w[1]).toBeCloseTo(8, 1); expect(w[2]).toBe(WEAR_NONE); expect(w[3]).toBeCloseTo(0, 5); }
+  for (const w of wearAt(root, [3, 0, 0])) expect(w[1]).toBeCloseTo(7, 1);
+  for (const w of wearAt(root, [3, 6, 10])) expect(w[1]).toBeCloseTo(0, 1);
+  for (const w of wearAt(root, [3, -3, 10])) expect(w[3]).toBeCloseTo(-3, 5);
+  for (const w of wearAt(root, [3, 7, -10])) expect(w[0]).toBe(0);
+  // A deckhouse wall hangs from its own top and knows its height above the waterline.
+  const foot = wearAt(root, [2, 8, 2]).filter(w => w[1] < WEAR_NONE);
+  expect(foot.length).toBeGreaterThan(0);
+  for (const w of foot) { expect(w[1]).toBeCloseTo(4, 5); expect(w[3]).toBeCloseTo(8, 5); expect(w[2]).toBe(WEAR_NONE); }
+  // The jacket and its base soot from the cap's top; the gallery is not the funnel.
+  expect(wearAt(root, [1.5, 20, 4]).length).toBeGreaterThan(0);
+  for (const w of wearAt(root, [1.5, 20, 4])) expect(w[2]).toBeCloseTo(.5, 5);
+  for (const w of wearAt(root, [2, 12, 4.5])) expect(w[2]).toBeCloseTo(8.5, 5);
+  for (const w of wearAt(root, [3, 16.5, 5.5])) expect(w[2]).toBe(WEAR_NONE);
+  // Fitting paint wears nothing.
+  for (const w of wearAt(root, [2.95, 9, 0])) expect(w[0]).toBe(0);
+
+  // No wear writes nothing, so the palette's zeros draw the model as before.
+  const plain = new THREE.Group(), mesh = box([4, 4, 4], [0, 10, 0], paint('x-authored-naval')); plain.add(mesh);
+  applyPremadeWear(plain, 0);
+  expect(mesh.geometry.hasAttribute('shipWear')).toBe(false);
 });

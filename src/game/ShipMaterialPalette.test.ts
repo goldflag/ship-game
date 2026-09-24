@@ -55,7 +55,7 @@ test('every paint carries its hull\'s wet-band height, and weathering layers ove
     root.add(mesh); palette.apply(root); return mesh;
   };
   const map = new THREE.Texture(); map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  const teak = (color = '#ffffff') => new THREE.MeshStandardMaterial({ name: 'Teak decking', map, color });
+  const teak = (color = '#ffffff') => { const m = new THREE.MeshStandardMaterial({ name: 'Teak decking', map, color }); m.userData.deckSubstrate = 'timber'; return m; };
   const destroyer = hull(110, new THREE.MeshStandardMaterial({ color: '#445566' })), battleship = hull(260, new THREE.MeshStandardMaterial({ color: '#665544' }));
   const surface = destroyer.geometry.getAttribute('shipSurface');
   expect(surface.itemSize).toBe(4);
