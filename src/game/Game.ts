@@ -37,6 +37,7 @@ import { primeHullProfile } from './HullContactFoam';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
+import { installBindGroupReuse } from './BindGroupReuse';
 import { subtreePruning } from './SubtreeLayers';
 import { installInstanceBufferNames } from './InstanceBufferNames';
 import { prepareInstanceUploads } from './InstanceUploads';
@@ -439,6 +440,7 @@ export class Game {
     await this.renderer.init();
     requireWebGPUBackend(this.renderer);
     installFleetBatchInstancing(this.renderer.backend);
+    installBindGroupReuse(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
     for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
     configureRenderOrder(this.renderer);
