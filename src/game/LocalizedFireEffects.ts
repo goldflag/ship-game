@@ -52,7 +52,8 @@ const memory = (): FireMemory => ({ intensity: 0, heat: 0, heatRate: 0, burned: 
  * widens, bends downwind and merges with the ship's other fires into one pall. The two most relevant
  * fires light the ship with flickering lights (always present, so nothing recompiles); every fire
  * glows on the sea and on its smoke's underside. A fire being fought turns its smoke grey-white with steam, a
- * fire that goes out smoulders for ~45 s, and flooding puts one out in a burst of steam.
+ * fire that goes out smoulders for ~45 s, and flooding puts one out in a burst of steam. A lost hull's fires burn on as the
+ * battle left them while she settles, each until the sea closes over it.
  * Fleet-wide fixed batches; camera relevance picks the sources. */
 export class LocalizedFireEffects {
   readonly root = new THREE.Group();
@@ -113,7 +114,7 @@ export class LocalizedFireEffects {
     const perspective = (camera as THREE.PerspectiveCamera).isPerspectiveCamera, projection = camera.projectionMatrix.elements;
     for (const actor of sim.actors) {
       let memories = this.memories.get(actor);
-      if (actor.damage.sunk) { if (memories) this.memories.delete(actor); continue; }
+      // A lost hull's fires stay as the battle left them and burn on while she settles, each until the sea reaches it.
       const control = actor.damage.control;
       if (!memories) {
         if (!control.rooms.some(f => f.intensity > 0) && !control.mounts.some(f => f.intensity > 0)) continue;

@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { attribute, materialColor, materialMetalness, materialRoughness, vec4 } from 'three/tsl';
+import { attribute, materialColor, materialEmissive, materialMetalness, materialRoughness, vec4 } from 'three/tsl';
 import { applyShipSurfaceDetail, deckPlanks, isPlatedPaint, isPlateSized, setShipSurfaceDetail, shipSurfaceMode } from './ShipSurfaceDetail';
 
 /** The `shipSurface` vertex attribute. `apply` below is its only writer; every channel is taken:
@@ -15,9 +15,17 @@ const roughness = materialRoughness.mul(surface.x), metalness = materialMetalnes
 export const wetBandHeight = (length: number) => Math.max(.3, Math.min(.9, .2 + .0025 * length));
 /** Albedo (`dry`) and roughness (`gloss`) multipliers weathering lays over a paint. */
 export interface WetResponse { dry: THREE.Node<'float'>; gloss: THREE.Node<'float'> }
-/** Visual-only multipliers every shared paint receives, such as the wet band at the waterline and rain (ShipWeather).
- * `timber`, where given, is timber decking's own response: porous wood darkens more when wet than paint does. */
-export interface PaintWeathering extends WetResponse { timber?: WetResponse }
+/** Fire damage over every shared paint (ShipScorch): its colour over the paint's colour node, which three then multiplies by
+ * the paint's vertex colour, its roughness over the paint's, and the radiance of embers. */
+export interface PaintScorch {
+  color(paint: THREE.Node<'vec3'>): THREE.Node<'vec3'>;
+  roughness(paint: THREE.Node<'float'>): THREE.Node<'float'>;
+  readonly glow: THREE.Node<'vec3'>;
+}
+/** Visual-only changes every shared paint receives: the wet band at the waterline and rain (ShipWeather) multiply colour
+ * (`dry`) and roughness (`gloss`) over any fire damage (`scorch`). `timber`, where given, is timber decking's own response:
+ * porous wood darkens more when wet than paint does. */
+export interface PaintWeathering extends WetResponse { timber?: WetResponse; scorch?: PaintScorch }
 
 /** Glazing: window and porthole glass and the lenses of directors, rangefinders and searchlights. Recipes and the catalog
  * model it as opaque paint, a dark tint and mostly a matte finish (premade `… glass` and `Bridge glazing` materials, the
@@ -88,14 +96,19 @@ export class ShipMaterialPalette {
       return node;
     };
     const unwrap = (node: THREE.Node | null) => node && (this.weatheredBases.get(node) ?? node);
-    const color = unwrap(material.colorNode) ?? materialColor;
-    // Paint scales its whole colour, alpha included, as it always has; teak keeps its opaque planks.
+    const color = unwrap(material.colorNode) ?? materialColor, scorch = weathering.scorch;
+    // Paint scales its whole colour, alpha included, as it always has; teak keeps its opaque planks. Fire damage
+    // changes only the colour, and the wet band and rain darken damaged paint too.
+    const rgb = (c: THREE.Node<'vec4'>) => scorch ? scorch.color(c.rgb) : c.rgb;
     material.colorNode = color === materialColor || !teak
-      ? shared(color, () => (color as THREE.Node<'vec4'>).mul(response.dry))
-      : shared(color, () => vec4((color as THREE.Node<'vec4'>).rgb.mul(response.dry), (color as THREE.Node<'vec4'>).a));
+      ? shared(color, () => scorch ? vec4(rgb(color as THREE.Node<'vec4'>), (color as THREE.Node<'vec4'>).a).mul(response.dry) : (color as THREE.Node<'vec4'>).mul(response.dry))
+      : shared(color, () => vec4(rgb(color as THREE.Node<'vec4'>).mul(response.dry), (color as THREE.Node<'vec4'>).a));
     const rough = unwrap(material.roughnessNode) ?? roughness;
-    material.roughnessNode = shared(rough, () => (rough as THREE.Node<'float'>).mul(response.gloss));
+    material.roughnessNode = shared(rough, () => (scorch ? scorch.roughness(rough as THREE.Node<'float'>) : rough as THREE.Node<'float'>).mul(response.gloss));
+    // Embers glow over whatever the paint emits itself.
+    if (scorch) material.emissiveNode = this.embers ??= materialEmissive.add(scorch.glow);
   }
+  private embers?: THREE.Node<'vec3'>;
 
   apply(root: THREE.Object3D): void {
     if (this.options.surfaceDetail) root.updateMatrixWorld(true);

@@ -170,3 +170,17 @@ test('the effects setting thins fire emission', () => {
   });
   expect(counts[1]).toBeLessThan(counts[0] * .7);
 });
+
+test('a lost hull burns on as the battle left her, each fire until the sea closes over it', () => {
+  const sim = new CombatSimulation(def), fx = new LocalizedFireEffects();
+  burn(sim.player.damage.control.mounts[0]);
+  sim.player.damage.sunk = true;
+  run(fx, sim, 3);
+  expect(fx.diagnostics().flames).toBeGreaterThan(0);
+  expect(fx.diagnostics().sources).toBe(1);
+  // Settled below the turret roof: nothing more of that fire draws.
+  sim.player.motion.y = -(def.mounts[0].position[1] + def.mounts[0].weapon.gunhouseSize[2] + 1);
+  run(fx, sim, 3);
+  expect(fx.diagnostics()).toMatchObject({ sources: 0, flames: 0 });
+  fx.dispose();
+});

@@ -44,6 +44,7 @@ import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { ShipOcclusion } from './ShipOcclusion';
 import { ShipWeather } from './ShipWeather';
+import { ShipScorch } from './ShipScorch';
 import { loadShipModel } from './loadShipModel';
 import { Sky } from './sky/Sky';
 import type { SkyApi } from './sky/contracts';
@@ -183,8 +184,11 @@ export class Game {
   /** Hulls darken and gloss just above the sea they sit in (the FFT waves plus the wake and bow waves), over bows driven
    * into a seaway, and wherever rain falls on them. */
   private readonly shipWeather = new ShipWeather();
+  /** Soot, char and burn-out that fires and strikes leave on the paint, cleared with the battle. */
+  private readonly scorch = new ShipScorch();
   /** One palette for every hull kept, so paint still collapses across cached fleets. */
-  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true, weathering: this.shipWeather });
+  private readonly palette = new ShipMaterialPalette({ surfaceDetail: true,
+    weathering: { dry: this.shipWeather.dry, gloss: this.shipWeather.gloss, timber: this.shipWeather.timber, scorch: this.scorch } });
   private readonly occlusion: ShipOcclusion;
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
@@ -690,7 +694,7 @@ export class Game {
       this.endFollow(); this.spectatedShipId = undefined; this.selectedShipIds = [];
       this.selectedFlightId = undefined; this.selectFlights([]); this.spectator.forgetHelm();
       this.inspectionHover?.clear(); this.inspecting = false; this.damageInspectionShipId = undefined;
-      this.fleetViews.forEach(view => { view.inspect(false); view.impactMarks.clear(); view.snap(); });
+      this.fleetViews.forEach(view => { view.inspect(false); view.impactMarks.clear(); view.snap(); }); this.scorch.clear();
       this.syncControlledShip(); this.observedShipViews?.clear(); this.aircraftView.reset();
       this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity);
       this.effects.reset(); this.funnelSmoke.reset(); this.shipWake?.reset(); this.audio?.reset(session);
@@ -734,7 +738,7 @@ export class Game {
     try {
       await this.frameTask; cancelAnimationFrame(this.raf);
       await session.resetTrial(); this.assertActive(); this.battleRevision++; this.environment.setOverrides({});
-      this.fleetViews.forEach(view => { view.impactMarks.clear(); view.snap(); });
+      this.fleetViews.forEach(view => { view.impactMarks.clear(); view.snap(); }); this.scorch.clear();
       this.syncControlledShip(); this.effects.reset(); this.funnelSmoke.reset(); this.shipWake?.reset(); this.audio?.reset(session);
       this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity); this.trail = []; this.lastTrailTick = 0;
       await this.frame(performance.now(), true);
@@ -965,6 +969,7 @@ export class Game {
       const previous = [...this.fleetModels, ...this.fleetViews.map(view => view.root)];
       this.fleetDraws?.dispose();
       this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); view.root.removeFromParent(); });
+      this.scorch.clear();
       this.scene.add(...views.map(view => view.root), this.aircraftView.root);
       this.simulation.dispose?.();
       this.definition = definition; this.simulation = simulation;
@@ -1216,6 +1221,9 @@ export class Game {
           view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
+      // Fire damage reads the matrices just prepared; the port shows a ship as she was built.
+      if (this.inPort) this.scorch.clear();
+      else this.scorch.update(this.fleetViews, this.simulation.events, presentationDt, this.camera, this.effectLighting.wind);
       const emptyBerth = this.inPort && this.berthEmpty;
       this.aircraftView.update(this.simulation, this.camera, !emptyBerth && !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       // Labels use the aircraft poses just drawn this frame, including observed smoothing.
@@ -1980,7 +1988,8 @@ export class Game {
         construction: actor.definition.construction ? { massKg: actor.definition.hull.massKg, loading: actor.definition.loading,
           compartments: structuredClone(actor.damage.compartments), modules: structuredClone(actor.damage.modules), stability: { ...actor.damage.stability }, mounts: structuredClone(actor.mounts) } : undefined })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
-        impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),
+        impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls, scorchSpots: this.scorch.spots(view).length, burnout: this.scorch.burnout(view) })),
+      scorch: this.scorch.diagnostics(),
       renderedAircraft: this.aircraftView.diagnostics(),
       aircraft: this.simulation.aircraft.map(p => ({ ...p, position: [...p.position] })),
       airReleases: this.simulation.airReleases.map(p => ({ ...p })),
@@ -2053,6 +2062,7 @@ export class Game {
     this.display?.dispose();
     this.scenePass?.dispose();
     this.occlusion.dispose();
+    this.scorch.dispose();
     this.armorOverlay?.dispose();
     this.shipWake?.dispose();
     await this.aircraftView.dispose();

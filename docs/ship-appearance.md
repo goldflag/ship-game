@@ -54,8 +54,9 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   coating. Timber goes only on weather decks; roofs, gun platforms and painted-steel
   decks stay steel.
 - **Well-maintained default:** use low-contrast fading, fine surface variation,
-  restrained runoff and a narrow waterline stain. Strong rust, exposed chips,
-  missing paint and battle damage need a separate supported treatment. Avoid
+  restrained runoff and a narrow waterline stain. Strong rust, exposed chips and
+  missing paint need a separate supported treatment; battle damage has its own
+  (see [Battle damage](#battle-damage)). Avoid
   uniform dirt overlays, repetitive black grids and painted-in lighting/shadows.
 - **Scale in meters:** surface grain and wear have a physical scale independent
   of ship length. Resolution may vary with surface area, within asset budgets.
@@ -205,3 +206,34 @@ the runtime In commission mottle, which already matches the Scharnhorst design (
 3 % fine and 4 % broad luminance variation on a hull side). This is a
 material-quality pass against existing briefs, not a new historical-accuracy claim
 or acceptance of documented geometry limitations.
+
+## Battle damage
+
+Damage that stays on a ship in battle is drawn at runtime over the shared paint, the
+same for premade and player-built ships, and never baked or authored. Nothing in the
+simulation reads it.
+
+- **Impact marks** (`ShipImpactMarks.ts`): mesh-conforming decals for each strike, the
+  latest 96 per ship, from a procedural atlas (`ImpactTexture.ts`).
+- **Scorch** (`ShipScorch.ts`): soot and charred paint where fires burned and around
+  strikes. A burning compartment chars the deck or roof its vent opens onto and soots
+  the plating above it, leaning downwind with the smoke; a burning gunhouse chars and
+  soots itself; soot and char grow over the fire's life and outlast it. HE bursts and
+  penetrations scorch about 1.3 and 0.75 times their mark's width in radius; strikes
+  close together merge. Each ship keeps 20 scorched places, fires first.
+- **Burn-out**: a lost ship (`damage.sunk`) burns out over about ten seconds while she
+  settles: charcoal and the rust-brown of steel whose paint has burned away, matte and
+  blistered close to, patchy, heaviest on her superstructure and where her fires were,
+  her decks burned in patches and the hull above the sea scorched thinly. Gunfire and
+  magazine losses burn out fully; flooding and capsize by 35 % plus her fires. Her fires
+  burn on until the sea reaches each, and a few embers glow in the charred seats, a dull
+  orange that reads at night and hardly by day.
+
+The ship paint is shared across hulls and drawn in fleet batches, so the per-ship damage
+lives in one float texture read with `textureLoad` (no sampler): a row for each of the 16
+nearest damaged hulls with its bounds, world-to-hull matrix and spots. A fragment finds
+its hull by position and works in the hull frame, so the damage follows every batch,
+detail level, turret and list. With no damaged hull in view the paint skips it on one
+uniform. It clears when the battle resets or the ship returns to port. Review it with
+`bun scripts/browser/effects-review.ts --scene s-fire,s-hits,s-burnout`, whose frames
+include the same view with the scorch switched off.
