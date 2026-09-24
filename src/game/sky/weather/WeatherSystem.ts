@@ -33,6 +33,9 @@ const BOLT_VISIBILITY = { dry: 40000, rain: 11000 };
 const AIR = .85, AIR_LIGHTNING = .12, AIR_LIGHTNING_G = .6;
 /** Where a ground bolt ends below sea level (m), so it meets the waves even in a trough. */
 const BOLT_FOOT = -3;
+/** Share of a flash's radiant intensity that reaches the sea directly: all of a ground stroke's channel, which hangs in the
+ * open below the base; little of an intra-cloud flash, which the cloud scatters into the diffuse `flash` it also gives. */
+const DIRECT_SHARE = { ground: 1, cloud: .2 } as const;
 
 export interface WeatherOptions {
   /** Height of the drawn sea (waves and wake) at world XZ, for splashes that sit on the water. */
@@ -87,6 +90,7 @@ export class WeatherSystem implements WeatherPart {
 
   get strike(): Strike | null { return this.active; }
   get flash(): number { return this.flashValue; }
+  readonly boltLight = { position: new Vector3(), intensity: 0 };
 
   apply(scene: SkyScene): void {
     const { weather, clouds } = scene;
@@ -145,7 +149,7 @@ export class WeatherSystem implements WeatherPart {
   }
 
   /** Diagnostics: end any flash now (a forced one never ends on paused frames). */
-  clearStrike(): void { this.active = null; this.boltVisible = false; this.flashValue = 0; }
+  clearStrike(): void { this.active = null; this.boltVisible = false; this.flashValue = this.boltLight.intensity = 0; }
 
   postProcess(scenePass: PassNode, color: Node<'vec4'>): Node<'vec4'> {
     return rainHaze(scenePass, color, { strength: this.hazeStrength, height: this.hazeHeight, ceiling: this.hazeCeiling, air: this.air,
@@ -178,7 +182,7 @@ export class WeatherSystem implements WeatherPart {
     const { rain } = this;
     this.boltVisible = false;
     if (!this.active) {
-      this.flashValue = rain.boltIrradiance.value = 0;
+      this.flashValue = rain.boltIrradiance.value = this.boltLight.intensity = 0;
       this.bolt.main.value = this.bolt.branches.value = 0;
       return;
     }
@@ -186,8 +190,13 @@ export class WeatherSystem implements WeatherPart {
     this.flashValue = flashAt(active.kind, active.brightness, distance);
     rain.boltIrradiance.value = active.intensity * (1000 / distance) ** 2;
     rain.boltDirection.value.copy(toStrike).divideScalar(distance);
+    const air = BOLT_VISIBILITY.dry + (BOLT_VISIBILITY.rain - BOLT_VISIBILITY.dry) * this.precipitation;
+    // Direct light shines from the middle of a ground stroke's channel, or from the base lit under a cloud flash, dimmed
+    // by the air on its way to the scene around the camera.
+    if (active.kind === 'ground') this.boltLight.position.lerpVectors(active.top, active.ground, .5);
+    else this.boltLight.position.copy(active.top);
+    this.boltLight.intensity = active.intensity * DIRECT_SHARE[active.kind] * Math.exp(-this.boltLight.position.distanceTo(camera) / air);
     if (active.kind === 'ground') {
-      const air = BOLT_VISIBILITY.dry + (BOLT_VISIBILITY.rain - BOLT_VISIBILITY.dry) * this.precipitation;
       const clarity = Math.exp(-active.ground.distanceTo(camera) / air) * BOLT_RADIANCE;
       this.bolt.origin.value.subVectors(active.ground, camera);
       this.bolt.main.value = active.brightness * clarity;

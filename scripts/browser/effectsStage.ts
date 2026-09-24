@@ -12,6 +12,7 @@ import type { Game } from '../../src/game/Game';
 import type { CombatEvent, FleetActor } from '../../src/game/session/elements';
 import { muzzleWorld, shotDirection } from '../../src/game/mountGeometry';
 import { localToWorld } from '../../src/game/geometry';
+import { raycastSurface } from '../../src/game/SurfaceChunks';
 import { SHIP_PACE } from '../../src/ships/mobility';
 import { BerthMotion } from '../../src/game/BerthMotion';
 import type { EnvironmentOverrides } from '../../src/game/VisualEnvironment';
@@ -22,12 +23,14 @@ const DT = 1 / 60;
 /** `any` access to the Game's private presentation members, confined to this development stage. */
 interface GameInternals {
   simulation: Game['simulation'];
-  fleetViews: { actor: FleetActor; motion: FleetActor['motion']; root: THREE.Object3D; definition: FleetActor['definition'];
+  fleetViews: { actor: FleetActor; motion: FleetActor['motion']; root: THREE.Object3D; model: THREE.Object3D; definition: FleetActor['definition'];
     capturePreviousPose(): void; update(alpha?: number): void; impactMarks: { update(events: readonly CombatEvent[], id: string, budget: { remainingMs: number }, pose: () => void): void; clear(): void } }[];
   effects: { update(sim: unknown, dt: number, camera: THREE.Camera, opticsShipId?: string, poses?: unknown): void; reset(): void; diagnostics(): unknown; sequence: number };
   funnelSmoke: { update(ships: unknown, dt: number, camera: THREE.Camera, hidden?: string): void; reset(): void; diagnostics(): unknown };
   shipWake?: { update(ships: unknown, dt: number, events: readonly CombatEvent[], camera?: THREE.Camera, torpedoes?: unknown[]): void; resetImpacts(): void };
   wakeShips(): unknown[];
+  scorch: { update(views: unknown, events: readonly CombatEvent[], dt: number, camera: THREE.Camera, drift: THREE.Vector3): void; clear(): void; diagnostics(): unknown };
+  effectLighting: { wind: THREE.Vector3 };
   rig: { update: (...args: unknown[]) => void };
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGPURenderer & { _nodes: { nodeFrame: { update(): void } } };
@@ -68,6 +71,8 @@ export interface CameraOptions {
   ship?: number;
   offset?: Vec3;
   look?: Vec3;
+  /** Follow only the ship's place and heading, not her heave, list or trim: a camera that stays above a sinking ship's sea. */
+  level?: boolean;
   /** World-space alternative. */
   position?: Vec3;
   target?: Vec3;
@@ -91,6 +96,9 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
   const controls = new Map<FleetActor, string>();
   const mounts = new Map<FleetActor, string>();
   const speeds = new Map<FleetActor, number>();
+  /** Lost ships settling: list reached, and her sinking speed as the battle's `update_sinking` sets it. */
+  const sinking = new Map<FleetActor, { list: number; verticalSpeed: number }>();
+  const losses = new Map<FleetActor, string>();
 
   // Reads only `events`, `shells` and the other lists the effect systems consume;
   // everything else (actors, tick, interpolation) is the frozen live session.
@@ -138,6 +146,8 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
       motions.set(v.actor, { ...v.actor.motion });
       controls.set(v.actor, JSON.stringify(v.actor.damage.control));
       mounts.set(v.actor, JSON.stringify(v.actor.mounts));
+      const { sunk, defeatCause, stability: { status, combatLost } } = v.actor.damage;
+      losses.set(v.actor, JSON.stringify({ sunk, defeatCause: defeatCause ?? null, status, combatLost }));
     }
     const live = sim().events.reduce((max, event) => Math.max(max, event.sequence), 0);
     sequence = Math.max(live, g.effects.sequence) + 1000;
@@ -151,9 +161,13 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
       Object.assign(v.actor.motion, motions.get(v.actor));
       Object.assign(v.actor.damage.control, JSON.parse(controls.get(v.actor)!));
       JSON.parse(mounts.get(v.actor)!).forEach((m: object, i: number) => Object.assign(v.actor.mounts[i], m));
+      const loss = JSON.parse(losses.get(v.actor)!);
+      Object.assign(v.actor.damage, { sunk: loss.sunk, defeatCause: loss.defeatCause ?? undefined });
+      Object.assign(v.actor.damage.stability, { status: loss.status, combatLost: loss.combatLost });
       v.impactMarks.clear();
     }
-    speeds.clear(); events = []; elapsed = 0;
+    g.scorch.clear();
+    speeds.clear(); sinking.clear(); events = []; elapsed = 0;
     g.effects.reset(); g.effects.sequence = sequence;
     g.funnelSmoke.reset(); g.shipWake?.resetImpacts();
     settleViews();
@@ -210,7 +224,11 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
     const end = new THREE.Vector3(...localToWorld(local, target.motion));
     root.updateMatrixWorld(true);
     const ray = new THREE.Raycaster(origin, end.clone().sub(origin).normalize(), 0, hull.beam * 3);
-    const struck = ray.intersectObject(root, true).find(result => result.face);
+    // The model's own surfaces, whatever their layers (fleet batches draw most of them and mask the source's layers to 0);
+    // the hidden damage-control volumes beside them are not plating.
+    const surfaces: THREE.Intersection[] = [];
+    view(targetIndex).model.traverse(node => { if ((node as THREE.Mesh).isMesh) surfaces.push(...raycastSurface(node as THREE.Mesh, ray)); });
+    const struck = surfaces.sort((a, b) => a.distance - b.distance).find(result => result.face);
     let position: Vec3;
     if (struck && !options.at) {
       position = struck.point.toArray() as Vec3;
@@ -218,12 +236,17 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
     } else position = localToWorld(local, target.motion);
     const incoming = new THREE.Vector3(...position).sub(new THREE.Vector3(from.motion.x, position[1] + 400, from.motion.z)).normalize().multiplyScalar(700);
     const shell = { id: ++shellId, caliberM, type: kind === 'burst' ? 'HE' as const : 'AP' as const, velocity: incoming.toArray() as Vec3 };
+    // Where the battle's contact event puts it: the hull frame, as the impact marks and the scorch read it.
+    const inverse = root.matrixWorld.clone().invert();
+    const surfaceImpact = { position: new THREE.Vector3(...position).applyMatrix4(inverse).toArray() as Vec3,
+      normal: new THREE.Vector3(...normal).transformDirection(inverse).toArray() as Vec3, direction: incoming.clone().transformDirection(inverse).toArray() as Vec3,
+      outcome: kind === 'ricochet' ? 'ricochet' as const : kind === 'penetration' ? 'penetration' as const : 'stopped' as const };
     if (kind === 'magazine') {
       const magazine = target.definition.modules.find(m => m.kind === 'magazine');
       position = localToWorld(magazine ? [magazine.center[0], magazine.center[1], magazine.center[2]] : [0, 4, -hull.length * .3], target.motion);
       push({ kind: 'module', shipId: target.motion.id, position, detonation: true });
-    } else if (kind === 'burst') push({ kind: 'burst', shipId: target.motion.id, position, detonation: true, blastRadiusM: options.blastRadiusM ?? caliberM * 12, shell, normal });
-    else push({ kind, shipId: target.motion.id, position, normal, shell, hullDamage: undefined });
+    } else if (kind === 'burst') push({ kind: 'burst', shipId: target.motion.id, position, detonation: true, blastRadiusM: options.blastRadiusM ?? caliberM * 12, shell, normal, surfaceImpact });
+    else push({ kind, shipId: target.motion.id, position, normal, shell, hullDamage: undefined, surfaceImpact });
     return position;
   }
 
@@ -271,6 +294,16 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
     return { rooms, mounts: options.mounts ?? [] };
   }
 
+  /** Lose a ship as the battle does (`damage.sunk` with its cause); `advance` then settles her at the battle's sinking
+   * speed while she lists `listDeg` degrees away from the player. */
+  function sink(shipIndex = 1, options: { cause?: FleetActor['damage']['defeatCause']; listDeg?: number } = {}): void {
+    freeze();
+    const a = actor(shipIndex);
+    Object.assign(a.damage, { sunk: true, defeatCause: options.cause ?? 'hull-failure' });
+    Object.assign(a.damage.stability, { status: 'sinking', combatLost: true });
+    sinking.set(a, { list: THREE.MathUtils.degToRad(options.listDeg ?? 8) * -facing(shipIndex), verticalSpeed: 0 });
+  }
+
   /** Scripted forward speed, as a fraction of the ship's full ahead; `advance` moves the hull. */
   function underway(shipIndex = 0, fraction = 1): void {
     freeze();
@@ -284,7 +317,7 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
     const c = g.camera;
     if (options.fov) { c.fov = options.fov; c.updateProjectionMatrix(); }
     if (options.ship !== undefined) {
-      const pose = actor(options.ship).motion;
+      const motion = actor(options.ship).motion, pose = options.level ? { ...motion, y: 0, roll: 0, pitch: 0 } : motion;
       c.position.set(...localToWorld(options.offset ?? [260, 60, 120], pose));
       c.lookAt(...localToWorld(options.look ?? [0, 12, 0], pose));
     } else if (options.position && options.target) {
@@ -303,13 +336,21 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
         a.motion.x += Math.sin(a.motion.heading) * speed * SHIP_PACE * DT;
         a.motion.z -= Math.cos(a.motion.heading) * speed * SHIP_PACE * DT;
       }
-      if (speeds.size) { settleViews(); place(); }
+      for (const [a, state] of sinking) {
+        // naval-sim `update_sinking`: down at up to 0.65 m/s, gathering 0.015 m/s each second.
+        state.verticalSpeed = Math.max(-.65, Math.min(state.verticalSpeed, -.08) - .015 * DT);
+        a.motion.y += state.verticalSpeed * DT; a.motion.verticalSpeed = state.verticalSpeed;
+        a.motion.roll += (state.list - a.motion.roll) * Math.min(1, DT / 20);
+      }
+      if (speeds.size || sinking.size) { settleViews(); place(); }
       const staged = stageSim();
       g.effects.update(staged, DT, g.camera, undefined, views());
       g.funnelSmoke.update(views(), DT, g.camera);
       // Splashes and crashes stamp their foam on the sea, as a simulation frame's events would.
       g.shipWake?.update(g.wakeShips(), DT, events, g.camera, []);
       for (const v of views()) v.impactMarks.update(events, v.actor.motion.id, { remainingMs: 50 }, () => v.update(1));
+      for (const v of views()) v.root.updateMatrixWorld();
+      g.scorch.update(views(), events, DT, g.camera, g.effectLighting.wind);
       elapsed += DT;
     }
   }
@@ -407,14 +448,14 @@ export function installStage(game: Game, { seaTime }: { seaTime?: number } = {})
   }
 
   return {
-    freeze, reset, aim, fire, problems, hit, splash, flak, burn, underway, camera: place, advance, render, capture, weather, facing, measure, effectsCost,
+    freeze, reset, aim, fire, problems, hit, splash, flak, burn, sink, underway, camera: place, advance, render, capture, weather, facing, measure, effectsCost,
     get elapsed() { return elapsed; },
     ships: () => views().map((v, i) => ({ index: i, id: v.actor.motion.id, preset: v.definition.id, team: v.actor.team,
       position: [v.actor.motion.x, v.actor.motion.z], heading: v.actor.motion.heading,
       vents: v.definition.compartments.filter(c => c.fire?.ventPosition).length, mounts: v.definition.mounts.length })),
     /** Record a measurement or finding; it lands in the scene's diagnostics.json and the CLI output. */
     note: (key: string, value: unknown) => { notes[key] = value; },
-    diagnostics: () => ({ notes: { ...notes }, effects: g.effects.diagnostics(), funnelSmoke: g.funnelSmoke.diagnostics(), elapsed }),
+    diagnostics: () => ({ notes: { ...notes }, effects: g.effects.diagnostics(), funnelSmoke: g.funnelSmoke.diagnostics(), scorch: g.scorch.diagnostics(), elapsed }),
     game,
   };
 }

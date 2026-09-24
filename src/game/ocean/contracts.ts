@@ -187,6 +187,11 @@ export interface WakeSampler {
   /** Density 0–1 of the bubble clouds just under churned water, which light the water body turquoise; absent reads
    * as none. */
   bubbles?(x: Node<'float'>, z: Node<'float'>): Node<'float'>;
+  /** Hulls standing over the water at the drawn point (`x`, `z` anchor it as for foam): `x` the share of the sky's light
+   * their sides hide from it, `y` the share of the mirrored lobe along `direction` (spread `spread` radians in the plane
+   * of incidence) that meets a hull's side instead of the sky, `zw` that side's horizontal outward normal. Absent reads
+   * as open water. */
+  shelter?(x: Node<'float'>, z: Node<'float'>, direction: Node<'vec3'>, spread: Node<'float'>): Node<'vec4'>;
 }
 
 export interface WakeGeneratorOptions {

@@ -144,7 +144,7 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
           id: 'waterShadows',
           label: 'Water shadows',
           cost: 2,
-          hint: 'Higher quality softens ship shadows on the sea. Lower settings save GPU time.',
+          hint: 'Ship shadows on the sea and the darker water beside hulls. Higher quality filters the shadows as on the ships; Off saves GPU time.',
           options: [
             ['off', 'Off'],
             ['low', 'Low'],

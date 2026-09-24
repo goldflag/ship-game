@@ -83,10 +83,16 @@ test('the ocean realism switch rebinds the realistic wake live, and off restores
   realism.wake = false;
   wake.update([], .1);
   expect(bindings).toHaveLength(2);
-  expect(Object.keys(bindings[1]!).sort()).toEqual(['foam', 'height', 'normal']);
+  expect(Object.keys(bindings[1]!).sort()).toEqual(['foam', 'height', 'normal', 'shelter']);
+  // Without the hull shelter too, the surface reads exactly the original sampler.
+  wake.shelter = false;
+  wake.update([], .1);
+  expect(bindings).toHaveLength(3);
+  expect(Object.keys(bindings[2]!).sort()).toEqual(['foam', 'height', 'normal']);
   realism.wake = true;
   wake.update([], 0);
-  expect(bindings).toHaveLength(3);
-  expect(bindings[2]?.slick).toBeFunction();
+  expect(bindings).toHaveLength(4);
+  expect(bindings[3]?.slick).toBeFunction();
+  expect(bindings[3]?.shelter).toBeUndefined();
   wake.dispose();
 });

@@ -9,6 +9,7 @@
  * instead of peaking in round blobs. Their normalised blend is a standard normal "breaking indicator" peaking on the
  * forward face; a crest breaks where it passes a quantile chosen for the coverage the wind calls for. The foam that
  * covers the sea therefore follows the wind, whatever the wavelengths, heights or choppiness of the waves that carry it. */
+import { groupShare } from './groups';
 import type { WaveSpectrum } from './spectrum';
 import { GRAVITY } from './spectrum';
 
@@ -142,12 +143,13 @@ export function whitecapArea(windSpeed: number, scale = 1): number {
   return 1 - (1 - total) / (1 - rows);
 }
 
-/** The whitecaps' optical depth to inject for `windSpeed`, with the coverage scaled by `scale`: −ln(1 − W) for the
+/** The whitecaps' optical depth to inject for `windSpeed`, with the coverage scaled by `scale`: −ln(1 − W/g) for the
  * coverage W the whitecaps must add to the windrows' (which overlap them at random) to cover the wind's share of the
- * sea, raised against saturation. Patches land at random, so a cascade breaking over a fraction q of the sea covers
- * 1 − e^(−K·q) of it (K its persistence) and independent cascades overlap multiplicatively; shares of this depth add. */
+ * sea, gathered into the breaking groups' share g of it (groups.ts), raised against saturation. Patches land at random,
+ * so a cascade breaking over a fraction q of a tile covers 1 − e^(−K·q) of it (K its persistence) and independent
+ * cascades overlap multiplicatively; shares of this depth add. */
 export function whitecapDepth(windSpeed: number, scale = 1): number {
-  const depth = -Math.log(1 - whitecapArea(windSpeed, scale));
+  const area = whitecapArea(windSpeed, scale), depth = -Math.log(1 - area / groupShare(area));
   return depth / Math.max(1 / MAX_BOOST, 1 - SATURATION * depth);
 }
 

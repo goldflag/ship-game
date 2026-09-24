@@ -57,29 +57,22 @@ function ladder(first: number, ratio: number, last: number): number[] {
 export const HEEL_ANGLES = [...ladder(3, 1.5, 90), 105, 120, 140, 160, 180].map(degrees);
 export const TRIM_ANGLES = (() => { const l = ladder(.8, 1.5, 90); return [...l.slice(1).reverse().map(n => -n), ...l].map(degrees); })();
 export const VOLUME_STEPS = 32;
-/** Displacement fraction of node k, shared by every orientation so that their
+/** Displacement fraction of each node, shared by every orientation so that their
  * interpolation errors run together and cancel between tabulated angles. Nodes
  * thicken at both ends, where a metre of draft buys the least volume, and around
- * the deck edge going under (DECK_EDGE), where a metre of draft suddenly buys
- * much less than it did: a fifth of the nodes, spread about 87% of the hull's
- * volume, where every catalog hull's worst draft error sat with cosine spacing. */
-const DECK_EDGE = { share: .2, at: .87, width: .08 };
-/** Abramowitz and Stegun 7.1.26, good to 1.5e-7: ample for placing nodes. */
-const erf = (x: number) => {
-  const t = 1 / (1 + .3275911 * Math.abs(x)), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x);
-  return x < 0 ? -y : y;
-};
-/** Share of the nodes below displacement fraction f: cosine spacing plus the deck-edge band. */
-function nodeShare(f: number): number {
-  const { share, at, width } = DECK_EDGE, edge = (x: number) => erf((x - at) / (width * Math.SQRT2));
-  return (1 - share) * Math.acos(1 - 2 * f) / Math.PI + share * (edge(f) - edge(0)) / (edge(1) - edge(0));
-}
-/** The fraction below which k of the steps fall, by bisection; nodeShare rises monotonically. */
-const fraction = (k: number, steps: number) => {
-  let low = 0, high = 1;
-  for (let i = 0; i < 60; i++) { const mid = (low + high) / 2; if (nodeShare(mid) < k / steps) low = mid; else high = mid; }
-  return (low + high) / 2;
-};
+ * the deck edge going under, where a metre of draft suddenly buys much less than
+ * it did: cosine spacing for four fifths of the nodes, and a fifth spread normally
+ * about 87% of the hull's volume (sigma 8%), where every catalog hull's worst draft
+ * error sat with cosine spacing alone. Written out rather than computed: acos and
+ * exp round differently on macOS and Linux, and the published table must come out
+ * byte-identical wherever it is solved. */
+const FRACTIONS = [
+  0, 0.00376, 0.014984, 0.033504, 0.059039, 0.091208, 0.129524, 0.173414, 0.222215, 0.275194, 0.331555,
+  0.390449, 0.450991, 0.512269, 0.573323, 0.632753, 0.68708, 0.731339, 0.765266, 0.792135, 0.814707, 0.83468,
+  0.85309, 0.870617, 0.887739, 0.904806, 0.922039, 0.939469, 0.95678, 0.973102, 0.986945, 0.996482, 1,
+];
+if (FRACTIONS.length !== VOLUME_STEPS + 1) throw new Error('One displacement fraction per node');
+const fraction = (k: number) => FRACTIONS[k];
 
 interface Sections { vx: Float64Array; vy: Float64Array; start: Int32Array; dz: Float64Array; z: Float64Array; count: number }
 /** The same station loft as the mesh solver, flattened for repeated clipping. */
@@ -157,7 +150,7 @@ export function buildHydrostaticTable(hull: Hull): HydrostaticTable {
     for (let k = 0; k <= VOLUME_STEPS; k++) {
       let y = k === 0 ? dry : wet;
       if (k > 0 && k < VOLUME_STEPS) {
-        const target = full.volume * fraction(k, VOLUME_STEPS);
+        const target = full.volume * fraction(k);
         while (cursor < scan.length - 2 && scan[cursor + 1] < target) cursor++;
         const a = scan[cursor], b = scan[cursor + 1];
         y = dry + (wet - dry) * (cursor + (b > a ? (target - a) / (b - a) : 0)) / (scan.length - 1);

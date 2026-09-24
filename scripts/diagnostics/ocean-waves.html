@@ -323,6 +323,67 @@ async function coverageFrame(x, z) {
   return sums;
 }
 
+/** How strongly whitecaps repeat with each cascade's tile, after `seconds` of field-only updates at wind `sea`: the
+ * correlation between the whitecaps the surface draws at a point and at the same point one tile along each grid axis,
+ * against a control offset no tile divides, over `samples` instants 4 s apart and four squares each. `drawn` is the near
+ * path's whitecap opacity (512 m squares at 0.5 m per pixel), `spread` the opacity a zoomed-out view draws from the
+ * spread foam (`spreadWhitecaps`; 2,048 m squares at 2 m per pixel, wide enough for the largest tile's groups); each
+ * also as `…Seen`, the correlation of where either shows any foam (opacity over 0.05), what a lattice is seen by. 1 is
+ * a lattice; independent seas read near 0. `only` lets a single cascade break. */
+async function foamLattice(sea, seconds = 15, samples = 3, only) {
+  setSea(sea);
+  time += 1 / 60; field.update(renderer, time, 1 / 60);
+  if (only !== undefined) field.breaking.forEach((breaking, c) => { if (c !== only) breaking.share = 0; });
+  for (let i = 0; i < seconds * 60; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
+  const tiles = field.cascades.map(c => c.size), control = [.37 * tiles[1] + 97.3, .61 * tiles[1] + 53.9];
+  const lags = { ...Object.fromEntries(tiles.flatMap((t, c) => [[`c${c}x`, [t, 0]], [`c${c}z`, [0, t]]])), control };
+  const names = Object.keys(lags), stats = ['drawn', 'drawnSeen', 'spread', 'spreadSeen'];
+  const sums = Object.fromEntries(stats.map(stat => [stat, Object.fromEntries(names.map(name => [name, [0, 0, 0, 0, 0, 0]]))]));
+  for (let sample = 0; sample < samples; sample++) {
+    if (sample) for (let i = 0; i < 240; i++) { time += 1 / 60; field.update(renderer, time, 1 / 60); if (i % 120 === 119) await sync(); }
+    for (const path of ['drawn', 'spread']) for (const [x, z] of [[0, 0], [5000, 0], [0, 5000], [5000, 5000]]) for (let start = 0; start < names.length; start += 3) {
+      const group = names.slice(start, start + 3), values = await latticeFrame(path, x, z, group.map(name => lags[name]));
+      group.forEach((name, g) => {
+        for (const seen of [false, true]) {
+          const s = sums[seen ? `${path}Seen` : path][name];
+          for (let i = 0; i < values.length; i += 4) {
+            let a = values[i], b = values[i + 1 + g];
+            if (seen) { a = a > .05 ? 1 : 0; b = b > .05 ? 1 : 0; }
+            s[0] += a; s[1] += b; s[2] += a * a; s[3] += b * b; s[4] += a * b; s[5]++;
+          }
+        }
+      });
+    }
+  }
+  const correlation = ([a, b, aa, bb, ab, count]) => {
+    const ma = a / count, mb = b / count, va = aa / count - ma * ma, vb = bb / count - mb * mb;
+    return va > 0 && vb > 0 ? +((ab / count - ma * mb) / Math.sqrt(va * vb)).toFixed(3) : 0;
+  };
+  return { wind: params.windSpeed, tiles: tiles.map(t => +t.toFixed(1)),
+    ...Object.fromEntries(stats.map(stat => [stat, Object.fromEntries(names.map(name => [name, correlation(sums[stat][name])]))])) };
+}
+
+/** A square along `path` (see `foamLattice`) with its corner (x, z) from a fixed far point: the whitecap opacity at each
+ * point (red) and at up to three `lags` from it (green, blue, alpha). */
+async function latticeFrame(path, x, z, lags) {
+  const n = 1024, metres = path === 'drawn' ? 512 : 2048, target = new THREE.RenderTarget(n, n, { type: THREE.FloatType, depthBuffer: false });
+  const material = new THREE.NodeMaterial(), base = screenCoordinate.mul(metres / n).add(vec2(2000 + x, 3000 + z));
+  const opacity = xz => {
+    const sample = field.surface(xz);
+    const patterns = foamPatterns(foamMap, xz, float(params.windDirection), float(foamLook.windStretch * 2 + 1), vec3(0, 1, 0));
+    return path === 'drawn'
+      ? whitecapFoam(sample.foam, sample.fresh, sample.foamMean, sample.bubbles, sample.whitecapShare, patterns, { size: float(0), along: float(0), across: float(0) }).opacity
+      : spreadWhitecaps(sample.foamMean, sample.bubbles, patterns.coarse, float(0));
+  };
+  const lagged = [0, 1, 2].map(i => lags[i] ? opacity(base.add(vec2(...lags[i]))) : float(0));
+  material.fragmentNode = vec4(opacity(base), ...lagged);
+  material.blending = THREE.NoBlending;
+  renderer.setRenderTarget(target); new THREE.QuadMesh(material).render(renderer); renderer.setRenderTarget(null);
+  const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, n, n);
+  target.dispose(); material.dispose();
+  return pixels;
+}
+
 /** CPU time of update() (batches without waiting) and GPU-inclusive wall time per update. Other
  * GPU clients (other browsers) inflate the wall time; compare minima across repeated runs. */
 async function timing(updates = 120) {
@@ -348,7 +409,7 @@ window.oceanWaves = {
   async view(name, sea = 'moderate', seconds = 6) {
     setSea(sea); VIEWS[name](); await frames(Math.round(seconds * 60)); return { name, sea, backend, errors: [...errors] };
   },
-  capture, validate, heights, foamCheck, foamCoverage, timing, readLayer, renderer, get field() { return field; },
+  capture, validate, heights, foamCheck, foamCoverage, foamLattice, timing, readLayer, renderer, get field() { return field; },
 };
 renderer.info.autoReset = false;
 setSea('moderate'); build(); VIEWS.near(); await frames(2);

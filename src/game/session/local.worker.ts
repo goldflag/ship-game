@@ -2,6 +2,7 @@ import init, { LocalRuntime, PvePlanner } from '../../generated/naval-wasm/naval
 import manifestUrl from '../../../.build/naval-content/index.json?url';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
+import type { Command } from '../../multiplayer/generated/Command';
 import { assetUrl } from '../../assetUrl';
 import type { FrameUpdate } from './frameDelta';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
@@ -91,6 +92,16 @@ async function loadContent(ids?: string[], mapId?: string): Promise<Uint8Array> 
     JSON.stringify({ ...index, ships, terrain, hydrostatics: index.hydrostatics.filter((t) => selected.some((s) => s.id === t.id)) }),
   );
 }
+/** A development order for any ship, applied as its owner's when the battle reaches `tick` (`LocalRuntime::direct`). */
+export interface DirectedOrder { shipId: string; command: Command; tick: number }
+function direct({ shipId, command, tick }: DirectedOrder): void {
+  try {
+    runtime!.direct(shipId, JSON.stringify(command));
+    self.postMessage({ type: 'direct', shipId, command: command.type, tick, accepted: true });
+  } catch (error) {
+    self.postMessage({ type: 'direct', shipId, command: command.type, tick, accepted: false, message: String(error) });
+  }
+}
 // Requests are serialized: initialization cannot race a queued tick batch.
 // LocalWorkerOperation correlates setup replies by this order and retires the
 // worker if a reply is abandoned; never publish unsolicited setup replies.
@@ -105,7 +116,7 @@ self.onmessage = (
     | { type: 'restart' }
     | { type: 'trial-reset' }
     | { type: 'trial-action'; action: TrialAction }
-    | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[]; wind?: { speed: number; direction: number } }
+    | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[]; wind?: { speed: number; direction: number }; direct?: DirectedOrder[] }
   >,
 ) => {
   chain = chain.then(async () => {
@@ -186,7 +197,17 @@ self.onmessage = (
         detail = ids;
         // Keep the runtime's bounded fixed-step API; high speed batches never
         // alter timestep or block the rendering/input thread.
-        for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
+        // Directed orders (the film driver) land at their own tick whatever the batch size, so a battle stepped a tick at a
+        // time and one stepped six at a time receive them at the same moment.
+        const due = [...(message.direct ?? [])].sort((a, b) => a.tick - b.tick);
+        for (let left = message.ticks; left > 0;) {
+          const now = runtime.tick();
+          while (due.length && due[0].tick <= now) direct(due.shift()!);
+          const ticks = Math.min(6, left, due.length ? due[0].tick - now : 6);
+          runtime.step(ticks);
+          left -= ticks;
+        }
+        due.forEach(direct);
       }
       // Rust walks the frame once and writes only what moved, so the worker
       // parses a FrameUpdate instead of parsing, normalizing and diffing a frame.

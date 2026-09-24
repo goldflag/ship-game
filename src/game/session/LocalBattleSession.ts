@@ -16,6 +16,7 @@ import { localConstructionInput, type LocalConstructionInput, type LocalBattleOp
 import type { HelmCommand } from '../../game/session/elements';
 import { botSelection, portSetup, runtimeSetup, type BattleSetup } from './battleSetup';
 import type { CombatIntent } from './telemetry';
+import type { DirectedOrder } from './local.worker';
 import type { SimulationLoad } from './BattleSession';
 /** Bounds on the scheduler: a batch never exceeds the worker's own limit, and
  * debt beyond a simulated second is unrecoverable rather than merely late. */
@@ -47,6 +48,22 @@ export class LocalBattleSession extends SnapshotSession {
   setSimulationSpeed(speed: 1 | 2 | 4): void {
     if (!this.missionRules || this.disposed || this.result !== 'active' || ![1, 2, 4].includes(speed)) return;
     this.speed = speed; this.accumulator = 0; this.window = { wall: 0, ticks: 0 }; this.cost = { ticks: 0, stepMs: 0, snapshotMs: 0, batches: 0 }; this.achieved = speed;
+  }
+  /** Directed orders waiting for the batch that reaches their tick. */
+  private directed: DirectedOrder[] = [];
+  /** The worker's answer to each directed order, newest last, so a script can report a refused one. */
+  readonly directReplies: { shipId: string; command: Command['type']; tick: number; accepted: boolean; message?: string }[] = [];
+  /** The tick the worker has stepped to: the last frame it sent, applied or still pending. */
+  get workerTick(): number { return this.received?.tick ?? this.tick; }
+  /** Development direction (the film driver): order any ship on either side as its owner would, applied when the battle reaches
+   * `tick` (default: the next batch) whatever the batch sizes, so a battle replayed with the same orders plays out the same. */
+  direct(shipId: string, command: Command, tick = this.workerTick): void {
+    if (!this.actors.some(entry => entry.motion.id === shipId)) throw new Error(`No ship "${shipId}"; ships are ${this.actors.map(entry => entry.motion.id).join(', ')}.`);
+    this.directed.push({ shipId, command, tick });
+  }
+  /** Resolves once no batch is in flight, so a frame stepped by hand (`Game.stepFrame`) applies every tick posted before it. */
+  async batchSettled(): Promise<void> {
+    while (this.busy && this.isBattle && !this.disposed && !this.restartRequest) await new Promise(resolve => setTimeout(resolve, 0));
   }
   onFailure?: (message: string) => void;
   private fail(message: string) { this.pending = undefined; this.busy = false; this.connectionStatus = message; this.phase = 'cancelled'; this.dispose(); this.onFailure?.(message); }
@@ -89,6 +106,11 @@ export class LocalBattleSession extends SnapshotSession {
       if (data.type === 'ack') {
         session.commands.acknowledge(data.sequence, data.accepted ? 'accepted' : 'rejected', data.message);
         session.commandAcknowledged(data.accepted, data.message, data.command, data.shipId);
+      }
+      if (data.type === 'direct') {
+        session.directReplies.push({ shipId: data.shipId, command: data.command, tick: data.tick, accepted: data.accepted, message: data.message });
+        if (session.directReplies.length > 200) session.directReplies.splice(0, 100);
+        if (!data.accepted) console.warn(`Directed ${data.command} for ${data.shipId} refused: ${data.message}`);
       }
       if (data.type === 'snapshot') {
         if (data.cost) { const c = session.cost; c.ticks += data.cost.ticks; c.stepMs += data.cost.stepMs; c.snapshotMs += data.cost.snapshotMs; c.batches++; }
@@ -160,7 +182,11 @@ export class LocalBattleSession extends SnapshotSession {
     const ticks = Math.min(6 * speed, MAX_BATCH_TICKS, availableTicks);
     this.accumulator = Math.max(0, this.accumulator - ticks / 60); this.window.ticks += ticks;
     this.input(this.lastInput.helm, this.lastInput.intent, true); this.busy = true;
-    this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks, detailShipIds: this.detailShipIds, wind: this.pendingWind });
+    // Directed orders ride the batch that reaches their tick; later ones wait for theirs.
+    const end = this.workerTick + ticks, direct = this.directed.filter(order => order.tick < end);
+    this.directed = this.directed.filter(order => order.tick >= end);
+    this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks, detailShipIds: this.detailShipIds, wind: this.pendingWind,
+      ...direct.length ? { direct } : {} });
     this.pendingWind = undefined;
   }
   /** Developer console: the sea physics answer a new wind from the next batch.

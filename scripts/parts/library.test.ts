@@ -42,7 +42,7 @@ describe('original component library', () => {
     expect(await componentHash(root, library, entry, { ...part, muzzleForward: part.muzzleForward + .1 })).not.toBe(hash);
     const other = structuredClone(library); other.components[0].limitations += ' Different review.';
     expect(await componentHash(root, other, entry, part)).toBe(hash);
-    expect(recipeInputs(library, entry)).toContain('assets/parts/ijn-carrier-guns/geometry.py');
+    expect(recipeInputs(library, entry)).toContain('assets/parts/ijn-carrier-guns/type96_triple.py');
     expect(recipeInputs(library, entry).every(p => p.startsWith('assets/'))).toBe(true);
   });
 });

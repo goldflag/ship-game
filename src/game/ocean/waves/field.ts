@@ -8,6 +8,7 @@ import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
 import type { HullFootprint, HullSeaWave, OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
+import { type GroupInputs, breakingGroup, groupCut, groupLayout, groupShare } from './groups';
 import { HullSea, cascadeModes, hullSeaWavelength, splitLevel } from './hullSea';
 import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands } from './spectrum';
@@ -18,6 +19,7 @@ type Float = Node<'float'>;
 type Int = Node<'int'>;
 type TextureMap = ReturnType<typeof texture>;
 const floatUniform = () => uniform(0);
+const vec2Uniform = () => uniform(new Vector2());
 
 /** Fields per cascade layer: displacement (Dx, Dy, Dz, ·), derivatives (∂y/∂x, ∂y/∂z, ∂Dx/∂x, ∂Dz/∂z)
  * and extras (∂Dx/∂z, foam, (∂y/∂x)² + (∂y/∂z)², bubbles). The squared slope is mip-filtered with the slope,
@@ -36,8 +38,8 @@ const BREAKING_RAMP = 3;
 /** A threshold uniform standing for "never breaks". */
 const NEVER = 1e4;
 /** Short waves break on the crests of longer ones: a finer cascade's foam shows in full where the coarser cascades'
- * compression, in their own standard deviations, passes GATE_FULL and not below GATE_NONE. The longer tiles also
- * keep a finer tile's few whitecaps from repeating in a visible lattice. */
+ * compression, in their own standard deviations, passes GATE_FULL and not below GATE_NONE. What keeps a tile's
+ * whitecaps from repeating in a lattice is its breaking groups (groups.ts). */
 const GATE_NONE = -1, GATE_FULL = .75;
 /** The surface's areal compression J that foam density follows is held within these: a fold (J ≤ 0) gathers at
  * most 1 / FOAM_JACOBIAN_MIN, and a stretched back thins foam at most to 1 / FOAM_JACOBIAN_MAX. */
@@ -57,6 +59,8 @@ const BUBBLE_LIFE = .5;
  * spread along it and a little ahead and behind, and a whitecap's foam is drawn out along its crest; a whitecap smaller
  * than its pixel reads as its share of the pixel instead of a fleck (see `foam.ts`). */
 const CREST_SPREAD = 8, CROSS_SPREAD = 2.5;
+/** Each cascade's groups draw from their own noise. */
+const GROUP_SEED = 101;
 /** Folded surfaces keep this much of the Jacobian when correcting slopes, so a fold reads as a
  * steep face instead of an inverted one. */
 const MIN_JACOBIAN = .1;
@@ -164,6 +168,10 @@ export class GpuWaveField implements WaveField {
   private readonly slickShares: ReturnType<typeof floatUniform>[];
   /** 1 / the standard deviation of the compression of the cascades coarser than each one (0 for the coarsest). */
   private readonly gates: ReturnType<typeof floatUniform>[];
+  /** The field's clock (s), and each cascade's breaking groups (`groups.ts`): which of its breakers show where. */
+  private readonly clock = uniform(0);
+  private readonly groupCut = uniform(0);
+  private readonly groups: (GroupInputs & { cells: ReturnType<typeof vec2Uniform>; drift: ReturnType<typeof floatUniform>; age: ReturnType<typeof floatUniform> })[];
   /** How each cascade breaks, for the current spectrum. */
   private breaking: CascadeBreaking[] = [];
   /** The share of the sea whitecaps cover at the current wind (less windrows): `WaveSurfaceSample.whitecapShare`. */
@@ -185,6 +193,7 @@ export class GpuWaveField implements WaveField {
     this.top = Math.max(0, Math.log2(n / COARSEST_TEXELS));
     this.slopes = tier.map(floatUniform);
     this.gates = tier.map(floatUniform);
+    this.groups = tier.map(() => ({ wind: this.wind, clock: this.clock, cut: this.groupCut, cells: vec2Uniform(), drift: floatUniform(), age: floatUniform() }));
     this.tiles = tier.map(floatUniform);
     this.texels = tier.map(floatUniform);
     this.longestWaves = tier.map(floatUniform);
@@ -379,14 +388,17 @@ export class GpuWaveField implements WaveField {
       // A finer cascade's foam shows on the crests of the coarser ones summed so far (their compression is
       // −(∂Dx/∂x + ∂Dz/∂z), gated in its own standard deviations).
       const crests = i ? smoothstep(GATE_NONE, GATE_FULL, strain.x.add(strain.y).mul(this.gates[i]).negate()) : float(1);
-      foam = max(foam, extras.y.mul(detail).mul(crests));
+      // Of those, the breakers its groups let break here, where they were when the patch was born (see groups.ts).
+      const shown = crests.mul(breakingGroup(xz, extras.y, extras.w, this.groups[i], GROUP_SEED + i)).mul(detail);
+      foam = max(foam, extras.y.mul(shown));
       // The bubble channel decays twice as fast as the foam, so it is the share of the foam that broke in the last few
       // seconds: the whitecap's dense core.
-      fresh = max(fresh, extras.w.mul(detail).mul(crests));
+      fresh = max(fresh, extras.w.mul(shown));
       // One read serves the bubble cloud and the foam's mean, drawn out along the crests (see CREST_SPREAD).
       const spread = this.spread('extras', xz, i, crestward.mul(max(wide, CREST_SPREAD)), this.wind.mul(max(wide, CROSS_SPREAD)));
-      bubbles = max(bubbles, spread.w.mul(detail).mul(crests));
-      foamMean = max(foamMean, spread.y.mul(detail).mul(crests));
+      const spreadShown = crests.mul(breakingGroup(xz, spread.y, spread.w, this.groups[i], GROUP_SEED + i)).mul(detail);
+      bubbles = max(bubbles, spread.w.mul(spreadShown));
+      foamMean = max(foamMean, spread.y.mul(spreadShown));
       slope = slope.add(stilled(derivatives.xy.mul(detail), this.slickShares[i]));
       strain = strain.add(vec3(derivatives.zw, extras.x).mul(detail));
       const filtered = max(extras.z.sub(derivatives.x.mul(derivatives.x)).sub(derivatives.y.mul(derivatives.y)), 0);
@@ -520,8 +532,10 @@ export class GpuWaveField implements WaveField {
     if (!rebuilt && dt <= 0 && phase === this.lastPhase) return;
     this.lastPhase = phase; this.phase.value = phase;
     this.elapsed.value = Math.max(0, dt);
+    this.clock.value = time;
     setBreakingThresholds(this.breaking, whitecapDepth(this.params.windSpeed, this.foamParams.coverageScale));
     this.whitecapShare.value = whitecapArea(this.params.windSpeed, this.foamParams.coverageScale);
+    this.groupCut.value = groupCut(groupShare(this.whitecapShare.value));
     const target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), level = renderer.getActiveMipmapLevel(), mrtState = renderer.getMRT();
     try {
       renderer.setMRT(null);
@@ -562,6 +576,11 @@ export class GpuWaveField implements WaveField {
     this.breakingWeights.value.set(breaking.compression, breaking.face);
     this.breakingThreshold.value = Math.min(NEVER, breaking.threshold);
     this.decay.value = Math.max(1e-3, this.foamParams.lifetime * breaking.period);
+    // Its groups follow its breaking waves; a patch's age is its bubbles' e-folding against its foam's.
+    const groups = this.groups[c], layout = groupLayout(breaking.period, this.cascades[c].size);
+    groups.cells.value.set(1 / layout.length, 1 / layout.width);
+    groups.drift.value = layout.drift;
+    groups.age.value = this.decay.value * BUBBLE_LIFE / (1 - BUBBLE_LIFE);
     // Spreading along the texel axes from the wind-aligned rates: D·dt/Δx², held below the explicit scheme's limit.
     const texel = this.cascades[c].size / this.size, gain = Math.max(0, dt) / (texel * texel);
     const wx = this.wind.value.x, wz = this.wind.value.y, period = breaking.period;
