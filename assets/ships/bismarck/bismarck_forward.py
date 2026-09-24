@@ -419,7 +419,7 @@ def fore_rangefinder():
   for yy in [3.3,4.45]:rod('Fore main director guard stanchion',(x-.45,sign*yy,31.15),(x-.45,sign*yy,31.95),.02,materials['edge'],detailcol,vertices=4)
   rod('Fore main director guard bracket',(x-.45,sign*5.65,31.45),(x,sign*5.45,31.45),.03,materials['edge'],detailcol,vertices=4)
   for zz in [31.3,31.6,31.9]:rod('Fore main director hood rung',(x-1.72,sign*.25,zz),(x-1.72,sign*.6,zz),.018,materials['light'],detailcol,vertices=4)
- rod('Fore main director aerial mast',(x,0,32.55),(x,0,34.35),.16,materials['edge'],detailcol,.03,8)
+ rod('Fore main director aerial mast',(x,0,32.55),(x,0,34.35),.07,materials['edge'],detailcol,.03,8)
  rod('Fore main director aerial spreader',(x,-.3,33.75),(x,.3,33.75),.03,materials['edge'],detailcol,vertices=4)
  for yy in [-.9,.9]:rod('Fore main director aerial stay',(x,0,33.5),(x-.2,yy,32.5),.01,materials['dark'],detailcol,vertices=4)
  radar_pivot('fumo-fore.yaw',(x,0,deck+.34),set(bpy.context.scene.objects)-before)
