@@ -279,6 +279,16 @@ for sy in (-1,1):
  rod('Forward stay',(17.3,0,27.2),(31,sy*4,7.24),.012,'dark',vertices=5)
  rod('After stay',(-13.37,0,35.1),(-100.25,0,12.0),.012,'dark',vertices=5)
  for fx in (1.5,3.0,4.3):rod('Signal halyard',(16.97,sy*fx,24.1+1.85*(fx-.35)/6.25),(24,sy*3,14.3),.009,'rope',vertices=5)
+# Framed torpedo-bay openings in the raised deck's side (keyhole forward, chamfered rectangle aft).
+COL=C['Fittings'];OWNER='deck'
+BAYSIDE=[(8.2,10.0),(18.4,9.96),(25,9.94),(30.2,9.8),(38.8,9.57),(39.7,9.55)]
+def bayw(z):return interp([(a,w) for a,w in BAYSIDE],z)
+c=.3
+for outline in ([(11.33,5.1+c),(11.33+c,5.1),(15.4,5.1),(15.4+c,4.72+.1),(18.9-c,4.72+.1),(18.9,4.72+.1+c),(18.9,6.3-c),(18.9-c,6.3),(11.33+c,6.3),(11.33,6.3-c)],
+                [(31.55,5.1+c),(31.55+c,5.1),(39.1-c,5.1),(39.1,5.1+c),(39.1,6.3-c),(39.1-c,6.3),(31.55+c,6.3),(31.55,6.3-c)]):
+ for sy in (-1,1):
+  pts=[(-z,-sy*(bayw(z)+.035),y) for z,y in outline]
+  for a,b in zip(pts,pts[1:]+pts[:1]):rod('Torpedo bay frame',a,b,.07,'naval',vertices=8)
 # Independent trainable quadruple launchers: stable pivots and muzzle sockets.
 COL=C['Torpedoes']
 for launcher in D['torpedoLaunchers']:
@@ -297,30 +307,92 @@ for launcher in D['torpedoLaunchers']:
   attach(rod('Torpedo release linkage',rear+Vector((.2,.28,.18)),p+Vector((-.5,.28,.18)),.022,'edge'),pivot)
   empty(tube['id']+'.muzzle',tuple(p),pivot)
  for xx in (-2.8,0,2.8):attach(box('Tube support saddle',(xx,0,.4),(.17,3.2,.35),'edge'),pivot)
-# Small fittings: seated anchors, capstans, bollards, hatches, vents and reels.
+# Deck fittings at the reference's positions (runtime x, z -> blender -z, -x): windlasses and cable runs,
+# bollards, fairleads, hatches, ventilators, reels, winches, davits and the quarterdeck gun rails.
 COL=C['Fittings'];OWNER='deck-fittings'
-for x in (-94,-88,-76,-68,74,82,91):
- z=deck(x);w=width(x)
- for sy in (-1,1):
-  y=sy*max(.5,w-1)
-  box('Bollard base',(x,y,z+.08),(1.4,.7,.16),'edge')
-  for xx in (x-.4,x+.4):cyl('Mooring bitt',(xx,y,z+.40),.20,.63);cyl('Bitt cap',(xx,y,z+.73),.26,.08,'edge')
-for x in (-93,-79,-71,72,78):
- z=deck(x);box('Deck hatch coaming',(x,0,z+.12),(1.4,1.3,.22),'edge');box('Deck hatch',(x,0,z+.25),(1.27,1.17,.065),'naval')
- for y in (-.35,.35):rod('Hatch dog',(x-.36,y,z+.30),(x-.18,y,z+.30),.025,'edge')
-for x in (83,88):
- z=deck(x)
- for y in (-1.35,1.35):
-  cyl('Anchor capstan',(x,y,z+.45),.53,.9);cyl('Capstan crown',(x,y,z+.94),.64,.12,'edge')
+def P(x,z):return (-z,-x)
+def on_deck(x,z,raised=False):
+ bx,by=P(x,z);return bx,by,(7.30 if raised else deck(bx))
+def bollards(x,z,ang=0,raised=False):
+ bx,by,d=on_deck(x,z,raised);c,s=math.cos(ang),math.sin(ang)
+ o=box('Bollard base',(bx,by,d+.08),(1.8,.62,.16),'edge');o.rotation_euler.z=ang
+ for k in (-.5,.5):cyl('Mooring bitt',(bx+k*c,by+k*s,d+.42),.21,.68);cyl('Bitt cap',(bx+k*c,by+k*s,d+.78),.27,.08,'edge')
+def fairlead(x,z):
+ bx,by,d=on_deck(x,z);box('Roller fairlead base',(bx,by,d+.1),(1.1,.6,.2),'edge')
+ for k in (-.28,.28):cyl('Fairlead roller',(bx+k,by,d+.45),.14,.55,'edge',vertices=10)
+def hatch(x,z,l,w,h=.25,raised=False):
+ bx,by,d=on_deck(x,z,raised);box('Deck hatch coaming',(bx,by,d+h/2),(l,w,h),'edge');box('Deck hatch',(bx,by,d+h+.03),(l-.12,w-.12,.06),'naval')
+def vent(x,z,r=.3,h=.8,raised=False):
+ bx,by,d=on_deck(x,z,raised);cyl('Ventilator trunk',(bx,by,d+h/2),r*.7,h,'naval',vertices=12);cyl('Ventilator cowl',(bx,by,d+h+.12),r,.24,'naval',vertices=12,r2=r*.6)
+def cable(name,pts,z0):
+ """Low-poly stud-link cable along deck points (blender coords), alternate links flat and upright."""
+ for (ax,ay,az),(bx,by,bz) in zip(pts,pts[1:]):
+  a,b=Vector((ax,ay,az)),Vector((bx,by,bz));dv=(b-a);n=max(1,int(dv.length/.34));dn=dv.normalized();side=Vector((-dn.y,dn.x,0)).normalized()
+  for i in range(n):
+   c=a.lerp(b,(i+.5)/n);up=side if i%2 else Vector((0,0,1))
+   ring=[c+dn*math.cos(k*math.tau/6)*.22+up*math.sin(k*math.tau/6)*.13 for k in range(6)]
+   for q,r in zip(ring,ring[1:]+ring[:1]):rod(name+' link',tuple(q),tuple(r),.04,'edge',vertices=4)
+# Forecastle: two windlasses abreast at z -77.4, cables forward to the stoppers and hawse pipes.
 for sy in (-1,1):
- detail().chain('Anchor cable',(89,sy*1.4,deck(89)+.09),(96,sy*1.45,deck(96)+.06),.30)
+ bx,by,d=on_deck(sy*1.0,-77.4)
+ cyl('Windlass base',(bx,by,d+.15),.75,.3,'edge');cyl('Windlass gypsy',(bx,by,d+.55),.58,.5,'naval');cyl('Windlass cap',(bx,by,d+.86),.66,.12,'edge')
+ pts=[];
+ for x,z in ((sy*1.0,-78.3),(sy*.95,-83.0),(sy*1.1,-88.0),(sy*2.2,-91.5),(sy*2.45,-92.6)):
+  qx,qy,qd=on_deck(x,z);pts.append((qx,qy,qd+.1))
+ cable('Anchor cable',pts,0)
+ for z in (-80.5,-86.0):
+  qx,qy,qd=on_deck(sy*(1.0 if z>-84 else 1.05),z);box('Cable stopper',(qx,qy,qd+.15),(.9,.5,.3),'edge')
+ qx,qy,qd=on_deck(sy*2.45,-92.7);cyl('Hawse pipe deck flange',(qx,qy,qd+.05),.42,.1,'edge')
+ bollards(sy*4.1,-82.0,sy*.12);fairlead(sy*4.3,-85.7);bollards(sy*5.7,-63.9,sy*.05)
+ qx,qy,qd=on_deck(sy*2.25,-94.6);box('Leadsman platform',(qx,qy,qd+.35),(1.15,1.0,.1),'roof')
+ rod('Leadsman platform leg',(qx,qy,qd),(qx,qy,qd+.35),.05,'edge')
+bollards(0,-91.8,math.pi/2)
+for x,z in ((-3.0,-89.6),(2.5,-92.7)):vent(x,z,.3,.55)
+# Forecastle abaft the windlasses: hatches, skylight, reels and the winches forward of No. 2 barbette.
+for x,z,l,w in ((.46,-75.5,1.8,1.1),(.46,-70.0,1.7,.86),(.46,-73.4,.53,.8),(-.47,-70.4,.83,1.53),(3.3,-62.5,1.8,1.1),(-1.98,-58.0,1.4,1.2),(-5.1,-51.4,1.0,.66),(5.1,-51.4,1.0,.66)):hatch(x,z,l,w)
+for x,z in ((.48,-71.4),(-.8,-71.6),(-2.2,-69.2),(-3.25,-67.3),(2.0,-68.8),(2.8,-67.8)):
+ bx,by,d=on_deck(x,z);detail().reel('Cable reel',bx,by,d,.35,.8)
+for x,z in ((-1.5,-56.6),(2.07,-58.9)):
+ bx,by,d=on_deck(x,z);box('Deck winch bed',(bx,by,d+.1),(1.0,2.0,.2),'edge');rod('Deck winch drum',(bx,by-.7,d+.65),(bx,by+.7,d+.65),.34,'naval',vertices=14)
+ box('Deck winch motor',(bx,by+.95,d+.55),(.7,.5,.9),'naval')
+for x,z in ((-.95,-57.9),(.58,-57.4),(1.35,-57.4),(1.62,-58.1),(0,-58.6),(-1.68,-62.1),(3.2,-53.5),(2.7,-54.2),(-1.3,-69.3)):vent(x,z,.25,.55)
+for sy in (-1,1):
+ bx,by,d=on_deck(sy*6.55,-58.7);rod('Boat davit',(bx,by,d),(bx,by,d+2.0),.08,'naval');rod('Boat davit arm',(bx,by,d+2.0),(bx,by-sy*.45,d+2.2),.07,'naval')
+bx,by,d=on_deck(.13,-59.95);box('Stowed accommodation ladder',(bx,by,d+.12),(2.0,7.2,.2),'edge')
+# Quarterdeck: raised hatches, skylights and vents abaft No. 5, the after capstan, bollards and davit cranes.
+for sy in (-1,1):
+ for z in (80.8,85.3):hatch(sy*2.58,z,.5,1.0,.95)
+ for z in (75.6,76.7,77.9):hatch(sy*2.56,z,1.0,.67)
+ for z in (88.8,89.9):hatch(sy*.85,z,1.0,.67)
+ for z in (52.9,54.1):hatch(sy*4.1,z,1.0,.67)
+ hatch(sy*6.0,61.7,.7,.47,.2)
+ bollards(sy*5.45,83.5,-sy*.35);bollards(sy*8.8,45.2,sy*.05)
+ qx,qy,qd=on_deck(sy*4.8,89.7);cyl('Davit crane post',(qx,qy,qd+.4),.18,.8,'naval',vertices=10);rod('Davit crane jib',(qx,qy,qd+.8),(qx-1.9,qy,qd+.62),.08,'naval')
+for x,z,l,w in ((0,80.25,1.7,1.1),(-.27,86.8,1.8,1.1),(-1.0,71.4,1.7,1.1),(2.55,68.7,1.8,1.1),(2.8,55.1,1.8,1.1),(-.33,69.5,1.4,1.2),(0,67.7,.86,2.6),(0,65.9,1.0,1.33)):hatch(x,z,l,w)
+qx,qy,qd=on_deck(1.0,84.85);cyl('After capstan',(qx,qy,qd+.25),.36,.5,'naval');cyl('After capstan crown',(qx,qy,qd+.52),.42,.08,'edge')
+for x,z in ((.29,70.9),(0,56.5),(-.35,82.2),(0,78.6),(.76,79.1),(-1.44,58.05),(-2.1,55.0),(-3.13,60.2),(1.08,55.45)):vent(x,z,.25,.6)
+qx,qy,qd=on_deck(0,94.8);box('Skylight',(qx,qy,qd+.25),(.62,.62,.5),'naval')
+for x,z in ((2.6,66.6),(4.1,61.0)):
+ bx,by,d=on_deck(x,z);detail().reel('Cable reel',bx,by,d,.35,.8)
+# Bulwarked gun decks around the quarterdeck 25 mm mounts (reference: 0.8 m).
+for sy in (-1,1):
+ cx,cz=sy*3.33,83.05;pts=[]
+ for k in range(8):
+  a=(k+.5)*math.tau/8;pts.append(P(cx+1.38*math.cos(a)/math.cos(math.pi/8),cz+1.96*math.sin(a)/math.cos(math.pi/8)))
+ z=deck(pts[0][0])
+ for a,b in zip(pts,pts[1:]+pts[:1]):
+  o=box('Gun deck bulwark',((a[0]+b[0])/2,(a[1]+b[1])/2,z+.4),(math.dist(a,b)+.05,.06,.8),'naval');o.rotation_euler.z=math.atan2(b[1]-a[1],b[0]-a[0])
+  rod('Gun deck bulwark cap',(a[0],a[1],z+.8),(b[0],b[1],z+.8),.035,'edge',vertices=6)
+for sy in (-1,1):
  # Stocked anchors housed against the flared bow at the reference's hawse (z -93.2, 3.9-5.5 m).
  x0,z0,x1,z1=93.9,5.5,92.6,4.0
  y0=sy*(loft_breadth(H,x0,z0)+.10);y1=sy*(loft_breadth(H,x1,z1)+.14)
  rod('Anchor shank',(x0,y0,z0),(x1,y1,z1),.12,'edge')
  rod('Anchor crown',(x1+.45,sy*(abs(y1)-.02),z1-.35),(x1-.45,sy*(abs(y1)+.05),z1+.35),.13,'edge')
+ # Stern anchor on the quarter, as on the reference (z 90-91.2, 2.8-4.9 m).
+ xs=-90.6;rod('Stern anchor shank',(xs,sy*(loft_breadth(H,xs,4.75)+.1),4.75),(xs,sy*(loft_breadth(H,xs,3.05)+.12),3.05),.1,'edge')
+ rod('Stern anchor crown',(xs-.5,sy*(loft_breadth(H,xs,3.1)+.1),3.25),(xs+.5,sy*(loft_breadth(H,xs,3.1)+.1),3.25),.1,'edge')
  rod('Hawse pipe lip',(x0+.1,sy*(loft_breadth(H,x0+.1,z0+.25)+.02),z0+.25),(x0+.1,sy*(loft_breadth(H,x0+.1,z0+.25)+.14),z0+.25),.28,'edge',vertices=16)
- for x in (-76,78):detail().reel('Cable reel',x,sy*2.6,deck(x),.43,1.05)
  for x in range(-92,94,4):
   w=loft_breadth(H,x,3.3)
   if w>.5:
