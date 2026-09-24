@@ -117,14 +117,14 @@ def build_upperworks(D, helpers, materials, col, F):
     plate(name + '.deck', ring, 15.34, .15)
     for s in [-1, 1]:
         # A solid bulwark round the tubs and the nose, a rail across the after edge.
-        ringwall(name + '.tub', s * 3.70, -4.53, 15.34, 1.30, 1.0, -95 if s > 0 else 85, 95 if s > 0 else 275)
-        wall(name + '.bulwark', [(0, -8.63), (s * .47, -8.54), (s * .90, -8.28), (s * 1.24, -7.89), (s * 1.54, -6.85), (s * 2.11, -6.05),
-                                  (s * 3.60, -6.04)], 15.34, 1.0)
+        # Bulwarks round the tubs only (1.1 m); guard rails on the nose and across the after edge.
+        ringwall(name + '.tub', s * 3.70, -4.53, 15.34, 1.30, 1.1, -95 if s > 0 else 85, 95 if s > 0 else 275)
+        wall(name + '.bulwark', [(s * 2.11, -6.05), (s * 3.60, -6.04)], 15.34, 1.1)
+        rail(name + '.rail', [(0, -8.63), (s * .47, -8.54), (s * .90, -8.28), (s * 1.24, -7.89), (s * 1.54, -6.85), (s * 2.11, -6.05)], 15.34)
         rail(name + '.rail', [(s * 3.59, -3.02), (s * 1.2, -3.02)], 15.34)
         # Brackets from the tubs and the nose down to the uptake casing and the 02 deck.
         for z in [-5.3, -3.6]:
             tube(name + '.bracket', (s * 4.3, 15.2, z), (s * 2.05, 12.73, z - .2 if z < -4 else z - .4), .08, n=8)
-        tube(name + '.bracket', (s * 1.2, 15.2, -7.9), (s * 1.9, 12.73, -8.4), .08, n=8)
 
     # --- After funnel searchlight gallery at 16.97 m, with the 36-inch searchlights in its fore tubs.
     name = 'searchlight-gallery'
