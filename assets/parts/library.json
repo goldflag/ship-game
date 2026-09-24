@@ -667,6 +667,13 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "us-carrier-oerlikon-mk4": {
+      "path": "assets/parts/us-carrier-guns/geometry.py",
+      "function": "create_oerlikon",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -733,6 +740,14 @@
       "review": "unreviewed",
       "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
       "builder": "open-naval"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk4",
+      "nation": "United States",
+      "family": "20 mm Oerlikon",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D AGA003 20mm Oerlikon MK4 (Enterprise pasa518) only. Shield trains with the carriage; standalone and installation review pending.",
+      "builder": "us-carrier-oerlikon-mk4"
     },
     {
       "partId": "us-8in55-mk12-triple",

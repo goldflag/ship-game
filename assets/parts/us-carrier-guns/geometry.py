@@ -403,5 +403,88 @@ def create_quad(mount, col, helpers, materials):
 # ---------------------------------------------------------------------------------------------
 # 20 mm Oerlikon Mk 4 single mount
 # ---------------------------------------------------------------------------------------------
+def _posed(T, P, deg):
+    """Map a point measured on a reference baked at `deg` elevation (yaw frame x, z) into the
+    elevation node's local frame (x along the bore from the trunnion)."""
+    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    def g(x, y, z):
+        dx, dz = x - T, z - P
+        return (dx * c + dz * s, y, -dx * s + dz * c)
+    return g
+
+
 def create_oerlikon(mount, col, helpers, materials):
-    raise NotImplementedError
+    """20 mm Oerlikon Mk 4: octagonal foot and tapered column (fixed), a training carriage of
+    two cheek plates with trunnion bosses and the notched splinter shield on two arms (trains),
+    and the gun (elevates): receiver, recoil-spring casing, barrel with flash hider, drum
+    magazine, sight bar with ring sight, shoulder rests and a canvas case bag."""
+    k = _Kit(mount, col, helpers, materials)
+    s = k.spec
+    T, P = s['trunnionForward'], s['pivotHeight']
+    N, E, PE, D = 'naval', 'edge', 'painted-edge', 'dark'
+    oct_ = lambda r, z: [(r * math.cos(math.tau * (i + .5) / 8), r * math.sin(math.tau * (i + .5) / 8), z) for i in range(8)]
+
+    # Fixed column: foot plate, tapered octagonal column, head flange.
+    k.loft('column.foot', [oct_(.39, 0), oct_(.39, .06)], N, k.base)
+    k.loft('column', [oct_(.27, .06), oct_(.165, .94)], N, k.base)
+    k.loft('column.head', [oct_(.17, .94), oct_(.17, .98)], E, k.base)
+    # Height-adjusting crank on the port side of the column.
+    k.box('column.crank-case', (-.10, .19, .80), (.14, .08, .20), N, k.base)
+    k.path('column.crank', [(-.10, .23, .86), (-.10, .29, .86), (-.18, .29, .70), (-.18, .33, .70)], .012, E, k.base)
+
+    # Carriage: turntable plate and twin cheek plates carrying the trunnion bosses.
+    k.box('carriage.turntable', (0, 0, .99), (.22, .24, .02), N)
+    cheek = [(-.36, .98), (.12, .98), (.40, 1.15), (.40, 1.23), (.12, 1.10), (-.20, 1.10), (-.26, 1.18), (-.36, 1.18)]
+    for sy in (-1, 1):
+        k.prism('carriage.cheek', cheek, sy * .075, sy * .12, 'y', N)
+        k.cylinder('carriage.trunnion-boss', (T, sy * .13, P), .05, .05, 'y', E, n=8)
+    # Splinter shield: two wings either side of the barrel slot, raked back 21 degrees, each on an arm.
+    # (The reference joins the wings with a low strip; it is left open so the casing clears at -10 degrees.)
+    du, dv = (-.3625, .932), (.932, .3625)  # along the plate (x, z) and its normal (x, z)
+    def sp(y, v, w):
+        return (.47 + v * du[0] + w * dv[0], y, .93 + v * du[1] + w * dv[1])
+    for sy in (-1, 1):
+        outline = [(sy * .13, 0), (sy * .70, 0), (sy * .70, .7725), (sy * .28, .7725)]
+        n = len(outline)
+        verts = [sp(y, v, -.008) for y, v in outline] + [sp(y, v, .008) for y, v in outline]
+        faces = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)] + [(0, 1, 2, 3), (7, 6, 5, 4)]
+        k.solid('shield', verts, faces, N)
+    for sy in (-1, 1):
+        k.rod('shield.arm', (.38, sy * .10, 1.20), (sp(sy * .10, .30, -.008)), .025, N, n=4)
+        k.rod('shield.stay', (.10, sy * .12, 1.07), (sp(sy * .40, .12, -.008)), .018, N, n=4)
+
+    # Gun, authored where the reference shows it at 29.9 degrees and mapped into the cradle frame.
+    _, elevation, recoil = k.sides['center']
+    g = _posed(T, P, 29.9)
+    L = s['muzzleForward'] - T
+    # Receiver and trunnion block ride the cradle; the casing, barrel and flash hider recoil.
+    k.box('receiver', (-.06, 0, .005), (.86, .13, .15), N, elevation)
+    k.box('receiver.cover', (-.12, 0, .09), (.50, .10, .04), E, elevation)
+    k.cylinder('trunnion-pin', (0, 0, 0), .035, .148, 'y', E, elevation, n=6)
+    k.lathe('recoil-casing', [(.34, .066), (.95, .057), (.97, .034)], N, recoil, n=8, smooth=False)
+    k.lathe('barrel', [(.97, .030), (L - .09, .030), (L - .09, .036), (L, .033)], E, recoil, n=8)
+    k.cylinder('bore', (L - .005, 0, 0), .010, .012, 'x', D, recoil, n=6)
+    # Drum magazine on top of the receiver (axis along the bore, offset to starboard as measured).
+    cx, cy, cz = g(-.29, -.115, 1.36)
+    cz += .03
+    k.cylinder('drum', (cx, cy, cz), .13, .16, 'x', D, elevation, n=10)
+    k.cylinder('drum.hub', (cx + .085, cy, cz), .04, .02, 'x', E, elevation, n=6)
+    k.box('drum.seat', (cx, -.04, .085), (.10, .08, .03), E, elevation)
+    # Sight bar parallel to the bore with the ring (front) sight and the rear sight block.
+    a, b = g(-.93, .06, 1.20), g(-.55, .06, 1.42)
+    k.rod('sight.bar', a, b, .015, PE, elevation, n=4)
+    k.rod('sight.post', (b[0], .06, .06), b, .012, PE, elevation, n=4)
+    rx, _, rz = g(-.58, .06, 1.47)
+    k.ring('sight.ring', (rx, .06, rz), .065, .008, 'x', PE, elevation, n=8, spokes=2)
+    k.box('sight.rear', g(-.965, .06, 1.245), (.07, .05, .08), E, elevation)
+    # Shoulder rests: cross bar under the receiver end, two arms and two curved pads.
+    bar = g(-.66, 0, .935)
+    k.rod('shoulder.bar', (bar[0], -.23, bar[2]), (bar[0], .23, bar[2]), .018, PE, elevation, n=4)
+    for y in (-.10, .21):
+        p0, p1 = g(-.66, y, .935), g(-.93, y, 1.02)
+        k.rod('shoulder.arm', p0, p1, .016, PE, elevation, n=4)
+        pad = [g(-.93, y, 1.02), g(-1.05, y, 1.05), g(-1.13, y, 1.00), g(-1.11, y, .91), g(-1.04, y, .85)]
+        k.path('shoulder.pad', pad, .03, D, elevation, n=4)
+    # The reference's canvas case bag is omitted: slung under the breech it would swing into the
+    # column above about 45 degrees (it already touches the column in the reference pose).
+    return k.yaw
