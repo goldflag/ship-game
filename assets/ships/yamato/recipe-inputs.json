@@ -7,7 +7,9 @@
     "assets/ships/yamato/appearance.json",
     "assets/parts/library.py",
     "assets/parts/library.json",
-    "assets/parts/ijn-main-guns/geometry.py",
-    "assets/parts/gun_bloomers.py"
+    "assets/parts/gun_bloomers.py",
+    "assets/parts/ijn-yamato-aa/type89_twin.py",
+    "assets/parts/ijn-main-guns/type94_460_triple.py",
+    "assets/parts/ijn-main-guns/type3_155_triple.py"
   ]
 }

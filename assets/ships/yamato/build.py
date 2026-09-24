@@ -13,23 +13,17 @@ import yamato_citadel, yamato_tower, yamato_funnel, yamato_deck
 # Hull and CPU hits share every original station, including the recurve.
 hull=authored_hull(H,mesh,HULL,[hullgray,red])
 
-# Main batteries retain all barrel pivots, recoil joints and sockets.
+# Main and secondary batteries use their registered reusable builders; each keeps its barrel
+# pivots, recoil joints and sockets. The reusable gun owns only its shallow bearing: this
+# installation supplies the fixed support from the deck to the gun's attachment plane.
+SUPPORT={'type94-460-triple':2.15,'type3-155-triple':0.0}
 for mount in D['mounts']:
- if mount['partId']=='type89-127-yamato-twin':continue
- if mount['partId']=='type94-460-triple':
-  # The reusable gun owns only its shallow bearing. This historical
-  # installation supplies the fixed support up to its Y=2.15 m attachment.
-  create_shared_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials)
-  px,pz,py=mount['position'];x,y=-py,-px;bottom=deck(x);top=pz+2.15
-  if top-bottom>.015:
-   support=cyl(mount['id']+'.fixed-barbette-foundation',(x,y,(bottom+top)/2),mount['weapon']['barbetteRadius'],top-bottom,hullgray,GUNS,64)
-   support['assemblyId']=mount['id']
-  # Legacy gun_details creates rigid mantlets and duplicate service fittings.
-  # Only secondary batteries continue through that original legacy path.
-  continue
- create_gun_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,deck)
- gun_finish=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),dict(**materials,glass=glass),GUNS)
- gun_finish.gun_details(mount)
+ if mount['partId'] not in SUPPORT:continue
+ create_shared_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials)
+ px,pz,py=mount['position'];x,y=-py,-px;bottom=deck(x);top=pz+SUPPORT[mount['partId']]
+ if top-bottom>.015:
+  support=cyl(mount['id']+'.fixed-barbette-foundation',(x,y,(bottom+top)/2),mount['weapon']['barbetteRadius'],top-bottom,hullgray,GUNS,64)
+  support['assemblyId']=mount['id']
 
 # Regions build in dependency order: supports sample what earlier regions made.
 yamato_citadel.base()

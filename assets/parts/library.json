@@ -260,20 +260,17 @@
       ]
     },
     "ijn-yamato-main": {
-      "path": "assets/parts/ijn-main-guns/geometry.py",
+      "path": "assets/parts/ijn-main-guns/type94_460_triple.py",
       "function": "create_yamato_main",
       "inputs": [
-        "assets/parts/aa_articulation.py",
         "assets/parts/gun_bloomers.py",
         "scripts/ships/blender_barrels.py"
       ]
     },
     "ijn-yamato-secondary": {
-      "path": "assets/parts/ijn-main-guns/geometry.py",
+      "path": "assets/parts/ijn-main-guns/type3_155_triple.py",
       "function": "create_yamato_secondary",
       "inputs": [
-        "assets/parts/aa_articulation.py",
-        "assets/parts/gun_bloomers.py",
         "scripts/ships/blender_barrels.py"
       ]
     },
@@ -649,6 +646,20 @@
       "path": "assets/parts/oerlikon-mounts/geometry.py",
       "function": "create_mount",
       "inputs": []
+    },
+    "ijn-yamato-aa-shielded": {
+      "path": "assets/parts/ijn-yamato-aa/type89_twin.py",
+      "function": "create_shielded",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-yamato-aa-open": {
+      "path": "assets/parts/ijn-yamato-aa/type89_twin.py",
+      "function": "create_open",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -834,7 +845,16 @@
       "nation": "Japan",
       "family": "Type 89 127 mm/40",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Original reconstruction of the hooded mod A measured against GameModels3D pjsb018 (jgs157); the slot shield is concentric with the trunnions and the shutters slide over it; the hood interior is not modelled; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-yamato-aa-shielded"
+    },
+    {
+      "partId": "type89-127-yamato-open-twin",
+      "nation": "Japan",
+      "family": "Type 89 127 mm/40",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction of the open mount measured against GameModels3D pjsb018 (jgs158); crew stations, sights and fittings are simplified; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-yamato-aa-open"
     },
     {
       "partId": "us-40mm-bofors-baltimore-quad",
