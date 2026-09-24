@@ -115,14 +115,15 @@ after = loft([ellipse(ac(5.64), 1.62, 1.2, 5.64), ellipse(ac(5.96), 1.52, 1.12, 
               ellipse(ac(9.3), A['a'] * 1.035, A['b'] * 1.035, None, top=(A['top'] - 1.0, A['rise'])),
               ellipse(ac(A['top']), A['a'] * 1.035, A['b'] * 1.035, None, top=(A['top'], A['rise']))], closed=False)
 structures['forward-funnel'] = dict(shape('forward-funnel', 'Forward Funnel', [[-1.14, -11.8], [-1.14, -15.9], [1.14, -15.9], [1.14, -11.8]],
-                                          3.85, 12.05, surface=fore), exhaust={'position': [0, 11.27, -13.75], 'width': 2.4, 'length': 2.9})
+                                          3.85, 12.05, surface=fore), exhaust={'position': [0, 11.42, -13.75], 'width': 2.4, 'length': 2.9})
 structures['after-funnel'] = dict(shape('after-funnel', 'After Funnel', [[-1.1, 3.25], [-1.1, .1], [1.1, .1], [1.1, 3.25]],
-                                        5.64, 10.67, surface=after), exhaust={'position': [0, 10.3, 1.9], 'width': 2.3, 'length': 2.6})
+                                        5.64, 10.67, surface=after), exhaust={'position': [0, 9.98, 1.9], 'width': 2.3, 'length': 2.6})
 # Fore funnel casing: the uptake and the torpedo reload lockers either side of it form one housing,
 # 3.7 m either side at its forward end and 2.5 m at its after end, 4.95 m high.
-# Below 3.8 m only the two locker blocks stand on the deck, with an open passage between them.
+# Below 3.8 m only the two locker blocks stand on the deck, with an open passage between them. The after
+# face stands 0.1 m further aft than measured so the forward bank's muzzles clear it in every train.
 structures['forward-uptake'] = shape('forward-uptake', 'Forward Uptake', mirror([(0, -19.75), (1.33, -19.75), (2.45, -19.8), (3.45, -19.65),
-    (3.72, -18.7), (2.47, -10.6), (2.75, -10.15), (2.5, -9.9), (1.0, -10.1), (0, -10.2)]), 3.8, 4.95)
+    (3.72, -18.7), (2.47, -10.7), (2.75, -10.25), (2.5, -10.0), (1.0, -10.2), (0, -10.3)]), 3.8, 4.95)
 locker = [(2.45, -19.81), (3.37, -19.69), (3.47, -19.59), (3.43, -17.11), (2.87, -13.47), (2.63, -13.19), (2.55, -12.63), (2.45, -12.53),
           (1.89, -12.45), (1.79, -12.55), (1.75, -13.47), (1.79, -19.39), (2.29, -19.49)]
 for side, sign in [('starboard', 1), ('port', -1)]:
@@ -148,6 +149,8 @@ for i, s in enumerate(bp['structures']):
         new = structures[s['id']]; keep = {k: v for k, v in s.items() if k not in new and k not in ('surface', 'exhaust')}
         bp['structures'][i] = {**{k: new[k] for k in ['id', 'name']}, **{k: v for k, v in new.items() if k not in ('id', 'name')}, **keep}
         seen.add(s['id'])
+# Smoke outlets keep the heights the funnel smoke test pins (11.42 m and 9.98 m); both lie within the
+# measured mouths (10.52-12.03 m and 9.94-10.66 m).
 # New records go in after the record they extend.
 for sid, after_id in [('after-deckhouse-forward', 'after-deckhouse'), ('torpedo-lockers-starboard', 'forward-uptake'), ('torpedo-lockers-port', 'forward-uptake')]:
     if sid not in seen:

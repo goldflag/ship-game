@@ -345,7 +345,10 @@ for sign in [-1,1]:
 # After searchlight shelf and access rail.
 # Searchlight tower abaft the after funnel, as measured: a plated house from the deck to 6.9 m with
 # a 0.62 m bulwark round its searchlight platform.
-prism('searchlight.tower',outline_rect(-7.64,-4.55,-1.3,1.3,.3),deckz(-6),6.9)
+# Below 4.34 m the house stops 6.7 m aft of midships, clear of the after bank's muzzles in every train;
+# above it the house overhangs the tubes.
+prism('searchlight.tower-base',outline_rect(-6.7,-4.55,-1.0,1.0,.2),deckz(-6),4.36)
+prism('searchlight.tower',outline_rect(-7.64,-4.55,-1.3,1.3,.3),4.34,6.9)
 prism('searchlight.platform',outline_rect(-7.3,-4.5,-1.36,1.36,.3),6.9,7.14)
 bulwark('searchlight.bulwark',outline_rect(-7.25,-4.55,-1.3,1.3,.3),7.14,.62)
 # Main gun articulation, followed by original Type C details.
