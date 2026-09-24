@@ -302,7 +302,8 @@ for x in [frame(102.5),frame(89.7)]:
 # Tripod mast, fighting top, CXAM-1 and yards. Datum survives batching.
 fore=empty('foremast.assembly',(0,0,0),COL['Island'])
 MX=frame(80.5)
-for a in [(frame(84),IY-1.8,NAV),(frame(84),IY+1.8,NAV),(frame(80),IY,NAV)]:
+# Leg spread measured on pasa518: the forward legs stand on the bridge roof, 2.3 m either side.
+for a in [(frame(84),IY-2.3,ROOF),(frame(84),IY+2.3,ROOF),(frame(80),IY,NAV)]:
  rod('Tripod mast leg',a,(MX,IY,TOP_FLOOR),.36,M['naval'],COL['Island'],r2=.22,vertices=16)
 rod('Foremast topmast',(frame(82),IY,TOP_FLOOR),(frame(82),IY,level(175+7/12)),.105,M['naval'],COL['Island'],r2=.045,vertices=12)
 for height,half in [(145.75,7.1),(164,4.1)]:
