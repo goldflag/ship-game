@@ -47,6 +47,8 @@ def rz(z):
 args = argparse.ArgumentParser()
 args.add_argument('--loft')
 args.add_argument('--structures')
+args.add_argument('--keep-gameplay', action='store_true',
+                  help='carry compartments, connections, modules, flood regions, local damage and stability over from the current blueprint (they come from the later authoring helpers)')
 opts = args.parse_args()
 previous = json.loads((HERE / 'blueprint.json').read_text()) if (HERE / 'blueprint.json').exists() else None
 
@@ -150,7 +152,12 @@ for i, ((x, y, z), bearing, limits) in enumerate(SECONDARY, 1):
 BOFORS = [([0, 9.24, -117.22], 0), ([-5.06, 10.1, -25.82], -90), ([5.06, 10.1, -25.82], 90), ([0, 15.53, -24.79], 0), ([-6.53, 11.16, -13.94], -90),
           ([6.53, 11.16, -13.94], 90), ([-5.89, 9.36, 31.98], -90), ([5.89, 9.36, 31.98], 90), ([-7.62, 7.08, 37.96], -90), ([7.62, 7.08, 37.96], 90),
           ([-6.15, 4.64, 97.09], -135), ([6.15, 4.64, 97.09], 135), ([-3.71, 4.42, 117.66], 180), ([3.71, 4.42, 117.66], 180)]
+# Reference datums a few centimetres below our loft's deck (sheer and camber): the rotating base would sit in
+# the plating, so these stand on a raised foundation plate instead (runtime y, metres).
+SEATED = {'bofors-11': 4.75, 'bofors-12': 4.75, 'bofors-13': 4.47, 'bofors-14': 4.47,
+          'oerlikon-1': 6.7, 'oerlikon-2': 6.7, 'oerlikon-3': 6.53, 'oerlikon-4': 6.53}
 for i, ((x, y, z), bearing) in enumerate(BOFORS, 1):
+    y = SEATED.get(f'bofors-{i}', y)
     b['mounts'].append(dict(id=f'bofors-{i}', name=f'40-mm quad {i}', partId='us-40mm-bofors-mk2-shielded-quad', battery='secondary', position=[x, y, rz(z)],
                             bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after', fire=FIRE_LIGHT))
 OERLIKON = [([-4.95, 6.59, -91.89], -45), ([4.95, 6.61, -91.89], 45), ([-5.2, 6.44, -88.97], -45), ([5.2, 6.44, -88.97], 45),
@@ -163,6 +170,7 @@ OERLIKON = [([-4.95, 6.59, -91.89], -45), ([4.95, 6.61, -91.89], 45), ([-5.2, 6.
             ([-11.07, 4.41, 47.75], -90), ([11.07, 4.41, 47.75], 90), ([-9.71, 4.46, 76.39], -135), ([9.72, 4.46, 76.39], 135),
             ([-9.31, 4.47, 79.39], -135), ([9.31, 4.47, 79.39], 135)]
 for i, ((x, y, z), bearing) in enumerate(OERLIKON, 1):
+    y = SEATED.get(f'oerlikon-{i}', y)
     b['mounts'].append(dict(id=f'oerlikon-{i}', name=f'20-mm single {i}', partId='us-20mm-oerlikon-mk4-iowa', battery='secondary', position=[x, y, rz(z)],
                             bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after', fire=FIRE_LIGHT))
 
@@ -261,6 +269,98 @@ if opts.structures:
                            exhaust=dict(position=[0, FUNNEL['top'], rz((FUNNEL['z0'] + FUNNEL['z1']) / 2)], width=4.0, length=7.6)))
 else:
     structures = previous['structures']
+
+
+# ---------------------------------------------------------------- corrections from the 2026 accuracy pass
+# Measured tiers the reference's own plan and elevation cuts contradict, applied after either source of
+# structures and idempotent, so a rerun keeps them. Tapers give a structure a lofted `surface` (drawn);
+# its footprint prism stays the hit and obstruction proxy.
+def frustum(fp, y0, y1, ring):
+    lo = [ring(x, z, y0) for x, z in fp]
+    hi = [ring(x, z, y1) for x, z in fp]
+    n = len(fp)
+    vertices = [[round(x, 4), round(y0, 4), round(z, 4)] for x, z in lo] + [[round(x, 4), round(y1, 4), round(z, 4)] for x, z in hi]
+    triangles = [[0, i, i + 1] for i in range(1, n - 1)] + [[n, n + i + 1, n + i] for i in range(1, n - 1)]
+    for i in range(n):
+        j = (i + 1) % n
+        triangles += [[i, j, n + j], [i, n + j, n + i]]
+    return dict(vertices=vertices, triangles=triangles)
+
+
+def mirrored(s, new_id):
+    t = json.loads(json.dumps(s))
+    t['id'] = new_id
+    t['footprint'] = [[round(-x, 3), z] for x, z in reversed(s['footprint'])]
+    return t
+
+
+def disc(cx, cz, r, x_limit, n=28):
+    """A round platform clipped where it meets the ship's side (|x| <= x_limit)."""
+    pts = []
+    for i in range(n):
+        a0, a1 = math.tau * i / n, math.tau * (i + 1) / n
+        p = (cx + r * math.cos(a0), cz + r * math.sin(a0))
+        q = (cx + r * math.cos(a1), cz + r * math.sin(a1))
+        if abs(p[0]) <= x_limit:
+            pts.append(p)
+        if (abs(p[0]) - x_limit) * (abs(q[0]) - x_limit) < 0:
+            edge = math.copysign(x_limit, p[0] if abs(p[0]) > x_limit else q[0])
+            t = (edge - p[0]) / (q[0] - p[0])
+            pts.append((edge, p[1] + (q[1] - p[1]) * t))
+    return [[round(x, 3), round(z, 3)] for x, z in pts]
+
+
+RAKE = .1435    # the forward tower face leans aft 1.98 m over 13.8 m (reference x = 1.2 cut)
+
+
+def refine(structures):
+    by_id = {s['id']: s for s in structures}
+    # Phantom solids: the funnel-side searchlight platforms and their hanging boxes were extruded to the
+    # 01 deck; a duplicate inner tower tier; the port-only forward tub floor (tub floors are drawn per mount).
+    # The three tall columns behind the funnel are the exhaust pipe and after-arm web, which the recipe draws.
+    out = [s for s in structures if s['id'] not in ('deckhouse-084', 'deckhouse-085', 'deckhouse-058', 'platform-077',
+                                                    'deckhouse-090', 'deckhouse-091', 'deckhouse-093')]
+    for sid in ('deckhouse-086', 'deckhouse-087'):
+        if sid in by_id:
+            by_id[sid].update(baseY=19.1, height=1.74)
+    f = by_id['funnel']
+    f['height'] = round(25.05 - f['baseY'], 3)
+    f['exhaust']['position'][1] = 26.0
+    # The 01 deckhouse round the funnel: its full breadth stops at the tub deck (7.16); above it only the
+    # narrower kingpost houses (deckhouse-094) stand, so Oerlikons 13/14/19/20 sit on the tub deck.
+    by_id['deckhouse-095']['height'] = round(7.16 - by_id['deckhouse-095']['baseY'], 3)
+    # Supports whose tops coincide with a light-AA datum drop 3 cm so the mount's own tub floor seats it.
+    for sid, top in (('deckhouse-041', 11.13), ('deckhouse-042', 11.13), ('platform-102', 9.33), ('platform-103', 9.33),
+                     ('deckhouse-115', 7.05), ('platform-027', 15.5), ('deckhouse-088', 5.37), ('deckhouse-089', 5.37)):
+        s = by_id[sid]
+        s['height'] = round(top - s['baseY'], 3)
+    for sid in ('deckhouse-112', 'deckhouse-113'):
+        by_id[sid].update(baseY=5.72, height=.06)
+    for sid in ('deckhouse-135', 'deckhouse-136'):
+        by_id[sid]['height'] = round(6.272 - by_id[sid]['baseY'], 3)
+    # Mirror halves the plan cuts found on one side only.
+    ids = {s['id'] for s in out}
+    if 'platform-036-starboard' not in ids:
+        out.append(mirrored(by_id['platform-036'], 'platform-036-starboard'))
+    if 'deckhouse-115-port' not in ids:
+        out.append(mirrored(by_id['deckhouse-115'], 'deckhouse-115-port'))
+    # Round sponson decks under the after wing 5-inch mounts (reference 7.10-7.18 m, radius 4.2 m).
+    for side, sign in (('port', -1), ('starboard', 1)):
+        sid = f'platform-5in-aft-{side}'
+        if sid not in ids:
+            out.append(dict(id=sid, name=f'After superstructure platform 7.1-7.2 m ({side} 5-inch sponson)',
+                            footprint=disc(sign * 10.9, 28.94, 4.2, 13.65), baseY=7.1, height=.08, material='naval'))
+    # The forward tower leans aft and its upper tier narrows (reference cuts x = 1.2 and z = -5).
+    by_id['deckhouse-055']['surface'] = frustum(by_id['deckhouse-055']['footprint'], 10.411, 21.934,
+                                                lambda x, z, y: (x, z + (RAKE * (y - 15.4) if z < -5 else 0)))
+    by_id['deckhouse-057']['surface'] = frustum(by_id['deckhouse-057']['footprint'], 21.992, 24.118,
+                                                lambda x, z, y: (x * (1 - (y - 21.992) * .0904 / 2.28), z + (RAKE * (y - 21.992) + .1 if z < -5 else 0)))
+    by_id['deckhouse-056']['surface'] = frustum(by_id['deckhouse-056']['footprint'], 24.149, 28.753,
+                                                lambda x, z, y: (x * (2.086 - (y - 24.149) * .0904) / 2.05, z + (RAKE * (y - 24.149) + .185 if z < -5 else 0)))
+    return out
+
+
+structures = refine(structures)
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is
@@ -291,8 +391,9 @@ for s in structures:
 # verified historical stops.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
 clear_mounts, reach = [], {}
+INTERLOCKED_AA = ('bofors-5', 'bofors-6')   # quads beside the forward tower, whose barrels reach its side houses
 for m in b['mounts']:
-    if m['battery'] != 'main' and m['partId'] != 'us-5in38-mk32-mod12':
+    if m['battery'] != 'main' and m['partId'] != 'us-5in38-mk32-mod12' and m['id'] not in INTERLOCKED_AA:
         continue
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
@@ -313,7 +414,7 @@ for st in structures:
     if best is not None:
         nearby.append((best, st['id']))
 nearby = [sid for _, sid in sorted(nearby)[:128]]
-b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 5-inch mounts against the measured deckhouse prisms they can reach, including the full recoil stroke, and between the superfiring forward turrets. Game clearance envelopes, not verified historical mechanical stops.',
+b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 5-inch mounts and the two quad 40 mm beside the forward tower against the measured deckhouse prisms they can reach, including the full recoil stroke, and between the superfiring forward turrets. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=1.15 if any(st['id'] == sid and st['height'] < .3 and (abs(st['baseY'] + st['height'] - 21.99) < .1 or abs(st['baseY'] + st['height'] - 28.845) < .1) for st in structures) else 0) for sid in nearby],
                            neighbors=[['main-1', 'main-2'], ['main-2', 'secondary-1']])
 
@@ -447,6 +548,10 @@ b['damageControl'] = dict(version=1, teams=4, setupSeconds=8, repairPoints=300, 
                           basis='Provisional large-cruiser crew and finite-stores calibration between the fleet cruiser and battleship values; not historical manning or damage-control performance.')
 b['localDamage'] = dict(version=1, regions=[dict(id='hull-placeholder', name='Hull', kind='hull', durabilityFraction=1, center=[0, 0, 0], size=[round(beam, 3), 30, L])],
                       basis='Placeholder; author-local-damage.ts replaces it.')
+if opts.keep_gameplay and previous:
+    for key in ('compartments', 'connections', 'modules', 'localDamage', 'floodRegions', 'stability'):
+        if key in previous:
+            b[key] = previous[key]
 write(HERE / 'blueprint.json', b)
 print(f'Authored alaska: {len(sections)} sections, {round(volume * 1.025)} t at the reference waterline, {len(b["mounts"])} mounts, '
       f'{len(structures)} structures, {len(b["armor"])} armour plates. Next: author-flood-spaces, author-stability, author-local-damage, author-damage-control.')

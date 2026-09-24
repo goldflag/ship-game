@@ -264,35 +264,64 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     part('rod', 'radar-sg-forward', col, 'feed arm', (gx + .15, gy, gz + .3), (gx + .55, gy, gz + .75), .03, 'naval', vertices=6)
     radar_pivot('radar-sg-forward.yaw', (gx, gy, gz + .12), objects_since(before))
 
-    # After pole on the funnel's forward bracket, carrying the second SG.
+    def R(x, y, z):
+        """Runtime point (x starboard, y up, z aft) -> authoring frame."""
+        return (-z, -x, y)
+
+    def web(name, assembly, zy, thick, holes=(), knobs=(), c=None):
+        """A centreline plate web in the runtime z-y plane, with lightening holes and bolted bosses."""
+        n = len(zy)
+        vv = [(-z, s * thick / 2, y) for s in (-1, 1) for z, y in zy]
+        ff = [tuple(reversed(range(n))), tuple(range(n, 2 * n))] + [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)]
+        tag(mesh(name + '.web', vv, ff, 'naval', c or col), assembly)
+        for z, y, r in holes:
+            tag(cyl(name + '.lightening hole', (-z, 0, y), r, thick + .04, 'dark', c or col, 8), assembly).rotation_euler.x = math.pi / 2
+        for z, y in knobs:
+            tag(cyl(name + '.boss', (-z, 0, y), .12, thick + .14, 'naval', c or col, 6), assembly).rotation_euler.x = math.pi / 2
+
+    # After pole on the funnel's forward web, carrying the second SG (reference centreline cut).
     name = 'after-pole'
-    fz0 = 11.75
-    arm = [P(0, 18.2, fz0 + .05), P(0, 23.4, fz0 + .05), P(0, 28.3, 8.3), P(0, 26.6, 8.3)]
-    vv = [(a[0], s, a[2]) for s in (-.12, .12) for a in arm]
-    tag(mesh(name + '.bracket', vv, [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'naval', col), name)
-    for t in (.3, .55):
-        cx = arm[0][0] + (arm[2][0] - arm[0][0]) * t
-        cz = 20.8 + 5.5 * t
-        tag(cyl(name + '.lightening hole', (cx, 0, cz), .42, .26, 'dark', col, 16), name).rotation_euler.x = math.pi / 2
-    part('rod', name, col, 'pole', P(0, 27.2, 8.9), P(0, 32.62, 8.9), .15, 'naval', r2=.1, vertices=10)
-    part('cyl', name, col, 'platform', P(0, 28.3, 8.9), .95, .1, 'roof', vertices=20)
+    web(name, name, [(13.75, 20.2), (13.3, 20.25), (10.4, 26.2), (10.4, 26.72), (11.45, 26.72), (13.75, 24.4)], .3,
+        holes=[(11.47, 25.48, .13), (12.02, 24.65, .22), (12.43, 23.65, .15), (13.3, 22.86, .2), (13.37, 21.65, .17)])
+    px_, _, _ = R(0, 0, 10.93)
+    part('cyl', name, col, 'platform', (px_, 0, 26.8), 1.05, .16, 'roof', vertices=20)
+    for i in range(10):
+        a0, a1 = math.tau * i / 10, math.tau * (i + 1) / 10
+        W.add('platform-rails', col, (px_ + .98 * math.cos(a0), .98 * math.sin(a0), 26.88), (px_ + .98 * math.cos(a0), .98 * math.sin(a0), 27.85), .024)
+        for h in (27.35, 27.85):
+            W.add('platform-rails', col, (px_ + .98 * math.cos(a0), .98 * math.sin(a0), h), (px_ + .98 * math.cos(a1), .98 * math.sin(a1), h), .018)
+    part('rod', name, col, 'pole', (px_, 0, 26.88), (px_, 0, 32.62), .15, 'naval', r2=.1, vertices=10)
+    part('rod', name, col, 'crosstree', (px_, -2.2, 31.4), (px_, 2.2, 31.4), .05, 'naval', vertices=6)
+    for s in (-1, 1):
+        part('rod', name, col, 'crosstree brace', (px_, 0, 30.6), (px_, s * 1.6, 31.36), .025, 'edge', vertices=5)
+    # The SG's guard cage ("flower basket") round the masthead.
+    for i in range(6):
+        a = math.tau * i / 6
+        part('rod', name, col, 'cage leg', (px_, 0, 31.9), (px_ + .55 * math.cos(a), .55 * math.sin(a), 32.55), .025, 'edge', vertices=5)
+        b_ = math.tau * (i + 1) / 6
+        part('rod', name, col, 'cage ring', (px_ + .55 * math.cos(a), .55 * math.sin(a), 32.55), (px_ + .55 * math.cos(b_), .55 * math.sin(b_), 32.55), .025, 'edge', vertices=5)
     before = names()
     gx, gy, gz = P(0, 32.6, 8.9)
     part('cyl', 'radar-sg-after', col, 'drive', (gx, gy, gz + .12), .16, .24, 'naval', vertices=12)
     part('box', 'radar-sg-after', col, 'reflector', (gx - .15, gy, gz + .75), (.14, 1.28, .95), 'edge')
     part('rod', 'radar-sg-after', col, 'feed arm', (gx - .15, gy, gz + .3), (gx - .55, gy, gz + .75), .03, 'naval', vertices=6)
     radar_pivot('radar-sg-after.yaw', (gx, gy, gz + .12), objects_since(before))
-    # Crane-support arm on the funnel's after face.
-    # Crane-topping strut on the funnel's after face: a narrow plate girder leaning aft.
+    # After arm on the funnel's after face: a pierced web leaning aft to the main-yard head, with the
+    # exhaust pipe that rises from the after deckhouse up the funnel face and along the web.
     name = 'funnel-after-arm'
-    foot0, foot1, head0, head1 = P(0, 16.4, 19.9), P(0, 16.4, 21.4), P(0, 28.4, 22.35), P(0, 28.6, 23.25)
-    vv = [(a[0], s, a[2]) for s in (-.2, .2) for a in (foot0, foot1, head1, head0)]
-    tag(mesh(name + '.girder', vv, [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'naval', col), name)
-    for t in (.18, .34, .5, .66, .82):
-        c = Vector(foot0).lerp(Vector(head0), t) * .5 + Vector(foot1).lerp(Vector(head1), t) * .5
-        hole = tag(cyl(name + '.lightening hole', (c.x, 0, c.z), .3 - .1 * t, .42, 'dark', col, 14), name)
-        hole.rotation_euler.x = math.pi / 2
-    part('rod', name, col, 'head sheave', (head1[0], -.3, head1[2] + .05), (head1[0], .3, head1[2] + .05), .22, 'edge', vertices=14)
+    web(name, name, [(21.95, 20.3), (22.35, 20.3), (24.9, 27.47), (24.16, 27.47), (21.95, 24.25)], .3,
+        holes=[(24.07, 26.44, .14), (22.55, 23.3, .22), (22.3, 21.9, .17)], knobs=[(23.55, 25.38), (23.15, 24.6)])
+    part('box', name, col, 'masthead', R(0, 28.03, 24.53), (.74, .7, 1.12), 'naval')
+    part('rod', name, col, 'main yard', R(-6.0, 28.52, 24.53), R(6.0, 28.52, 24.53), .085, 'naval', vertices=8)
+    for s in (-1, 1):
+        part('rod', name, col, 'yard end', R(s * 6.0, 28.52, 24.53), R(s * 6.3, 28.52, 24.53), .05, 'naval', vertices=6)
+        part('rod', name, col, 'yard lift', R(0, 28.62, 24.53), R(s * 5.6, 28.55, 24.53), .02, 'edge', vertices=5)
+        part('rod', name, col, 'yard brace', R(s * .3, 27.6, 24.4), R(s * 2.6, 28.47, 24.5), .045, 'naval', vertices=6)
+    pipe = [R(0, 11.6, 22.58), R(0, 19.6, 22.58), R(0, 20.35, 22.75), R(0, 26.8, 25.05)]
+    for a, b_ in zip(pipe, pipe[1:]):
+        part('rod', name, col, 'exhaust pipe', a, b_, .22, 'naval', vertices=10)
+    for y_ in (13.2, 15.4, 17.6):
+        part('rod', name, col, 'pipe clip', R(0, y_, 22.58), R(0, y_, 21.98), .04, 'edge', vertices=5)
 
     # ------------------------------------------------------------ funnel fittings
     fcol = collections['Superstructure']
@@ -305,12 +334,75 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             s = 1 + r * .6
             tag(rod('funnel.band', (cx + (a[0] - cx) * s, a[1] * s, zz), (cx + (b[0] - cx) * s, b[1] * s, zz), r, 'edge', fcol, vertices=6), 'funnel')
     tag(mesh('funnel.exhaust opening', [(cx + (p[0] - cx) * .97, p[1] * .97, top - .03) for p in ring], [tuple(range(len(ring)))], 'dark', fcol), 'funnel')
-    for dy in (-1.0, 1.0):
-        for dx in (1.8, 0):
-            tag(cyl('funnel.uptake', (cx + 1.7 + dx, dy, top - .4), .62, 1.2, 'dark', fcol, 20), 'funnel')
+    half = max(abs(p[1]) for p in ring)
+    spine = (max(p[0] for p in ring) - half, min(p[0] for p in ring) + half)   # authoring x of the two end centres
+
+    def outward(p, d):
+        sx = min(max(p[0], spine[1]), spine[0])
+        v = Vector((p[0] - sx, p[1], 0))
+        v = v.normalized() if v.length > 1e-6 else Vector((0, 1 if p[1] >= 0 else -1, 0))
+        return (p[0] + v.x * d, p[1] + v.y * d)
+
+    # Rain lip: the casing flares 0.4 m outward over its top half metre (reference rim at 25.05 m).
+    n = len(ring)
+    vv = [(p[0], p[1], top - .5) for p in ring] + [(*outward(p, .4), top) for p in ring] + [(*outward(p, .4), top - .06) for p in ring]
+    ff = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)] + [(n + i, n + (i + 1) % n, 2 * n + (i + 1) % n, 2 * n + i) for i in range(n)]
+    tag(mesh('funnel.rain lip', vv, ff, 'naval', fcol), 'funnel')
+    for i in range(0, n, 2):
+        a, b_ = outward(ring[i], .36), outward(ring[(i + 2) % n], .36)
+        W.add('funnel-rails', fcol, (a[0], a[1], top), (a[0], a[1], top + 1.0), .024)
+        for h in (.5, 1.0):
+            W.add('funnel-rails', fcol, (a[0], a[1], top + h), (b_[0], b_[1], top + h), .018)
+    # Cap housing inside the rim: a raked stadium (x +-2.2, z 14.8-21.4) whose top climbs forward
+    # from 25.45 to 26.8 m, with the four boiler uptakes standing proud of it.
+    cap_aft, cap_fwd, cap_half = R(0, 0, 21.4)[0], R(0, 0, 14.8)[0], 2.2
+    pts = []
+    for i in range(24):
+        a = math.tau * i / 24
+        ex = cap_fwd - cap_half if math.cos(a) > 0 else cap_aft + cap_half
+        pts.append((ex + cap_half * math.cos(a), cap_half * math.sin(a)))
+
+    def cap_top(xa):
+        return 25.45 + (xa - cap_aft) / (cap_fwd - cap_aft) * 1.35
+
+    m = len(pts)
+    vv = [(x_, y_, top - .15) for x_, y_ in pts] + [(x_, y_, cap_top(x_)) for x_, y_ in pts]
+    ff = [(i, (i + 1) % m, m + (i + 1) % m, m + i) for i in range(m)]
+    tag(mesh('funnel.cap casing', vv, ff, 'naval', fcol), 'funnel')
+    tag(mesh('funnel.cap top', vv[m:], [tuple(range(m))], 'dark', fcol), 'funnel')
+    for rx, rz, r, stub in ((-1.25, 20.9, .34, .45), (1.25, 20.9, .34, .45), (-.55, 16.4, .32, .4), (.55, 16.4, .32, .4)):
+        ux, uy, _ = R(rx, 0, rz)
+        base = cap_top(ux)
+        tag(cyl('funnel.uptake', (ux, uy, base + stub / 2 - .1), r, stub + .2, 'dark', fcol, 14), 'funnel')
     for s in (-1, 1):
         F.col = fcol
         F.ladder('funnel.ladder', (cx - 1.0, s * 2.42, f['baseY'] + .5), (cx - 1.0, s * 2.42, top - .4), .5)
+    # Gallery round the funnel's forward end at 19.65 m, 1.5 m wide, on knees.
+    gy, g_in, g_out = 19.65, half, half + 1.5
+    fc = spine[0]      # forward end centre (authoring x)
+    arc = [(fc + math.cos(a) * 1, math.sin(a) * 1) for a in [math.radians(-90 + 180 * k / 12) for k in range(13)]]
+    aft_x = R(0, 0, 17.6)[0]
+    inner = [(aft_x, -g_in)] + [(fc + (p[0] - fc) * g_in, p[1] * g_in) for p in arc] + [(aft_x, g_in)]
+    outer = [(aft_x, -g_out)] + [(fc + (p[0] - fc) * g_out, p[1] * g_out) for p in arc] + [(aft_x, g_out)]
+    k = len(inner)
+    vv = [(*p, gy) for p in inner] + [(*p, gy) for p in outer] + [(*p, gy - .08) for p in inner] + [(*p, gy - .08) for p in outer]
+    ff = [(i, i + 1, k + i + 1, k + i) for i in range(k - 1)] + [(2 * k + i, 3 * k + i, 3 * k + i + 1, 2 * k + i + 1) for i in range(k - 1)]
+    ff += [(k + i, k + i + 1, 3 * k + i + 1, 3 * k + i) for i in range(k - 1)]
+    tag(mesh('funnel.gallery deck', vv, ff, 'roof', fcol), 'funnel')
+    for i in range(k):
+        p = outer[i]
+        W.add('funnel-rails', fcol, (p[0], p[1], gy), (p[0], p[1], gy + 1.0), .024)
+        if i + 1 < k:
+            q = outer[i + 1]
+            for h in (.5, 1.0):
+                W.add('funnel-rails', fcol, (p[0], p[1], gy + h), (q[0], q[1], gy + h), .018)
+    for i in range(1, k - 1, 3):
+        p, q = inner[i], outer[i]
+        tag(rod('funnel.gallery knee', (p[0], p[1], gy - 1.1), ((p[0] + q[0]) / 2 + (q[0] - p[0]) * .35, (p[1] + q[1]) / 2 + (q[1] - p[1]) * .35, gy - .08), .06, 'naval', fcol, vertices=6), 'funnel')
+    # Knees under the searchlight platforms, from their outer edge to the casing.
+    for s in (-1, 1):
+        for rz in (18.0, 20.2):
+            tag(rod('funnel.platform knee', R(s * 2.32, 19.4, rz), R(s * 4.3, 20.84, rz), .07, 'naval', fcol, vertices=6), 'funnel')
     # Searchlight platforms on the funnel (36-inch lights).
     for s in (-1, 1):
         x, y, z = P(s * 3.3, 20.9, 17.1)
