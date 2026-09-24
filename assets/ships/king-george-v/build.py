@@ -516,7 +516,7 @@ for side in [-1,1]:
  rod('284 supporting arm',(22.8,side*1.3,DECK+18.5),(24.4,side*2,DECK+20.2),.067,'naval',vertices=8)
 node=pivot('radar-284.yaw',(22.3,0,DECK+19.2));attach_world(set(scene.objects)-before-{node},node)
 attach_world([node],bpy.data.objects['dct-forward.yaw'])
-for name,x,top,spread in [('foremast',9.4,36.8,3.3),('mainmast',-42.7,33.1,2.6)]:
+for name,x,top,spread in [('foremast',9.4,DECK+30.06,3.3),('mainmast',-42.7,DECK+26.36,2.6)]:
  ASSEMBLY=name;base=DECK+3.05;platformZ=top-7.5
  rod(name+' lower pole',(x,0,base),(x-.70,0,platformZ),.30,'naval',r2=.20,vertices=16)
  rod(name+' upper pole',(x-.7,0,platformZ),(x-.9,0,top+1.0),.145,'naval',r2=.045,vertices=12)
@@ -542,7 +542,7 @@ for name,x,top,spread in [('foremast',9.4,36.8,3.3),('mainmast',-42.7,33.1,2.6)]
  radar_pivot('radar-279-'+name+'.yaw',(x-.9,0,top),set(scene.objects)-before)
  for side in [-1,1]:rod('Mast standing rigging',(x-.8,side*.7,platformZ+.5),(x-7,side*7,DECK+6.3),.013,'edge',vertices=5)
 ASSEMBLY='wireless-aerials'
-for y in [-.36,.36]:rod('Between-mast wireless aerial',(8.5,y,35),(-43.6,y,31.5),.010,'edge',vertices=5)
+for y in [-.36,.36]:rod('Between-mast wireless aerial',(8.5,y,DECK+28.26),(-43.6,y,DECK+24.76),.010,'edge',vertices=5)
 for x in [.8,-23.4]:
  for side in [-1,1]:
   ASSEMBLY='searchlights';z=DECK+12.14;yy=side*4.0
@@ -696,7 +696,7 @@ for side in [-1,1]:
 ASSEMBLY='hull-scuttles'
 for x in list(range(-100,-66,3))+list(range(61,101,3)):
  for side in [-1,1]:
-  for z in [3.5,5.15]:
+  for z in [DECK-3.24,DECK-1.59]:
    y=side*(sidewidth(x,z)+.018)
    rod('Hull scuttle rim',(x,y,z),(x,y+side*.045,z),.155,'edge',vertices=12)
    rod('Hull scuttle glass',(x,y+side*.047,z),(x,y+side*.055,z),.108,'dark',vertices=12)
@@ -771,15 +771,15 @@ for x in [-71,-50,-18,-5,31,40,60,72]:
 # Subtle sheer strakes and plate seams follow the actual authored side surface.
 ASSEMBLY='hull-plating'
 for side in [-1,1]:
- for zz in [1.05,4.62]:
+ for zz in [DECK-5.69,DECK-2.12]:
   for x in range(-98,106,2):
    a=(x,side*(sidewidth(x,zz)+.024),zz);b=(x+2,side*(sidewidth(x+2,zz)+.024),zz)
    mesh('Hull strake lip',[a,b,(b[0],b[1]+side*.045,zz+.06),(a[0],a[1]+side*.045,zz+.06)],[(0,1,2,3)],'naval')
  for x in [-72,-45,-22,1,25,47,63]:
-  ps=[(x,side*(sidewidth(x,zz)+.025),zz) for zz in [-2,-1,0,1,2,3,4,5]]
+  ps=[(x,side*(sidewidth(x,zz)+.025),zz) for zz in [DECK-8.74+k for k in range(8)]]
   tube('Hull expansion seam',ps,.012,'edge',vertices=5)
  for x in [-88,-58,-20,22,59,86]:
-  zz=5.2;yy=side*(sidewidth(x,zz)+.055)
+  zz=DECK-1.54;yy=side*(sidewidth(x,zz)+.055)
   for h in [0,.32,.64]:rod('Ship side access rung',(x-.28,yy,zz+h),(x+.28,yy,zz+h),.025,'naval',vertices=6)
 ASSEMBLY='ensign'
 rod('Ensign staff',(-111,0,DECK),(-111,0,DECK+5.2),.07,'naval',vertices=10)
@@ -807,7 +807,7 @@ for side in [-1,1]:
  for a,b in zip(pts,pts[1:]):mesh('Bilge keel fin',[a,b,(b[0],b[1]+side*.65,b[2]-.35),(a[0],a[1]+side*.65,a[2]-.35)],[(0,1,2,3)],'antifouling')
 
 COL=collections['Sensors and masts'];ASSEMBLY='landmarks'
-for id,pos in [('funnel-cap',(.8,0,DECK+18)),('foremast-top',(8.5,0,37.8)),('mainmast-top',(-43.6,0,34.1)),('fore-director',(22.3,0,DECK+16.35)),('bridge-front',(31,0,DECK+16.95))]:pivot('landmark.'+id,pos)
+for id,pos in [('funnel-cap',(.8,0,DECK+18)),('foremast-top',(8.5,0,DECK+31.06)),('mainmast-top',(-43.6,0,DECK+27.36)),('fore-director',(22.3,0,DECK+16.35)),('bridge-front',(31,0,DECK+16.95))]:pivot('landmark.'+id,pos)
 
 COL=collections['Simulation volumes']
 for group in ['armor','modules','compartments','obstructions']:
