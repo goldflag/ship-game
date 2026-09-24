@@ -152,9 +152,11 @@ moving parts, and it leaves colors and schemes unchanged:
 Mipmaps average the relief away, so the effect fades with distance. Tune it in
 that module, not per ship.
 
-By day ships take the same sun, hemisphere fill and sky reflection as the sea and sky
-(`meshLightShares` in `src/game/VisualEnvironment.ts`); only moonlight is lifted for meshes. A sunlit
-grey side reads about sRGB 140 and the brightest 1 % of a ship about 210 under AgX. In port the berth
+By day ships take the whole sun and the whole sky light (the graded dome and the sea, as image-based
+light) and no hemisphere fill, which returns only as the sun fades (`meshLightShares` in
+`src/game/VisualEnvironment.ts`). Measured on grey cards at a 70° sun: 6:1 direct to diffuse light on a deck
+(a clear sky gives 5–8:1), a shaded deck three stops under a sunlit one, and a sunlit 18 % card at 1.4 times
+the average sky radiance (1–1.5 in daylight). Moonlight is lifted for meshes. In port the berth
 sits in a gap in the clouds' shadow (`PORT_CLEARING`, 350 m clear, back by 900 m), so a passing cloud
 never leaves the ship being looked at in shade; battles keep every cloud shadow.
 

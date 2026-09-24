@@ -232,14 +232,17 @@ test('paused scene, water and smoke share moonlight and restore the current sun'
     environment.setScene('north-atlantic', false); sky.update(0);
     environment.syncLighting(); // Deliberately no ocean update.
     expect(ocean.sun.intensity).toBeCloseTo(effects.direct);
-    // By day meshes take the raw sun, fill and sky reflection the sea takes. Moonlit meshes take 1.5 times the moon and
-    // 1.6 times the fill; the sea keeps the raw moon.
+    // By day meshes take the raw sun and sky reflection the sea takes, and the hemisphere fill only as the sun fades. Moonlit
+    // meshes take 1.5 times the moon and 1.6 times the fill; the sea keeps the raw moon.
     const moonlit = ocean.sun.direction.equals(sky.moon.direction);
     if (hour === 0 || hour === 24 || hour === 12) expect(moonlit).toBe(hour !== 12);
     expect(sunLight.intensity).toBeCloseTo(effects.direct * (moonlit ? 1.5 : 1));
     const fill = environment.ambientLight.intensity / environment.diagnostics().environment!.ambient;
-    expect(fill).toBeCloseTo(moonlit ? 1.6 : 1, 10);
     expect(ocean.environmentIntensity).toBe(1);
+    if (moonlit) expect(fill).toBeCloseTo(1.6, 10);
+    else if (effects.direct >= 4) expect(fill).toBeCloseTo(0, 10);
+    else if (effects.direct <= 1) expect(fill).toBe(1);
+    else { expect(fill).toBeGreaterThan(0); expect(fill).toBeLessThan(1); }
     expect(ocean.sun.direction.y).toBeGreaterThanOrEqual(0);
     if (hour === 0 || hour === 24) {
       expect(ocean.sun.intensity).toBeGreaterThan(.3);

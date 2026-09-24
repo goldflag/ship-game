@@ -74,17 +74,23 @@ const BOLT_TINT = new Color(.8, .87, 1);
  * hull lit like day on a dark sea reads as a searchlight. */
 export const BOLT_CEILING = 1;
 
+/** Direct light at which the day's shares start and complete. */
+const FILL_DAYLIGHT = [1, 4] as const;
+
 /** Shares of the active celestial light that reach lit meshes: the scene DirectionalLight's multiple of the light's
  * intensity, the hemisphere fill's multiple of the scene's authored ambient, and the sky reflection's intensity.
  *
- * By day meshes take the light the sky and sea take: the whole sun, fill and sky reflection. They once took about half the
- * sun, a third of the fill and two thirds of the sky, calibrated under ACES, whose pre-scale turned 0.29-albedo Kure gray to
- * sRGB 200 in port. Under AgX (`DisplayTransform`), with ship occlusion shading the fill in recesses, those cuts left hulls
- * dark wherever the sun stood high: at noon a hull side is lit by the sky and the sea, and read sRGB 70 against a sea of 100.
- * At the full light a sunlit hull reads about sRGB 140 and the brightest 1 % of a ship about 210, short of the tone curve's
- * shoulder. By night meshes take more than the moon (`MESH_MOONLIGHT`, `MESH_NIGHT_FILL`). */
+ * By day meshes take the whole sun and the whole sky light, and no hemisphere fill. The sky's image-based light is the
+ * graded dome and the sea below it, so it already holds everything a hull sees besides the sun: at a 70° noon sun it gives
+ * 6:1 direct to diffuse light on a deck, inside a clear sky's 5-8:1, and a shaded deck three stops under a sunlit one, as a
+ * photographer's open shade is. The hemisphere fill is light no sky casts, and it flattened shade toward sunlight. Meshes
+ * once took 0.55 of the sun, 0.66 of the sky and 0.33 of the fill, an ACES-era calibration that left a sunlit 18 % gray
+ * card at 0.8 of the average sky's radiance where a real one is 1 to 1.5. As the sun fades the fill returns, as it always
+ * has: with no strong sun a backlit hull has little else. By night meshes take more than the moon (`MESH_MOONLIGHT`,
+ * `MESH_NIGHT_FILL`). */
 export function meshLightShares(light: Pick<CelestialLight, 'intensity' | 'night'>): { sun: number; fill: number; sky: number } {
-  return light.night ? { sun: MESH_MOONLIGHT, fill: MESH_NIGHT_FILL, sky: 1 } : { sun: 1, fill: 1, sky: 1 };
+  if (light.night) return { sun: MESH_MOONLIGHT, fill: MESH_NIGHT_FILL, sky: 1 };
+  return { sun: 1, fill: 1 - MathUtils.smoothstep(light.intensity, ...FILL_DAYLIGHT), sky: 1 };
 }
 
 /** The harbor's sheltered daylight, wherever the developer console overrides nothing: the sun, air and
