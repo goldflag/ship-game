@@ -17,14 +17,42 @@ export function geometryDefinition(definition: ShipDefinition) {
   return Object.fromEntries(geometryFields.filter(key => key in definition).map(key => [key, definition[key as keyof ShipDefinition]]));
 }
 
+type Records = { [key: string]: unknown };
+const recordList = (value: unknown): value is Records[] => Array.isArray(value) && value.every(item =>
+  item !== null && typeof item === 'object' && typeof ((item as Records).id ?? (item as Records).partId) === 'string');
+const recordMap = (value: unknown): value is Record<string, Records> => value !== null && typeof value === 'object' && !Array.isArray(value) &&
+  Object.values(value).every(item => item !== null && typeof item === 'object' && !Array.isArray(item));
+
+/** A parts catalog cut to the records a recipe declares: each top-level list of ID'd records and each map of
+ * records keeps only those IDs; other fields stay whole. A declared ID that no collection holds is an error. */
+export function catalogRecords(catalog: Records, ids: readonly string[]): Records {
+  const found = new Set<string>();
+  const keep = (id: string) => ids.includes(id) && !!found.add(id);
+  const cut = Object.fromEntries(Object.entries(catalog).map(([key, value]) => [key,
+    recordList(value) ? value.filter(item => keep(String(item.id ?? item.partId)))
+      : recordMap(value) ? Object.fromEntries(Object.entries(value).filter(([id]) => keep(id)))
+        : value]));
+  const missing = ids.filter(id => !found.has(id));
+  if (missing.length) throw new Error(`Declared catalog records not found: ${missing.join(', ')}`);
+  return cut;
+}
+
+const inputPath = (p: unknown): p is string =>
+  typeof p === 'string' && /^assets\/[a-zA-Z0-9_./-]+$/.test(p) && !p.split('/').includes('..') && !/\/(baseline|references)\//.test(p);
+
 export async function fingerprints(root: string, id: string, definition: ShipDefinition) {
   const registerPath = `assets/ships/${id}/recipe-inputs.json`;
   const files = [`assets/ships/${id}/build.py`];
+  // Catalogs declared by record: the build reads trimmed copies (catalog_records.py), so only those records count.
+  let records: Record<string, string[]> = {};
   if (existsSync(join(root, registerPath))) {
     const register = JSON.parse(await readFile(join(root, registerPath), 'utf8'));
-    if (register.version !== 1 || !Array.isArray(register.files) || register.files.some((p: unknown) =>
-      typeof p !== 'string' || !/^assets\/[a-zA-Z0-9_./-]+$/.test(p) || p.split('/').includes('..') || /\/(baseline|references)\//.test(p))) throw new Error('Invalid original recipe input register');
-    files.push(registerPath, ...register.files);
+    records = register.records ?? {};
+    if (register.version !== 1 || !Array.isArray(register.files) || !register.files.every(inputPath)
+      || records === null || typeof records !== 'object' || Array.isArray(records) || !Object.entries(records).every(([path, ids]) => inputPath(path) && path.endsWith('.json') && !register.files.includes(path)
+        && Array.isArray(ids) && ids.length > 0 && ids.every(id => typeof id === 'string' && id)))
+      throw new Error('Invalid original recipe input register');
+    files.push(registerPath, ...register.files, ...Object.keys(records));
   }
   const exporter = 'scripts/ships/export.py', thumbnail = 'assets/ships/thumbnail.py';
   const child = Bun.spawn(['python3', join(root, 'scripts/ships/fingerprints.py'), root], { stdin: 'pipe', stdout: 'pipe', stderr: 'pipe' });
@@ -55,11 +83,12 @@ export async function fingerprints(root: string, id: string, definition: ShipDef
       builders: Object.fromEntries(components.filter((entry: { builder?: string }) => entry.builder)
         .map((entry: { builder: string }) => [entry.builder, library.builders[entry.builder]])) });
   }
+  for (const [path, ids] of Object.entries(records)) sources[path] = JSON.stringify(catalogRecords(JSON.parse(sources[path]), ids));
   const exportRecipe = closure([exporter]), thumbnailRecipe = closure([thumbnail]);
   const geometry = hash([geometryDefinition(definition), sources]);
   const model = hash([geometry, exportRecipe]);
   const content = hash([definition, model]);
-  return { geometry, model, content, thumbnail: hash([model, thumbnailRecipe]), sources };
+  return { geometry, model, content, thumbnail: hash([model, thumbnailRecipe]), sources, records };
 }
 
 export async function validFile(path: string, expected?: string) {

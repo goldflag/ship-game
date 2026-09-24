@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { barrelOffset, barrelHeightOffset, barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blueprint';
 import { gunTraverseAtFraction } from '../../src/ships/armament';
-import { fingerprints, geometryDefinition, fileHash, validFile } from './fingerprints';
+import { catalogRecords, fingerprints, geometryDefinition, fileHash, validFile } from './fingerprints';
 import { mountFrame } from '../../src/game/mountFrames';
 import { runBlender as runSharedBlender } from '../build/blender';
 import { refreshRuntime } from './refresh';
@@ -330,10 +330,18 @@ script_start=time.perf_counter()
  texture_seconds=sum(entry.totaltime for entry in profile.getstats() if hasattr(entry.code,'co_name') and entry.code.co_name in {'apply_appearance','apply_paint','consolidate_finish_uvs'})
  with open(${JSON.stringify(join(stage, label + '.profile.json'))},'w') as f: json.dump({'scriptSeconds':time.perf_counter()-script_start,'textureSeconds':texture_seconds},f)
 `;
+  // Catalogs declared by record: the recipe sees only the records its fingerprint hashes.
+  const records: Record<string, string> = {};
+  for (const [path, ids] of Object.entries(inputs.records)) {
+    records[path] = join(stage, 'records', path);
+    await mkdir(join(records[path], '..'), { recursive: true });
+    await writeFile(records[path], JSON.stringify(catalogRecords(JSON.parse(await readFile(join(root, path), 'utf8')), ids), null, 2) + '\n');
+  }
   const { stdout, version } = await runSharedBlender(
     script,
     {
       SHIP_PROCESS_START: String(Date.now() / 1000),
+      SHIP_RECORDS: JSON.stringify(records),
       SHIP_OUTPUT: stage,
       SHIP_DEFINITION: join(
         stage,
@@ -351,6 +359,8 @@ script_start=time.perf_counter()
     const reads = JSON.parse(await readFile(join(stage, label + '.reads.json'), 'utf8')) as string[];
     const missing = reads.filter((path) => /^(assets|scripts)\//.test(path) && !(path in inputs.sources));
     if (missing.length) throw new Error(`Undeclared authoring inputs: ${missing.join(', ')}. Declare them in recipe-inputs.json.`);
+    const whole = reads.filter((path) => path in inputs.records);
+    if (whole.length) throw new Error(`${whole.join(', ')}: declared by record in recipe-inputs.json, so read through catalog_records.catalog(), not directly.`);
   }
   console.log(`${script.split('/').at(-1)} completed; log in ${stage}`);
 }

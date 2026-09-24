@@ -117,3 +117,33 @@ test('declared binary textures are hashed by bytes and deletion fails closed', a
   await rm(join(root, 'assets/parts/paint.png'));
   await expect(get()).rejects.toThrow('Cannot fingerprint');
 });
+
+test('catalogs declared by record change a ship only through the records it reads', async () => {
+  const register = (records: object, files: string[] = []) => put('assets/ships/fletcher/recipe-inputs.json', JSON.stringify({ version: 1, files, records }));
+  const library = { schemaVersion: 1, builders: { funnel: { path: 'assets/funnel.py' }, mast: { path: 'assets/mast.py' } },
+    components: [{ partId: 'funnel', builder: 'funnel' }, { partId: 'mast', builder: 'mast' }] };
+  const equipment = { schemaVersion: 1, equipment: [{ id: 'funnel', size: [1, 2, 3] }, { id: 'mast', size: [1, 9, 1] }] };
+  await put('assets/parts/construction-library.json', JSON.stringify(library));
+  await put('assets/parts/construction.json', JSON.stringify(equipment));
+  await register({ 'assets/parts/construction-library.json': ['funnel'], 'assets/parts/construction.json': ['funnel'] });
+  const before = await get();
+  expect(before.records['assets/parts/construction.json']).toEqual(['funnel']);
+  // Publishing or adding another part leaves the ship current.
+  library.builders.mast.path = 'assets/mast2.py';
+  equipment.equipment.push({ id: 'boat', size: [2, 1, 6] });
+  await put('assets/parts/construction-library.json', JSON.stringify(library));
+  await put('assets/parts/construction.json', JSON.stringify(equipment));
+  expect((await get()).geometry).toBe(before.geometry);
+  // A declared record, or a field outside the record collections, does not.
+  equipment.equipment[0].size = [1, 2, 4];
+  await put('assets/parts/construction.json', JSON.stringify(equipment));
+  const changed = await get();
+  expect(changed.geometry).not.toBe(before.geometry);
+  equipment.schemaVersion = 2;
+  await put('assets/parts/construction.json', JSON.stringify(equipment));
+  expect((await get()).geometry).not.toBe(changed.geometry);
+  await register({ 'assets/parts/construction.json': ['funnel', 'missing-part'] });
+  await expect(get()).rejects.toThrow('Declared catalog records not found: missing-part');
+  await register({ 'assets/parts/construction.json': ['funnel'] }, ['assets/parts/construction.json']);
+  await expect(get()).rejects.toThrow('Invalid original recipe input register');
+});
