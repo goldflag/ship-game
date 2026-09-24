@@ -586,10 +586,10 @@ for side in [-1,1]:
     rod('rigging.aft-shroud',(12.28,side*.08,22.79),aft_anchor,.010,materials['dark'],vertices=6)
     for lower_y,upper_y in [(1.80,.52),(2.17,1.0),(2.55,1.75),(2.92,2.48),(3.20,3.18)]:
         rod('rigging.halyard',(12.20,side*upper_y,22.79),(13.81,side*lower_y,11.457),.009,materials['rope'],vertices=5)
-        rod('bridge.halyard-post',(13.86,side*lower_y,10.277),(13.81,side*lower_y,11.50),.022,materials['edge'],vertices=8)
-        rod('bridge.halyard-cleat',(13.78,side*(lower_y-.065),11.43),(13.78,side*(lower_y+.065),11.43),.013,materials['edge'],vertices=6)
-        rod('bridge.halyard-cleat-foot',(13.78,side*lower_y,11.43),(13.81,side*lower_y,11.43),.019,materials['edge'],vertices=8)
-    rod('bridge.halyard-rack',(13.81,side*1.30,11.45),(13.81,side*3.40,11.45),.024,materials['edge'],vertices=8)
+        rod('bridge.flag-post',(13.86,side*lower_y,10.277),(13.81,side*lower_y,11.50),.022,materials['edge'],vertices=8)
+        rod('bridge.flag-cleat',(13.78,side*(lower_y-.065),11.43),(13.78,side*(lower_y+.065),11.43),.013,materials['edge'],vertices=6)
+        rod('bridge.flag-cleat-foot',(13.78,side*lower_y,11.43),(13.81,side*lower_y,11.43),.019,materials['edge'],vertices=8)
+    rod('bridge.flag-rack',(13.81,side*1.30,11.45),(13.81,side*3.40,11.45),.024,materials['edge'],vertices=8)
     # Circular aerials and their posts are seated on the ends of the yard.
     y=side*3.12
     rod('mast.iff-post',(12.2,y,22.79),(12.2,y,23.805),.020,materials['edge'])
