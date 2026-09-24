@@ -358,3 +358,32 @@ for s,id,mount_id in [(1,'bridge-aa-starboard-platform','bofors-bridge-starboard
 COL=collections['Masts and directors'];ASSEMBLY='director-secondary-forward'
 director_details(next(m for m in D['modules'] if m['id']=='director-secondary-forward'),Z20)
 COL=collections['Superstructure']
+
+# ---------------------------------------------------------------------------------------------
+# Bridge glazing, placed where the approved model paints its windows: a continuous band round the
+# navigation bridge's front and sides, the front half of the level above, and the cheeks of the
+# bridge house below. Framed dark glass stands just proud of the plating with mullions per pane.
+# ---------------------------------------------------------------------------------------------
+def glaze(sid,z0,z1,keep,pane=.62):
+    s=structures[sid];poly=outline_of(s);n=len(poly)
+    ccw=sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(poly,poly[1:]+poly[:1]))>0
+    global ASSEMBLY
+    ASSEMBLY=sid;mid=(z0+z1)/2;h=z1-z0
+    for a,b in zip(poly,poly[1:]+poly[:1]):
+        # keep() sees the edge midpoint in runtime (x, z): starboard, aft.
+        if not keep(-(a[1]+b[1])/2,-(a[0]+b[0])/2):continue
+        d=Vector((b[0]-a[0],b[1]-a[1],0));L=d.length
+        if L<.25:continue
+        t=d/L;out=Vector((t.y,-t.x,0)) if ccw else Vector((-t.y,t.x,0));ang=math.atan2(t.y,t.x)
+        c=Vector(((a[0]+b[0])/2,(a[1]+b[1])/2,mid))
+        o=box('Bridge glazing',tuple(c+out*.012),(L,.02,h),'glass');o.rotation_euler.z=ang
+        count=max(1,round(L/pane))
+        for i in range(count+1):
+            p=Vector((a[0],a[1],mid))+t*L*i/count+out*.03
+            o=box('Window mullion',tuple(p),(.07,.05,h+.02),'naval');o.rotation_euler.z=ang
+        for zz in (z0-.035,z1+.035):
+            o=box('Window frame',tuple(Vector((c.x,c.y,zz))+out*.035),(L+.07,.06,.07),'naval');o.rotation_euler.z=ang
+        o=box('Window brow',tuple(Vector((c.x,c.y,z1+.1))+out*.12),(L+.1,.24,.035),'naval');o.rotation_euler.z=ang
+glaze('bridge-wing',16.6,17.4,lambda x,z:z<-17.2)
+glaze('conning-top',18.35,18.88,lambda x,z:z<-22.6)
+glaze('bridge-lower',14.2,15.08,lambda x,z:abs(x)>2.85 and -23.95<z<-20.3)
