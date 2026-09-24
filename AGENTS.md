@@ -41,6 +41,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |
 | Build or refit a construction ship as an agent | [Agent construction authoring](docs/construction-authoring.md): `ship:summary`, guarded `ship:apply` batches, `ship:place`, `ship:view`, `ship:blender-import`/`ship:blender-export` (Blender as a front end that proposes batches), or the `ship-construction` MCP server |
 | New ship, ship model, parts, aircraft, paint | [assets/AGENTS.md](assets/AGENTS.md), then the [ship pipeline](docs/ship-pipeline.md) |
+| A premade ship "using the Blender pipeline", or a realism pass on one | [Blender-recipe presets](docs/ship-pipeline.md#blender-recipe-presets) |
 | Merge, rebase or independent worktree | [Integration workflow](docs/integration-workflow.md) before starting |
 | Anything else | The [documentation map](docs/README.md). `docs/archive/` is history, not guidance |
 

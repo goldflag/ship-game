@@ -2,7 +2,7 @@
 
 Required for every new ship and every affected assembly after a geometry or shared-component change. Follow the [ship pipeline](ship-pipeline.md) to build first; inspect the generated Blender scene and the actual exported model in-game.
 
-Follow the [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) to query and isolate affected objects, inspect fresh viewport screenshots and correct problems during modeling. Repeat affected checks after rebuilding from durable inputs; the interactive scene alone is not the published model. When MCP is unavailable, inspect local Blender renders and disclose that fallback.
+Follow the [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) to query and isolate affected objects, inspect fresh viewport screenshots and correct problems during modeling. Repeat affected checks after rebuilding from durable inputs; the interactive scene alone is not the published model. Background Blender renders that you inspect are an equal path.
 
 These are authoring and visual acceptance checks. Existing export validation verifies hashes, dimensions and joint geometry; it does not automatically certify attachment, historical proportions, detail or collision-free movement.
 

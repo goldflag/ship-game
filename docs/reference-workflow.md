@@ -45,7 +45,7 @@ One measurement per call, always over a cached reference:
 
 ```sh
 bun run ship:slice pgsb507 --levels --parts hull          # up-facing area by height: the deck finder
-bun run ship:slice pgsb507 --plan 4.1 --simplify 0.2      # footprint rings at a height
+bun run ship:slice pgsb507 --plan 4.1 --simplify 0.2      # closed footprint rings at a height (see below)
 bun run ship:slice pgsb507 --top z --step 1               # side-view silhouette (--top x for the front view)
 bun run ship:slice pgsb507 --width --bin 1                # half-breadth per height band
 bun run ship:slice pgsb507 --stations -60,-20,0,20,60 --parts hull   # hull cross sections
@@ -55,6 +55,10 @@ bun run ship:slice pgsb507 --section z=-40                # raw cut outlines, op
 
 `--box x0,y0,z0,x1,y1,z1` limits any measurement to a region, `--parts` to named groups or part keys, and
 `--limit` caps the rows returned.
+
+`--plan` returns closed rings only. GameModels3D meshes are open shells, so a plan cut through a deckhouse often
+finds none, and `--plan` with `--box` returned nothing on the Iowa reference. For a deckhouse footprint, take the
+`--section` outlines and fill them as a raster instead.
 
 `--levels` is the one to reach for first: its `strongest` list is the deck heights, and on the Scharnhorst it
 returns the main deck at 4.15 m, the forecastle at 6.55 m and the bridge deck at 12.25 m. `--probe` with
