@@ -150,7 +150,9 @@ def ladder(name,a,b,w=.68,steps=None):
  a,b=Vector(a),Vector(b);n=steps or max(3,round((b-a).length/.28));across=Vector((0,w/2,0))
  for side in [-1,1]:
   rod(name+' stile',a+across*side,b+across*side,.038,'naval',vertices=6)
-  if abs(a.x-b.x)>.5:rod(name+' handrail',a+across*side+Vector((0,0,.8)),b+across*side+Vector((0,0,.8)),.025,'naval',vertices=6)
+  if abs(a.x-b.x)>.5:
+   rod(name+' handrail',a+across*side+Vector((0,0,.8)),b+across*side+Vector((0,0,.8)),.025,'naval',vertices=6)
+   for e in [a,b]:rod(name+' handrail post',e+across*side,e+across*side+Vector((0,0,.8)),.025,'naval',vertices=6)
  for i in range(n+1):
   pos=a.lerp(b,i/n);rod(name+' tread',pos-across,pos+across,.034,'edge',vertices=6)
 def door(name,x,y,z,angle=0):
@@ -330,7 +332,7 @@ for mount in D['mounts']:
   # Armoured cheeks either side of the gun cradles; Mk I high rear hood.
   for side in [-1,1]:
    prism('5.25-inch raised cheek',[(1.0,side*1.48),(2.35,side*1.48),(2.35,side*2.10),(1,side*2.15)],1.40,.72)
-   box('Secondary optical slit',(2.365,side*1.80,2.32),(.02,.27,.22),'glass')
+   box('Secondary optical slit',(2.36,side*1.80,1.9),(.02,.27,.22),'glass')
    ladder('Secondary rear ladder',(-2.77,side*.89,.25),(-2.77,side*.89,2.72),w=.40)
    box('Ventilation cheek',(-1.6,side*2.21,2.3),(.9,.16,.65),'naval')
   cyl('Secondary escape hatch',(-1.20,0,3.08),.37,.10,'naval',vertices=24)
@@ -394,7 +396,7 @@ for side in [-1,1]:
   cyl('Lookout pedestal',(x,side*y,z+.4),.13,.8,'naval',vertices=10)
   for dy in [-.16,.16]:rod('Binocular telescope',(x-.25,side*y+dy,z+.9),(x+.40,side*y+dy,z+.9),.095,'edge',vertices=10)
  # Companionways from the upper deck to the 10.25 m deck and up the tower platforms.
- ladder('Long shelter stair',(24.0,side*9.3,DECK+.15),(19.6,side*9.3,BLOCK+.07))
+ ladder('Long shelter stair',(24.0,side*9.18,DECK+.02),(19.6,side*9.18,BLOCK+.07))
  ladder('Signal stair',(16.0,side*7.35,11.07),(19.4,side*7.35,15.62))
  ladder('Bridge stair',(20.6,side*5.6,15.62),(18.1,side*5.6,18.22))
  for x,z in [(18.2,DECK+.2),(6.4,DECK+.2)]:
@@ -432,7 +434,7 @@ for side in [-1,1]:
  box('Hangar doorway',(-3.315,side*4.8,DECK+2.63),(.02,6.0,5.1),'dark')
  for y in [side*1.75,side*7.85]:box('Hangar portal jamb',(-3.39,y,DECK+2.63),(.20,.14,5.2),'naval')
  box('Hangar lintel',(-3.39,side*4.8,DECK+5.2),(.2,6.1,.2),'naval')
- for j in range(5):box('Folded hangar door',(-3.47,side*(7.0+j*.14),DECK+2.58),(.1,.10,4.9),'roof')
+ for j in range(5):box('Folded hangar door',(-3.35,side*(7.0+j*.14),DECK+2.58),(.1,.10,4.9),'roof')
  # Repeated aircraft rails pass into the hangar at deck level.
  for yy in [side*2.8,side*5.8]:rod('Aircraft handling deck track',(-12,yy,DECK+.08),(-3.2,yy,DECK+.08),.04,'edge',vertices=6)
 
@@ -445,37 +447,37 @@ def stadium_ring(x,L,W,z,n=20):
  fore=[(x+a+r*math.cos(t),r*math.sin(t),z) for t in [-math.pi/2+math.pi*i/n for i in range(n+1)]]
  aft=[(x-a+r*math.cos(t),r*math.sin(t),z) for t in [math.pi/2+math.pi*i/n for i in range(n+1)]]
  return fore+aft
-def funnel_half(L,W,dx):
- r=W/2;a=L/2-r
+def funnel_half(FL,FW,dx):
+ r=FW/2;a=FL/2-r
  return r if abs(dx)<=a else math.sqrt(max(0,r*r-(abs(dx)-a)**2))
-for id,x,L,W,base,top,casing in FUNNELS:
+for id,x,FL,FW,base,top,casing in FUNNELS:
  ASSEMBLY=id
- layers=[stadium_ring(x,L,W,base),stadium_ring(x,L,W,top),stadium_ring(x,L-.4,W-.4,top),stadium_ring(x,L-.4,W-.4,top-1.8)]
+ layers=[stadium_ring(x,FL,FW,base),stadium_ring(x,FL,FW,top),stadium_ring(x,FL-.4,FW-.4,top),stadium_ring(x,FL-.4,FW-.4,top-1.8)]
  vv=[p for l in layers for p in l];n=len(layers[0])
  ff=[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(3) for i in range(n)]
  mesh('Open funnel jacket',vv,ff,'naval',smooth=True)
- mesh('Soot inside funnel',stadium_ring(x,L-.44,W-.44,top-1.75),[tuple(range(n))],'dark')
+ mesh('Soot inside funnel',stadium_ring(x,FL-.44,FW-.44,top-1.75),[tuple(range(n))],'dark')
  if casing:
   ctop,cL,cW=casing;cv=stadium_ring(x,cL,cW,base)+stadium_ring(x,cL,cW,ctop);m=len(cv)//2
   mesh('Funnel base casing',cv,[tuple(range(m,2*m))]+[(i,(i+1)%m,(i+1)%m+m,i+m) for i in range(m)],'naval')
   tube('Casing top band',stadium_ring(x,cL+.05,cW+.05,ctop-.1)+[stadium_ring(x,cL+.05,cW+.05,ctop-.1)[0]],.05,'naval',vertices=6)
  for zz in [top-5.2,top-.35]:
-  ring=stadium_ring(x,L+.05,W+.05,zz);tube('Funnel circumferential band',ring+[ring[0]],.055,'naval',vertices=6)
- ring=stadium_ring(x,L-.1,W-.1,top+.02);tube('Rolled funnel mouth',ring+[ring[0]],.13,'roof',vertices=8)
+  ring=stadium_ring(x,FL+.05,FW+.05,zz);tube('Funnel circumferential band',ring+[ring[0]],.055,'naval',vertices=6)
+ ring=stadium_ring(x,FL-.1,FW-.1,top+.02);tube('Rolled funnel mouth',ring+[ring[0]],.13,'roof',vertices=8)
  for dx in [-2,-1,0,1,2]:
-  half=funnel_half(L,W,dx)-.05
+  half=funnel_half(FL,FW,dx)-.05
   if half<.3:continue
   tube('Funnel cap lattice',[(x+dx,-half,top+.03),(x+dx,-half*.55,top+.40),(x+dx,0,top+.50),(x+dx,half*.55,top+.40),(x+dx,half,top+.03)],.042,'edge')
- tube('Funnel cap spine',[(x-L/2+.1,0,top),(x-L/4,0,top+.47),(x+L/4,0,top+.47),(x+L/2-.1,0,top)],.055,'edge')
+ tube('Funnel cap spine',[(x-FL/2+.1,0,top),(x-FL/4,0,top+.47),(x+FL/4,0,top+.47),(x+FL/2-.1,0,top)],.055,'edge')
  for side in [-1,1]:
-  for dx in [-L/2+W/2+.1,0,L/2-W/2-.1]:
-   y0=side*(W/2+.1);z0=(casing[0] if casing else base)+.1
+  for dx in [-FL/2+FW/2+.1,0,FL/2-FW/2-.1]:
+   y0=side*(FW/2+.1);z0=(casing[0] if casing else base)+.1
    tube('Funnel steam pipe',[(x+dx,y0,z0),(x+dx,y0,top-1.45),(x+dx-.23,y0,top-1.07),(x+dx-.58,y0,top-1.0)],.085,'naval',vertices=10)
   # Shape of the pipe and its flared steam whistle is visible against the sea.
-  tube('Steam whistle',[(x+L/2+.14,side*.6,(casing[0] if casing else base)+.1),(x+L/2+.14,side*.6,top-2.2),(x+L/2-.1,side*.6,top-1.85),(x+L/2-.4,side*.6,top-1.8)],.12)
- ladder('Funnel maintenance ladder',(x-L/2-.06,0,top-6.2),(x-L/2-.06,0,top+.06),w=.56)
+  tube('Steam whistle',[(x+FL/2+.14,side*.6,(casing[0] if casing else base)+.1),(x+FL/2+.14,side*.6,top-2.2),(x+FL/2-.1,side*.6,top-1.85),(x+FL/2-.4,side*.6,top-1.8)],.12)
+ ladder('Funnel maintenance ladder',(x-FL/2-.06,0,top-6.2),(x-FL/2-.06,0,top+.06),w=.56)
  for zz in [top-5,top-3.5,top-2,top-.6]:
-  for yy in [-.28,.28]:rod('Ladder bracket',(x-L/2+.05,yy,zz),(x-L/2-.12,yy,zz),.025,'edge',vertices=6)
+  for yy in [-.28,.28]:rod('Ladder bracket',(x-FL/2+.05,yy,zz),(x-FL/2-.12,yy,zz),.025,'edge',vertices=6)
 
 COL=collections['Sensors and masts']
 def director(id,x,y,z,main=False):
@@ -622,16 +624,16 @@ def boat(name,x,y,z,length=9,width=2.7,motor=False):
  tube('Boat gunwale',[(x+xx,y+yy,z+.67*k+.20*abs(xx/(length/2))**3) for xx,yy in outline+[outline[0]]],.055,'canvas',vertices=6)
  for dx in [-length*.28,-length*.10,length*.12,length*.30]:box('Boat wooden thwart',(x+dx,y,z+.51*k),(.29,width*.76,.09),'deck')
  for dx in [-length*.25,length*.25]:
-  box('Boat cradle',(x+dx,y,z-.23),(.22,width,.4),'edge')
+  box('Boat cradle',(x+dx,y,z-.19),(.22,width,.44),'edge')
   for sign in [-1,1]:rod('Boat cradle brace',(x+dx,y+sign*width*.47,z+.09),(x+dx,y+sign*width*.34,z-.44),.07,'naval',vertices=6)
  if motor:
   top=z+.66*k
-  prism('Motor launch cabin',octagon(x+.45,y,length*.27,width*.70,.25),top,.95*k,'canvas')
+  prism('Motor launch cabin',octagon(x+.45,y,length*.27,width*.70,.25),z+.17*k,top-z-.17*k+.95*k,'canvas')
   box('Launch wheelhouse glass',(x+.45+length*.135,y,top+.59*k),(.02,width*.52,.45),'glass')
   for side in [-1,1]:box('Launch side glass',(x+.5,y+side*width*.352,top+.58*k),(length*.19,.02,.40),'glass')
   box('Launch cabin roof',(x+.45,y,top+1.0*k),(length*.29,width*.76,.10),'white')
   rod('Launch exhaust',(x-.55,y,top+.04),(x-.55,y,top+1.46*k),.11,'edge',vertices=10)
-  rod('Boat propeller shaft',(x-length*.4,y,z+.05),(x-length*.53,y,z-.16),.055,'edge',vertices=6)
+  rod('Boat propeller shaft',(x-length*.33,y,z+.05),(x-length*.45,y,z-.16),.055,'edge',vertices=6)
  else:
   for side in [-1,1]:rod('Stowed boat oar',(x-length*.38,y+side*.36,z+.65*k),(x+length*.35,y+side*.36,z+.65*k),.032,'deck',vertices=6)
 # Boats on the boat deck in two columns each side, clear of the after pom-poms and the mainmast legs.
@@ -639,7 +641,7 @@ for i,(x,y,l,w) in enumerate([(-36.6,7.3,11.2,2.8),(-36.6,-7.3,11.2,2.8),(-33.35
 # Boat-deck edge rails, Carley floats and access on the after deckhouse.
 ASSEMBLY='boat-deck-support'
 for side in [-1,1]:
- ladder('Boat deck access',(-17.4,side*5.5,DECK+.1),(-19.5,side*5.5,BLOCK+.07))
+ ladder('Boat deck access',(-17.4,side*5.5,DECK+.02),(-19.58,side*5.5,BLOCK+.07))
  for x,y,z in [(-25.8,7.72,8.9),(-38.6,9.12,7.6),(-41.6,9.12,7.6)]:life_raft('Aft shelter Carley float',x,side*y,z,True)
  rail('Boat deck edge',[(x,side*y,BLOCK+.07) for x,y in [(-19.8,7.45),(-30.8,7.45),(-31.2,8.45),(-37.0,8.45),(-37.8,8.85),(-43.8,8.85),(-50.8,2.6)]],.95)
 # Small independently authored Walrus: amphibious hull, biplane wings, pusher engine.
@@ -651,6 +653,7 @@ for zz in [z+.95,z+3.0]:
 for side in [-1,1]:
  for dx in [-.25,1.25]:rod('Walrus interplane strut',(x+dx,y+side*4.6,z+1),(x+dx,y+side*4.6,z+3),.045,'edge',vertices=6)
  ellipse('Wingtip float',x+.6,y+side*5.4,z-.2,1.0,.27,.4,'naval',n=12)
+ for dx in [.1,1.1]:rod('Wingtip float strut',(x+dx,y+side*5.4,z+.15),(x+dx,y+side*5.4,z+.97),.04,'edge',vertices=6)
 box('Walrus canopy',(x+2,y,z+1.48),(1.7,1.1,.65),'glass')
 rod('Walrus engine',(x-.2,y,z+2.7),(x-1.4,y,z+2.7),.43,'edge',vertices=16)
 rod('Walrus pusher propeller',(x-1.45,y-1.1,z+2.7),(x-1.45,y+1.1,z+2.7),.06,'dark',vertices=6)
@@ -674,7 +677,7 @@ for i,(x,y,z) in enumerate([(4,7.0,HANGAR),(4,-7.0,HANGAR),(-26.2,5.2,BLOCK),(-2
   before=set(scene.objects)
   cyl('Pom-pom geared roller',(x,y,z+.27),.91,.30,'edge',vertices=28)
   cyl('Pom-pom pedestal',(x,y,z+.67),.46,.70,'naval',vertices=20)
-  box('Pom-pom open cradle',(x-.25,y,z+1.16),(1.3,1.98,.36),'edge')
+  box('Pom-pom open cradle',(x-.25,y,z+1.30),(1.3,1.98,.64),'edge')
   for yy in [-.81,-.27,.27,.81]:
    for zz in [z+1.14,z+1.60]:
     rod('2-pounder water jacket',(x-.33,y+yy,zz),(x+.94,y+yy,zz+.41),.094,'naval',vertices=12)
@@ -684,9 +687,9 @@ for i,(x,y,z) in enumerate([(4,7.0,HANGAR),(4,-7.0,HANGAR),(-26.2,5.2,BLOCK),(-2
   for sign in [-1,1]:
    box('Pom-pom ammunition feed',(x-.4,y+sign*1.28,z+1.37),(1.3,.60,.76),'naval')
    box('Feed-box lid',(x-.4,y+sign*1.28,z+1.77),(1.35,.66,.07),'roof')
-   box('Gunner seat',(x-1.15,y+sign*.72,z+.80),(.5,.48,.11),'canvas')
+   box('Gunner seat',(x-1.15,y+sign*.72,z+.80),(.5,.48,.11),'canvas');rod('Gunner seat post',(x-1.15,y+sign*.72,z+.13),(x-1.15,y+sign*.72,z+.75),.05,'naval',vertices=6)
    rod('Control wheel axis',(x-.9,y+sign*1.20,z+1.04),(x-.9,y+sign*1.48,z+1.04),.08,'edge',vertices=10)
-  rod('Pom-pom sight',(x-.2,y,z+1.85),(x-.2,y,z+2.3),.04,'edge',vertices=6)
+  rod('Pom-pom sight',(x-.2,y,z+1.6),(x-.2,y,z+2.3),.04,'edge',vertices=6)
   node=pivot(ASSEMBLY+'.yaw',(x,y,z));attach_world(set(scene.objects)-before-{node},node)
 
 def up_launcher(id,x,y,z,parent=None):
@@ -706,7 +709,7 @@ def mounting_roof(mount_id,x):
 up_launcher('up-main-b',-3.2,0,mounting_roof('main-b',-3.2),yawB)
 up_launcher('up-main-y',-2.0,2.25,mounting_roof('main-y',-2.0),yawY)
 up_launcher('up-waist-1',-2.0,-2.25,mounting_roof('main-y',-2.0),yawY)
-up_launcher('up-waist--1',-88,0,deckz(-88)+.18)
+up_launcher('up-waist--1',-88,0,deckz(-88))
 
 COL=collections['Deck fittings'];ASSEMBLY='deck-rails'
 for side in [-1,1]:
@@ -790,6 +793,7 @@ for x in [-71,-50,-18,-5,31,40,60,72]:
   rod('Hose reel axle',(x+2,y-.58,z+.52),(x+2,y+.58,z+.52),.08,'naval',vertices=8)
   for yy in [-.52,.52]:rod('Hose reel flange',(x+2,y+yy-.04,z+.52),(x+2,y+yy+.04,z+.52),.43,'naval',vertices=20)
   rod('Hose reel',(x+2,y-.40,z+.52),(x+2,y+.40,z+.52),.33,'edge',vertices=20)
+  for yy in [-.62,.62]:rod('Hose reel stand',(x+2,y+yy,z),(x+2,y+yy,z+.6),.05,'naval',vertices=6)
 # Subtle sheer strakes and plate seams follow the actual authored side surface.
 ASSEMBLY='hull-plating'
 for side in [-1,1]:
