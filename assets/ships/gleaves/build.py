@@ -934,31 +934,39 @@ for side in [-1,1]:
 for x in [-45,-40,40,49.6]:
     z=deckz(x);box('deck.hatch-foot',(x,0,z+.09),(.92,.70,.16),materials['edge'])
     box('deck.hatch',(x,0,z+.20),(.98,.76,.07),materials['naval'])
-rod('mast.jackstaff',(52.8,0,5.96),(52.9,0,8.15),.024,materials['edge'],r2=.016)
-rod('mast.stern-staff',(-52.6,0,2.63),(-53.0,0,5.05),.028,materials['edge'],r2=.018)
+rod('mast.jackstaff',(53.0,0,5.98),(53.17,0,9.70),.03,materials['edge'],r2=.016)
+rod('mast.stern-staff',(-52.38,0,2.6),(-53.24,0,7.05),.034,materials['edge'],r2=.018)
 
-# Twin shafts with socketed A-brackets and original handed three-bladed screws.
+# Twin shafts leave the hull through short bossings at 28 m, run on a single
+# intermediate strut and an A-bracket ahead of the handed three-bladed screws
+# (measured on pzsd108: shaft line y = -2.58 - 0.0467 (z - 28), screws Ø2.72).
+shaft_slope=.0467
+shaftz=lambda x:-2.58+shaft_slope*(x+28)
 for side in [-1,1]:
-    label='port' if side>0 else 'starboard';y=side*2.48
-    shaftz=lambda x:-3.18+(x+48.15)*.55/19.15
-    rod('shaft.'+label,(-29,y,shaftz(-29)),(-48.15,y,-3.18),.14,materials['edge'],vertices=24)
-    rod('shaft.fairing',(-30,y,shaftz(-30)),(-36,y,shaftz(-36)),.28,materials['underwater'],r2=.18,vertices=24)
-    for x in [-40.0,-46.7]:
-        rod('shaft.bearing',(x-.52,y,shaftz(x-.52)),(x+.52,y,shaftz(x+.52)),.235,materials['underwater'],vertices=24)
-        for ty in [y,side*.9]:
-            root=hull_height_at(x+.15,ty)+.12
-            rod('shaft.a-bracket',(x,y,shaftz(x)),(x+.15,ty,root),.10,materials['underwater'],vertices=12,r2=.14)
-    pivot=empty('propeller-'+label+'.pivot',(-48.15,y,-3.18))
-    pivot.rotation_euler.y=-math.atan2(.55,19.15)
-    local(rod('propeller.hub',(-.57,0,0),(.42,0,0),.26,materials['bronze'],vertices=32,r2=.20),pivot)
-    local(rod('propeller.cap',(-.57,0,0),(-.78,0,0),.26,materials['bronze'],vertices=32,r2=.025),pivot)
+    label='port' if side>0 else 'starboard';y=side*2.62
+    rod('shaft.'+label,(-24.5,y,shaftz(-24.5)),(-46.0,y,shaftz(-46.0)),.17,materials['edge'],vertices=20)
+    rod('shaft.fairing',(-25.0,y,shaftz(-25.0)),(-29.6,y,shaftz(-29.6)),.31,materials['underwater'],r2=.2,vertices=20)
+    # Intermediate strut: one faired leg straight up to the hull bottom.
+    x=-34.0;root=hull_height_at(x,y)+.1
+    rod('shaft.bearing',(x+.45,y,shaftz(x+.45)),(x-.45,y,shaftz(x-.45)),.235,materials['underwater'],vertices=20)
+    box('shaft.strut',(x,y,(shaftz(x)+root)/2),(.42,.09,root-shaftz(x)),materials['underwater'],bev=.02)
+    # A-bracket ahead of the screw: outboard leg to the hull side, inboard leg to the keel.
+    x=-45.0
+    rod('shaft.bearing',(x+.5,y,shaftz(x+.5)),(x-.5,y,shaftz(x-.5)),.25,materials['underwater'],vertices=20)
+    for ty in [side*2.86,side*.12]:
+        root=hull_height_at(x,ty)+.1
+        rod('shaft.a-bracket',(x,y,shaftz(x)),(x,ty,root),.075,materials['underwater'],vertices=10,r2=.10)
+    pivot=empty('propeller-'+label+'.pivot',(-46.35,y,shaftz(-46.35)))
+    pivot.rotation_euler.y=-math.atan(shaft_slope)
+    local(rod('propeller.hub',(-.55,0,0),(.39,0,0),.24,materials['bronze'],vertices=24,r2=.19),pivot)
+    local(rod('propeller.cap',(-.55,0,0),(-1.05,0,0),.24,materials['bronze'],vertices=24,r2=.03),pivot)
     for blade in range(3):
-        angle=math.pi/2+blade*math.tau/3;nr,nc=25,15;vs=[]
+        angle=math.pi/2+blade*math.tau/3;nr,nc=16,11;vs=[]
         for face in [-1,1]:
             for i in range(nr):
-                r=.20+1.38*i/(nr-1);t=(r-.20)/1.38
-                chord=.24+1.02*math.sin(math.pi*t)**.7 if t<.999 else .016
-                pitch=math.atan2(2.8,math.tau*r)
+                r=.20+1.16*i/(nr-1);t=(r-.20)/1.16
+                chord=.21+.88*math.sin(math.pi*t)**.7 if t<.999 else .014
+                pitch=math.atan2(2.4,math.tau*r)
                 for j in range(nc):
                     u=-math.cos(math.pi*j/(nc-1));tangent=u*chord/2+.11*t*t
                     thick=(.006+.085*(1-t)**1.2)*math.sqrt(max(0,1-u*u))+.004
@@ -972,15 +980,32 @@ for side in [-1,1]:
         edge=list(range(nc))+[k*nc+nc-1 for k in range(1,nr)]+[(nr-1)*nc+j for j in range(nc-2,-1,-1)]+[k*nc for k in range(nr-2,0,-1)]
         fs += [(n,edge[(j+1)%len(edge)],stride+edge[(j+1)%len(edge)],stride+n) for j,n in enumerate(edge)]
         local(mesh('propeller-'+label+'.blade',vs,fs,materials['bronze'],smooth=True),pivot)
-# Single centreline rudder is joined to the sternpost; foil section and tapered tip.
-pivot=empty('rudder.pivot',(-51.05,0,-.8))
-rod('rudder.stock',(-51.05,0,-1.3),(-51.05,0,deckz(-51.05)-.2),.15,materials['edge'],vertices=24)
+# Single large centreline rudder under the counter (pzsd108: 48.0-51.0 m aft,
+# -0.9 to -4.43 m, raked leading edge, vertical trailing edge); its top is let
+# into the counter and the stock rises to the steering gear.
+pivot=empty('rudder.pivot',(-49.1,0,-.85))
+rod('rudder.stock',(-49.1,0,-1.2),(-49.1,0,deckz(-49.1)-.2),.15,materials['edge'],vertices=24)
 vs=[];n=24
-for z,cx,chord,thickness in [(-.15,0,1.8,.20),(-1.1,-.12,2.35,.19),(-3.4,-.2,2.1,.12),(-3.7,-.1,1.65,.055)]:
+for z,cx,chord,thickness in [(0,-.385,2.97,.32),(-1.65,-.49,2.78,.26),(-3.35,-.655,2.45,.15),(-3.58,-.625,2.05,.06)]:
     for j in range(n):
         a=j*math.tau/n;vs.append((cx+chord*.5*math.cos(a),thickness*math.sin(a),z))
 fs=[(i*n+j,i*n+(j+1)%n,(i+1)*n+(j+1)%n,(i+1)*n+j) for i in range(3) for j in range(n)]+[tuple(reversed(range(n))),tuple(3*n+j for j in range(n))]
 local(mesh('rudder.foil',vs,fs,materials['underwater'],smooth=True),pivot)
+# Streamlined sonar dome under the forefoot (pzsd108 hull A, 1.25 m long).
+rings=[]
+for zz,hw,x0,x1 in [(-3.80,.25,39.06,40.35),(-4.20,.216,39.11,40.29),(-4.50,.216,39.11,40.29),(-4.75,.168,39.15,40.25),(-4.83,.06,39.31,40.17)]:
+    cx,hl=(x0+x1)/2,(x1-x0)/2
+    rings.append([(cx+hl*math.cos(a),hw*math.sin(a)*(1 if math.cos(a)>0 else .85),zz) for a in [i*math.tau/16 for i in range(16)]])
+vs=sum(rings,[]);fs=[(k*16+j,k*16+(j+1)%16,(k+1)*16+(j+1)%16,(k+1)*16+j) for k in range(4) for j in range(16)]+[tuple(range(64,80))]
+mesh('hull.sonar-dome',vs,fs,materials['underwater'],smooth=True)
+# Bilge keels along the turn of the bilge, measured root and tip lines.
+bilge=[(-15.2,4.0,-1.95,4.0,-1.95),(-14,4.35,-2.26,4.02,-1.991),(-12,4.47,-2.48,4.061,-2.157),(-10,4.53,-2.62,4.105,-2.275),(-8,4.57,-2.7,4.149,-2.378),(-6,4.61,-2.76,4.204,-2.446),(-4,4.65,-2.84,4.24,-2.499),(-2,4.69,-2.9,4.267,-2.554),(0,4.71,-2.96,4.289,-2.607),(2,4.73,-2.98,4.318,-2.61),(4,4.75,-3.0,4.341,-2.613),(6,4.77,-3.0,4.357,-2.62),(8,4.79,-3.02,4.363,-2.606),(10,4.81,-3.04,4.348,-2.588),(12,4.79,-3.02,4.33,-2.548),(14,4.73,-2.96,4.29,-2.499),(16,4.63,-2.84,4.249,-2.426),(17.2,4.2,-2.4,4.2,-2.4)]
+for side in [-1,1]:
+    vs=[];fs=[]
+    for i,(z,tx,ty,rx,ry) in enumerate(bilge):
+        vs += [(-z,-side*rx,ry),(-z,-side*tx,ty)]
+        if i:fs.append((2*i-2,2*i-1,2*i+1,2*i))
+    o=mesh('hull.bilge-keel',vs,fs,materials['underwater']);o.modifiers.new('Plate thickness','SOLIDIFY').thickness=.035
 
 # Permanent rail attachments and waterway along the deck edge.
 for side in [-1,1]:
