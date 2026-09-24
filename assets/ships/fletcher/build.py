@@ -332,7 +332,7 @@ for side in [-1,1]:
     bulwark('bridge.observation-shield',[(23.75+1.0*math.cos(i*math.pi/24-math.pi/2),side*(1.35+.95*math.sin(i*math.pi/24-math.pi/2))) for i in range(37)],pilot_top+.18,.90,closed=False)
     cyl('bridge.pelorus',(23.75,side*1.35,pilot_top+.57),.13,.74,materials['edge'])
     box('bridge.pelorus-head',(23.75,side*1.35,pilot_top+.97),(.28,.25,.16),materials['naval'])
-    rod('bridge.voice-pipe',(18.9,side*2.25,pilot_top+.16),(18.9,side*2.25,pilot_top+.87),.045,materials['edge'])
+    rod('bridge.voice-pipe',(18.9,side*2.25,pilot_top+.05),(18.9,side*2.25,pilot_top+.87),.045,materials['edge'])
     x,y,z=17.4,side*4.50,pilot_base+.87
     cyl('bridge.signal-pedestal',(x,y,(pilot_base+z+.33)/2),.14,z+.33-pilot_base,materials['naval'])
     rod('bridge.signal-yoke',(x,y-.30,z+.3),(x,y+.30,z+.3),.035,materials['edge'])
@@ -672,11 +672,17 @@ for side in [-1,1]:
         xx=47.9+i*.134;yy=side*(1.1+.11*(xx-47.9));zz=deckz(xx)+.10
         pts=[(xx+.10*math.cos(j*math.tau/12),yy+.057*math.sin(j*math.tau/12)*(1 if i%2 else .28),zz+.057*math.sin(j*math.tau/12)*(0 if i%2 else 1)) for j in range(12)]
         tube_path('anchor.chain-link',pts,.021,materials['edge'],sides=6,closed=True)
-    xx=53.7;zz=5.35;yy=side*(hull_breadth_at(xx,zz)+.03)
-    rod('anchor.hawse',(xx,yy-side*.10,zz),(xx,yy+side*.13,zz),.28,materials['edge'],vertices=24)
-    rod('anchor.shank',(xx,yy+side*.16,zz-.10),(xx-.35,yy+side*.18,zz-1.04),.095,materials['edge'],vertices=12)
-    rod('anchor.crown',(xx-.7,yy+side*.18,zz-.95),(xx+.08,yy+side*.18,zz-1.16),.11,materials['edge'])
-    for dx in [-.66,.02]:mesh('anchor.fluke',[(xx+dx,yy+side*.08,zz-1.1),(xx+dx+.16,yy+side*.32,zz-.50),(xx+dx+.43,yy+side*.10,zz-1.03)],[(0,1,2)],materials['edge'])
+    # Stockless anchor housed in the hawse: shank up the pipe, crown and broad flukes against the shell
+    # (reference: 1.7 m tall, hanging 4.35-6.1 m at z -54.7..-53.0).
+    xx=53.8;zz=5.75;yy=side*(hull_breadth_at(xx,zz)+.03)
+    rod('anchor.hawse',(xx,yy-side*.10,zz),(xx,yy+side*.14,zz),.30,materials['edge'],vertices=24)
+    cz=4.55;cy=side*(hull_breadth_at(xx,cz)+.16)
+    rod('anchor.shank',(xx,yy+side*.10,zz-.05),(xx,cy,cz+.1),.10,materials['edge'],vertices=12)
+    box('anchor.crown',(xx,cy,cz),(.85,.26,.34),materials['edge'],bev=.06)
+    for dx in [-1,1]:
+        fl=[(xx+dx*.30,cy,cz-.10),(xx+dx*.62,cy+side*.05,cz+.05),(xx+dx*.72,cy+side*.10,cz+.62),(xx+dx*.46,cy+side*.06,cz+.38)]
+        o=mesh('anchor.fluke',fl,[(0,1,2,3)],materials['edge'])
+        o.modifiers.new('Fluke plate','SOLIDIFY').thickness=.09
 # Small jackstaff and stern ensign staff, with rope cleats.
 rod('rigging.jackstaff',(57.12,0,deckz(57.12)),(57.12,0,deckz(57.12)+2.6),.028,materials['edge'],r2=.018)
 rod('rigging.ensign',(-56.5,0,2.78),(-56.85,0,4.35),.035,materials['edge'],r2=.021)
