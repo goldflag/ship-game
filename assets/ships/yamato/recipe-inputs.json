@@ -9,6 +9,7 @@
     "assets/parts/library.json",
     "assets/parts/ijn-main-guns/geometry.py",
     "assets/parts/gun_bloomers.py",
-    "assets/parts/ijn-yamato-aa/type89_twin.py"
+    "assets/parts/ijn-yamato-aa/type89_twin.py",
+    "assets/parts/ijn-main-guns/type94_460_triple.py"
   ]
 }
