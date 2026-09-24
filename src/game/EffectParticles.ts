@@ -7,9 +7,9 @@ const clamp = (n: number) => Math.max(0, Math.min(1, n));
 const WATER_FACING = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 /** How a slot ranks for reuse: a spent particle first, then the largest share of its life spent. NaN never ranks, and a
  * live particle's infinite share stays below a spent one. */
-const claimKey = (p: EffectParticle) => {
-  if (p.age >= p.life) return Infinity;
-  const fraction = p.age / p.life;
+const claimKey = (age: number, life: number) => {
+  if (age >= life) return Infinity;
+  const fraction = age / life;
   return fraction !== fraction ? -Infinity : fraction === Infinity ? Number.MAX_VALUE : fraction;
 };
 /** Speed (m/s) at which a `streak` particle reaches its full smear. */
@@ -124,22 +124,78 @@ export interface EffectParticle {
   align: 'billboard' | 'velocity' | 'streak' | 'water';
   waterline: boolean;
   surfaceY: number;
-  distance: number;
 }
 
-/** One instance batch per material; fixed storage and back-to-front alpha sorting. */
+/** `align` as the pools store it; anything but the three named alignments draws as a billboard. */
+const BILLBOARD = 0, VELOCITY = 1, STREAK = 2, WATER = 3;
+const ALIGNS = ['billboard', 'velocity', 'streak', 'water'] as const;
+const alignCode = (align: string) => align === 'water' ? WATER : align === 'velocity' ? VELOCITY : align === 'streak' ? STREAK : BILLBOARD;
+const WATER_X = WATER_FACING.x, WATER_Y = WATER_FACING.y, WATER_Z = WATER_FACING.z, WATER_W = WATER_FACING.w;
+/** Floats of one published instance in the shared record scratch: pose, colour, opacity, then the volume's four vec4s. */
+const SPRITE_RECORD = 20, VOLUME_RECORD = 36;
+let records = new Float32Array(0), recordWords = new Uint32Array(0);
+const wordViews = new WeakMap<Float32Array, Uint32Array>();
+/** The bits of a float attribute's array, for copying published floats exactly. */
+const wordsOf = (array: Float32Array) => {
+  let words = wordViews.get(array);
+  if (!words) { words = new Uint32Array(array.buffer, array.byteOffset, array.length); wordViews.set(array, words); }
+  return words;
+};
+
+/** One instance batch per material; fixed storage and back-to-front alpha sorting.
+ *
+ * Every particle field lives in a typed array indexed by slot. `emit` hands out one staging record per pool: the emitter
+ * fills it, and the pool writes it into its slot before anything else reads the arrays (the next `emit`, `advance`,
+ * `publish` or `reset`). The record stays tied to that slot until the next `emit`, and `advance` writes the slot's motion
+ * back into it, so the particle `emit` returned last reads and changes its slot as a particle object did. */
 export class EffectParticlePool {
   readonly mesh: THREE.InstancedMesh<THREE.InstancedBufferGeometry, THREE.MeshBasicNodeMaterial>;
-  private readonly particles: EffectParticle[];
-  private readonly active: EffectParticle[] = [];
   private readonly alpha: THREE.InstancedBufferAttribute;
   private readonly sphere?: THREE.InstancedBufferAttribute;
   private readonly volume?: THREE.InstancedBufferAttribute;
   private readonly tint?: THREE.InstancedBufferAttribute;
   private readonly progress?: THREE.InstancedBufferAttribute;
+  // Particle fields by slot: xyz triples for position, velocity and colour, one value per slot for the rest.
+  private readonly positions: Float64Array;
+  private readonly velocities: Float64Array;
+  private readonly colors: Float64Array;
+  private readonly ages: Float64Array;
+  private readonly lives: Float64Array;
+  private readonly sizes: Float64Array;
+  private readonly growths: Float64Array;
+  private readonly growthDecays: Float64Array;
+  private readonly diffusions: Float64Array;
+  private readonly heats: Float64Array;
+  private readonly coolings: Float64Array;
+  private readonly densities: Float64Array;
+  private readonly dissipationTimes: Float64Array;
+  private readonly volumeAspects: Float64Array;
+  private readonly volumeYaws: Float64Array;
+  private readonly volumeAxesY: Float64Array;
+  private readonly seeds: Float64Array;
+  private readonly opacities: Float64Array;
+  private readonly drags: Float64Array;
+  private readonly gravities: Float64Array;
+  private readonly winds: Float64Array;
+  private readonly angles: Float64Array;
+  private readonly spins: Float64Array;
+  private readonly stretches: Float64Array;
+  private readonly fadeIns: Float64Array;
+  private readonly surfaceYs: Float64Array;
+  /** `Math.hypot(1, stretch)`, the reach of the stretched quad's corner, worked out once per particle for culling. */
+  private readonly corners: Float64Array;
+  private readonly aligns: Uint8Array;
+  private readonly waterlines: Uint8Array;
+  private readonly sources: (string | undefined)[];
+  /** The record `emit` hands out, and the slot it belongs to (-1 before the first emit). */
+  private readonly staging: EffectParticle;
+  private bound = -1;
+  /** A non-finite distance's comparison-sort order. */
+  private fallback?: Uint32Array;
   // Instance poses do not need a scene object's synchronized Euler rotation or
   // world-matrix propagation: publish() composes them straight into the buffers.
-  private readonly position = new THREE.Vector3();
+  private readonly target = new THREE.Vector3();
+  private readonly center = new THREE.Vector3();
   private readonly orientation = new THREE.Quaternion();
   private readonly facing = new THREE.Matrix4();
   private readonly up = THREE.Object3D.DEFAULT_UP.clone();
@@ -149,6 +205,7 @@ export class EffectParticlePool {
   private readonly projection = new THREE.Matrix4();
   private cursor = 0;
   private emitted = 0;
+  private drawn = 0;
 
   constructor(readonly capacity: number, map: THREE.DataTexture, private additive = false,
     volumeMaterial?: THREE.MeshBasicNodeMaterial, private cullFineWater = false, private cullOffscreen = false) {
@@ -184,11 +241,16 @@ export class EffectParticlePool {
     this.mesh.instanceMatrix.array.fill(0);
     this.mesh.frustumCulled = false;
     this.live = new Int32Array(Math.ceil(capacity / 32));
-    this.particles = Array.from({ length: capacity }, () => ({ position: new THREE.Vector3(), velocity: new THREE.Vector3(),
-      color: new THREE.Color(), age: 0, life: 0, size: 1, growth: 0, growthDecay: 0, diffusion: 0,
-      heat: 0, cooling: 1, density: 4, dissipationTime: 0, volumeAspect: 1, volumeYaw: 0, volumeAxisY: 0,
-      seed: 0, opacity: 1, drag: 0, gravity: 0,
-      wind: 0, angle: 0, spin: 0, stretch: 1, fadeIn: 0, align: 'billboard', waterline: false, surfaceY: 0, distance: 0 }));
+    // An unused slot holds what a fresh particle object held: spent (age 0, life 0), unit size, white.
+    const values = (value = 0) => new Float64Array(capacity).fill(value);
+    this.positions = new Float64Array(capacity * 3); this.velocities = new Float64Array(capacity * 3); this.colors = new Float64Array(capacity * 3).fill(1);
+    this.ages = values(); this.lives = values(); this.sizes = values(1); this.growths = values(); this.growthDecays = values(); this.diffusions = values();
+    this.heats = values(); this.coolings = values(1); this.densities = values(4); this.dissipationTimes = values(); this.volumeAspects = values(1);
+    this.volumeYaws = values(); this.volumeAxesY = values(); this.seeds = values(); this.opacities = values(1); this.drags = values(); this.gravities = values();
+    this.winds = values(); this.angles = values(); this.spins = values(); this.stretches = values(1); this.fadeIns = values(); this.surfaceYs = values();
+    this.corners = values(Math.hypot(1, 1));
+    this.aligns = new Uint8Array(capacity); this.waterlines = new Uint8Array(capacity); this.sources = new Array<string | undefined>(capacity).fill(undefined);
+    this.staging = this.particle(0);
   }
 
   /** Fraction of requested particles that enter the pool. Skipped requests receive a
@@ -210,14 +272,17 @@ export class EffectParticlePool {
    * slot, and skip the rest, which the full scan skipped too. */
   private readonly live: Int32Array;
 
+  /** A new particle at `position`. The record returned is the pool's staging record: fill it before the next `emit`. */
   emit(position: THREE.Vector3, sourceId?: string): EffectParticle {
     if (this.density < 1) {
       // A fixed-stride sequence thins every effect evenly, without a random stream.
       this.densityPhase += this.density;
-      if (this.densityPhase < 1) return this.scratch ??= { ...this.particles[0], position: new THREE.Vector3(), velocity: new THREE.Vector3(), color: new THREE.Color() };
+      if (this.densityPhase < 1) return this.scratch ??= { ...this.particle(0), position: new THREE.Vector3(), velocity: new THREE.Vector3(), color: new THREE.Color() };
       this.densityPhase -= 1;
     }
-    const p = this.claim();
+    this.commit();
+    this.bound = this.claim();
+    const p = this.staging;
     p.position.copy(position); p.velocity.set(0, 0, 0); p.color.setRGB(1, 1, 1);
     p.age = 0; p.life = 1; p.size = 1; p.growth = 0; p.opacity = 1;
     p.growthDecay = 0; p.diffusion = 0; p.heat = 0; p.cooling = 1; p.density = 4; p.dissipationTime = 0;
@@ -229,26 +294,61 @@ export class EffectParticlePool {
     return p;
   }
 
+  /** A detached copy of slot `index`'s particle. */
+  particle(index: number): EffectParticle {
+    this.commit();
+    const i3 = index * 3;
+    return { position: new THREE.Vector3(this.positions[i3], this.positions[i3 + 1], this.positions[i3 + 2]),
+      velocity: new THREE.Vector3(this.velocities[i3], this.velocities[i3 + 1], this.velocities[i3 + 2]),
+      color: new THREE.Color(this.colors[i3], this.colors[i3 + 1], this.colors[i3 + 2]),
+      age: this.ages[index], life: this.lives[index], size: this.sizes[index], growth: this.growths[index], growthDecay: this.growthDecays[index],
+      diffusion: this.diffusions[index], heat: this.heats[index], cooling: this.coolings[index], density: this.densities[index],
+      dissipationTime: this.dissipationTimes[index], volumeAspect: this.volumeAspects[index], volumeYaw: this.volumeYaws[index],
+      volumeAxisY: this.volumeAxesY[index], seed: this.seeds[index], opacity: this.opacities[index], drag: this.drags[index],
+      gravity: this.gravities[index], wind: this.winds[index], angle: this.angles[index], spin: this.spins[index], stretch: this.stretches[index],
+      fadeIn: this.fadeIns[index], align: ALIGNS[this.aligns[index]], waterline: this.waterlines[index] === 1, surfaceY: this.surfaceYs[index],
+      sourceId: this.sources[index] };
+  }
+
+  /** Write the staging record into its slot. */
+  private commit(): void {
+    const i = this.bound;
+    if (i < 0) return;
+    const p = this.staging, i3 = i * 3, { position, velocity, color } = p;
+    this.positions[i3] = position.x; this.positions[i3 + 1] = position.y; this.positions[i3 + 2] = position.z;
+    this.velocities[i3] = velocity.x; this.velocities[i3 + 1] = velocity.y; this.velocities[i3 + 2] = velocity.z;
+    this.colors[i3] = color.r; this.colors[i3 + 1] = color.g; this.colors[i3 + 2] = color.b;
+    this.ages[i] = p.age; this.lives[i] = p.life; this.sizes[i] = p.size; this.growths[i] = p.growth; this.growthDecays[i] = p.growthDecay;
+    this.diffusions[i] = p.diffusion; this.heats[i] = p.heat; this.coolings[i] = p.cooling; this.densities[i] = p.density;
+    this.dissipationTimes[i] = p.dissipationTime; this.volumeAspects[i] = p.volumeAspect; this.volumeYaws[i] = p.volumeYaw;
+    this.volumeAxesY[i] = p.volumeAxisY; this.seeds[i] = p.seed; this.opacities[i] = p.opacity; this.drags[i] = p.drag; this.gravities[i] = p.gravity;
+    this.winds[i] = p.wind; this.angles[i] = p.angle; this.spins[i] = p.spin; this.fadeIns[i] = p.fadeIn; this.surfaceYs[i] = p.surfaceY;
+    const stretch = p.stretch;
+    if (!(this.stretches[i] === stretch)) this.corners[i] = Math.hypot(1, stretch);
+    this.stretches[i] = stretch;
+    this.aligns[i] = alignCode(p.align); this.waterlines[i] = p.waterline ? 1 : 0; this.sources[i] = p.sourceId;
+  }
+
   /** The next free slot in ring order. A full pool gives up the particle nearest the end of its
    * life, so a burst of short gunfire never cuts a long-lived plume short. */
-  private claim(): EffectParticle {
-    const capacity = this.capacity, particles = this.particles;
+  private claim(): number {
+    const capacity = this.capacity, ages = this.ages, lives = this.lives;
     if (this.claimsValid && this.claimed >= 0) this.updateClaim(this.claimed);
     // The ring usually offers a free slot within a few probes. Past them the tree answers what probing the whole ring
     // would: the first spent slot in ring order, else the first with the largest share of its life spent.
     let chosen = this.cursor % capacity, spent = -Infinity, free = false;
     const probes = Math.min(capacity, 32);
     for (let probe = 0; probe < probes; probe++) {
-      const index = (this.cursor + probe) % capacity, p = particles[index];
-      if (p.age >= p.life) { chosen = index; free = true; break; }
-      const fraction = p.age / p.life;
+      const index = (this.cursor + probe) % capacity, age = ages[index], life = lives[index];
+      if (age >= life) { chosen = index; free = true; break; }
+      const fraction = age / life;
       if (fraction > spent) { spent = fraction; chosen = index; }
     }
     if (!free && probes < capacity) chosen = this.search();
     this.cursor = chosen + 1;
     this.claimed = chosen;
     this.live[chosen >> 5] |= 1 << (chosen & 31);
-    return particles[chosen];
+    return chosen;
   }
 
   /** Probing the whole ring from the cursor, as a query on the claim tree. */
@@ -269,7 +369,8 @@ export class EffectParticlePool {
       this.claimLeaves = leaves; this.claims = new Float64Array(leaves * 2).fill(-Infinity);
     }
     const tree = this.claims;
-    for (let i = 0; i < this.capacity; i++) tree[leaves + i] = claimKey(this.particles[i]);
+    const ages = this.ages, lives = this.lives;
+    for (let i = 0; i < this.capacity; i++) tree[leaves + i] = claimKey(ages[i], lives[i]);
     for (let i = leaves - 1; i >= 1; i--) { const a = tree[i * 2], b = tree[i * 2 + 1]; tree[i] = a >= b ? a : b; }
     this.claimsValid = true;
   }
@@ -277,7 +378,7 @@ export class EffectParticlePool {
   private updateClaim(index: number): void {
     const tree = this.claims!;
     let i = index + this.claimLeaves;
-    tree[i] = claimKey(this.particles[index]);
+    tree[i] = claimKey(this.ages[index], this.lives[index]);
     for (i >>= 1; i >= 1; i >>= 1) { const a = tree[i * 2], b = tree[i * 2 + 1]; tree[i] = a >= b ? a : b; }
   }
 
@@ -315,44 +416,55 @@ export class EffectParticlePool {
 
   /** Age existing particles before new events are emitted. */
   advance(dt: number, wind: THREE.Vector3): void {
+    this.commit();
     this.claimsValid = false;
-    const particles = this.particles, live = this.live;
+    const live = this.live, ages = this.ages, lives = this.lives, positions = this.positions, velocities = this.velocities, drags = this.drags;
+    const gravities = this.gravities, winds = this.winds, angles = this.angles, spins = this.spins, waterlines = this.waterlines, surfaceYs = this.surfaceYs;
+    const windX = wind.x, windZ = wind.z;
     // Most particles of a pool share their drag and the frame's step: their decay is worked out once.
     let memoDrag = NaN, memoStep = NaN, decay = 1, travel = 0;
     for (let word = 0; word < live.length; word++) for (let bits = live[word]; bits;) {
-      const bit = bits & -bits, p = particles[(word << 5) + 31 - Math.clz32(bit)];
+      const bit = bits & -bits, i = (word << 5) + 31 - Math.clz32(bit);
       bits ^= bit;
-      if (p.age >= p.life) { live[word] &= ~bit; continue; }
-      const previousAge = p.age;
-      p.age += dt;
-      if (p.age < 0) continue;
-      if (p.age >= p.life) { live[word] &= ~bit; continue; }
-      const step = Math.min(dt, p.age); // A delayed spray starts partway through the frame.
+      const previousAge = ages[i], life = lives[i];
+      if (previousAge >= life) { live[word] &= ~bit; continue; }
+      const age = previousAge + dt;
+      ages[i] = age;
+      if (age < 0) continue;
+      if (age >= life) { live[word] &= ~bit; continue; }
+      const step = Math.min(dt, age); // A delayed spray starts partway through the frame.
       if (step > 0) {
-        if (p.drag !== memoDrag || step !== memoStep) {
-          memoDrag = p.drag; memoStep = step;
-          decay = Math.exp(-p.drag * step);
-          travel = p.drag > .0001 ? (1 - decay) / p.drag : step;
+        const drag = drags[i], gravity = gravities[i], i3 = i * 3;
+        if (drag !== memoDrag || step !== memoStep) {
+          memoDrag = drag; memoStep = step;
+          decay = Math.exp(-drag * step);
+          travel = drag > .0001 ? (1 - decay) / drag : step;
         }
         // Integrate gravity with drag analytically, so spray apex/fall is frame-rate independent.
-        const terminal = p.drag > .0001 ? p.gravity / p.drag : 0;
-        p.position.x += p.velocity.x * travel + wind.x * p.wind * step;
-        p.position.z += p.velocity.z * travel + wind.z * p.wind * step;
-        p.position.y += p.drag > .0001 ? (p.velocity.y + terminal) * travel - terminal * step
-          : p.velocity.y * step - .5 * p.gravity * step * step;
-        p.velocity.x *= decay; p.velocity.z *= decay;
-        p.velocity.y = p.drag > .0001 ? (p.velocity.y + terminal) * decay - terminal : p.velocity.y - p.gravity * step;
-        p.angle += p.spin * step;
-        if (p.waterline && p.position.y < p.surfaceY + .2 && previousAge >= 0) { p.age = p.life; live[word] &= ~bit; continue; }
+        const terminal = drag > .0001 ? gravity / drag : 0, w = winds[i], vx = velocities[i3], vy = velocities[i3 + 1], vz = velocities[i3 + 2];
+        positions[i3] += vx * travel + windX * w * step;
+        positions[i3 + 2] += vz * travel + windZ * w * step;
+        const y = positions[i3 + 1] += drag > .0001 ? (vy + terminal) * travel - terminal * step : vy * step - .5 * gravity * step * step;
+        velocities[i3] = vx * decay; velocities[i3 + 2] = vz * decay;
+        velocities[i3 + 1] = drag > .0001 ? (vy + terminal) * decay - terminal : vy - gravity * step;
+        angles[i] += spins[i] * step;
+        if (waterlines[i] && y < surfaceYs[i] + .2 && previousAge >= 0) { ages[i] = life; live[word] &= ~bit; continue; }
       }
+    }
+    // The staging record follows its slot's motion.
+    const i = this.bound;
+    if (i >= 0) {
+      const p = this.staging, i3 = i * 3;
+      p.age = ages[i]; p.angle = angles[i];
+      p.position.set(positions[i3], positions[i3 + 1], positions[i3 + 2]); p.velocity.set(velocities[i3], velocities[i3 + 1], velocities[i3 + 2]);
     }
   }
 
   /** Build the sorted instance buffers once, after all emissions for this frame. Poses go straight into the instance
-   * arrays through three's own arithmetic (the quaternion product, then `Matrix4.compose`), so every float is the same. */
+   * arrays through three's own arithmetic (the quaternion product, then `Matrix4.compose`), so every float is the same.
+   * One pass in slot order culls, keys and composes each drawn particle into a record; the sort then moves whole records. */
   publish(camera: THREE.Camera, hiddenSourceId?: string): void {
-    const active = this.active, particles = this.particles;
-    active.length = 0;
+    this.commit();
     const cameraRotation = camera.quaternion, qx = cameraRotation.x, qy = cameraRotation.y, qz = cameraRotation.z, qw = cameraRotation.w;
     // The camera's inverse rotation, as Quaternion.invert() makes it.
     const ix = qx * -1, iy = qy * -1, iz = qz * -1, iw = qw;
@@ -368,22 +480,30 @@ export class EffectParticlePool {
     const n2x = n2.x, n2y = n2.y, n2z = n2.z, c2 = planes[2].constant, n3x = n3.x, n3y = n3.y, n3z = n3.z, c3 = planes[3].constant;
     const n4x = n4.x, n4y = n4.y, n4z = n4.z, c4 = planes[4].constant, n5x = n5.x, n5y = n5.y, n5z = n5.z, c5 = planes[5].constant;
     const view = camera.matrixWorldInverse.elements, projection = camera.projectionMatrix.elements;
-    // Most particles share a stretch, and so the Math.hypot of their bounding sphere.
-    let boundStretch = NaN, boundScale = NaN, finite = true;
-    const keys = sortKeys(this.capacity), live = this.live;
+    const projectionX = projection[0], projectionY = projection[5];
+    const ages = this.ages, lives = this.lives, sources = this.sources, positions = this.positions, velocities = this.velocities, colors = this.colors;
+    const sizes = this.sizes, growths = this.growths, growthDecays = this.growthDecays, diffusions = this.diffusions, corners = this.corners;
+    const opacities = this.opacities, fadeIns = this.fadeIns, angles = this.angles, stretches = this.stretches, aligns = this.aligns;
+    const coolings = this.coolings, dissipationTimes = this.dissipationTimes, seeds = this.seeds, heats = this.heats, densities = this.densities;
+    const volumeAspects = this.volumeAspects, volumeYaws = this.volumeYaws, volumeAxesY = this.volumeAxesY;
+    const record = volumes ? VOLUME_RECORD : SPRITE_RECORD;
+    if (records.length < this.capacity * record) { records = new Float32Array(this.capacity * record); recordWords = new Uint32Array(records.buffer); }
+    const out = records, keys = sortKeys(this.capacity), live = this.live;
+    const facing = volumes && perspective;
+    let finite = true, count = 0;
     for (let word = 0; word < live.length; word++) for (let bits = live[word]; bits;) {
-      const bit = bits & -bits, p = particles[(word << 5) + 31 - Math.clz32(bit)];
+      const bit = bits & -bits, i = (word << 5) + 31 - Math.clz32(bit);
       bits ^= bit;
-      if (p.age < 0 || p.age >= p.life) continue;
+      const age = ages[i], life = lives[i];
+      if (age < 0 || age >= life) continue;
       // Hidden smoke still ages and drifts, so leaving optics restores its current state.
-      if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
-      const position = p.position, x = position.x, y = position.y, z = position.z;
+      if (hiddenSourceId !== undefined && sources[i] === hiddenSourceId) continue;
+      const i3 = i * 3, x = positions[i3], y = positions[i3 + 1], z = positions[i3 + 2];
       if (cull) {
         // Linear growth bounds the decaying expansion. Include the full rotated
         // quad and stretch; particles outside still age and drift in advance().
-        const size = Math.max(.01, p.size + Math.max(0, p.growth) * p.age + Math.max(0, p.diffusion) * p.age);
-        if (p.stretch !== boundStretch) { boundStretch = p.stretch; boundScale = Math.hypot(1, p.stretch); }
-        const reach = -(size * .5 * boundScale);
+        const size = Math.max(.01, sizes[i] + Math.max(0, growths[i]) * age + Math.max(0, diffusions[i]) * age);
+        const reach = -(size * .5 * corners[i]);
         // Volume rays start at the camera, including gas inside the near
         // plane. Only the four side planes can reject their bounding sphere;
         // the fragment shader owns depth clipping against the captured scene.
@@ -397,67 +517,53 @@ export class EffectParticlePool {
         const vx = (view[0] * x + view[4] * y + view[8] * z + view[12]) * w;
         const vy = (view[1] * x + view[5] * y + view[9] * z + view[13]) * w;
         const vz = (view[2] * x + view[6] * y + view[10] * z + view[14]) * w;
-        const depth = -vz, radius = p.size + p.growth * p.age;
-        if (depth + radius < .1 || Math.abs(vx) > Math.max(0, depth) / projection[0] + radius
-          || Math.abs(vy) > Math.max(0, depth) / projection[5] + radius
-          || radius * projection[5] / Math.max(1, depth) < .0007) continue;
+        const depth = -vz, radius = sizes[i] + growths[i] * age;
+        if (depth + radius < .1 || Math.abs(vx) > Math.max(0, depth) / projectionX + radius
+          || Math.abs(vy) > Math.max(0, depth) / projectionY + radius
+          || radius * projectionY / Math.max(1, depth) < .0007) continue;
       }
       const dx = x - cx, dy = y - cy, dz = z - cz, distance = dx * dx + dy * dy + dz * dz;
-      p.distance = distance;
       if (!Number.isFinite(distance)) finite = false;
-      keys[active.length] = distance;
-      active.push(p);
-    }
-    const count = active.length;
-    // Back to front; distances a radix order could rank differently keep the comparison sort.
-    let order: Uint32Array | undefined;
-    if (!this.additive) {
-      if (finite) order = sortDescending(count);
-      else active.sort((a, b) => b.distance - a.distance);
-    }
-    const matrices = this.mesh.instanceMatrix.array as Float32Array, colors = this.mesh.instanceColor!;
-    const colorArray = colors.array as Float32Array, colorStride = colors.itemSize, alphas = this.alpha.array as Float32Array;
-    const sphere = this.sphere?.array as Float32Array | undefined, volume = this.volume?.array as Float32Array;
-    const tint = this.tint?.array as Float32Array, progress = this.progress?.array as Float32Array;
-    const facing = volumes && perspective;
-    for (let index = 0; index < count; index++) {
-      const p = active[order ? order[index] : index];
-      const t = p.age / p.life;
-      const fade = (1 - smooth((t - .18) / .82)) * (p.fadeIn > 0 ? smooth(p.age / p.fadeIn) : 1);
-      const expansion = p.growthDecay > 0 ? (1 - Math.exp(-p.age * p.growthDecay)) / p.growthDecay : p.age;
-      const size = Math.max(.01, p.size + p.growth * expansion + p.diffusion * p.age);
-      let px = p.position.x, py = p.position.y, pz = p.position.z, ox: number, oy: number, oz: number, ow: number, sx: number, sy: number;
+      keys[count] = distance;
+      const o = count++ * record;
+      const t = age / life, fadeIn = fadeIns[i];
+      const fade = (1 - smooth((t - .18) / .82)) * (fadeIn > 0 ? smooth(age / fadeIn) : 1);
+      const growthDecay = growthDecays[i];
+      const expansion = growthDecay > 0 ? (1 - Math.exp(-age * growthDecay)) / growthDecay : age;
+      const size = Math.max(.01, sizes[i] + growths[i] * expansion + diffusions[i] * age);
+      let px = x, py = y, pz = z, ox: number, oy: number, oz: number, ow: number, sx: number, sy: number;
       if (facing) {
         const radiusSq = size * size / 4, orientation = this.orientation;
-        if (p.distance > radiusSq * 1.01) {
+        if (distance > radiusSq * 1.01) {
           // A sphere's perspective silhouette extends beyond a diameter-sized
           // billboard. Face its center and bound the camera's tangent cone.
-          orientation.setFromRotationMatrix(this.facing.lookAt(cameraPosition, p.position, this.up));
-          sx = sy = size * Math.sqrt(p.distance / (p.distance - radiusSq));
+          orientation.setFromRotationMatrix(this.facing.lookAt(cameraPosition, this.target.set(x, y, z), this.up));
+          sx = sy = size * Math.sqrt(distance / (distance - radiusSq));
         } else {
           // Inside the volume, every screen ray may intersect gas. Cover the
           // viewport at a valid clip depth; the shader still uses the real sphere.
           orientation.copy(cameraRotation);
           // Mid-clip depth stays inside the frustum with standard AND reversed
           // depth; zero lies on the far plane when reversed depth is active.
-          const center = this.position.set(0, 0, .5).unproject(camera);
+          const center = this.center.set(0, 0, .5).unproject(camera);
           px = center.x; py = center.y; pz = center.z;
           this.direction.set(1, 1, .5).unproject(camera).sub(center).applyQuaternion(this.cameraInverse);
           sx = Math.abs(this.direction.x) * 2; sy = Math.abs(this.direction.y) * 2;
         }
         ox = orientation.x; oy = orientation.y; oz = orientation.z; ow = orientation.w;
       } else {
-        let angle = p.angle, stretch = p.stretch, ax = qx, ay = qy, az = qz, aw = qw;
-        if (p.align === 'water') { ax = WATER_FACING.x; ay = WATER_FACING.y; az = WATER_FACING.z; aw = WATER_FACING.w; }
-        else if (p.align === 'velocity' || p.align === 'streak') {
+        const align = aligns[i];
+        let angle = angles[i], stretch = stretches[i], ax = qx, ay = qy, az = qz, aw = qw;
+        if (align === WATER) { ax = WATER_X; ay = WATER_Y; az = WATER_Z; aw = WATER_W; }
+        else if (align !== BILLBOARD) {
           // The velocity in camera space, as Vector3.applyQuaternion turns it.
-          const velocity = p.velocity, vx = velocity.x, vy = velocity.y, vz = velocity.z;
+          const vx = velocities[i3], vy = velocities[i3 + 1], vz = velocities[i3 + 2];
           const tx = 2 * (iy * vz - iz * vy), ty = 2 * (iz * vx - ix * vz), tz = 2 * (ix * vy - iy * vx);
           const dx = vx + iw * tx + iy * tz - iz * ty, dy = vy + iw * ty + iz * tx - ix * tz;
           angle = Math.atan2(-dx, dy);
           const speed = Math.max(.01, Math.sqrt(vx * vx + vy * vy + vz * vz)), across = Math.hypot(dx, dy) / speed;
           // An exposure smear grows with speed and foreshortens; the drop itself stays round.
-          if (p.align === 'streak') stretch = 1 + (stretch - 1) * Math.min(1, speed / STREAK_SPEED) * across;
+          if (align === STREAK) stretch = 1 + (stretch - 1) * Math.min(1, speed / STREAK_SPEED) * across;
           else stretch *= Math.max(.35, across);
         }
         // Then the roll about the view axis: Quaternion.setFromAxisAngle((0, 0, 1), angle) and multiplyQuaternions.
@@ -468,25 +574,58 @@ export class EffectParticlePool {
         ow = aw * bw - ax * bx - ay * by - az * bz;
         sx = size; sy = size * stretch;
       }
-      writeInstancePose(matrices, index * 16, px, py, pz, ox, oy, oz, ow, sx, sy, 1);
-      // Component writes suit both packed vertex RGB and aligned WebGPU storage
-      // colors; InstancedMesh.setColorAt assumes a three-float stride.
-      const color = p.color, c = index * colorStride;
-      colorArray[c] = color.r; colorArray[c + 1] = color.g; colorArray[c + 2] = color.b;
-      alphas[index] = p.opacity * fade;
-      if (sphere) {
-        const v = index * 4;
-        sphere[v] = p.position.x; sphere[v + 1] = p.position.y; sphere[v + 2] = p.position.z; sphere[v + 3] = size / 2;
-        volume[v] = p.age; volume[v + 1] = p.seed; volume[v + 2] = p.heat * (1 - smooth(p.age / p.cooling)); volume[v + 3] = p.density;
+      writeInstancePose(out, o, px, py, pz, ox, oy, oz, ow, sx, sy, 1);
+      const r = colors[i3], g = colors[i3 + 1], b = colors[i3 + 2];
+      out[o + 16] = r; out[o + 17] = g; out[o + 18] = b;
+      out[o + 19] = opacities[i] * fade;
+      if (volumes) {
+        const cooling = coolings[i], dissipationTime = dissipationTimes[i];
+        out[o + 20] = x; out[o + 21] = y; out[o + 22] = z; out[o + 23] = size / 2;
+        out[o + 24] = age; out[o + 25] = seeds[i]; out[o + 26] = heats[i] * (1 - smooth(age / cooling)); out[o + 27] = densities[i];
         // The narrow jet gradually opens into billows; freeze its launch axis
         // instead of snapping it toward gravity as the initial velocity decays.
-        tint[v] = color.r; tint[v + 1] = color.g; tint[v + 2] = color.b; tint[v + 3] = 1 + (p.volumeAspect - 1) * Math.exp(-p.age * .7);
+        out[o + 28] = r; out[o + 29] = g; out[o + 30] = b; out[o + 31] = 1 + (volumeAspects[i] - 1) * Math.exp(-age * .7);
         // Ease into thinning after the flash; approach empty gas continuously,
         // well before storage expires. The same clock freezes on pause.
-        const dispersal = p.dissipationTime > 0 ? Math.max(0, p.age - p.cooling) / p.dissipationTime : 0;
-        progress[v] = t; progress[v + 1] = 1 - Math.exp(-dispersal * dispersal); progress[v + 2] = p.volumeYaw; progress[v + 3] = p.volumeAxisY;
+        const dispersal = dissipationTime > 0 ? Math.max(0, age - cooling) / dissipationTime : 0;
+        out[o + 32] = t; out[o + 33] = 1 - Math.exp(-dispersal * dispersal); out[o + 34] = volumeYaws[i]; out[o + 35] = volumeAxesY[i];
       }
     }
+    // Back to front; distances a radix order could rank differently keep the comparison sort.
+    let order: Uint32Array | undefined;
+    if (!this.additive) {
+      if (finite) order = sortDescending(count);
+      else {
+        const list = Array.from({ length: count }, (_, index) => index).sort((a, b) => keys[b] - keys[a]);
+        order = (this.fallback ??= new Uint32Array(this.capacity)); order.set(list);
+      }
+    }
+    const matrices = this.mesh.instanceMatrix.array as Float32Array, colorAttribute = this.mesh.instanceColor!, colorStride = colorAttribute.itemSize;
+    const matrixWords = wordsOf(matrices), colorWords = wordsOf(colorAttribute.array as Float32Array), alphas = this.alpha.array as Float32Array;
+    const alphaWords = wordsOf(alphas), words = recordWords;
+    // Component writes suit both packed vertex RGB and aligned WebGPU storage
+    // colors; InstancedMesh.setColorAt assumes a three-float stride.
+    for (let index = 0; index < count; index++) {
+      const o = (order ? order[index] : index) * record, m = index * 16, c = index * colorStride;
+      matrixWords[m] = words[o]; matrixWords[m + 1] = words[o + 1]; matrixWords[m + 2] = words[o + 2]; matrixWords[m + 3] = words[o + 3];
+      matrixWords[m + 4] = words[o + 4]; matrixWords[m + 5] = words[o + 5]; matrixWords[m + 6] = words[o + 6]; matrixWords[m + 7] = words[o + 7];
+      matrixWords[m + 8] = words[o + 8]; matrixWords[m + 9] = words[o + 9]; matrixWords[m + 10] = words[o + 10]; matrixWords[m + 11] = words[o + 11];
+      matrixWords[m + 12] = words[o + 12]; matrixWords[m + 13] = words[o + 13]; matrixWords[m + 14] = words[o + 14]; matrixWords[m + 15] = words[o + 15];
+      colorWords[c] = words[o + 16]; colorWords[c + 1] = words[o + 17]; colorWords[c + 2] = words[o + 18];
+      alphaWords[index] = words[o + 19];
+    }
+    if (volumes) {
+      const sphere = wordsOf(this.sphere!.array as Float32Array), volume = wordsOf(this.volume!.array as Float32Array);
+      const tint = wordsOf(this.tint!.array as Float32Array), progress = wordsOf(this.progress!.array as Float32Array);
+      for (let index = 0; index < count; index++) {
+        const o = (order ? order[index] : index) * record + 20, v = index * 4;
+        sphere[v] = words[o]; sphere[v + 1] = words[o + 1]; sphere[v + 2] = words[o + 2]; sphere[v + 3] = words[o + 3];
+        volume[v] = words[o + 4]; volume[v + 1] = words[o + 5]; volume[v + 2] = words[o + 6]; volume[v + 3] = words[o + 7];
+        tint[v] = words[o + 8]; tint[v + 1] = words[o + 9]; tint[v + 2] = words[o + 10]; tint[v + 3] = words[o + 11];
+        progress[v] = words[o + 12]; progress[v + 1] = words[o + 13]; progress[v + 2] = words[o + 14]; progress[v + 3] = words[o + 15];
+      }
+    }
+    this.drawn = count;
     // Slots past the live count stay cleared: only those the last publication used need clearing again.
     if (this.filled > count) { alphas.fill(0, count, this.filled); matrices.fill(0, count * 16, this.filled * 16); }
     this.filled = count;
@@ -499,10 +638,12 @@ export class EffectParticlePool {
     }
   }
 
-  get count(): number { return this.active.length; }
+  get count(): number { return this.drawn; }
   reset(): void {
-    for (const p of this.particles) { p.age = 0; p.life = 0; }
-    this.active.length = 0; this.cursor = 0; this.emitted = 0; this.filled = 0; this.claimsValid = false; this.claimed = -1; this.live.fill(0);
+    this.commit();
+    this.ages.fill(0); this.lives.fill(0);
+    if (this.bound >= 0) { this.staging.age = 0; this.staging.life = 0; }
+    this.drawn = 0; this.cursor = 0; this.emitted = 0; this.filled = 0; this.claimsValid = false; this.claimed = -1; this.live.fill(0);
     this.mesh.geometry.instanceCount = 0; this.mesh.visible = false;
     this.alpha.array.fill(0); this.alpha.needsUpdate = true;
     this.mesh.instanceMatrix.array.fill(0); this.mesh.instanceMatrix.needsUpdate = true;
