@@ -12314,7 +12314,7 @@
       "position": [
         11.8,
         16.4719,
-        -38.4048
+        -43.65
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -12348,9 +12348,9 @@
       "partId": "us-11in75-quad",
       "battery": "secondary",
       "position": [
-        12,
+        12.0,
         16.4719,
-        21.336
+        24.51
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -12366,9 +12366,9 @@
       "partId": "us-11in75-quad",
       "battery": "secondary",
       "position": [
-        10.5,
+        11.0,
         18.6055,
-        16.4592
+        20.0
       ],
       "bearingDeg": 90,
       "rangefinder": false,
@@ -12492,7 +12492,7 @@
       "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
-        -14.2,
+        -14.6,
         15.7869,
         46
       ],
@@ -12510,7 +12510,7 @@
       "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
-        -14.2,
+        -14.6,
         15.7869,
         41
       ],
@@ -23902,11 +23902,11 @@
         ],
         [
           -12.275,
-          109
+          110.0
         ],
         [
           -13.924999999999999,
-          109
+          110.0
         ],
         [
           -13.924999999999999,
@@ -24277,11 +24277,11 @@
         ],
         [
           13.924999999999999,
-          109
+          110.0
         ],
         [
           12.275,
-          109
+          110.0
         ],
         [
           12.275,
@@ -52810,6 +52810,19 @@
         4.3,
         11,
         44
+      ]
+    },
+    {
+      "id": "island-aft-obstruction",
+      "center": [
+        11.05,
+        21.97,
+        13.15
+      ],
+      "size": [
+        5.0,
+        11.0,
+        4.3
       ]
     }
   ],

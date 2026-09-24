@@ -23,7 +23,8 @@ def build_sponsons():
             fwd_taper = [(fwd_end - 2.3, edge), (fwd_end, 11.2)]
             aft_taper = [(aft_end, 14.3), (aft_end + 2.3, edge)]
         else:
-            edge, bulge_r, bulge_out, inboard = 14.75, 2.19, 15.85, 10.2
+            # Bulges centred on each gun, clear of the Mk 24's 2.14 m rotating deck.
+            edge, bulge_r, bulge_out, inboard = 14.75, 2.45, max(g[1] for g in guns) + 2.45, 10.2
             aft_end, fwd_end = min(xs) - 3.5, max(xs) + 3.9
             fwd_taper = [(fwd_end - 1.6, edge), (fwd_end, 14.75)]
             aft_taper = [(aft_end, 14.7), (aft_end + 1.6, edge)]
@@ -73,16 +74,15 @@ def build_sponsons():
         # (forward of the hangar front only; aft of it the gallery wall closes the side)
         r0 = outer[0][0] + .3; r1 = outer[-1][0] - .3
         if fore: r0 = max(r0, 75.9)
-        k.rail([(r0, sign * (inboard + .08)), (r1, sign * (inboard + .08))], deck, 1.0, 1.6)
+        k.rail([(r0, sign * (inboard + .08)), (r1, sign * (inboard + .08))], deck, .85, 1.6)
         lx = (outer[0][0] + outer[-1][0]) / 2
         zb = interpolate(H['deckHeights'], lx + H['length'] / 2)
         k.ladder((lx - 1.6, sign * (inboard - .45), zb), (lx, sign * (inboard - .45), deck), .6)
         # Gun-crew fittings: ready-service lockers against the bulwark, hose rack, telephone boxes.
-        for gx, gy, gz, gid in guns:
-            for dx in [-2.1, 2.1]:
-                locker(k, gx + dx, sign * (edge - .45), deck, (1.2, .55, .75), 0)
-            ready_box(k, gx + 3.3, sign * (inboard + .6), deck, 0)
-        hose_rack(k, lx + 1.2, sign * (inboard + .35), deck + 1.1, (0, sign))
+        # (at the deck ends, outside the mounts' swept circles)
+        for xe in [outer[0][0] + 1.4, outer[-1][0] - 1.6]:
+            locker(k, xe, sign * (inboard + .5), deck, (1.2, .55, .75), 0)
+        ready_box(k, outer[0][0] + 3.0, sign * (inboard + .5), deck, 0)
         for gx, gy, gz, gid in guns:
             zb = interpolate(H['deckHeights'], gx + H['length'] / 2)
             zc = (zb + deck) / 2 - .2

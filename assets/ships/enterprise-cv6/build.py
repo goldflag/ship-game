@@ -208,6 +208,17 @@ for obj in [*COL['Flight deck'].objects,*COL['Deck equipment'].objects]:
 # Original detail vocabulary and the plated 5-inch sponsons (see details.py, sponsons.py).
 for part in ['details','sponsons']:exec((Path(__file__).parent/(part+'.py')).read_text(),globals())
 # Edge girders, catwalks and steel galleries keep the hangar open and inspectable.
+def gun_gaps(a,b,y,clear=1.6):
+ # Rail runs along x from a to b at side y, broken where a 20 mm mount stands so its
+ # shoulder rests and shield sweep clear (1942 galleries left the gun positions open).
+ guns=sorted(-m['position'][2] for m in D['mounts'] if 'oerlikon' in m['partId'] and abs(-m['position'][0]-y)<1.2)
+ runs=[];x=a
+ for g in guns:
+  if g+clear<=a or g-clear>=b:continue
+  if g-clear>x+.3:runs.append((x,g-clear))
+  x=max(x,g+clear)
+ if b>x+.3:runs.append((x,b))
+ return runs
 def railing(points,z,name,col,closed=False):
  path=points+points[:1] if closed else points
  for a,b in zip(path,path[1:]):
@@ -235,9 +246,9 @@ for side,y in [('port',10.1),('starboard',-10.1)]:
   railing([(a,y),(b,y)],MAIN,'Hangar',col)
  for x in range(-86,75,4):
   box('Gallery transverse beam',(x,0,FLIGHT-.46),(.13,23,.25),M['edge'],col)
- for a,b,yedge in [(-69,-34,14.2),(31,67,14.2),(-121,-109,13.1)]:
+ for a,b,yedge in [(-69,-34,14.2),(31,67,14.2),(-121,-110,13.1)]:
   yy=yedge if side=='port' else -yedge
-  railing([(a,yy+(1 if yy>0 else -1)*.75),(b,yy+(1 if yy>0 else -1)*.75)],FLIGHT-.68,'AA gallery',col)
+  for c,d in gun_gaps(a,b,yy):railing([(c,yy+(1 if yy>0 else -1)*.75),(d,yy+(1 if yy>0 else -1)*.75)],FLIGHT-.68,'AA gallery',col)
  for x in range(-82,72,6):
   # Flared brackets beneath the flight-deck cantilever.
   yy=y*1.18;rod('Cantilever bracket',(x,y,FLIGHT-.46),(x,yy,15.5569),.09,M['naval'],col)
@@ -258,15 +269,15 @@ for m in D['mounts']:
   cyl(m['id']+' platform',(x,y,z-.12),2,.24,M['naval'],COL['Armament'],40)
   if z>FLIGHT+.3:
    for dx in [-.9,.9]:
-    for dy in [-.7,.7]:rod(m['id']+' gallery stanchion',(x+dx,y+dy,FLIGHT-.10),(x+dx,y+dy,z-.22),.085,M['naval'],COL['Armament'])
-   rod(m['id']+' gallery diagonal',(x-.9,y-.7,FLIGHT-.10),(x+.9,y+.7,z-.22),.065,M['naval'],COL['Armament'])
+    for dy in [-.5,.5]:rod(m['id']+' gallery stanchion',(x+dx,y+dy,FLIGHT-.10),(x+dx,y+dy,z-.22),.085,M['naval'],COL['Armament'])
+   rod(m['id']+' gallery diagonal',(x-.9,y-.5,FLIGHT-.10),(x+.9,y+.5,z-.22),.065,M['naval'],COL['Armament'])
   pts=[(x+2.0*math.cos(a*2*math.pi/32),y+2.0*math.sin(a*2*math.pi/32)) for a in range(32)]
   for a,b in zip(pts,pts[1:]+pts[:1]):
    o=mesh('Quad splinter tub',[(a[0],a[1],z),(b[0],b[1],z),(b[0],b[1],z+.8),(a[0],a[1],z+.8)],[(0,1,2,3)],M['naval'],COL['Armament']);o['assemblyId']=m['id']+'-platform'
  create_mount(m,COL['Armament'],dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M)
 # Exposed starboard walkway, around the island footprint.
 box('Island AA gallery',(10,-15.5,FLIGHT-.15),(48,2.0,.3),M['naval'],COL['Island'])
-railing([(-14,-16.45),(35,-16.45)],FLIGHT,'Island gallery',COL['Island'])
+for c,d in gun_gaps(-14,35,-15.5):railing([(c,-16.45),(d,-16.45)],FLIGHT,'Island gallery',COL['Island'])
 # Bridge glazing and perimeter handrails.
 for key in ['flag-bridge','navigation-bridge','pilot-house','secondary-conning','fighting-top']:
  s=S[key];points=[(-z,-x) for x,z in s['footprint']];top=s['baseY']+s['height'];center=Vector((sum(p[0] for p in points)/len(points),sum(p[1] for p in points)/len(points)))
@@ -328,7 +339,8 @@ for x,z in [(frame(82),level(174)),(AX,level(165))]:rod('Aerial spreader',(x,IY-
 for y in [IY-1,IY+1]:rod('Mast aerial',(frame(82),y,level(174)),(AX,y,level(165)),.011,M['edge'],COL['Island'],vertices=4)
 # Mk 33 director stations and searchlights, interpreted from dated photos.
 for id,x,z in [('forward',frame(71.5),PILOT_ROOF),('aft',frame(110.7),ROOF)]:
- cyl('Director support trunk',(x,IY,(COMM+z)/2),.38,z-COMM,M['naval'],COL['Island'],24)
+ base=FLIGHT if id=='aft' else COMM  # the aft trunk stands on the flight deck abaft the island
+ cyl('Director support trunk',(x,IY,(base+z)/2),.38,z-base,M['naval'],COL['Island'],24)
  node=empty('director-'+id+'.yaw',(x,IY,z),COL['Island'])
  fittings=[cyl('Director pedestal',(0,0,.45),.76,.9,M['naval'],COL['Island'],24),
   box('Mk 33 director',(0,0,1.55),(2.2,2.5,1.4),M['naval'],COL['Island']),
@@ -471,7 +483,7 @@ for sign in [-1,1]:
   y=sign*6.2;z=FLIGHT-.4
   fit.knee('Flight deck end cantilever',x,y,sign*10.8,z,3.0)
   rod('Deck end crossbeam',(x,-10.8,z),(x,10.8,z),.11,M['naval'],COL['Hangar and galleries'],vertices=8)
- for a,b,outer in [(-69,-34,14.95),(31,67,14.95),(-121,-109,13.85)]:
+ for a,b,outer in [(-69,-34,14.95),(31,67,14.95),(-121,-110,13.85)]:
   for x in range(a+1,b,4):
    fit.knee('AA gallery supporting web',x,sign*10.10,sign*outer,15.5569,1.65)
    rod('AA gallery deck hanger',(x,sign*10.10,15.5569-1.65),(x,sign*10.10,FLIGHT-.05),.09,M['naval'],COL['Hangar and galleries'])
@@ -491,7 +503,7 @@ for sign in [-1,1]:
   fit.ring('Arresting cable return sheave',(x,y,FLIGHT-.28),.28,.065,'x',segments=18)
   box('Arrestor sheave cover',(x,y,FLIGHT-.18),(.7,.35,.30),M['naval'],COL['Deck equipment'])
  for x in [104,95,-109,-119]:reel(reels,x,sign*4.0,interpolate(H['deckHeights'],x+H['length']/2)+.01,.42,1.2)
- for x in [48,58,-51,-61]:
+ for x in [50.5,60.5,-43.5,-58.5]:
   box('20 mm magazine locker',(x,sign*13.4,15.7869+.35),(.9,.42,.7),M['naval'],COL['Deck equipment'])
   box('Magazine locker lid',(x,sign*13.4,15.7869+.72),(.96,.49,.07),M['roof'],COL['Deck equipment'])
 reels.emit()

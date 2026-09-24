@@ -9,12 +9,12 @@ def build_fittings():
     g = Kit('Gallery fittings', COL['Hangar and galleries'], 'gallery-fittings')
     for sign in [-1, 1]:
         # Open AA galleries of 1942: floater nets under the outer edge, ready boxes between guns.
-        for a, b, yedge in [(-69, -34, 14.2), (31, 67, 14.2), (-121, -109, 13.1)]:
+        for a, b, yedge in [(-69, -34, 14.2), (31, 67, 14.2), (-121, -110, 13.1)]:
             outer = yedge + .82
             guns = [-m['position'][2] for m in D['mounts'] if 'oerlikon' in m['partId'] and
                     a - .5 <= -m['position'][2] <= b + .5 and m['position'][0] * -sign > 0]
             for x in [a + 2.5 + i * 7.5 for i in range(int((b - a - 2) / 7.5) + 1)]:
-                if x + 1.1 > b: continue
+                if x + 1.1 > b or (b - a < 20 and x > a + 3): continue
                 floater_basket(g, x, sign * (outer + .26), 15.56 - .62, 2.1, 0)
                 for dx in [-.7, .7]:
                     g.rod((x + dx, sign * outer, 15.56), (x + dx, sign * (outer + .5), 15.56 - .6), .03, 'naval', 5)
