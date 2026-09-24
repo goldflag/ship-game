@@ -249,6 +249,17 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
              ('mk57', (3.54, 16.07, -11.49), 90), ('mk57', (-4.15, 11.95, 29.02), -90), ('mk57', (4.15, 11.95, 29.02), 90), ('mk51', (-3.28, 14.02, 31.31), -90),
              ('mk51', (3.28, 14.02, 31.31), 90), ('mk57', (-3.54, 11.1, 38.12), -90), ('mk57', (3.54, 11.1, 38.12), 90), ('mk51', (0, 11.66, 43.84), 180),
              ('mk57', (-1.38, 6.65, 93.78), -90), ('mk57', (1.38, 6.65, 93.78), 90), ('mk57', (-1.77, 6.5, 110.94), 180), ('mk57', (1.77, 6.5, 110.94), 180)]
+    # The forward Mk 57 stands on a trunk abaft its deckhouse, inside a splinter screen
+    # (reference x = 0 cut: trunk z -108.3 to -110.2, screen to about 12.3 m).
+    trunk = [R(-.75, 0, -108.3), R(.75, 0, -108.3), R(.75, 0, -110.19), R(-.75, 0, -110.19)]
+    base_y = support.below(*R(0, 0, -109.2)[:2], 10.5)
+    prism('mk57-1.trunk', 'mk57-1', [p_[:2] for p_ in trunk], base_y - .05, 11.19)
+    screen = [R(-.95, 0, -108.05), R(.95, 0, -108.05), R(.95, 0, -110.3), R(-.95, 0, -110.3)]
+    prism('mk57-1.screen deck', 'mk57-1', [p_[:2] for p_ in screen], 11.09, 11.19, 'roof')
+    for a_, b_ in zip(screen, screen[1:] + screen[:1]):
+        d_ = Vector((b_[0] - a_[0], b_[1] - a_[1], 0))
+        w_ = tag(box('mk57-1.screen', ((a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2, 11.75), (d_.length, .07, 1.12), 'naval', col), 'mk57-1')
+        w_.rotation_euler.z = math.atan2(d_.y, d_.x)
     for i, (kind, ref, bearing) in enumerate(small, 1):
         id = f'{kind}-{i}'
         x, y, z = P(*ref)
@@ -563,14 +574,20 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             q = Vector((q.x, q.y, support.below(q.x, q.y, q.z + 1) + .1))
             link = tag(box('ground tackle.chain link', q, (.36, .09 if i % 2 else .22, .22 if i % 2 else .09), 'edge', dcol), 'ground-tackle')
             link.rotation_euler.z = math.atan2((c - a).y, (c - a).x)
-        # Stockless anchor seated in its hawse at the bow flare.
-        ax, ay, az = P(s * 3.1, 6.0, -115.6)
-        edge = support.along((ax, -s * .1, az), (0, -s, 0), 20)
-        tag(rod('anchor.shank', (edge.x, edge.y - s * .12, edge.z + 1.1), (edge.x, edge.y - s * .12, edge.z - 1.2), .14, 'dark', dcol, vertices=10), 'anchors')
-        tag(rod('anchor.crown', (edge.x - .7, edge.y - s * .15, edge.z - 1.3), (edge.x + .7, edge.y - s * .15, edge.z - 1.3), .24, 'dark', dcol, vertices=12), 'anchors')
+        # Stockless anchor (reference: 3.4 m tall, crown at 4.7 m, shank into the hawse at 8.1 m), lying
+        # against the flare: the shank follows the shell between its hawse and crown heights.
+        az = R(0, 0, -113.5)[0]
+        top = support.along((az, -s * .1, 8.0), (0, -s, 0), 20)
+        low = support.along((az + .3, -s * .1, 5.2), (0, -s, 0), 20)
+        out = Vector((0, -s * .28, 0))
+        a_top = Vector((top.x, top.y, top.z)) + out
+        a_low = Vector((low.x, low.y, low.z)) + out * 1.5
+        tag(rod('anchor.shank', a_top, a_low, .19, 'dark', dcol, r2=.16, vertices=8), 'anchors')
+        crown = a_low + Vector((0, 0, -.25))
+        tag(rod('anchor.crown', crown + Vector((-1.0, 0, 0)), crown + Vector((1.0, 0, 0)), .26, 'dark', dcol, vertices=8), 'anchors')
         for d in (-1, 1):
-            tag(rod('anchor.fluke', (edge.x + d * .7, edge.y - s * .15, edge.z - 1.3), (edge.x + d * .95, edge.y - s * .2, edge.z - .35), .16, 'dark', dcol, r2=.07, vertices=8), 'anchors')
-        tag(cyl('anchor.hawse lip', (edge.x, edge.y - s * .04, edge.z + 1.25), .42, .1, 'edge', dcol, 20), 'anchors').rotation_euler.x = math.pi / 2
+            tag(rod('anchor.fluke', crown + Vector((d * .95, 0, .05)), crown + Vector((d * 1.05, -s * .15, 1.25)), .22, 'dark', dcol, r2=.08, vertices=6), 'anchors')
+        tag(cyl('anchor.hawse lip', (top.x, top.y - s * .05, top.z + .2), .5, .12, 'edge', dcol, 16), 'anchors').rotation_euler.x = math.pi / 2
     for zr in (-104, -96, -84, -64, 66, 82, 100, 112):
         for s in (-1, 1):
             x = P(0, 0, zr)[0]
@@ -856,14 +873,11 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         for d in (1.9, 9.0):
             p = Vector(inboard).lerp(Vector((x, y, z)), 1 - d / 26)
             tag(rod(id + '.strut boss', (p.x - .45, p.y, p.z), (p.x + .45, p.y, p.z), .32, 'antifouling', ucol, vertices=12), id)
-            # V-strut: two legs splayed 35 degrees either side of the vertical to the shell.
-            for sgn in (-1, 1):
-                d_ = Vector((0, sgn * math.sin(math.radians(35)), math.cos(math.radians(35))))
-                try:
-                    shell = support.along((p.x, p.y, p.z), tuple(d_), 12)
-                except ValueError:       # the outboard leg of a wing shaft: splay it less
-                    d_ = Vector((0, sgn * math.sin(math.radians(12)), math.cos(math.radians(12))))
-                    shell = support.along((p.x, p.y, p.z), tuple(d_), 14)
+            # V-strut: a vertical leg and one raked 35 degrees inboard, each to the shell above.
+            side_in = -1 if p.y > 0 else 1
+            for ang in (0, 35):
+                d_ = Vector((0, side_in * math.sin(math.radians(ang)), math.cos(math.radians(ang))))
+                shell = support.along((p.x, p.y, p.z), tuple(d_), 12)
                 tag(rod(id + '.strut leg', p, Vector((shell.x, shell.y, shell.z)) + d_ * .12, .1, 'antifouling', ucol, r2=.08, vertices=8), id)
         tag(rod(id + '.hub', (x - .45, y, z), (x + .95, y, z), .47, 'bronze', ucol, r2=.36, vertices=16), id)
         tag(rod(id + '.fairing cone', (x - 1.55, y, z), (x - .45, y, z), .02, 'bronze', ucol, r2=.47, vertices=16), id)
