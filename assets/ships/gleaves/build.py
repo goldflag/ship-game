@@ -271,6 +271,7 @@ cyl('machinery.forward-torpedo-foundation',(1.51,0,(machinery_roof+5.01)/2),1.04
 prism('bridge.aft-platform',outline_rect(14.4,16.3,-3.09,3.09,.12),7.22,7.36)
 for y in [-2.9,-1.9,1.9,2.9]:rod('bridge.aft-platform-pillar',(14.62,y,machinery_roof),(14.62,y,7.23),.07,materials['naval'],vertices=10)
 for side in [-1,1]:rails('bridge.aft-platform-rail',[(16.2,side*3.02,7.36),(14.47,side*3.02,7.36),(14.47,side*.55,7.36)],.9,spacing=1.0)
+for side in [-1,1]:locker('bridge.aft-platform-locker',(14.94,side*2.0,7.86),(.96,.8,1.0))
 # The forecastle deck continues aft over the break as a plated walkway around the
 # forward end of the machinery trunk (pzsd108 at 4.7 m).
 walk=[(2.12,-14.15),(2.87,-14.15),(3.29,-14.57),(3.29,-14.81),(3.93,-15.85),(4.40,-16.0),(4.72,-16.28)]
