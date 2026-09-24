@@ -271,9 +271,22 @@ for m in D['mounts']:
    for dx in [-.9,.9]:
     for dy in [-.5,.5]:rod(m['id']+' gallery stanchion',(x+dx,y+dy,FLIGHT-.10),(x+dx,y+dy,z-.22),.085,M['naval'],COL['Armament'])
    rod(m['id']+' gallery diagonal',(x-.9,y-.5,FLIGHT-.10),(x+.9,y+.5,z-.22),.065,M['naval'],COL['Armament'])
-  pts=[(x+2.0*math.cos(a*2*math.pi/32),y+2.0*math.sin(a*2*math.pi/32)) for a in range(32)]
-  for a,b in zip(pts,pts[1:]+pts[:1]):
-   o=mesh('Quad splinter tub',[(a[0],a[1],z),(b[0],b[1],z),(b[0],b[1],z+.8),(a[0],a[1],z+.8)],[(0,1,2,3)],M['naval'],COL['Armament']);o['assemblyId']=m['id']+'-platform'
+  # Plated splinter tub with a rolled rim, clip racks and stiffeners (one kit mesh).
+  tub=Kit('Quad splinter tub',COL['Armament'],m['id']+'-platform')
+  tub.wall(list(reversed([(x+2.0*math.cos(a*math.tau/40),y+2.0*math.sin(a*math.tau/40)) for a in range(40)])),z,.9,.04,'naval',True)
+  for k in range(12):
+   a=k*math.tau/12
+   tub.box((x+2.08*math.cos(a),y+2.08*math.sin(a),z+.45),(.1,.05,.86),a,'naval')
+  for a in [math.pi*.75,math.pi*1.25]:
+   # Ready clip racks on the tub wall, abaft the mount.
+   tub.box((x+1.86*math.cos(a),y+1.86*math.sin(a),z+.55),(.22,.9,.5),a,'edge')
+  if z<=FLIGHT+.3:
+   # Brackets from the tub soffit to the hangar gallery wall where the tub overhangs the deck edge.
+   side=1 if y>0 else -1
+   for dx in [-1.2,0,1.2]:
+    tub.rod((x+dx,side*10.2,FLIGHT-2.1),(x+dx,y+side*1.6,z-.13),.07,'naval',6)
+    tub.rod((x+dx,side*10.2,z-.2),(x+dx,y+side*1.9,z-.2),.06,'naval',6)
+  tub.emit()
  create_mount(m,COL['Armament'],dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M)
 # Exposed starboard walkway, around the island footprint.
 box('Island AA gallery',(10,-15.5,FLIGHT-.15),(48,2.0,.3),M['naval'],COL['Island'])
