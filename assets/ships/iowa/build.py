@@ -250,7 +250,7 @@ for m in D['mounts']:
 
 # Region recipes, then the light AA mechanisms and any remaining default AA
 # installations, all executed in this recipe scope (see details.py).
-for part in ['forward','tower','midships','aft','deck','aa']:
+for part in ['forward','tower','midships','aft','house','hull','aa']:
     exec((Path(__file__).parent/(part+'.py')).read_text(),globals())
 # Consolidate static fittings within their exact assembly/joint frame. This
 # keeps the editable source small without welding independent moving parts.

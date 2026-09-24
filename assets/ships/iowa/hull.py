@@ -1,24 +1,8 @@
-"""Hull, main deck and 01/02 deckhouse walls: rails, mooring and anchor gear, hatches, boats,
-aircraft handling, underwater appendages, and the doors, scuttles and louvres of the lower deckhouses.
+"""Hull shell and weather decks: deck-edge rails, mooring and anchor gear, hatches, vents, staffs,
+aircraft handling, underwater appendages, and the main-deck AA positions.
 
-Region: the whole length at or below the 02 deck walls. Executed in build.py's scope after aft.py.
+Region: the hull and the forecastle/quarterdeck outside the deckhouse. Executed in build.py's scope after house.py.
 """
-COL=collections['Superstructure'];F=Fittings(helpers,materials,COL)
-for id in ['deckhouse-main','deckhouse-secondary']:
-    s=next(s for s in D['structures'] if s['id']==id);ASSEMBLY=id
-    for side in [-1,1]:
-        poly=[(-c,-a) for a,c in s['footprint']]
-        def edge_y(x):
-            values=[a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]) for a,b in zip(poly,poly[1:]+poly[:1]) if min(a[0],b[0])<=x<=max(a[0],b[0]) and abs(b[0]-a[0])>.001]
-            return side*max(abs(v) for v in values)
-        for x in [-36,-29,-18,-9,1,11]:
-            y=edge_y(x)
-            z=s['baseY']+1.7
-            rod('Porthole rim',(x,y-.04,z),(x,y+.04,z),.19,'edge',vertices=16)
-            rod('Porthole glass',(x,y-.051,z),(x,y+.051,z),.135,'glass',vertices=16)
-        for x in [-34,-6,10]:F.door('Watertight door',x,edge_y(x),s['baseY']+.06,.72,1.78)
-        for x in [-26,-15,3]:F.vent('Ventilator',x,edge_y(x),s['baseY']+.8,1.3,.7)
-
 COL=collections['Deck fittings'];ASSEMBLY='hull';F=Fittings(helpers,materials,COL)
 deck_tubs=[(-m['position'][2],-m['position'][0],2.36) for m in D['mounts']
            if .03<m['weapon']['caliberM']<.1 and not m.get('parentMountId')
@@ -58,8 +42,6 @@ for side in [-1,1]:
         x=99+i*.265
         F.ring('Anchor chain link',(x,side*1.10,deckz(x)+.20),.19,.035,'z' if i%2 else 'y',segments=10)
     cyl('Anchor windlass',(99,side*1.4,deckz(99)+.40),.59,.75,'edge',vertices=20)
-    # Open boats sit on the main deck beneath the Oerlikon galleries.
-    F.boat('Deck launch',-13.5,side*13.4,deckz(-13.5)+.08,8.4,2,False)
 for x in [-116,-98,-87,-76,78,94,119]:
     for y in [-2.1,2.1]:
         z=deckz(x);box('Deck hatch coaming',(x,y,z+.17),(1.25,1.08,.34))
@@ -113,3 +95,4 @@ for side in [-1,1]:
     y=side*3.5
     rod('Rudder stock',(-125.5,y,-2.1),(-125.5,y,1.8),.20,'antifouling',vertices=16)
     mesh('Rudder',[(x,y+dy,z) for dy in [-.18,.18] for x,z in [(-124,-1.8),(-130,-1.8),(-128.5,-8.9),(-125,-8.9)]],[(0,1,2,3),(7,6,5,4),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],'antifouling')
+
