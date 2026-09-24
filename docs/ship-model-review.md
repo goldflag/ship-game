@@ -12,6 +12,7 @@ These are authoring and visual acceptance checks. Existing export validation ver
 - Inspect above, below and behind shields, platforms, rangefinders and small fittings. Isolate or section hidden supports.
 - Preserve separate meshes and pivot empties for moving parts. Model their mechanical connections without welding independent joints together.
 - Articulate the assembly and verify that attachments remain seated throughout movement.
+- `bun run ship:floating <id>` lists every part that no chain of contacts joins to the hull, including clusters that only touch each other. It proves contact, not that the contact is a believable support.
 
 ## 2. Turret, bridge and bow proportions first
 
@@ -43,7 +44,7 @@ Target **faithful shapes and proportions against the user-approved reference and
 - Fix geometry, placement, pivots or supported mechanical limits in durable authoring inputs while preserving researched dimensions/positions. Arbitrary shrinking, moving or restricting guns to conceal a clash is not a historical correction.
 - Repeat the sweep on the exported GLB in-game. A blocked firing path does not prevent mesh clipping and is not a clearance pass.
 
-For the development port articulation hook and exact-hash diagnostics, see [runtime diagnostics](ship-runtime-contract.md#renderer-bindings-diagnostics-and-inspection). The shared hook does not replace checking independent neighboring-mount poses.
+`bun run ship:sweep <id>` is the sweep: every mount through its installed traverse, elevation and recoil against the fixed ship and the other mounts at rest, then neighbouring mounts posed independently against each other, with each contact replayed through the simulation's interlock resolver. Reachable contacts fail; contacts the interlocks stop first are listed as covered. Its sampling is 5° of train and 15° of elevation (15° of train between neighbours), so still look at narrow clearances between samples. For the development port articulation hook and exact-hash diagnostics, see [runtime diagnostics](ship-runtime-contract.md#renderer-bindings-diagnostics-and-inspection).
 
 ## Completion
 
