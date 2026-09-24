@@ -90,6 +90,12 @@ def joists(name,pts,z,spacing=1.05,depth=.24,width=.09,holes=(),col=None):
  return boxes(name,specs,materials['naval'],col)
 def strut(name,a,b,r=.085,col=None):
  return rod(name,a,b,r,materials['naval'],col or supercol,vertices=4)
+def aerial_frame(name,x,y0,y1,z,drop,depth):
+ # W/T aerial outrigger: a boom out to a light rectangular frame that hangs below its end.
+ rod(name+' boom',(x,y0,z),(x,y1,z),.045,materials['edge'],detailcol,.03,5)
+ rod(name+' boom brace',(x,y0,z-drop),(x,(y0+y1)/2,z),.02,materials['edge'],detailcol,vertices=4)
+ polyline(name+' frame',[(x-depth/2,y1,z),(x+depth/2,y1,z),(x+depth/2,y1,z-drop),(x-depth/2,y1,z-drop)],.016,materials['edge'],closed=True,vertices=4)
+ rod(name+' frame hanger',(x,y1,z),(x,y1,z-drop),.014,materials['edge'],detailcol,vertices=4)
 def chains(pts,keep):
  # Split a closed ring into open runs of edges for which keep(a,b) is true.
  n=len(pts);flags=[keep(pts[i],pts[(i+1)%n]) for i in range(n)]
@@ -122,30 +128,36 @@ def open_rails(name,runs,z,height=.9,spacing=1.5):
 def draw_signal_platform(s):
  pts=deck_plate(s);top=s['baseY']+s['height']
  # Handrails round the deck except where the two night-rangefinder tubs stand.
- tubs=[(15.0,sign*5.0) for sign in [-1,1]]
- near=lambda a,b:any(math.hypot((a[0]+b[0])/2-tx,(a[1]+b[1])/2-ty)<2.05 for tx,ty in tubs)
- open_rails('signal-platform',chains(pts,lambda a,b:not near(a,b)),top)
+ tubs=[(15.08,sign*5.5) for sign in [-1,1]]
+ def covered(a,b):
+  mx,my=(a[0]+b[0])/2,abs(a[1]+b[1])/2
+  return (any(math.hypot(mx-tx,(a[1]+b[1])/2-ty)<2.05 for tx,ty in tubs) or (14.4<mx<18.7 and my<3.36)
+   or (8.9<mx<14.5 and my>2.7))
+ open_rails('signal-platform',chains(pts,lambda a,b:not covered(a,b)),top)
  for tx,ty in tubs:
-  ring_pts=[(tx+1.35*math.cos(math.tau*(i+.5)/10),ty+1.35*math.sin(math.tau*(i+.5)/10)) for i in range(10)]
+  ring_pts=[(tx+1.36*math.cos(math.tau*(i+.5)/10),ty+1.36*math.sin(math.tau*(i+.5)/10)) for i in range(10)]
   band('Night rangefinder tub bulwark',ring_pts,top,top+.98,.05,True,(.1,.1))
   extrude('Night rangefinder tub floor',ring_pts,top,.04,materials['roof'],supercol)
  joists('signal-platform joist',pts,s['baseY'],holes=[core(),ccw(plan('signal-house'))])
  for sign in [-1,1]:
   # Heavy square struts carry the tubs down to the edge of the lower gallery.
   for xx in [14.35,15.65]:
-   strut('Night rangefinder platform strut',(xx,sign*6.05,s['baseY']-.02),(xx,sign*4.12,17.66))
-  strut('Night rangefinder strut brace',(14.35,sign*4.94,18.9),(15.65,sign*5.86,20.3),.05)
+   strut('Night rangefinder platform strut',(xx,sign*6.35,s['baseY']-.02),(xx,sign*3.98,17.66))
+  strut('Night rangefinder strut brace',(14.35,sign*4.8,18.9),(15.65,sign*5.95,20.3),.05)
 def draw_fore_aa_platform(s):
  pts=deck_plate(s);top=s['baseY']+s['height'];aft=min(x for x,y in pts)
  closed=lambda a,b:(a[0]+b[0])/2>=aft+.9
  for run in chains(pts,closed):band('Searchlight gallery splinter bulwark',run,top,top+.98,.05,False,(.14,.12))
  open_rails('fore-aa-platform',chains(pts,lambda a,b:not closed(a,b)),top)
  joists('fore-aa-platform joist',pts,s['baseY'],holes=[core()])
- # Bulkhead and centre web above the signal house roof carry the searchlight nose.
- boxes('Searchlight gallery bulkhead',[(17.52,0,(23.2+s['baseY'])/2,.3,9.6,s['baseY']-23.2),
-  (19.2,0,(23.35+s['baseY'])/2,3.2,.5,s['baseY']-23.35),(20.95,0,(23.55+s['baseY'])/2,.35,2.8,s['baseY']-23.55)])
+ # pgsb708 at y 23.4: a transverse locker across the signal house roof, a centre web out to the nose
+ # and a plate under the nose (the rest of the gallery rides on the core and the struts below).
+ boxes('Searchlight gallery nose web',[(17.575,0,23.55,.65,9.8,.7),(21.0,0,(23.1+s['baseY'])/2,.4,4.1,s['baseY']-23.1)])
  for sign in [-1,1]:
-  for xx in [15.3,17.1,18.4]:strut('Searchlight gallery strut',(xx,sign*4.7,s['baseY']-.02),(xx,sign*(1.95 if xx<16 else 3.1),23.22 if xx>=16 else 22.4))
+  # Struts from the signal house roof edges out to the gallery wings.
+  for xx in [15.3,17.1,18.3]:strut('Searchlight gallery strut',(xx,sign*4.75,s['baseY']-.02),(xx,sign*3.15,23.22))
+  # W/T aerial outriggers at the wing tips (pgsb708 shows frames below the wings).
+  aerial_frame('Searchlight gallery aerial outrigger',17.1,sign*6.2,sign*9.2,24.36,.75,1.4)
 def draw_foretop_platform(s):
  pts=deck_plate(s);top=s['baseY']+s['height'];aft=min(x for x,y in pts)
  closed=lambda a,b:(a[0]+b[0])/2>=aft+1.55
@@ -182,14 +194,12 @@ def wall_windows(sid,z,height,spacing=.95,fill=.8):
    polyline(sid+' window frame',[corners[j] for j in [0,1,3,2]],.033,materials['edge'],closed=True,vertices=6)
 def bridge_details():
  # Runs inside legacy_frame(): authored 2 m forward, shifted back by the caller.
- wall_windows('bridge-wheelhouse',13.96,.37,1.25)
- wall_windows('signal-house',22.10,.80,1.05)
  wall_windows('conning-tower',17.30,.12,1.3)
  wall_windows('foretop-control',28.96,.14,2.4,.22)
  # The upper control house has small apertures; the former full window ribbon
  # exaggerated its width. All service fittings bear on their actual deck or wall.
  for sign in [-1,1]:
-  for sid,zz,xx in [('tower-upper-shaft',19.25,16.15),('tower-upper-shaft',25.35,16.15),('tower-mast-base',16.25,20.0)]:
+  for sid,zz,xx in [('tower-mast-base',16.25,20.0)]:
    pts=[(-zz+2,-xx) for xx,zz in structures[sid]['footprint']]
    yy,normal=house_side(pts,xx,sign);porthole('Tower wall aperture',Vector((xx,yy,zz))+normal*.04,normal,.18)
  for sign in [-1,1]:
@@ -239,7 +249,11 @@ def core_details():
  # Horizontal plating seams on the faceted core and the small after trunk the approved model carries.
  pts=core()
  for zz in [19.9,22.3,24.1,26.0]:polyline('Tower core plating seam',[(x,y,zz) for x,y in pts],.018,materials['edge'],supercol,True,4)
- box('Tower after cable trunk',(10.37,-.45,22.7),(.96,1.0,4.1),materials['naval'],supercol)
+ box('Tower after trunk',(10.28,0,22.7),(1.26,2.7,4.1),materials['naval'],supercol)
+ extrude('Tower after trunk cap',rounded_rect(10.28,0,1.36,2.8,.1,1),24.75,.06,materials['roof'],supercol)
+ for sign in [-1,1]:
+  for xx,zz in [(11.8,25.9),(13.2,25.9),(11.8,24.4),(11.4,22.1),(13.9,19.1)]:
+   yy,normal=house_side(pts,xx,sign);porthole('Tower core scuttle',Vector((xx,yy,zz))+normal*.04,normal,.17)
 def pelorus(name,x,y,deck,height=1.3):
  cyl(name+' stand',(x,y,deck+height/2),.12,height,materials['naval'],detailcol,12)
  cyl(name+' binnacle',(x,y,deck+height+.05),.24,.12,materials['edge'],detailcol,16)
@@ -264,7 +278,7 @@ def flak_zag(name,x,y,deck,bearing=0):
  hd=box(name+' sight housing',p(0,0,1.12),(.72,.5,.4),materials['naval'],detailcol);hd.rotation_euler.z=bearing
  polyline(name+' sighting frame',[p(.36,-.28,1.3),p(.62,-.28,1.55),p(.62,.28,1.55),p(.36,.28,1.3)],.018,materials['edge'])
  for sgn in [-1,1]:rod(name+' eyepiece',p(-.36,sgn*.12,1.18),p(-.5,sgn*.12,1.22),.035,materials['dark'],detailcol,vertices=6)
- box(name+' crew step',p(-.55,0,.25),(.4,.6,.06),materials['edge'],detailcol).rotation_euler.z=bearing
+ box(name+' crew step',p(-.45,0,.04),(.5,.6,.06),materials['edge'],detailcol).rotation_euler.z=bearing
 def zeilsaeule(name,x,y,deck):
  # Night target-designation column: tall pedestal, binocular head with a folding hood.
  cyl(name+' foot',(x,y,deck+.03),.22,.06,materials['edge'],detailcol,12)
@@ -281,8 +295,37 @@ def raft(name,x,y,z,bearing,length=1.8,height=1.75):
  for a in [-.35,.35]:rod(name+' grating slat',p(a,-(height/2-.3)),p(a,height/2-.3),.035,materials['wood'],detailcol,vertices=4)
  for h in [-.3,.3]:rod(name+' grating bar',p(-(length/2-.3),h),p(length/2-.3,h),.03,materials['wood'],detailcol,vertices=4)
  for a in [-.18,.18]:rod(name+' paddle',p(a,-(height/2-.2)),p(a*1.4,height/2-.1),.04,materials['wood'],detailcol,vertices=4)
+def window(name,c,normal,w,h):
+ # A framed pane on a wall: c is the pane centre on the wall face, normal points outboard.
+ n=Vector(normal).normalized();side=Vector((-n.y,n.x,0));c=Vector(c)+n*.025
+ corners=[c+side*(sx*w/2)+Vector((0,0,sz*h/2)) for sz in (-1,1) for sx in (-1,1)]
+ mesh(name+' glass',[tuple(v) for v in corners],[(0,1,3,2)],materials['glass'],detailcol)
+ polyline(name+' frame',[corners[j] for j in [0,1,3,2]],.028,materials['edge'],closed=True,vertices=4)
+def front_face(pts,y):
+ # The foremost wall crossing at plan y, with its outward normal.
+ best=None
+ for a,b in zip(pts,pts[1:]+pts[:1]):
+  if (a[1]-y)*(b[1]-y)<=0 and abs(b[1]-a[1])>1e-9:
+   x=a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0])
+   if best is None or x>best[0]:
+    n=Vector((b[1]-a[1],a[0]-b[0],0)).normalized()
+    if n.x<0:n=-n
+    best=(x,n)
+ return best
+def house_windows():
+ # Windows as the textured pgsb708 render paints them: tall panes round the signal house, a row of
+ # small panes across the wheelhouse front.
+ pts=ccw(plan('signal-house'))
+ for yy in [0,.85,-.85,1.7,-1.7,2.55,-2.55]:
+  x,n=front_face(pts,yy);window('Signal house window',(x,yy,22.285),n,.41,.69)
+ for sign in [-1,1]:
+  for xx in [15.4,16.1,16.75,17.4]:
+   yy,n=house_side(pts,xx,sign);window('Signal house window',(xx,yy,22.285),n,.41,.69)
+ pts=ccw(plan('bridge-wheelhouse'))
+ for yy in [0,1.66,-1.66,3.22,-3.22,4.72,-4.72]:
+  x,n=front_face(pts,yy);window('Wheelhouse window',(x,yy,14.725),n,.5,.25)
 def tower_fittings():
- core_details()
+ core_details();house_windows()
  for sign in [-1,1]:
   # Instruments at the reference stations (pgsb708 misc fittings), each on its own deck.
   pelorus('Signal deck pelorus',17.0,sign*3.94,20.66)
@@ -304,6 +347,11 @@ def tower_fittings():
   rod('Signal lamp post',(12.45,sign*4.03,21.9),(12.45,sign*4.03,22.08),.03,materials['edge'],detailcol,vertices=4)
   rod('Fog horn',(18.1,sign*4.06,23.83),(19.95,sign*4.06,23.83),.07,materials['edge'],detailcol,.28,12)
   rod('Fog horn hanger',(18.4,sign*4.06,23.83),(18.4,sign*4.06,24.37),.03,materials['edge'],detailcol,vertices=4)
+  # Handrails round the exposed after part of the bridge deck, junction boxes and indicators inside
+  # the foretop bulwark.
+  rail('Bridge deck rail',[(17.35,sign*4.1,15.155),(17.35,sign*6.75,15.155),(22.1,sign*6.75,15.155),(26.15,sign*5.8,15.155)],.9,1.5,False,col=supercol)
+  box('Foretop junction box',(12.52,sign*4.69,27.81),(.51,.22,.65),materials['naval'],detailcol)
+  box('Foretop indicator',(14.43,sign*4.28,28.07),(.28,.28,.34),materials['naval'],detailcol)
   # Ready-use lockers from the approved stations.
   box('Tower ready-use locker',(11.32,sign*6.93,13.05+.6),(.75,1.47,1.2),materials['naval'],detailcol)
  box('Bridge ready-use locker',(25.27,-5.44,15.15+.6),(1.6,1.06,1.2),materials['naval'],detailcol)
@@ -331,9 +379,10 @@ def fore_rangefinder():
   rod('Fore main director end housing',(x,sign*5.2,31.45),(x,sign*5.6,31.45),.3,materials['naval'],detailcol,vertices=8)
   rod('Fore main director objective',(x+.26,sign*5.4,31.45),(x+.33,sign*5.4,31.45),.12,materials['glass'],detailcol,vertices=10)
   # Guard frame along the after side of each arm.
-  polyline('Fore main director arm guard',[(x-.45,sign*2.2,30.85),(x-.45,sign*5.65,30.85),(x-.45,sign*5.65,31.9),(x-.45,sign*2.2,31.9)],.022,materials['edge'])
-  for yy in [3.3,4.45]:rod('Fore main director guard stanchion',(x-.45,sign*yy,30.85),(x-.45,sign*yy,31.9),.02,materials['edge'],detailcol,vertices=4)
-  rod('Fore main director guard bracket',(x-.45,sign*2.2,30.85),(x-.2,sign*2.12,30.85),.03,materials['edge'],detailcol,vertices=4)
+  # Guard frame along the after side of each arm; its inboard post stands against the hood side.
+  polyline('Fore main director arm guard',[(x-.45,sign*2.14,31.15),(x-.45,sign*5.65,31.15),(x-.45,sign*5.65,31.95),(x-.45,sign*2.14,31.95)],.022,materials['edge'],closed=True)
+  for yy in [3.3,4.45]:rod('Fore main director guard stanchion',(x-.45,sign*yy,31.15),(x-.45,sign*yy,31.95),.02,materials['edge'],detailcol,vertices=4)
+  rod('Fore main director guard bracket',(x-.45,sign*5.65,31.45),(x,sign*5.45,31.45),.03,materials['edge'],detailcol,vertices=4)
   for zz in [31.3,31.6,31.9]:rod('Fore main director hood rung',(x-1.72,sign*.25,zz),(x-1.72,sign*.6,zz),.018,materials['light'],detailcol,vertices=4)
  rod('Fore main director aerial mast',(x,0,32.55),(x,0,34.35),.16,materials['edge'],detailcol,.03,8)
  rod('Fore main director aerial spreader',(x,-.3,33.75),(x,.3,33.75),.03,materials['edge'],detailcol,vertices=4)
@@ -428,30 +477,43 @@ def sl8_director(name,x,y):
 def aa_directors():
  for sign in [-1,1]:sl8_director('Forward SL-8 AA director',15.08,sign*6.77)
 def foretop_searchlight():
- searchlight('Foretop 1.5 m searchlight',20.0,0,24.71,0)
+ cyl('Foretop searchlight column',(20.0,0,(24.62+25.34)/2),.42,25.34-24.62,materials['naval'],detailcol,16)
+ cyl('Foretop searchlight column foot',(20.0,0,24.66),.6,.08,materials['edge'],detailcol,16)
+ searchlight('Foretop 1.5 m searchlight',20.0,0,25.32,0,.9)
 def foremast():
  # pgsb708 foremast: a single vertical pole behind the foretop, stepped on the signal deck's after
  # walkway, with one signal yard (flag halyards at +-2.3 m), a short topmast yard, and two pairs of long
  # W/T aerial spreaders at the gallery levels. The former long yards and deck-to-truck stays are gone.
- x=6.66;base=20.66;top=38.9
+ x=6.95;base=20.66;top=38.9
  cyl('Foremast step',(x,0,base+.1),.34,.2,materials['edge'],detailcol,12)
  rod('Foremast pole',(x,0,base+.1),(x,0,top),.19,materials['edge'],detailcol,.12,12)
  rod('Foremast topmast',(x,0,top),(x,0,41.2),.07,materials['edge'],detailcol,.025,8)
  rod('Foremast signal yard',(x,-2.33,36.1),(x,2.33,36.1),.065,materials['edge'],detailcol,.04,8)
- for sign in [-1,1]:rod('Foremast yard brace',(x,sign*2.2,36.08),(x,0,37.0),.02,materials['edge'],detailcol,vertices=4)
  polyline('Foremast flag frame',[(x+.05,-2.05,36.05),(x+.05,-2.05,35.45),(x+.05,2.05,35.45),(x+.05,2.05,36.05)],.02,materials['edge'])
  for yy in [-1.0,0,1.0]:rod('Foremast flag frame bar',(x+.05,yy,35.45),(x+.05,yy,36.05),.015,materials['edge'],detailcol,vertices=4)
  rod('Foremast upper yard',(x,-1.4,38.5),(x,1.4,38.5),.045,materials['edge'],detailcol,.03,6)
  rod('Foremast truck',(x,0,41.2),(x,0,41.3),.06,materials['edge'],detailcol,vertices=8)
- for zz,span,drop in [(26.85,9.6,.62),(24.45,8.1,.55)]:
-  for sign in [-1,1]:
-   rod('Foremast aerial spreader',(x,sign*.18,zz),(x+.35,sign*span,zz),.05,materials['edge'],detailcol,.03,6)
-   rod('Foremast spreader brace',(x,sign*.15,zz-1.2),(x+.3,sign*span*.6,zz),.025,materials['edge'],detailcol,vertices=4)
-   polyline('Foremast aerial frame',[(x+.3,sign*(span-2.6),zz),(x+.3,sign*(span-2.6),zz-drop),(x+.33,sign*(span-.2),zz-drop),(x+.33,sign*(span-.2),zz)],.015,materials['edge'])
+ # Short aerial gaff aft at 40 m: the fore end of the W/T aerial span to the mainmast (aft region) bears on it.
+ rod('Foremast aerial gaff',(x,0,40.0),(5.75,0,40.0),.045,materials['edge'],detailcol,.03,6)
+ rod('Foremast aerial gaff brace',(x,0,39.2),(5.95,0,40.0),.02,materials['edge'],detailcol,vertices=4)
  for sign in [-1,1]:
-  # Flag halyards from the yard to the signal deck walkway; shrouds to the foretop's after corners.
-  for yy in [2.25,1.2]:rod('Foremast signal halyard',(x,sign*yy,36.05),(x+.9,sign*.4,base+.02),.01,materials['rope'],detailcol,vertices=4)
-  rod('Foremast shroud',(x,0,35.2),(8.95,sign*4.55,27.32),.014,materials['dark'],detailcol,vertices=4)
+  # W/T aerial spreaders at the foretop level end in rectangular frames 8.4-10.5 m out (pgsb708).
+  zz=27.2;y0,y1=sign*8.35,sign*10.5
+  rod('Foremast aerial spreader',(x,sign*.17,zz),(5.45,y0,zz),.06,materials['edge'],detailcol,.035,6)
+  rod('Foremast spreader brace',(x,sign*.17,zz-1.6),(6.1,sign*4.6,zz),.028,materials['edge'],detailcol,vertices=4)
+  polyline('Foremast aerial frame',[(4.45,y0,zz),(6.47,y0,zz),(6.47,y1,zz),(4.45,y1,zz)],.02,materials['edge'],closed=True,vertices=4)
+  for t in [1/3,2/3]:
+   rod('Foremast aerial mat wire',(4.45,y0+(y1-y0)*t,zz),(6.47,y0+(y1-y0)*t,zz),.01,materials['dark'],detailcol,vertices=4)
+   rod('Foremast aerial mat wire',(4.45+2.02*t,y0,zz),(4.45+2.02*t,y1,zz),.01,materials['dark'],detailcol,vertices=4)
+  for xx in [4.45,6.47]:
+   rod('Foremast aerial frame hanger',(xx,y1,zz),(xx,y1,zz-.7),.016,materials['edge'],detailcol,vertices=4)
+  rod('Foremast aerial frame foot',(4.45,y1,zz-.7),(6.47,y1,zz-.7),.016,materials['edge'],detailcol,vertices=4)
+  # Stays from the signal yard ends out to the frames, topping lifts to the pole and a shroud to the foretop.
+  rod('Foremast yard stay',(x,sign*2.3,36.1),(5.45,y1,zz),.011,materials['dark'],detailcol,vertices=4)
+  rod('Foremast topping lift',(x,sign*2.3,36.1),(x,0,38.0),.011,materials['dark'],detailcol,vertices=4)
+  rod('Foremast shroud',(x,sign*.12,33.0),(8.95,sign*4.55,28.35),.014,materials['dark'],detailcol,vertices=4)
+  # W/T aerial wires run forward from the frames to the searchlight gallery outriggers.
+  rod('Foremast aerial wire',(6.47,sign*9.4,zz-.05),(17.1,sign*9.2,24.36),.01,materials['dark'],detailcol,vertices=4)
  # Ladder on the pole's after face, stood off by lugs.
  for i in range(int((35.4-(base+.6))/.36)):
   zz=base+.6+i*.36;rod('Foremast ladder rung',(x-.21,-.2,zz),(x-.21,.2,zz),.018,materials['light'],detailcol,vertices=4)
