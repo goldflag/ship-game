@@ -154,8 +154,10 @@ AFTER_02 = [(0, 4.53), (0.65, 4.91), (1.27, 5.43), (1.70, 6.23), (1.98, 7.46), (
             (4.62, 18.61), (3.66, 18.80), (3.66, 24.18), (0.77, 27.72), (0, 27.72)]
 # The reference's 03 house is 1.98 m wide abreast the 40 mm aa-19/20 (z 14.7-15.9); here it narrows to 1.45 m there,
 # clear of the shared Bofors part's training body.
-AFTER_03 = [(0, 12.28), (1.78, 12.28), (2.81, 12.85), (2.80, 13.95), (1.99, 14.73), (1.45, 15.10), (1.42, 17.80), (1.42, 23.63),
-            (1.14, 24.21), (0.63, 24.62), (0, 24.76)]
+AFTER_03 = [(0, 12.28), (1.78, 12.28), (2.81, 12.85), (2.80, 13.95), (1.99, 14.73), (1.45, 15.10), (1.42, 17.80), (1.42, 21.50),
+            (0, 21.50)]
+# Its after end carries the Mk 37: one block to the director's roller path at 15.48 m.
+AFTER_03_MK37 = [(0, 21.50), (1.42, 21.50), (1.42, 23.63), (1.14, 24.21), (0.63, 24.62), (0, 24.76)]
 MAST_HOUSE = [(0, 11.43), (1.42, 11.43), (1.42, 13.94), (2.25, 13.95), (2.25, 15.06), (1.42, 15.07), (1.41, 15.64), (0, 15.64)]
 MAST_HOUSE_ROOF = [(0, 9.39), (0.18, 9.39), (0.49, 9.71), (0.62, 10.15), (1.42, 11.43), (1.42, 13.94), (2.25, 13.95), (2.25, 15.06),
                    (1.42, 15.07), (1.41, 15.64), (0, 15.64)]
@@ -186,6 +188,7 @@ STRUCTURES = {
     'after-bridge-upper': lambda: prism('after-bridge-upper', 'After Bridge Upper', 10.48, 12.64, AFTER_BLOCK),
     'after-bridge-upper-platform': lambda: prism('after-bridge-upper-platform', 'After Bridge Upper platform', 12.64, 12.8, AFTER_02),
     'after-bridge-top': lambda: prism('after-bridge-top', 'After Bridge Top', 12.8, 15.45, AFTER_03),
+    'after-secondary-director-base': lambda: prism('after-secondary-director-base', 'After Secondary Director Base', 12.8, 15.48, AFTER_03_MK37),
     'after-mast-house': lambda: prism('after-mast-house', 'After mast house', 15.45, 17.51, MAST_HOUSE),
     'after-mast-house-platform': lambda: prism('after-mast-house-platform', 'After mast platform', 17.51, 17.67, MAST_HOUSE_ROOF),
     'forward-funnel': forward_funnel,
