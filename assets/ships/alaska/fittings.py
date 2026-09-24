@@ -87,7 +87,7 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     arcs = []
     for m in D['mounts']:
         w = m['weapon']
-        if m['battery'] != 'main' and 'us-5in38' not in m['partId']:
+        if m['battery'] != 'main' and 'us-5in38' not in m['partId'] and not m['partId'].startswith('us-40'):
             continue
         mx, my, mz = -m['position'][2], -m['position'][0], m['position'][1]
         house = max((v[0] ** 2 + v[1] ** 2) ** .5 for v in w['gunhouseMesh']['vertices']) + .2 if w.get('gunhouseMesh') else max(w['gunhouseSize'][:2]) * .6
@@ -196,11 +196,14 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
                 dx, dy = (s * (nose - .6), s * 1.73) if b > 0 else (s * (.6 - nose), s * 1.73)
                 port.rotation_euler.z = math.atan2(dy, dx) - math.pi / 2
             moving.append(port)
-        # Mk 8 antenna: a broad, shallow lattice aft on the roof, carried on posts.
-        ax_, ay_ = L(-.96, 0)
-        moving += grid(id + '.mk8 antenna', (ax_, ay_, z + 1.66), 5.2, .6, col, 'x', 2, 16, assembly=id)
-        for b in (-1.6, 0, 1.6):
-            moving.append(part('rod', id, col, 'antenna post', (*L(-.96, b), z + .92), (*L(-.96, b), z + 1.36), .05, 'naval', vertices=6))
+        # Mk 8 array spanning the trestle heads, and the guard rail round the roof and arms.
+        bar = part('box', id, col, 'mk8 array', (*L(0, 0), z + 2.3), (.3, 3.6, .28), 'edge')
+        moving.append(bar)
+        rail = [L(-.3, -4.3), L(.3, -4.3), L(.3, -1.73), L(1.05, 0), L(.3, 1.73), L(.3, 4.3), L(-.3, 4.3), L(-.3, 1.73), L(-.92, 1.7), L(-1.45, .4), L(-1.45, -.4), L(-.92, -1.7), L(-.3, -1.73)]
+        for a_, b_ in zip(rail, rail[1:] + rail[:1]):
+            moving.append(part('rod', id, col, 'guard rail', (a_[0], a_[1], z + 1.9), (b_[0], b_[1], z + 1.9), .025, 'edge', vertices=5))
+        for a_ in rail:
+            moving.append(part('rod', id, col, 'rail stanchion', (a_[0], a_[1], z + .86), (a_[0], a_[1], z + 1.9), .025, 'edge', vertices=5))
         radar_pivot(id + '.yaw', (x, y, z + .03), [o for o in objects_since(before) if o in moving])
 
     def mk37(id, ref, aft):
@@ -229,8 +232,9 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
         moving.append(prism(id + '.access trunk', id, [L(-1.45, -.9), L(-1.45, .9), L(-1.95, .9), L(-1.95, -.9)], z + .7, z + 1.9))
         for b in (-.6, 0, .6):
             moving.append(part('box', id, col, 'sight port', (*L(1.465, b), z + 1.02), (.04, .34, .24), 'glass'))
-            moving.append(part('box', id, col, 'antenna shield', (*L(-1.2, b), z + 2.44), (.3, .4, .4), 'naval'))
-            moving.append(part('rod', id, col, 'antenna shield cap', (*L(-1.2, b - .2), z + 2.64), (*L(-1.2, b + .2), z + 2.64), .15, 'naval', vertices=8))
+            fin = part('box', id, col, 'antenna shield', (*L(.62, b), z + 2.0), (.12, .36, .95), 'naval')
+            fin.rotation_euler = (0, -s * math.radians(35), 0)
+            moving.append(fin)
         for a, b, h in ((-.6, -1.0, .9), (-.9, 1.0, .7)):
             moving.append(part('rod', id, col, 'whip', (*L(a, b), z + 2.24), (*L(a + .35, b - .2), z + 2.24 + h), .02, 'edge', vertices=5))
         radar_pivot(id + '.yaw', (x, y, z + .075), [o for o in objects_since(before) if o in moving])
@@ -277,7 +281,9 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     # the director deck at z -5.8.
     name = 'foremast'
     mz = 1.655
-    part('rod', name, col, 'pole', R(0, 21.99, mz), R(0, 35.9, mz), .34, 'naval', r2=.24, vertices=16)
+    # The pole is stepped on the 24 m walkway tail, which a trunk carries from the 22 m deck.
+    part('rod', name, col, 'pole', R(0, 24.1, mz), R(0, 35.9, mz), .33, 'naval', r2=.24, vertices=16)
+    part('box', name, col, 'tail trunk', R(0, 23.03, .35), (.7, .6, 2.1), 'naval')
     for sx in (-1, 1):
         part('rod', name, col, 'tower strut', R(sx * 1.0, 24.15, -1.65), R(sx * .2, 32.9, 1.42), .13, 'naval', vertices=10)
     # SK platform: round forward end (r 1.25 about z 0.75) tapering aft to the topmast.
@@ -291,10 +297,10 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     for sx in (-1, 1):
         part('rod', name, col, 'platform knee', R(sx * .25, 34.4, mz), R(sx * 1.1, 35.85, .6), .06, 'naval', vertices=6)
         part('rod', name, col, 'platform knee', R(sx * .2, 34.6, mz + .2), R(sx * .5, 35.85, 3.6), .05, 'naval', vertices=6)
-    part('rod', name, col, 'sk yard', R(-3.2, 35.78, .1), R(3.2, 35.78, .1), .05, 'naval', vertices=6)
+    part('rod', name, col, 'sk yard', R(-3.2, 36.1, .1), R(3.2, 36.1, .1), .05, 'naval', vertices=6)
     for sx in (-1, 1):
-        part('rod', name, col, 'yard antenna', R(sx * 3.1, 35.3, .1), R(sx * 3.1, 36.3, .1), .03, 'edge', vertices=5)
-        part('rod', name, col, 'yard brace', R(sx * .2, 35.2, mz - .2), R(sx * 2.2, 35.76, .1), .025, 'edge', vertices=5)
+        part('rod', name, col, 'yard antenna', R(sx * 3.1, 35.6, .1), R(sx * 3.1, 36.6, .1), .03, 'edge', vertices=5)
+        part('rod', name, col, 'yard brace', R(sx * .2, 35.5, .6), R(sx * 2.2, 36.08, .1), .025, 'edge', vertices=5)
     # Fan platform at 34 m abaft the pole.
     fan = [R(-.9, 0, 3.17), R(-.95, 0, 1.4), R(-.3, 0, 1.0), R(.3, 0, 1.0), R(.95, 0, 1.4), R(.9, 0, 3.17)]
     prism(name + '.fan platform', name, [p_[:2] for p_ in fan], 33.94, 34.02, 'roof')
@@ -321,17 +327,17 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
     part('box', 'radar-sk', col, 'pedestal', (sx - .1, sy, 36.66), (.92, .9, 1.3), 'naval')
     part('box', 'radar-sk', col, 'pedestal cap', (sx - .1, sy, 37.36), (1.05, 1.0, .12), 'edge')
     # The SK's mesh screen reads nearly solid: a thin backing plate inside the frame grid.
-    part('box', 'radar-sk', col, 'screen', (sx + .84, sy, 39.2), (.03, 5.0, 5.1), 'edge')
-    grid('radar-sk.antenna', (sx + .87, sy, 39.2), 5.1, 5.2, col, 'x', 6, 8, assembly='radar-sk')
+    part('box', 'radar-sk', col, 'screen', (sx + .84, sy, 39.33), (.03, 5.0, 4.8), 'edge')
+    grid('radar-sk.antenna', (sx + .87, sy, 39.33), 5.0, 4.9, col, 'x', 6, 8, assembly='radar-sk')
     for dy in (-1.6, 1.6):
         part('rod', 'radar-sk', col, 'back brace', (sx - .1, sy, 37.4), (sx + .82, sy + dy, 38.4), .05, 'naval', vertices=8)
         part('rod', 'radar-sk', col, 'back brace', (sx - .1, sy, 37.4), (sx + .82, sy + dy, 40.2), .04, 'naval', vertices=6)
     radar_pivot('radar-sk.yaw', (sx, sy, 36.45), objects_since(before))
     before = names()
     gx, gy, gz = P(0, 41.82, 2.1)
-    part('cyl', 'radar-sg-forward', col, 'drive', (gx, gy, gz + .12), .16, .24, 'naval', vertices=12)
-    part('box', 'radar-sg-forward', col, 'reflector', (gx + .15, gy, gz + .75), (.14, 1.28, .95), 'edge')
-    part('rod', 'radar-sg-forward', col, 'feed arm', (gx + .15, gy, gz + .3), (gx + .55, gy, gz + .75), .03, 'naval', vertices=6)
+    part('cyl', 'radar-sg-forward', col, 'drive', (gx, gy, gz + .25), .16, .5, 'naval', vertices=12)
+    part('box', 'radar-sg-forward', col, 'reflector', (gx + .15, gy, gz + 1.0), (.14, 1.28, .95), 'edge')
+    part('rod', 'radar-sg-forward', col, 'feed arm', (gx + .15, gy, gz + .5), (gx + .55, gy, gz + 1.0), .03, 'naval', vertices=6)
     radar_pivot('radar-sg-forward.yaw', (gx, gy, gz + .12), objects_since(before))
 
     def web(name, assembly, zy, thick, holes=(), knobs=(), c=None):
@@ -706,6 +712,19 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
             vv = [tuple(p_ + sv) for sv in (-side_, side_) for p_ in pts]
             tag(mesh(sid + '.knee', vv, [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', scol), sid)
 
+    # Two rows of windows on the upper tower (24.15-28.75 m), which rakes and tapers.
+    def upper_tower(y):
+        return (2.086 - (y - 24.149) * .0904) / 2.05, .1435 * (y - 24.149) + .185
+
+    for wy in (25.35, 27.55):
+        f_, shift = upper_tower(wy)
+        for sx in (-1, 1):
+            for wz in (-3.8, -4.7, -5.6):
+                g = tag(box('tower.window', R(sx * (2.05 * f_ + .01), wy, wz), (.5, .06, .36), 'glass', scol), 'tower-fittings')
+        for wx in (-.55, .55):
+            g = tag(box('tower.window', R(wx * f_, wy, -7.73 + shift - .01), (.06, .45, .36), 'glass', scol), 'tower-fittings')
+            g.rotation_euler.y = math.radians(-8)
+
     # Knee webs under the tower's after extensions (the 22 m deck and the director deck reach aft to the
     # foremast), as the reference carries them.
     for sx in (-1, 1):
@@ -803,27 +822,88 @@ def build_fittings(D, helpers, materials, collections, support, deckz, width):
 
     # ------------------------------------------------------------ underwater: shafts, screws, skeg, rudder
     ucol = collections['Underwater fittings']
-    for i, ((rx, ry, rzz), hand) in enumerate([((-8.6, -6.5, 84.7), 1), ((-4.7, -6.7, 98.2), 1), ((4.7, -6.7, 98.2), -1), ((8.6, -6.5, 84.7), -1)], 1):
+
+    def solid_blade(name, assembly, outline, hand, x, y, z, a):
+        """A thin pitched blade: outline (r, tangential) in the disc plane, twisted by radius."""
+        top, bot = [], []
+        for r, tn in outline:
+            ax = hand * tn * .55 / max(r, .5)          # blade angle falls off toward the tip
+            base = (x + ax, y + r * math.cos(a) - tn * math.sin(a), z + r * math.sin(a) + tn * math.cos(a))
+            top.append((base[0] + .035, base[1], base[2]))
+            bot.append((base[0] - .035, base[1], base[2]))
+        n = len(outline)
+        ff = [tuple(range(n)), tuple(reversed(range(n, 2 * n)))] + [(i, n + i, n + (i + 1) % n, (i + 1) % n) for i in range(n)]
+        return tag(mesh(name, top + bot, ff, 'bronze', ucol), assembly)
+
+    # Four wide, skewed blades (reference: 3.71 m screws, blades about 1.5 m wide).
+    blade = [(.4, -.45), (.8, -.72), (1.25, -.78), (1.6, -.62), (1.83, -.25), (1.85, .1), (1.7, .42), (1.35, .62), (.9, .58), (.45, .38)]
+    for i, ((rx, ry, rzz), hand) in enumerate([((-8.615, -6.525, 84.65), 1), ((-4.725, -6.745, 98.15), 1), ((4.725, -6.745, 98.15), -1), ((8.615, -6.525, 84.65), -1)], 1):
         id = f'shaft-{i}'
         x, y, z = P(rx, ry, rzz)
         inboard = (x + 26, y * .7, z + 1.6)
         tag(rod(id + '.line', inboard, (x + .9, y, z), .2, 'edge', ucol, vertices=14), id)
-        for d in (1.6, 9.0):
+        for d in (1.9, 9.0):
             p = Vector(inboard).lerp(Vector((x, y, z)), 1 - d / 26)
-            shell = support.along((p.x, p.y, p.z), (0, 0, 1), 12)
-            tag(rod(id + '.strut', p, (p.x, p.y * .85, shell.z + .15), .13, 'antifouling', ucol, vertices=10), id)
-        tag(rod(id + '.hub', (x - .6, y, z), (x + .9, y, z), .42, 'bronze', ucol, r2=.3, vertices=20), id)
-        for blade in range(4):
-            a = math.tau * blade / 4 + (.4 if hand > 0 else -.4)
-            shape = [(.25, -.2), (.95, -.5), (1.65, -.38), (1.85, .1), (1.5, .55), (.7, .45)]
-            vv = [(x + .25 * hand * tn, y + r * math.cos(a) - tn * math.sin(a), z + r * math.sin(a) + tn * math.cos(a)) for r, tn in shape]
-            tag(mesh(id + '.blade', vv, [tuple(range(len(vv)))], 'bronze', ucol), id)
-    # Centreline skeg and the single balanced rudder, from the reference profile.
-    skeg = [P(0, -5.3, 78), P(0, -9.8, 84), P(0, -9.8, 95.5), P(0, -5.0, 99.5)]
-    vv = [(p[0], s, p[2]) for s in (-.5, .5) for p in skeg]
-    tag(mesh('skeg.plate', vv, [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'antifouling', ucol), 'skeg')
-    rudder = [P(0, -3.4, 103.2), P(0, -9.5, 103.6), P(0, -9.5, 111.3), P(0, -3.1, 111.9)]
-    vv = [(p[0], s, p[2]) for s in (-.32, .32) for p in rudder]
-    tag(mesh('rudder.blade', vv, [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'antifouling', ucol), 'rudder')
-    rx, _, _ = P(0, 0, 105.5)
+            tag(rod(id + '.strut boss', (p.x - .45, p.y, p.z), (p.x + .45, p.y, p.z), .32, 'antifouling', ucol, vertices=12), id)
+            # V-strut: two legs splayed 35 degrees either side of the vertical to the shell.
+            for sgn in (-1, 1):
+                d_ = Vector((0, sgn * math.sin(math.radians(35)), math.cos(math.radians(35))))
+                try:
+                    shell = support.along((p.x, p.y, p.z), tuple(d_), 12)
+                except ValueError:       # the outboard leg of a wing shaft: splay it less
+                    d_ = Vector((0, sgn * math.sin(math.radians(12)), math.cos(math.radians(12))))
+                    shell = support.along((p.x, p.y, p.z), tuple(d_), 14)
+                tag(rod(id + '.strut leg', p, Vector((shell.x, shell.y, shell.z)) + d_ * .12, .1, 'antifouling', ucol, r2=.08, vertices=8), id)
+        tag(rod(id + '.hub', (x - .45, y, z), (x + .95, y, z), .47, 'bronze', ucol, r2=.36, vertices=16), id)
+        tag(rod(id + '.fairing cone', (x - 1.55, y, z), (x - .45, y, z), .02, 'bronze', ucol, r2=.47, vertices=16), id)
+        for k in range(4):
+            solid_blade(id + '.blade', id, blade, hand, x, y, z, math.tau * k / 4 + hand * .12)
+    # Centreline skeg (reference x = 0 and z = 92 cuts): the flat keel runs on to z 96.6, then rises
+    # to meet the hull at z 99.2; 1.6 m wide at the hull, 1.1 m at the keel.
+    prof = [R(0, -9.85, 80.0), R(0, -9.85, 96.6), R(0, -4.75, 99.2), R(0, -5.9, 90.0), R(0, -8.0, 84.0), R(0, -8.0, 80.0)]
+    widths = (.55, .55, .75, .8, .8, .8)
+    n = len(prof)
+    vv = [(p_[0], sw * w, p_[2]) for sw in (-1, 1) for p_, w in zip(prof, widths)]
+    ff = [tuple(range(n)), tuple(reversed(range(n, 2 * n)))] + [(i + n, (i + 1) % n + n, (i + 1) % n, i) for i in range(n)]
+    tag(mesh('skeg.plate', vv, ff, 'antifouling', ucol), 'skeg')
+
+    # Balanced rudder: a thick foil (chord 104.7-113.7, 1.3 m thick at the hull, tapering below 6.5 m)
+    # from the reference cuts at y = -7, z = 110 and x = 0.
+    def foil(t):
+        return 5 * t * (.2969 * math.sqrt(max(t, 0)) - .126 * t - .3516 * t ** 2 + .2843 * t ** 3 - .1036 * t ** 4) / .5
+
+    stations = [0, .03, .1, .2, .35, .5, .65, .8, .92, 1]
+    levels = [(-2.6, 104.05, 113.75, 1.0), (-6.5, 104.5, 113.7, 1.0), (-9.2, 105.25, 113.65, .45), (-9.6, 106.3, 113.6, .25)]
+    rings = []
+    for yy, le, te, scale in levels:
+        half = [(le + (te - le) * t, .64 * max(0, foil(t)) * scale if t < 1 else 0) for t in stations]
+        rings.append([R(hw, yy, zz) for zz, hw in half] + [R(-hw, yy, zz) for zz, hw in reversed(half[1:-1])])
+    m = len(rings[0])
+    vv = [p_ for ring in rings for p_ in ring]
+    ff = [tuple(range(m)), tuple(reversed(range((len(rings) - 1) * m, len(rings) * m)))]
+    for j in range(len(rings) - 1):
+        ff += [(j * m + i, j * m + (i + 1) % m, (j + 1) * m + (i + 1) % m, (j + 1) * m + i) for i in range(m)]
+    tag(mesh('rudder.blade', vv, ff, 'antifouling', ucol), 'rudder')
+    rx, _, _ = R(0, 0, 107.5)
     tag(rod('rudder.stock', (rx, 0, -3.6), (rx, 0, -1.9), .3, 'edge', ucol, vertices=16), 'rudder')
+
+    # Bilge keels (reference z = 0 cut, y = -9.35 plan): short triangular fins at the bilge turn,
+    # 0.95 m deep, running z -12 to 25 and fading out at both ends.
+    fin = Vector((0, .45, -.87)).normalized()
+    for sgn in (-1, 1):
+        rows = []
+        for k in range(13):
+            zr = -12 + 37 * k / 12
+            ax_ = R(0, 0, zr)[0]
+            d_ = Vector((0, -sgn * fin.y, fin.z))
+            root = support.along((ax_, -sgn * 9.0, -7.2), tuple(d_), 8)
+            root = Vector((root.x, root.y, root.z))
+            fade = max(0, min(1, (zr + 12) / 4, (25 - zr) / 4))
+            tang = Vector((0, d_.z, -d_.y)) * .14
+            rows.append((root - tang - d_ * .08, root + tang - d_ * .08, root + d_ * (.95 * fade + .02)))
+        vv = [tuple(p_) for row in rows for p_ in row]
+        ff = []
+        for j in range(len(rows) - 1):
+            a0, b0 = 3 * j, 3 * (j + 1)
+            ff += [(a0, b0, b0 + 2, a0 + 2), (a0 + 1, a0 + 2, b0 + 2, b0 + 1)]
+        tag(mesh('bilge keel.' + ('port' if sgn < 0 else 'starboard'), vv, ff, 'antifouling', ucol), 'bilge-keels')

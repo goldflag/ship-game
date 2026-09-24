@@ -335,6 +335,9 @@ def refine(structures):
         s = by_id[sid]
         s['height'] = round(top - s['baseY'], 3)
     by_id['deckhouse-052']['height'] = round(25.55 - by_id['deckhouse-052']['baseY'], 3)   # open lookout tub
+    # The tower-side columns stop at the quad 40 mm decks; the 15 m platform above is cantilevered.
+    for sid in ('deckhouse-044', 'deckhouse-045'):
+        by_id[sid]['height'] = round(11.1 - by_id[sid]['baseY'], 3)
     for sid in ('deckhouse-112', 'deckhouse-113'):
         by_id[sid].update(baseY=5.72, height=.06)
     for sid in ('deckhouse-135', 'deckhouse-136'):
@@ -345,6 +348,11 @@ def refine(structures):
         out.append(mirrored(by_id['platform-036'], 'platform-036-starboard'))
     if 'deckhouse-115-port' not in ids:
         out.append(mirrored(by_id['deckhouse-115'], 'deckhouse-115-port'))
+    # The uptake casing forward of the funnel, up to 11.6 m (reference x = 0 and y = 10.5 cuts).
+    if 'deckhouse-funnel-forward' not in ids:
+        out.append(dict(id='deckhouse-funnel-forward', name='After superstructure deckhouse 9.1-11.6 m (uptake casing)',
+                        footprint=[[-2.35, 15.0], [-2.35, 13.1], [-1.75, 12.07], [1.75, 12.07], [2.35, 13.1], [2.35, 15.0]],
+                        baseY=9.059, height=2.541, material='naval'))
     # Round sponson decks under the after wing 5-inch mounts (reference 7.10-7.18 m, radius 4.2 m).
     for side, sign in (('port', -1), ('starboard', 1)):
         sid = f'platform-5in-aft-{side}'

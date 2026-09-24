@@ -56368,6 +56368,19 @@
         2.63,
         2.251
       ]
+    },
+    {
+      "id": "deckhouse-funnel-forward-0",
+      "center": [
+        0.0,
+        10.329,
+        13.535
+      ],
+      "size": [
+        4.3,
+        2.541,
+        2.73
+      ]
     }
   ],
   "structures": [
@@ -58944,7 +58957,7 @@
         ]
       ],
       "baseY": 4.413,
-      "height": 10.503,
+      "height": 6.687,
       "material": "naval"
     },
     {
@@ -58981,7 +58994,7 @@
         ]
       ],
       "baseY": 4.413,
-      "height": 10.503,
+      "height": 6.687,
       "material": "naval"
     },
     {
@@ -65324,6 +65337,39 @@
       ],
       "baseY": 7.1,
       "height": 0.08,
+      "material": "naval"
+    },
+    {
+      "id": "deckhouse-funnel-forward",
+      "name": "After superstructure deckhouse 9.1-11.6 m (uptake casing)",
+      "footprint": [
+        [
+          -2.35,
+          15.0
+        ],
+        [
+          -2.35,
+          13.1
+        ],
+        [
+          -1.75,
+          12.07
+        ],
+        [
+          1.75,
+          12.07
+        ],
+        [
+          2.35,
+          13.1
+        ],
+        [
+          2.35,
+          15.0
+        ]
+      ],
+      "baseY": 9.059,
+      "height": 2.541,
       "material": "naval"
     }
   ],
