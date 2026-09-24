@@ -153,10 +153,13 @@ def forward_housing(name,sign):
  # pgsb708's forward searchlights stand in deep bowls on the casing sides: an ellipsoidal quarter shell
  # (outboard 3.0 m, fore and aft 2.05 m, 2.95 m deep below its 19.75 m rim) carried straight in to the casing,
  # with a 1.8 m platform inside and an arched hood against the casing above the light.
- zc=-1.45;xc=3.35;ax,az,ay=3.0,2.05,2.95;top=19.75;levels=[16.8,17.1,17.5,18.0,18.5,19.0,19.4,top];m=14
+ zc=-1.45;xc=3.35;ax,az,ay=3.0,2.05,2.95;top=19.75;levels=[16.8,16.95,17.2,17.6,18.1,18.6,19.2,top];m=14
+ def fullness(y):
+  # Superelliptic depth profile: the pgsb708 bowl is fuller at its bottom than an ellipsoid.
+  return (1-max(0.0,min(1.0,(top-y)/ay))**2.6)**(1/2.6)
  rings=[]
  for y in levels:
-  s=math.sqrt(max(0.0,1-((top-y)/ay)**2));ring=[(2.62,zc+az*s)]
+  s=fullness(y);ring=[(2.62,zc+az*s)]
   for i in range(m+1):
    a=math.pi*i/m;ring.append((xc+ax*s*math.sin(a),zc+az*s*math.cos(a)))
   ring.append((2.62,zc-az*s));rings.append([(-z,-sign*x,y) for x,z in ring])
@@ -165,7 +168,7 @@ def forward_housing(name,sign):
  bowl=mesh(name+' bowl',vs,fs,materials['naval'],supercol,True)
  mod=bowl.modifiers.new('Shell plate thickness','SOLIDIFY');mod.thickness=.06
  polyline(name+' rolled rim',rings[-1],.05,materials['edge'],supercol,False,5)
- s=math.sqrt(1-((top-18.6)/ay)**2);floor=[(2.62,zc+az*s)]+[(xc+ax*s*math.sin(math.pi*i/m),zc+az*s*math.cos(math.pi*i/m)) for i in range(m+1)]+[(2.62,zc-az*s)]
+ s=fullness(18.6);floor=[(2.62,zc+az*s)]+[(xc+ax*s*math.sin(math.pi*i/m),zc+az*s*math.cos(math.pi*i/m)) for i in range(m+1)]+[(2.62,zc-az*s)]
  extrude(name+' platform',[(-z,-sign*x) for x,z in floor],18.5,.12,materials['roof'],supercol)
  # Arched hood: straight legs to 20.8 m and a flattened arch to 22.2 m, 1 m deep off the casing.
  arch=[(zc+1.87,18.62),(zc+1.87,20.8)]+[(zc+1.87*math.cos(a),20.8+1.4*math.sin(a)) for a in [i*math.pi/10 for i in range(1,10)]]+[(zc-1.87,20.8),(zc-1.87,18.62)]
@@ -174,7 +177,7 @@ def forward_housing(name,sign):
  mod=hood.modifiers.new('Hood plate thickness','SOLIDIFY');mod.thickness=.06
  polyline(name+' hood edge',[(-z,-sign*3.64,y) for z,y in arch],.04,materials['edge'],supercol,False,5)
  for dz in [-1.2,0,1.2]:
-  y=top-ay*math.sqrt(max(0.0,1-((4.3-xc)/ax)**2-(dz/az)**2))+.05
+  q=min(1.0,math.hypot((4.3-xc)/ax,dz/az));y=top-ay*(1-q**2.6)**(1/2.6)+.05
   rod(name+' bracket',(-(zc+dz),-sign*4.3,y),(-(zc+dz),-sign*2.66,15.4),.07,materials['naval'],supercol,vertices=6)
 def funnel_searchlights():
  for sign in [-1,1]:
