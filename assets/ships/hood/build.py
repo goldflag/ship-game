@@ -325,11 +325,11 @@ ASSEMBLY = 'ready-use-lockers'
 for m in D['mounts']:
     if m['partId'] != 'qf-4-mkxix-twin': continue
     x, y, z = blender(m['position']); sign = 1 if y > 0 else -1 if y < 0 else 0
-    for dx in ([-4.2, 4.2] if sign else [-4.2]):
+    for dx in ([-4.2, 4.2] if sign else [4.2]):
         yy = y - sign * 1.2 if sign else 1.6
         box('Ready-use locker', (x + dx, yy, z + .5), (1.4, .8, 1.0), 'naval'); box('Locker lid', (x + dx, yy, z + 1.03), (1.46, .86, .07), 'roof')
 ASSEMBLY = 'tier-ladders'
-for x, y, z0, z1 in [(26.0, 3.2, 12.0, 14.15), (26.0, -3.2, 12.0, 14.15), (-45.0, 3.4, 9.2, 11.79), (-35.0, 3.9, 9.2, 13.2)]:
+for x, y, z0, z1 in [(-45.0, 3.4, 9.2, 11.79), (-35.0, 3.9, 9.2, 13.3)]:
     ladder('Tier ladder', (x - (z1 - z0) * .55, y, z0 + .05), (x, y, z1 + .02), .6)
     for s_ in [-1, 1]: rod('Ladder handrail', (x - (z1 - z0) * .55, y + s_ * .3, z0 + .9), (x, y + s_ * .3, z1 + .9), .022, 'edge', vertices=5)
 
@@ -512,7 +512,7 @@ for outline, zz in [(aft_house, 34.4), (fwd_house, 34.85)]:
 # Signal post and yard over the after end of the top; lower yard under the lookout platform.
 box('Signal post', (30.15, 0, 33.9), (.4, .35, 2.1), black)
 rod('Signal post strut', (28.1, 0, 32.9), (30.0, 0, 34.8), .07, black, vertices=8)
-for zz, span, x in [(29.25, 9.8, 29.85), (34.9, 9.3, 30.2)]:
+for zz, span, x in [(29.18, 9.8, 29.85), (34.9, 9.3, 30.2)]:
     rod('Foremast yard', (x, -span, zz), (x, span, zz), .08, black, r2=.08, vertices=10)
     for side in [-1, 1]:
         rod('Yard lift', (x, side * span * .92, zz), (x, side * .3, zz + 1.6), .016, 'edge', vertices=4)
@@ -526,7 +526,7 @@ for side in [-1, 1]:
         cyl('Signal lamp', (30.0, side * 5.75, zz), .12, .4, black, vertices=10)
         box('Signal lamp lens', (30.0, side * 5.87, zz), (.14, .02, .14), 'bright')
     cyl('Daylight lantern', (32.37, side * 3.65, 33.2), .16, .66, black, vertices=10)
-    rod('Siren', (33.1, side * 1.37, 29.6), (33.1, side * 1.37, 30.4), .12, 'bright', r2=.06, vertices=10)
+    rod('Siren', (32.29, side * 1.5, 29.6), (32.29, side * 1.5, 30.4), .12, 'bright', r2=.06, vertices=10)
 # Small lookout platform abaft the pole below the top.
 lookout = [(29.6, 1.1), (33.3, 2.15), (33.3, -2.15), (29.6, -1.1)]
 prism('Mast lookout platform', lookout, 28.9, .12, black)
@@ -566,7 +566,9 @@ for side in [-1, 1]:
     box('30 ft rangefinder end', (44.55, side * 4.95, 20.15), (.9, .5, .9), 'naval')
     box('Rangefinder window', (44.55, side * 5.21, 20.15), (.35, .03, .3), 'dark')
     rod('Rangefinder stay', (44.9, side * 1.5, 19.3), (44.7, side * 3.7, 19.95), .05, 'naval', vertices=6)
-box('CT director sight port', (47.6, 0, 19.85), (.03, 1.5, .28), 'glass').rotation_euler.y = math.radians(-39)
+face = lambda s_, d: (47.78 - 1.38 * s_ + .63 * d, 19.3 + 1.12 * s_ + .777 * d)
+(ax_, az_), (bx_, bz_) = face(.35, .015), face(.6, .015)
+mesh('CT director sight port', [(ax_, -.75, az_), (ax_, .75, az_), (bx_, .75, bz_), (bx_, -.75, bz_)], [(0, 1, 2, 3)], 'glass')
 node = pivot('ct-director.yaw', (45.88, 0, 18.36)); attach_world(set(scene.objects) - before - {node}, node)
 
 
@@ -666,7 +668,7 @@ before = set(scene.objects)
 for zz in [44.2, 47.3]:
     for dx in [-.78, .78]:
         rod('Type 279 frame bar', (-30.85 + dx, -2.18, zz), (-30.85 + dx, 2.18, zz), .045, 'naval', vertices=6)
-    for dy in [-.5, .5]:
+    for dy in [-.5, 0, .5]:
         rod('Type 279 frame rung', (-31.63, dy, zz), (-30.07, dy, zz), .035, 'naval', vertices=6)
     for side in [-1, 1]:
         rod('Type 279 stay', (-30.85, 0, zz + .9 if zz < 47 else zz - .9), (-30.85, side * 1.6, zz), .01, 'edge', vertices=4)
@@ -722,8 +724,8 @@ def vickers_quad(id, x, y, z, bearing):
         rod('Vickers barrel', (.72, 0, zz), (1.28, 0, zz), .016, 'edge', vertices=8)
         rod('Vickers muzzle booster', (1.25, 0, zz), (1.34, 0, zz), .026, 'edge', vertices=8)
     for side in [-1, 1]:
-        box('Vickers gunner shoulder rest', (-.45, side * .32, 1.0), (.14, .22, .3), 'canvas')
-        rod('Vickers sight arm', (-.1, side * .35, 1.45), (.3, side * .35, 1.45), .02, 'edge', vertices=6)
+        box('Vickers gunner shoulder rest', (-.36, side * .3, 1.0), (.14, .22, .3), 'canvas')
+        rod('Vickers sight arm', (-.1, side * .35, 1.3), (.3, side * .35, 1.3), .02, 'edge', vertices=6)
     ring = hoop('Vickers ring sight', (0, 0, 0), .12, .12, .012, 'edge', n=16, k=4); ring.rotation_euler.y = math.pi / 2; ring.location = (.32, 0, 1.55)
     node = pivot(id + '.yaw', (0, 0, 0)); attach_world(set(scene.objects) - before - {node}, node)
     node.location = (x, y, z); node.rotation_euler.z = -math.radians(bearing)
@@ -808,7 +810,9 @@ def boat(name, x, y, z, length, width, motor=False, cabin=False, seat=None, dept
     ff = [tuple(reversed(range(n))), tuple(range(4 * n, 5 * n))] + [(j * n + i, j * n + (i + 1) % n, (j + 1) * n + (i + 1) % n, (j + 1) * n + i) for j in range(4) for i in range(n)]
     mesh('Boat hull', vs, ff, 'naval', smooth=True)
     tube('Boat gunwale', [(x + xx, y + yy, z + .84 * k + .18 * abs(xx / (length / 2)) ** 3) for xx, yy in outline + outline[:1]], .045, 'wood', 6)
-    for dx in [-length * .28, -length * .08, length * .14, length * .32]: box('Boat thwart', (x + dx, y, z + .62 * k), (.26, width * .78, .07), 'wood')
+    for dx in [-length * .28, -length * .08, length * .14, length * .32]:
+        c = dx / (length / 2); span = .95 * width * math.sqrt(1 - c * c) * (1 - .22 * c) + .04
+        box('Boat thwart', (x + dx, y, z + .62 * k), (.26, span, .07), 'wood')
     floor = z - .36 if seat is None else seat
     for dx in [-length * .26, length * .26]:
         box('Boat chock', (x + dx, y, (z + .1 + floor) / 2), (.3, width * .82, z + .1 - floor), 'edge')
@@ -841,15 +845,15 @@ for side in [-1, 1]:
     ASSEMBLY = 'cutter-davits'
     for x in [-33.0, -40.05]:
         tube('Cutter davit', [(x, side * 14.3, 9.2), (x, side * 14.5, 11.6), (x, side * 16.7, 12.1)], .1, 'naval', 12)
-        rod('Davit fall', (x, side * 16.7, 12.05), (x + (.4 if x > -36 else -.4), side * 17.0, 10.7), .015, 'edge', vertices=4)
+        rod('Davit fall', (x, side * 16.7, 12.05), (-33.65 if x > -36 else -39.83, side * 17.13, 10.4), .015, 'edge', vertices=4)
 # Boat derricks: the main derrick stowed along the centreline from the mainmast heel, and a derrick
 # each side from beside the after funnel, topped up over the boats.
 ASSEMBLY = 'boat-derricks'
 rod('Main derrick', (-28.3, 0, 11.65), (-8.7, 0, 12.25), .3, 'naval', r2=.2, vertices=14)
 box('Derrick gooseneck', (-28.55, 0, 11.65), (.5, .5, .5), 'black')
 rod('Gooseneck pin', (-28.55, 0, 11.4), (-28.55, 0, 9.2), .12, 'black', vertices=8)
-cyl('Derrick head block', (-8.55, 0, 11.7), .18, .45, 'black', vertices=10)
-rod('Derrick fall', (-8.55, 0, 12.2), (-8.55, 0, 11.5), .02, 'edge', vertices=4)
+cyl('Derrick head block', (-8.85, 0, 11.7), .18, .45, 'black', vertices=10)
+rod('Derrick fall', (-8.85, 0, 12.2), (-8.85, 0, 11.5), .02, 'edge', vertices=4)
 rod('Derrick topping lift', (-8.8, 0, 12.4), (-29.2, 0, 27.3), .02, 'edge', vertices=4)
 for side in [-1, 1]:
     rod('Boat derrick', (4.9, side * 5.0, 11.1), (-6.2, side * 4.45, 13.95), .17, 'naval', r2=.12, vertices=12)
