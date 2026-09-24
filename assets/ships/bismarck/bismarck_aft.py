@@ -111,12 +111,14 @@ def draw_battery_deck(s):
   for z,w,h in [(40.85,.62,.5),(42.6,.42,.42)]:
    p,n=side_point(pts,z,sign,9.62);grille('Aft battery deck ventilation grille',p,n,w,h)
   # Large louvred intake on the chamfered after corner, inside the 3.7 cm tub.
-  p,n=side_point(pts,46.9,sign,9.45);grille('Aft battery deck after intake',p,n,1.5,1.25)
+  p,n=side_point(pts,46.7,sign,9.5);grille('Aft battery deck after intake',p,n,2.6,1.6)
   p,n=side_point(pts,26.4,sign,z0+.05);wall_door('Aft battery deck door',p,n)
   lifebuoy('Aft battery deck lifebuoy',sign*8.05,sign,9.75,36.4 if sign<0 else 37.06)
   # Inclined ladder from the 01 deck, rising inboard between z 39.24 and 39.89.
   a,b=Vector(W(sign*9.4,8.36,39.56)),Vector(W(sign*8.08,10.66,39.56));ladder_on('Aft battery deck side ladder',a,b,(1,0,0),.62,.27,supercol)
-  for zz in [39.25,39.87]:rod('Aft side ladder handrail',W(sign*9.4,9.3,zz),W(sign*8.1,11.55,zz),.022,materials['edge'],supercol,vertices=5)
+  for zz in [39.25,39.87]:
+   rod('Aft side ladder handrail',W(sign*9.4,9.3,zz),W(sign*8.1,11.55,zz),.022,materials['edge'],supercol,vertices=5)
+   for xx,y0,y1 in [(9.4,8.36,9.32),(8.1,10.66,11.57)]:rod('Aft side ladder handrail post',W(sign*xx,y0,zz),W(sign*xx,y1,zz),.022,materials['edge'],supercol,vertices=5)
  # After face beside the rangefinder tower.
  for sign in [1,-1]:wall_door('Aft battery deck after door',Vector(W(sign*2.55,z0+.05,48.2)),Vector((-1,0,0)),.7,1.7)
 def draw_control_deck(s):
@@ -192,15 +194,18 @@ def rails_and_access():
   x=lambda v:sign*v
   # Battery deck guardrails end at the 3.7 cm enclosures, the ladders and the rangefinder tower.
   rail('Aft battery deck',[W(x(5.0),10.672,28.75),W(x(5.0),10.672,32.3),W(x(6.4),10.672,32.3),W(x(7.5),10.672,34.35)],.9,1.5,False)
-  rail('Aft battery deck',[W(x(8.03),10.672,39.98),W(x(8.03),10.672,44.8),W(x(3.55),10.672,48.18),W(x(1.16),10.672,48.18)],.9,1.5,False)
+  # Caesar's depressed barrels sweep low over the after corner at full train; the rail stops short of it.
+  rail('Aft battery deck',[W(x(4.54),10.672,47.45),W(x(3.55),10.672,48.18),W(x(1.16),10.672,48.18)],.9,1.5,False)
   # Control deck guardrails beside and abaft the director platform.
   rail('Aft control deck',[W(x(4.02),12.89,30.1),W(x(4.02),12.89,34.0)],.9,1.4,False)
-  rail('Aft control deck',[W(x(4.02),12.89,37.65),W(x(4.02),12.89,41.42),W(x(3.86),12.89,42.12),W(x(3.55),12.89,42.56),W(x(3.1),12.89,42.87),W(x(2.56),12.89,42.98),W(x(.75 if sign>0 else .2),12.89,42.98)],.9,1.4,False)
+  # The after corners stay open: the 2 cm guns there train over them.
+  rail('Aft control deck',[W(x(4.02),12.89,37.65),W(x(4.02),12.89,40.1)],.9,1.2,False)
   # Steep stair from the battery deck to a side landing, and a ladder up to the searchlight tub.
   stairs('Searchlight tower stair',W(x(4.52),10.66,31.3),W(x(4.52),12.86,29.98),.66)
   box('Searchlight tower stair landing',W(x(4.62),12.8,29.42),(1.24,1.1,.12),materials['roof'],supercol)
   for zz in [28.95,29.9]:rod('Stair landing knee',W(x(5.1),12.74,zz),W(x(4.1),12.0,zz),.05,materials['naval'],supercol,vertices=6)
   ladder_on('Searchlight tub ladder',W(x(4.62),12.86,28.86),W(x(4.62),14.95,28.86),(0,1,0),.44)
+  ladder_on('Searchlight tower base ladder',W(x(1.67),12.9,29.45),W(x(1.67),14.12,28.66),(0,1,0),.5)
   # Base block roof rails either side of the tower.
   for zz in [25.86,28.58]:rail('Searchlight tower base',[W(x(2.4),14.112,zz),W(x(1.35),14.112,zz)],.9,1.1,False)
  stairs('Aft centre stair',W(.3,10.66,44.4),W(.3,12.86,43.08),.66)
@@ -240,7 +245,7 @@ def mainmast():
  rod('Night recognition indicator',W(0,31.84,21.9),W(0,31.84,22.02),.6,materials['naval'],detailcol,vertices=24)
  ring('Night recognition indicator rim',W(0,31.84,22.03),(-1,0,0),.55,.03,materials['edge'],20)
  rod('Night indicator post',W(0,31.1,21.95),W(0,31.3,21.95),.08,materials['edge'],detailcol,vertices=6)
- box('Mainmast masthead light',W(0,35.44,20.17),(.24,.24,.33),materials['naval'],detailcol)
+ box('Mainmast masthead light',W(.3,35.44,20.42),(.24,.24,.33),materials['naval'],detailcol)
  # V-section crosstree, then the W/T spreader: short and long yards joined by struts, the inclined frame and gaff.
  vs=[W(x,35.43,20.34) for x in [-2.07,2.07]]+[W(x,35.43,21.12) for x in [-2.07,2.07]]+[W(x,34.72,20.73) for x in [-2.07,2.07]]
  mesh('Mainmast crosstree',vs,[(0,1,3,2),(0,4,5,1),(2,3,5,4),(0,2,4),(1,5,3)],materials['naval'],detailcol)
@@ -254,6 +259,11 @@ def mainmast():
   rod('W/T frame brace',W(sign*2.0,35.72,21.3),W(-sign*2.84,38.1,24.7),.03,materials['edge'],detailcol,vertices=5)
   rod('Signal yard',W(0,44.22,20.47),W(sign*2.3,44.22,20.47),.07,materials['edge'],detailcol,.04,8)
   rod('Signal yard lift',W(sign*2.27,44.25,20.5),W(sign*.12,45.85,20.62),.018,materials['dark'],detailcol,vertices=4)
+ # Light flag grids hang under the W/T yards and the signal yard.
+ for span,top,low,zz in [(5.62,38.26,37.52,25.02),(3.06,39.0,38.28,21.17),(2.25,44.16,43.44,20.47)]:
+  polyline('Yard grid',[W(-span,top,zz),W(-span,low,zz),W(span,low,zz),W(span,top,zz)],.014,materials['edge'],vertices=4)
+  for i in range(1,int(span/.7)*2):
+   xx=-span+i*span/int(span/.7);rod('Yard grid bar',W(xx,low,zz),W(xx,top,zz),.01,materials['edge'],detailcol,vertices=3)
  rod('Mainmast gaff',W(0,35.43,20.95),W(0,40.69,28.99),.09,materials['edge'],detailcol,.05,8)
  for yy in [44.9,45.45]:box('Mainmast truck lights',W(0,yy,20.52),(.3,1.13,.24),materials['naval'],detailcol)
  # Ladders on the forward face of the lower mast and topmast.
@@ -279,7 +289,7 @@ def mainmast_platform(foot):
   # Carley floats stowed upright on the after bulwark.
   pts=[W(x(3.25+xx),16.66+yy,25.12) for xx,yy in rounded_rect(0,0,1.62,1.58,.4,2)]
   polyline('Upright Carley float',pts,.14,materials['canvas'],detailcol,True,6)
-  for yy in [-.35,0,.35]:box('Upright Carley float grating',W(x(3.25),16.66+yy,25.12),(.06,1.3,.05),materials['wood'],detailcol)
+  for yy in [-.35,0,.35]:box('Upright Carley float grating',W(x(3.25),16.66+yy,25.12),(.06,1.46,.05),materials['wood'],detailcol)
   box('Upright Carley float hook',W(x(3.25),17.52,24.98),(.3,.12,.12),materials['edge'],detailcol)
  # Small house on the mast's after side with the signal lamp gallery above.
  box('Mainmast house',W(0,floor+.95,21.75),(1.55,2.36,1.9),materials['naval'],supercol)
@@ -322,7 +332,7 @@ def aft_director():
  # Short pole mast with a small flag frame.
  rod('Aft director mast',W(0,18.08,DIRECTOR_Z-.02),W(0,19.4,DIRECTOR_Z-.02),.29,materials['edge'],detailcol,.27,14)
  rod('Aft director topmast',W(0,19.35,DIRECTOR_Z-.02),W(0,25.19,DIRECTOR_Z-.02),.16,materials['edge'],detailcol,.07,10)
- for sign in [1,-1]:rod('Aft director mast yard',W(sign*.09,24.64,36.77),W(sign*2.1,23.96,36.77),.045,materials['edge'],detailcol,vertices=6)
+ for sign in [1,-1]:rod('Aft director mast lift',W(sign*.09,24.64,36.77),W(sign*2.1,23.96,36.72),.016,materials['dark'],detailcol,vertices=4)
  rod('Aft director mast bar',W(-2.15,23.93,36.65),W(2.15,23.93,36.65),.04,materials['edge'],detailcol,vertices=6)
  polyline('Aft director mast frame',[W(-2.06,23.9,36.65),W(-2.06,23.15,36.65),W(2.06,23.15,36.65),W(2.06,23.9,36.65)],.02,materials['edge'])
  ladder_on('Aft director mast ladder',W(0,19.45,DIRECTOR_Z-.28),W(0,23.84,DIRECTOR_Z-.28),(0,1,0),.28)
@@ -342,8 +352,8 @@ def director_platform_fittings():
   rod('Target giver sight',W(x,14.5,z+.2),W(x,14.5,z-.35),.08,materials['naval'],detailcol,vertices=8)
   box('Director platform switch box',W(sign*3.8,13.4,37.35),(.2,.5,.6),materials['edge'],detailcol)
   # Stacked Carley floats on the control deck either side of the director platform.
-  carley_stack('Aft Carley float stack',sign*3.05,32.73,12.9)
   carley_stack('Aft Carley float stack',sign*3.07,38.48,12.9)
+ carley_stack('Aft Carley float stack',-3.03,32.73,12.9)
 def gun_positions():
  for sign,side in [(1,'starboard'),(-1,'port')]:
   # 3.7 cm pair on the battery deck in open three-sided enclosures.
@@ -362,12 +372,30 @@ def gun_positions():
   x=lambda v:sign*v
   locker('Aft ready-use locker',x(5.85),10.66,33.66,.75,.6,1.08)
   locker('Aft ready-use locker',x(6.68),10.66,39.21,1.47,.42,.35)
-  for xx,zz in [(6.77,45.18),(5.86,45.84),(4.95,46.5)]:locker('Aft ready-use locker',x(xx),10.66,zz,.9,.6,1.05,-sign*math.radians(53))
-  locker('Aft control deck locker',x(2.72),12.88,43.41,1.47,1.2,.75)
+  # Low lockers along the after chamfer, under Caesar's depressed barrels.
+  for xx,zz in [(6.77,45.18),(5.86,45.84),(4.95,46.5)]:locker('Aft ready-use locker',x(xx),10.66,zz,.9,.4,1.05,-sign*math.radians(53))
+  locker('Aft battery deck locker',x(2.72),10.66,43.41,1.47,1.2,.75)
   for zz in [41.89,42.99,44.1]:locker('Aft 01 deck locker',x(8.48),8.36,zz,.75,.6,1.0)
  locker('Aft control deck locker',.73,12.88,32.16,.75,1.2,1.4)
  locker('Aft control deck locker',-.04,12.88,32.22,.75,1.1,1.1)
  locker('Aft control deck locker',-3.61,12.88,30.65,.75,1.2,1.4)
+def after_deck_fittings():
+ # Cable reel beside the rangefinder tower, a small locker house to port and the stowed spars on chocks
+ # abaft the 3.7 cm tubs.
+ x,z=2.54,47.17
+ for xx in [2.11,2.98]:
+  rod('Cable reel flange',W(xx-.04,11.52,z),W(xx+.04,11.52,z),.77,materials['edge'],detailcol,vertices=20)
+  box('Cable reel stand',W(xx+(.2 if xx>2.5 else -.2),11.13,z),(1.2,.1,.95),materials['naval'],detailcol)
+ rod('Cable reel drum',W(2.15,11.52,z),W(2.94,11.52,z),.5,materials['rope'],detailcol,vertices=20)
+ rod('Cable reel axle',W(1.7,11.52,z),W(3.4,11.52,z),.06,materials['edge'],detailcol,vertices=8)
+ extrude('Aft locker house',plan([(-4.19,46.87),(-2.88,46.87),(-2.88,48.17),(-4.19,48.17)]),10.66,1.84,materials['naval'],supercol,.03)
+ box('Aft locker house roof',W(-3.535,12.52,47.52),(1.38,1.39,.06),materials['roof'],supercol)
+ wall_door('Aft locker house door',Vector(W(-2.88,10.7,47.52)),Vector((0,-1,0)),.66,1.6)
+ for sign in [1,-1]:
+  a,b=Vector(W(sign*1.78,8.8,49.9)),Vector(W(sign*6.12,8.8,51.42))
+  rod('Stowed spar',a,b,.28,materials['naval'],detailcol,.2,12)
+  for t in [.12,.5,.88]:
+   p=a+(b-a)*t;ob=box('Stowed spar chock',(p.x,p.y,8.52),(.16,.62,.36),materials['edge'],detailcol);ob.rotation_euler.z=math.atan2((b-a).y,(b-a).x)
 def aerials():
  # W/T aerials from the spreader's long yard to the foremast yard ends of the reference.
  for sign in [1,-1]:
@@ -377,7 +405,7 @@ def build():
  # Region entry point, after the forward and midships regions (the hangar roof carries the mainmast).
  rails_and_access();searchlight_tower_fittings()
  foot=mainmast();mainmast_platform(foot)
- aft_director();director_platform_fittings();gun_positions();aerials()
+ aft_director();director_platform_fittings();gun_positions();after_deck_fittings();aerials()
  night_rangefinder('After night rangefinder GF 9',0,GF9_Z,13.08,14.37)
 def after_mounts():
  pass
