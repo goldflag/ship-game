@@ -61,7 +61,10 @@ def interp(points,s):
   if a<=s<=b:return va+(vb-va)*(s-a)/(b-a)
  return points[0][1] if s<points[0][0] else points[-1][1]
 def deck(x):return interp(H['deckHeights'],x+L/2)
-def width(x):return interp(H['halfBreadths'],x+L/2)
+# Deck-edge half-breadth (the widest point amidships is the underwater bulge, not the deck edge).
+EDGE=[(s['station'],s['points'][-1][0]) for s in H['sections']]
+def width(x):return interp(EDGE,x+L/2)
+def keel(x):return interp(H['keelHeights'],x+L/2)
 def attach(o,parent,keep=False):
  if keep:
   bpy.context.view_layer.update();world=o.matrix_world.copy();o.parent=parent;o.matrix_parent_inverse=Matrix.Identity(4);o.matrix_world=world
@@ -116,80 +119,166 @@ for m in D['mounts']:
   yaw=create_mount(m,COL,helpers,M)
 # Torpedo deck/aircraft-handling deck is raised over the clear launcher bays.
 COL=C['Fittings'];OWNER='aircraft-deck'
-# Aircraft tracks sit on the aft part of the continuous raised central deck.
-for a,b in [((-46,-3.6,7.63),(-29,7.8,7.43)),((-46,3.6,7.63),(-29,-7.8,7.43))]:
+# Aircraft tracks: the reference's X of trolley rails between the catapults, with perimeter and cross tracks.
+for a,b in [((-41,-3.6,7.55),(-24,7.8,7.38)),((-41,3.6,7.55),(-24,-7.8,7.38))]:
  for off in (-.38,.38):rod('Aircraft trolley rail',(a[0],a[1]+off,a[2]),(b[0],b[1]+off,b[2]),.065,'edge')
-for y in (-7.8,7.8):rod('Aircraft perimeter track',(-39,y,7.56),(-27,y,7.41),.075,'edge')
-for x in (-39,-29):rod('Aircraft cross track',(x,-7.8,7.55),(x,7.8,7.55),.075,'edge')
-# Paired lattice catapults with bearings, beds, traversing rails and deck brackets.
+for y in (-7.8,7.8):rod('Aircraft perimeter track',(-34,y,7.47),(-22,y,7.39),.075,'edge')
+for x in (-34,-24):rod('Aircraft cross track',(x,-7.8,7.46),(x,7.8,7.40),.075,'edge')
+# Catapults as measured: a truss girder (deep aft, tapering forward) on a turntable over a half-round sponson
+# built out from the hull side, with the aircraft-handling A-frame and jib over the turntable.
 for sy in (-1,1):
- y=sy*9.7;OWNER='catapult-'+str(sy);cyl('Catapult foundation',(-26.48,y,5.8),1.2,2.35);cyl('Catapult roller',(-26.48,y,7.03),1.35,.25,'edge')
- for yy in (y-.65,y+.65):
-  for zz in (7.35,8.3):rod('Catapult chord',(-39,yy,zz),(-20,yy,zz),.075,'naval')
-  for i in range(12):
-   x=-39+i*19/12;end=x+19/12;rod('Catapult diagonal',(x,yy,7.35),(end,yy,8.3),.055,'edge');rod('Catapult upright',(x,yy,7.35),(x,yy,8.3),.055,'edge')
- for x in (-39,-36,-33,-30,-27,-24,-21):rod('Catapult crossbeam',(x,y-.65,7.45),(x,y+.65,7.45),.06,'naval')
- box('Catapult carriage',(-27,y,8.4),(1.4,1.5,.18),'edge')
- for yy in (y-.58,y+.58):rod('Catapult carriage saddle',(-27,yy,8.4),(-27,yy,9),.10,'naval')
- # Boats stowed on real cradles beside the aft director.
- for x in (-17,-26):
-  by=sy*4.5;z=7.30
-  for xx in (x-2,x+2):box('Boat cradle',(xx,by,z+.2),(.3,2.0,.4),'wood')
-  detail().boat('Ship service boat',x,by,z+.4,7.7,2.0,cabin=x==-17)
-# Lattice mainmast, light foremast and the handling crane.
-COL=C['Masts'];OWNER='mast-aft'
-for sy in (-1,1):rod('Mainmast leg',(-13,sy*1.45,7.28),(-14.0,sy*.5,25.0),.19,'naval',r2=.11)
-rod('Mainmast crown',(-14,0,23),(-14.4,0,35.1),.10,'naval',r2=.045)
-for z in range(10,25,2):
- w=1.45-(z-7.28)/17.72*.95;x=-13-(z-7.28)/17.72
- rod('Mainmast horizontal',(x,-w,z),(x,w,z),.07,'naval')
- rod('Mainmast diagonal',(x,-w,z),(x-.12,max(.5,w-.2),z+2),.047,'edge')
-rod('Main yard',(-14.2,-7,29.3),(-14.2,7,29.3),.085,'naval')
-for sy in (-1,1):rod('Main yard stay',(-14.4,0,33.5),(-14.2,sy*7,29.3),.025,'edge')
-# Crane pedestal joins the mast foundation; boom chords terminate at hinge plates.
-cyl('Crane pedestal',(-15.4,0,11.75),.7,8.95)
-for yy in (-.5,.5):
- rod('Crane boom lower',(-15.4,yy,16.2),(-34.7,yy,18.4),.10,'naval')
- rod('Crane boom upper',(-15.4,yy,17.2),(-34.7,yy,18.7),.085,'naval')
- for i in range(12):
-  t=i/12;u=(i+1)/12;rod('Crane web',(-15.4-19.3*t,yy,16.2+2.2*t),(-15.4-19.3*u,yy,17.2+1.5*u),.042,'edge')
-rod('Crane hoist',(-14.2,0,25),(-34.7,0,18.7),.025,'edge');rod('Crane hanging hook',(-34.7,0,18.4),(-34.7,0,16.5),.027,'edge')
-rod('Crane hook crook',(-34.7,0,16.5),(-34.9,0,16.4),.065,'edge')
+ y=sy*9.72;OWNER='catapult-'+str(sy);xp=-26.5
+ # Sponson: half-round deck flush with the hull side, coned down to the shell.
+ n=16;top=[];bot=[]
+ for i in range(n+1):
+  a=math.pi*i/n;top.append((-26.0+2.6*math.cos(a),sy*(8.95+2.75*math.sin(a)),7.34));bot.append((-26.0+1.4*math.cos(a),sy*(8.45+.9*math.sin(a)),4.1))
+ v=top+bot;m=len(top)
+ f=[(i,i+1,m+i+1,m+i) for i in range(m-1)]+[tuple(range(m)),tuple(range(2*m-1,m-1,-1)),(0,m,2*m-1,m-1)]
+ o=mesh('Catapult sponson',v,f,'hullgray')
+ cyl('Catapult turntable',(xp,y,7.55),1.25,.42,'naval',vertices=24)
+ cyl('Catapult roller path',(xp,y,7.80),1.32,.10,'edge',vertices=24)
+ def chord_low(x):return 7.85 if x<=-27.3 else 7.85+(x+27.3)/12.3*.65
+ for yy in (y-.7,y+.7):
+  rod('Catapult top chord',(-34.8,yy,9.05),(-15.0,yy,9.05),.07,'naval')
+  rod('Catapult bottom chord',(-34.8,yy,7.85),(-27.3,yy,7.85),.07,'naval');rod('Catapult bottom chord',(-27.3,yy,7.85),(-15.0,yy,8.5),.07,'naval')
+  xs=[-34.8+19.8*i/14 for i in range(15)]
+  for a,b in zip(xs,xs[1:]):
+   rod('Catapult upright',(a,yy,chord_low(a)),(a,yy,9.05),.045,'edge',vertices=6);rod('Catapult diagonal',(a,yy,chord_low(a)),(b,yy,9.05),.04,'edge',vertices=6)
+ for x in (-34.8,-31,-27.3,-24,-20,-15.0):
+  rod('Catapult crossbeam',(x,y-.7,9.05),(x,y+.7,9.05),.06,'naval');rod('Catapult crossbeam',(x,y-.7,chord_low(x)),(x,y+.7,chord_low(x)),.05,'naval')
+ box('Catapult rail bed',(-24.9,y,9.12),(19.8,.9,.06),'edge')
+ box('Catapult carriage',(-33.6,y,9.3),(1.4,1.3,.3),'edge')
+ for yy in (y-.58,y+.58):rod('Catapult carriage saddle',(-33.6,yy,9.35),(-33.6,yy,9.85),.08,'naval')
+ for x in (-17.5,-21.5,-25.2,-28.5,-31.5):
+  for yy in (y-.74,y+.74):
+   o=cyl('Catapult sheave',(x,yy,8.55 if x>-27 else 8.4),.26,.06,'edge',vertices=12);o.rotation_euler.x=math.pi/2
+ for yy in (y-.62,y+.62):rod('Catapult A-frame leg',(-26.55,yy,9.1),(-26.55,y,11.0),.06,'naval')
+ rod('Catapult jib',(-25.0,y,9.1),(-23.4,y,10.9),.06,'naval');rod('Catapult jib stay',(-26.55,y,11.0),(-23.4,y,10.9),.02,'edge')
+ box('Catapult control cabin',(-24.4,y,9.27),(1.2,.9,.3),'naval')
+# Boats as on the reference: a 15 m motor boat nested over a 12 m motor launch on each side abreast the
+# mainmast, and a 9 m cutter on the starboard side by the forward funnel.
+OWNER='deck-fittings'
+for sy in (-1,1):
+ x0=-14.9;detail().boat('Motor launch',x0,sy*5.55,7.62,12.3,2.9)
+ detail().boat('Motor boat',x0,sy*5.35,8.95,12.4,2.4,cabin=True)
+ for fx in (-.27,.26):
+  xx=x0+fx*12.4;box('Boat stack crossbar',(xx,sy*5.4,8.86),(.24,3.5,.12),'roof')
+  for s in (-1,1):rod('Boat stack post',(xx,sy*5.4+s*1.7,7.34),(xx,sy*5.4+s*1.7,8.86),.06,'naval',vertices=8)
+detail().boat('Cutter',15.55,-8.5,7.6,9.3,2.4)
+# Masts and crane, measured on the reference (runtime x, y, z -> blender (-z, -x, y)).
+COL=C['Masts']
+def B(x,y,z):return Vector((-z,-x,y))
+def beam(name,a,b,w,h,mat='naval',up=Vector((1,0,0))):
+ """Box girder from a to b: width w across, depth h along `up` (blender forward by default)."""
+ a,b=Vector(a),Vector(b);d=(b-a).normalized();u=(up-d*up.dot(d)).normalized();v=d.cross(u)
+ vs=[tuple(p+u*su*h/2+v*sv*w/2) for p in (a,b) for su,sv in ((-1,-1),(1,-1),(1,1),(-1,1))]
+ return mesh(name,vs,[(0,1,2,3),(7,6,5,4),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],mat)
+# Mainmast: an A-frame of box-girder legs from the raised deck, a central king post carrying the crane
+# heel, a railed platform at the head of the legs, a tapered head and a pole topmast with a yard.
+OWNER='mast-aft'
+def mleg(sx,y):return B(sx*(2.62-.107*(y-8.5)),y,12.10+.1055*(y-8.5))
+for sx in (-1,1):
+ beam('Mainmast leg',mleg(sx,7.3),mleg(sx,23.5),.52,.52)
+for y in (12.6,15.3,18.9,20.8):beam('Mainmast cross girder',mleg(-1,y),mleg(1,y),.36,.40,up=Vector((0,0,1)))
+for sx in (-1,1):rod('Mainmast leg brace',mleg(sx,12.6),mleg(-sx,15.3),.09,'naval')
+beam('Mainmast head',B(0,23.3,13.75),B(0,26.3,13.6),1.1,.62)
+cyl('Mainmast head cap',B(0,26.4,13.6),.62,.18,'naval')
+beam('Crane king post',B(0,8.45,14.8),B(0,26.0,14.85),.6,.52)
+beam('Mainmast head tie',B(0,25.6,13.6),B(0,25.6,14.85),.3,.3,up=Vector((0,0,1)))
+# Platform at the head of the legs with its rails and brackets.
+pts=[(13.0,4.1),(14.9,4.1),(14.9,-4.1),(13.0,-4.1)]
+mesh('Mainmast platform',[(-z,x,yy) for yy in (23.75,23.87) for z,x in pts],[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],'roof')
+rails('Mainmast platform',[(-13.0,-4.05,23.87),(-14.9,-4.05,23.87),(-14.9,4.05,23.87),(-13.0,4.05,23.87)],.9,True,1.6)
+for sx in (-1,1):rod('Mainmast platform bracket',tuple(mleg(sx,21.8)),(-13.9,sx*3.6,23.75),.07,'naval')
+rod('Main topmast',tuple(B(0,23.3,13.37)),tuple(B(0,35.2,13.37)),.125,'naval',r2=.05)
+rod('Main yard',tuple(B(-3.1,33.9,13.3)),tuple(B(3.1,33.9,13.3)),.065,'naval')
+for sx in (-1,1):rod('Main yard stay',tuple(B(0,35.0,13.37)),tuple(B(sx*3.1,33.9,13.3)),.02,'edge')
+# Lattice ladder mast on the forward face of the A-frame.
+for sx in (-.21,.21):
+ for sz in (11.29,11.71):rod('Ladder mast corner',tuple(B(sx,18.4,sz)),tuple(B(sx,23.0,sz)),.035,'naval',vertices=6)
+for y in (18.4,19.55,20.7,21.85,23.0):
+ for (xa,za),(xb,zb) in (((-.21,11.29),(.21,11.29)),((-.21,11.71),(.21,11.71)),((-.21,11.29),(-.21,11.71)),((.21,11.29),(.21,11.71))):rod('Ladder mast rung',tuple(B(xa,y,za)),tuple(B(xb,y,zb)),.025,'edge',vertices=6)
+ if y<23:
+  for sx in (-.21,.21):rod('Ladder mast lattice',tuple(B(sx,y,11.29)),tuple(B(sx,y+1.15,11.71)),.022,'edge',vertices=6)
+for y in (18.9,22.4):
+ for sx in (-1,1):rod('Ladder mast stay',tuple(B(sx*.21,y,11.7)),tuple(mleg(sx,y)),.05,'naval')
+# Crane: a tapered box-girder boom pivoting on the king post, lightening holes, two hooks.
+heel,tip=B(0,16.15,15.2),B(0,18.75,34.8)
+n=10
+for i in range(n):
+ a=heel.lerp(tip,i/n);b=heel.lerp(tip,(i+1)/n);w0=1.0-.6*i/n;w1=1.0-.6*(i+1)/n
+ beam('Crane boom',a,b,(w0+w1)/2,.5-.15*(i+.5)/n,up=Vector((0,0,1)))
+for i in range(1,14):
+ c=heel.lerp(tip,i/14);w=(1.0-.6*i/14)/2+.005
+ for s in (-1,1):
+  o=cyl('Crane boom lightening hole',(c.x,s*w,c.z),.13,.012,'dark',vertices=10);o.rotation_euler.x=math.pi/2
+rod('Crane heel pin',(heel.x,-.62,heel.z),(heel.x,.62,heel.z),.14,'edge',vertices=12)
+for zz in (29.3,34.0):
+ t=(zz-15.2)/(34.8-15.2);c=heel.lerp(tip,t)
+ rod('Crane fall',(c.x,0,c.z-.2),(c.x,0,c.z-1.2),.018,'dark',vertices=5)
+ o=cyl('Crane hook block',(c.x,0,c.z-1.45),.22,.5,'edge',vertices=8,r2=.08)
+ rod('Crane hanging hook',(c.x,0,c.z-1.7),(c.x,0,c.z-2.2),.03,'edge');rod('Crane hook crook',(c.x,0,c.z-2.2),(c.x-.22,0,c.z-2.05),.05,'edge')
+rod('Crane topping lift',tuple(B(0,25.9,14.95)),(tip.x,0,tip.z+.2),.022,'dark',vertices=5)
+rod('Crane hoist',tuple(B(0,25.4,15.0)),tuple(heel.lerp(tip,(29.3-15.2)/19.6)+Vector((0,0,.2))),.018,'dark',vertices=5)
+# Foremast: a tripod standing on the forward funnel's trunk (centreline fore leg, splayed after legs),
+# braced lattice, an enclosed room at mid-height, a flared head, a V-yard, the radar and a raked gaff.
 OWNER='mast-fore'
-for yy in (-1.2,1.2):rod('Foremast leg',(17.2,yy,deck(17.2)),(16.8,0,23.4),.14,'naval',r2=.08)
-rod('Foremast pole',(16.8,0,21),(15.4,0,29.4),.075,'edge',r2=.035)
-rod('Foremast yard',(16.6,-4.5,24),(16.6,4.5,24),.06,'naval')
-for yy in (-1,1):rod('Fore yard brace',(16.1,0,25.5),(16.6,yy*4.5,24),.033,'edge')
-# Open radar grids, seated on their mast platforms. Rotation is a visual estimate.
-for name,x,z,w,h in [('Fore radar',16.8,25,3.0,2.4),('Aft radar',-14,20.2,1.5,3.8)]:
- rod(name+' pedestal',(x,0,z-1),(x,0,z+h),.07,'edge')
- for i in range(9):y=-w/2+w*i/8;rod(name+' vertical',(x,y,z),(x,y,z+h),.022,'edge',vertices=6)
- for j in range(8):zz=z+j*h/7;rod(name+' crosswire',(x,-w/2,zz),(x,w/2,zz),.022,'edge',vertices=6)
-rod('Mainmast forward leg',(-10.8,0,7.28),(-14,0,25),.20)
-rod('Mainmast after leg',(-16.4,0,7.28),(-14,0,25),.18)
-for z in range(10,25,2):
- t=(z-7.28)/17.72;u=(z+2-7.28)/17.72
- a=-16.4+2.4*t;b=-10.8-3.2*t;c=-16.4+2.4*u;d=-10.8-3.2*u
- rod('Mainmast side crossbar',(a,0,z),(b,0,z),.075)
- rod('Mainmast side lattice',(a,0,z),(d,0,z+2),.06)
-rod('Foremast after leg',(13.9,0,4.7),(16.8,0,23.4),.16)
-rod('Foremast forward leg',(20.1,0,7.2),(16.8,0,23.4),.15)
-for z in range(9,23,2):
- a=13.9+(16.8-13.9)*(z-4.7)/18.7;b=20.1+(16.8-20.1)*(z-7.2)/16.2
- d=20.1+(16.8-20.1)*(z+2-7.2)/16.2
- rod('Foremast lattice',(a,0,z),(d,0,z+2),.05);rod('Foremast crossbar',(a,0,z),(b,0,z),.065)
-# These optical platforms projected beyond the casing: connect them back to it.
+def ffore(y):return B(0,y,-18.95+.0993*(y-10.5))
+AFT=[(10.5,2.71,-15.53),(13.5,1.82,-15.99),(16.0,1.07,-16.38),(18.0,.66,-16.61),(20.0,.55,-16.73),(24.3,.30,-16.95)]
+def faft(sx,y):
+ for (y0,x0,z0),(y1,x1,z1) in zip(AFT,AFT[1:]):
+  if y<=y1 or y1==AFT[-1][0]:
+   t=(y-y0)/(y1-y0);return B(sx*(x0+(x1-x0)*t),y,z0+(z1-z0)*t)
+rod('Foremast leg',tuple(ffore(10.45)),tuple(ffore(24.3)),.13,'naval',r2=.115)
+for sx in (-1,1):
+ for (y0,_,_),(y1,_,_) in zip(AFT,AFT[1:]):rod('Foremast leg',tuple(faft(sx,max(11.0,y0))),tuple(faft(sx,y1)),.125,'naval',vertices=10)
+ rod('Foremast leg foot',tuple(faft(sx,11.2)),tuple(B(sx*1.9,11.2,-15.6)),.09,'naval')
+levels=[11.3,13.2,15.1,17.05,19.4,21.0,22.6,24.2]
+for y0,y1 in zip(levels,levels[1:]):
+ for sx in (-1,1):
+  rod('Foremast brace',tuple(ffore(y0)),tuple(faft(sx,y1)),.045,'edge',vertices=6);rod('Foremast brace',tuple(faft(sx,y0)),tuple(ffore(y1)),.045,'edge',vertices=6)
+ rod('Foremast brace',tuple(faft(-1,y0)),tuple(faft(1,y1)),.045,'edge',vertices=6);rod('Foremast brace',tuple(faft(1,y0)),tuple(faft(-1,y1)),.045,'edge',vertices=6)
+for y in levels:
+ for sx in (-1,1):rod('Foremast ring',tuple(ffore(y)),tuple(faft(sx,y)),.05,'naval',vertices=6)
+ rod('Foremast ring',tuple(faft(-1,y)),tuple(faft(1,y)),.05,'naval',vertices=6)
+box('Foremast room',tuple(B(0,18.25,-17.3)),(1.6,1.7,2.3),'naval')
+for sx in (-1,1):box('Foremast room window',tuple(B(sx*.86,18.7,-17.6)),(.5,.02,.35),'glass')
+pts=[(-16.3,1.3),(-19.3,1.3),(-19.3,-1.3),(-16.3,-1.3)]
+mesh('Foremast platform',[(-z,x,yy) for yy in (16.95,17.05) for z,x in pts],[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],'roof')
+rails('Foremast platform',[(18.15,1.25,17.05),(19.25,1.25,17.05),(19.25,-1.25,17.05),(18.15,-1.25,17.05)],.9,False,1.2)
+# Masthead platform on a triangular bracket; the radar frame and a searchlight stand on it.
+box('Foremast head platform',tuple(B(0,24.33,-16.5)),(2.4,1.3,.12),'roof')
+mesh('Foremast head bracket',[tuple(B(s*.12,y,z)) for s in (-1,1) for y,z in ((24.27,-15.9),(24.27,-17.0),(23.1,-16.95))],[(0,1,2),(5,4,3),(0,3,4,1),(1,4,5,2),(2,5,3,0)],'naval')
+box('Radar base',tuple(B(0,25.28,-17.3)),(.5,2.1,.3),'naval')
+rod('Radar post',tuple(B(0,24.4,-17.1)),tuple(B(0,27.3,-17.1)),.06,'edge')
+rod('Radar back stay',tuple(B(0,25.9,-16.6)),tuple(B(0,27.0,-17.07)),.03,'edge')
+for i in range(9):
+ xx=-1.5+3.0*i/8;rod('Fore radar vertical',tuple(B(xx,25.45,-17.3)),tuple(B(xx,27.0,-17.3)),.022,'edge',vertices=6)
+for j in range(7):
+ yy=25.45+1.55*j/6;rod('Fore radar crosswire',tuple(B(-1.5,yy,-17.3)),tuple(B(1.5,yy,-17.3)),.022,'edge',vertices=6)
+cyl('Masthead searchlight pedestal',tuple(B(0,23.75,-18.85)),.12,.5,'edge',vertices=8)
+rod('Masthead searchlight',tuple(B(0,24.1,-18.65)),tuple(B(0,24.1,-19.15)),.28,'naval',vertices=14)
+rod('Masthead searchlight bracket',tuple(ffore(23.5)),tuple(B(0,23.5,-18.85)),.05,'naval')
+for sx in (-1,1):
+ rod('Fore yard arm',tuple(B(sx*.35,24.1,-16.97)),tuple(B(sx*6.6,25.95,-16.97)),.07,'naval',r2=.04)
+ rod('Fore yard strut',tuple(B(sx*.25,23.3,-16.95)),tuple(B(sx*2.1,24.65,-16.97)),.045,'edge')
+ for fx in (2.1,3.5,4.6):
+  cyl('Yard signal fitting',tuple(B(sx*fx,24.1+1.85*(fx-.35)/6.25+.2,-16.97)),.07,.35,'edge',vertices=8)
+rod('Foremast gaff heel bar',tuple(faft(-1,22.4)),tuple(faft(1,22.4)),.05,'naval')
+rod('Foremast gaff',tuple(B(0,22.4,-16.76)),tuple(B(0,28.9,-13.7)),.075,'naval',r2=.04)
+# Side rangefinders stand on columns from the raised deck.
+OWNER='bridge-fittings'
 for sy in (-1,1):
- rod('Optics diagonal',(14.85,sy*3.0,4.7),(14.85,sy*5.16,12.08),.14)
- rod('Optics transverse bearer',(18.5,sy*3.4,12.08),(14.85,sy*5.16,12.08),.11)
-
-rod('Stern signal staff',(-98,0,deck(-98)),(-98,0,12.1),.055,'naval')
+ cyl('Rangefinder column',(14.85,sy*5.16,(7.30+11.95)/2),.55,11.95-7.30,'naval')
+ for zz in (8.2,9.2,10.2,11.2):rod('Column ladder rung',(14.85+.56,sy*5.16-.2,zz),(14.85+.56,sy*5.16+.2,zz),.02,'edge',vertices=6)
+rod('Stern signal staff',(-99.7,0,deck(-99.7)),(-100.25,0,12.0),.055,'naval')
 # Ropes and aerials have supported endpoints.
+OWNER='mast-fore'
 for sy in (-1,1):
- rod('Wireless aerial',(15.4,sy*.15,29.4),(-14.4,sy*.4,35.1),.010,'dark',vertices=5)
- rod('Forward stay',(15.4,0,29.4),(31,sy*4,7.24),.012,'dark',vertices=5)
- rod('After stay',(-14.4,0,35.1),(-98,0,12.1),.012,'dark',vertices=5)
- for y in (1.5,3,4.3):rod('Signal halyard',(16.6,sy*y,24),(24,sy*3,14.3),.009,'rope',vertices=5)
+ rod('Wireless aerial',(13.7,sy*.05,28.9),(-13.37,sy*.1,35.0),.010,'dark',vertices=5)
+ rod('Forward stay',(17.3,0,27.2),(31,sy*4,7.24),.012,'dark',vertices=5)
+ rod('After stay',(-13.37,0,35.1),(-100.25,0,12.0),.012,'dark',vertices=5)
+ for fx in (1.5,3.0,4.3):rod('Signal halyard',(16.97,sy*fx,24.1+1.85*(fx-.35)/6.25),(24,sy*3,14.3),.009,'rope',vertices=5)
 # Independent trainable quadruple launchers: stable pivots and muzzle sockets.
 COL=C['Torpedoes']
 for launcher in D['torpedoLaunchers']:
@@ -239,21 +328,79 @@ x=100.28;z=7.50
 rod('Chrysanthemum backing',(x-.10,0,z),(x+.02,0,z),.37,'bronze',vertices=32)
 for i in range(16):
  a=i*math.tau/16;rod('Chrysanthemum petal',(x+.035,.075*math.cos(a),z+.075*math.sin(a)),(x+.03,.32*math.cos(a),z+.32*math.sin(a)),.035,'strip',vertices=8)
-# Shafts, A-brackets, four three-bladed screws and a seated central rudder.
+# Underwater appendages measured on the reference: four screws on long shafts with bossings and V brackets,
+# twin rudders behind the inner screws, the centreline skeg under the cut-up stern and the bilge keels.
 COL=C['Underwater'];OWNER='propulsion'
+def breadth_at(x,h):
+ st=x+L/2
+ for a,b in zip(H['sections'],H['sections'][1:]):
+  if a['station']<=st<=b['station']:
+   t=(st-a['station'])/(b['station']-a['station']);pa,pb=a['points'],b['points']
+   pts=[(wa+(wb-wa)*t,ya+(yb-ya)*t) for (wa,ya),(wb,yb) in zip(pa,pb)]
+   if h<=pts[0][1]:return 0.
+   for (w0,y0),(w1,y1) in zip(pts,pts[1:]):
+    if y0<=h<=y1:return w0 if y1-y0<1e-9 else w0+(w1-w0)*(h-y0)/(y1-y0)
+   return pts[-1][0]
+ return 0.
+def hull_under(x,lateral):
+ """Height of the hull shell above a point `lateral` metres off the centreline (scanning up from the keel)."""
+ h=keel(x)
+ while h<3 and breadth_at(x,h)<abs(lateral):h+=.02
+ return h
+def blade(name,x0,y0,z0,hand,phase):
+ R=1.40;radii=[.30+(R-.30)*k/6 for k in range(7)];chord=[.62,.92,1.10,1.18,1.12,.92,.40];pitch=3.1
+ verts=[];faces=[];n=5
+ for k,(r,c) in enumerate(zip(radii,chord)):
+  skew=.30*(r-.30)/(R-.30);half=c/(2*r)
+  for j in range(n):
+   u=-1+2*j/(n-1);th=phase+hand*(skew+half*u)
+   verts.append((x0-.10*(r-.3)-hand*pitch/math.tau*(th-phase-hand*skew)*hand,y0+r*math.cos(th),z0+r*math.sin(th)))
+ for k in range(6):
+  for j in range(n-1):faces.append((k*n+j,k*n+j+1,(k+1)*n+j+1,(k+1)*n+j))
+ o=mesh(name,verts,faces,'bronze',None,True);mod=o.modifiers.new('Blade thickness','SOLIDIFY');mod.thickness=.07;mod.offset=0
+ return o
 for sy in (-1,1):
- for end,y in [(-86.9,2.85),(-75.4,6.93)]:
-  y*=sy;z=-4
-  rod('Propeller shaft',(end+17,y*.72,-3.0),(end,y,z),.16,'edge',vertices=20)
-  rod('Shaft bearing',(end+2,y,z),(end-1,y,z),.26,'naval',vertices=24)
-  for dy in (-.7,.7):rod('Shaft A-bracket',(end+2,y,z),(end+5,y+dy,-2.1),.11,'naval')
-  rod('Propeller boss',(end+.3,y,z),(end-1,y,z),.38,'bronze',r2=.12,vertices=24)
-  for i in range(3):
-   a=i*math.tau/3;verts=[]
-   for rr,ang,dx in [(.28,a,.0),(.95,a+.30,-.10),(1.55,a+.44,-.25),(1.48,a+.82,-.55),(.83,a+.82,-.4),(.28,a+.35,-.1)]:verts.append((end+dx,y+rr*math.cos(ang),z+rr*math.sin(ang)))
-   o=mesh('Propeller blade',verts,[tuple(range(6))],'bronze');mod=o.modifiers.new('Blade thickness','SOLIDIFY');mod.thickness=.055
-rod('Rudder stock',(-93.6,0,-.3),(-93.6,0,-3.8),.18,'edge')
-mesh('Rudder',[(-96.5,-.12,-3.6),(-93,-.12,-3.7),(-92.8,-.12,-.8),(-96,-.12,-.8),(-96.5,.12,-3.6),(-93,.12,-3.7),(-92.8,.12,-.8),(-96,.12,-.8)],[(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],'underwater')
+ # (screw plane, screw centre, shaft start inside the hull, bossing end, bracket station)
+ for xp,(yp,zp),(xs,ys,zs),xb,xv in [(-87.3,(2.85,-3.78),(-72,2.15,-4.2),-79.5,-85.9),(-75.9,(6.93,-3.70),(-58,6.60,-3.85),-68,-74.4)]:
+  yp*=sy;ys*=sy
+  rod('Propeller shaft',(xs,ys,zs),(xp+.55,yp,zp),.17,'edge',vertices=16)
+  t=(xb-xs)/(xp-xs);rod('Shaft bossing',(xs,ys,zs),(xb,ys+(yp-ys)*t,zs+(zp-zs)*t),.42,'underwater',r2=.22,vertices=20)
+  t=(xv-xs)/(xp-xs);sx,sz=ys+(yp-ys)*t,zs+(zp-zs)*t
+  rod('Shaft bracket barrel',(xv+.6,sx,sz),(xv-.6,sx,sz),.27,'underwater',vertices=18)
+  for lat in (abs(sx)-1.35,abs(sx)+1.0):
+   # Streamlined strut: 0.8 m chord, 0.16 m thick, from the barrel up into the shell.
+   top=hull_under(xv,lat)+.15;a=Vector((xv,sx,sz));b=Vector((xv,sy*lat,top));d=(b-a).normalized();side=d.cross(Vector((1,0,0))).normalized()
+   v=[a+Vector((dx,0,0))+side*s*th for dx,th in [(.4,0),(0,.08),(-.4,0),(0,-.08)] for s in (1,)]+[b+Vector((dx,0,0))+side*s*th for dx,th in [(.4,0),(0,.08),(-.4,0),(0,-.08)] for s in (1,)]
+   mesh('Shaft bracket strut',[tuple(q) for q in v],[(0,1,2,3),(7,6,5,4),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],'underwater')
+  rod('Propeller boss',(xp+.55,yp,zp),(xp-.25,yp,zp),.30,'bronze',r2=.26,vertices=20)
+  rod('Propeller boss cap',(xp-.25,yp,zp),(xp-.70,yp,zp),.26,'bronze',r2=.05,vertices=20)
+  for i in range(3):blade('Propeller blade',xp,yp,zp,sy,i*math.tau/3+.5)
+ # Twin rudders abaft the inner screws: streamlined, stocks into the counter.
+ yr=sy*2.0;xa,xt=-89.7,-94.1
+ prof=[(xa,hull_under(xa,2.0)+.15),(xa-.05,-4.15),(xa-.35,-4.4),(xt+.55,-4.4),(xt,-3.95),(xt,hull_under(xt,2.0)+.15)]
+ thick=lambda x:.13-.09*(xa-x)/(xa-xt)
+ v=[(x,yr+s*thick(x),z) for s in (-1,1) for x,z in prof];n=len(prof)
+ f=[tuple(range(n)),tuple(range(2*n-1,n-1,-1))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+ mesh('Rudder',v,f,'underwater')
+ rod('Rudder stock',(xa-1.0,yr,prof[0][1]-.4),(xa-1.0,yr,hull_under(xa-1.0,2.0)+.6),.14,'edge',vertices=12)
+# Centreline skeg under the cut-up stern; its top runs inside the keel line.
+top=[(x,keel(x)+.18) for x in (-43,-50,-58,-66,-72,-76,-79.6)]
+bottom=[(-80.0,-3.85),(-79.0,-4.8),(-78.2,-5.79),(-72,-5.79),(-64,-5.82),(-52,-5.87),(-43,-5.9)]
+prof=top+bottom;n=len(prof)
+v=[(x,s*(.2 if x>-76 else .16),z) for s in (-1,1) for x,z in prof]
+mesh('Centreline skeg',v,[tuple(range(n)),tuple(range(2*n-1,n-1,-1))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'underwater')
+# Bilge keels on the bulge's lower edge (z -24..34 on the reference).
+OWNER='hull'
+for sy in (-1,1):
+ xs=[24-i*2.9 for i in range(21)];v=[];f=[]
+ for i,x in enumerate(xs):
+  root=breadth_at(x,-4.45)-.06;fade=min(1,(24-x)/6,(x+34)/6);tip=root+.9*max(.05,fade)
+  v+=[(x,sy*root,-4.42),(x,sy*tip,-4.43),(x,sy*tip,-4.48),(x,sy*root,-4.50)]
+ for i in range(len(xs)-1):
+  a=4*i;b=a+4
+  for k in range(4):f.append((a+k,a+(k+1)%4,b+(k+1)%4,b+k))
+ f+=[(0,1,2,3),(len(v)-1,len(v)-2,len(v)-3,len(v)-4)]
+ mesh('Bilge keel',v,f,'underwater')
 sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
 from surface import apply_appearance
 apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))

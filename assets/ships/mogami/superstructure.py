@@ -129,7 +129,6 @@ def create_superstructure(d, col, helpers, materials, deck):
             rod('Bridge vertical seam',(x,sign*(tower_width(x,12.0)+.02),12.0),(x,sign*(tower_width(x,14.0)+.02),14.0),.012,'edge',vertices=6)
         # Smaller rear optics remain on fully supported platforms.
         ellipse('Optical platform',14.85,sign*5.16,12.08,2.1,1.0,.14)
-        rod('Optical platform support',(14.85,sign*2.7,7.3),(14.85,sign*5.16,12.08),.2,'naval')
         cyl('Optical platform stem',(14.85,sign*5.16,12.37),.4,.44)
         rod('Side rangefinder',(13.2,sign*5.16,12.72),(16.55,sign*5.16,12.72),.19,'naval',vertices=20)
     nav=next(s for s in d['structures'] if s['id']=='bridge-navigation');pts=[(-z,-x) for x,z in nav['footprint']]
