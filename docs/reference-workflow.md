@@ -36,6 +36,12 @@ second run reuses the cache; `--refresh` rebuilds it. `--hull`, `--components` a
 source configuration is assembled, `--scale` and `--flip-z` set the frame for a local file, and `--name` gives
 the cache a readable name.
 
+`--render` draws the cached configuration with its source textures, so windows, doors and markings the model
+paints rather than models are visible: `--shots side,top,front,stern` (orthographic; side and top with the bow on
+the right) and one `--camera preset|az,el[,m]` or `--eye x,y,z --target x,y,z` shot with `--fov` or `--ortho`, in the
+same frame and camera conventions as `ship:overlay` and `ui:shot`. `--paint`, `--parts` and `--offset z|x,y,z` pick the
+paint scheme, the groups and a shift into your ship's frame; images land in `.build/references/<name>/renders/`.
+
 Parts are grouped coarsely from the source path (`hull`, `gun-main`, `director`, `torpedo`, `misc`, …) so a
 measurement can keep the hull and drop deck clutter with `--parts hull`.
 
@@ -45,7 +51,7 @@ One measurement per call, always over a cached reference:
 
 ```sh
 bun run ship:slice pgsb507 --levels --parts hull          # up-facing area by height: the deck finder
-bun run ship:slice pgsb507 --plan 4.1 --simplify 0.2      # closed footprint rings at a height (see below)
+bun run ship:slice pgsb507 --plan 4.1 --simplify 0.2      # footprints at a height, traced from open shells (see below)
 bun run ship:slice pgsb507 --top z --step 1               # side-view silhouette (--top x for the front view)
 bun run ship:slice pgsb507 --width --bin 1                # half-breadth per height band
 bun run ship:slice pgsb507 --stations -60,-20,0,20,60 --parts hull   # hull cross sections
@@ -56,9 +62,12 @@ bun run ship:slice pgsb507 --section z=-40                # raw cut outlines, op
 `--box x0,y0,z0,x1,y1,z1` limits any measurement to a region, `--parts` to named groups or part keys, and
 `--limit` caps the rows returned.
 
-`--plan` returns closed rings only. GameModels3D meshes are open shells, so a plan cut through a deckhouse often
-finds none, and `--plan` with `--box` returned nothing on the Iowa reference. For a deckhouse footprint, take the
-`--section` outlines and fill them as a raster instead.
+`--plan` traces footprints even though GameModels3D meshes are open shells: the cut is rasterised (`--res`, about
+4 cm by default), gaps up to `--close` metres (0.25) are bridged, enclosed interiors are filled and features thinner
+than `--min-thickness` (0.3 m, so rails and ladders) drop out. Where the cut already closes into a matching ring, the
+exact ring comes back instead (`source: "exact"`, otherwise `"traced"`). `--sym` mirrors the cut across x = 0 first,
+and `--parts hull,misc,other` leaves guns and directors out of a deckhouse footprint. Measure just below a deck so
+the wall is traced, not the clutter standing on it.
 
 `--levels` is the one to reach for first: its `strongest` list is the deck heights, and on the Scharnhorst it
 returns the main deck at 4.15 m, the forecastle at 6.55 m and the bridge deck at 12.25 m. `--probe` with

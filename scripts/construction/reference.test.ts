@@ -87,6 +87,45 @@ test('slice measures the plan, the deck levels, the silhouette, the half-breadth
   expect(nearestDeck(crossings, 20).above).toBeUndefined();
 });
 
+/** Open wall quads only, the way source deckhouses arrive: no roof, no floor, a door gap in one wall. */
+function openDeckhouse(): RawPart {
+  const positions: number[] = [];
+  const index: number[] = [];
+  const wall = (a: [number, number], b: [number, number]) => {
+    const base = positions.length / 3;
+    positions.push(a[0], 5, a[1], b[0], 5, b[1], b[0], 8, b[1], a[0], 8, a[1]);
+    index.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  };
+  wall([-4, -10], [4, -10]);
+  wall([4, -10], [4, 10]);
+  wall([4, 10], [0.1, 10]);
+  wall([-0.1, 10], [-4, 10]);
+  wall([-4, 10], [-4, -10]);
+  return { key: 'house', path: 'ship/house', visual: 'content/ship/house', group: 'hull', positions, index };
+}
+
+test('plan traces open-shell walls that never close into a ring, inside a box and mirrored', () => {
+  const mesh = packReference({ parts: [openDeckhouse(), boxPart('locker', 'misc', [4, 5, 0], [5, 6.5, 2])], hardpoints: [], omitted: [] }, meta('fixture'));
+  const view = meshView(mesh);
+  const plan = planPolygons(view, 6);
+  const house = plan.find((polygon) => polygon.area > 100)!;
+  expect(house.source).toBe('traced');
+  // 8 m by 20 m within a couple of raster cells; the 0.2 m door gap is bridged.
+  expect(house.area).toBeGreaterThan(155);
+  expect(house.area).toBeLessThan(165);
+  expect(house.bounds.min[0]).toBeCloseTo(-4, 0);
+  expect(house.bounds.max[1]).toBeCloseTo(10, 0);
+  // A box around the house returns its footprint rather than nothing.
+  const boxed = planPolygons(view, 6, { box: { min: [-6, 4, -12], max: [6, 9, 12] } });
+  expect(boxed[0].area).toBeCloseTo(house.area, -1);
+  // The locker sticks out to starboard only; mirrored, the footprint gains it on both sides.
+  const plain = planPolygons(view, 6, { minArea: 0.5 }).reduce((sum, polygon) => sum + polygon.area, 0);
+  const mirrored = planPolygons(view, 6, { minArea: 0.5, symmetric: true }).reduce((sum, polygon) => sum + polygon.area, 0);
+  expect(mirrored).toBeGreaterThan(plain + 1);
+  // A wider gap stays open when it is wider than --close, so nothing encloses.
+  expect(planPolygons(view, 6, { close: 0.05 }).filter((polygon) => polygon.area > 100)).toHaveLength(0);
+});
+
 test('a hull station reads the deck line, the half outline and the section area', () => {
   const mesh = packReference({ parts: [hullPart()], hardpoints: [], omitted: [] }, meta('fixture'));
   const station = hullStation(meshView(mesh), 0);
