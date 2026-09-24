@@ -303,7 +303,8 @@ def carley(name, x, y, z, nx, ny, angle):
 
 
 ASSEMBLY = 'wall-fittings'
-for sid, doors, vents, floats in [('shelter-deck-forward', 9, 7, 6), ('shelter-deck-aft', 2, 2, 2), ('forward-superstructure', 4, 3, 4),
+for sid, doors, vents, floats in [('shelter-deck-forward', 6, 5, 4), ('shelter-deck-midships', 2, 2, 2), ('well-casing-forward', 2, 2, 0), ('well-casing-aft', 2, 1, 0),
+                                  ('shelter-deck-aft', 2, 2, 2), ('forward-superstructure', 4, 3, 4),
                                   ('midships-deckhouse', 2, 2, 0), ('after-control-tower', 2, 2, 2), ('bridge-lower', 1, 0, 0), ('signal-house-port', 1, 1, 0), ('signal-house-starboard', 1, 1, 0)]:
     s = S[sid]; o = [(-z, -x) for x, z in s['footprint']]; base = s['baseY']
     walls = sorted([(math.hypot(b[0] - a[0], b[1] - a[1]), a, b) for a, b in zip(o, o[1:] + o[:1])], key=lambda w: -w[0])
@@ -396,15 +397,43 @@ for side in [-1, 1]:
 o = [(-z, -x) for x, z in S['after-deckhouse-roof']['footprint']]
 i = next(k for k, (x, y) in enumerate(o) if x > -46 and y < 0)  # starboard front corner
 aft = o[i:] + o[:i]  # round the after end to the port front corner
-bulwark('Pom-pom tub', [(aft[0][0], -1.2)] + aft + [(aft[-1][0], 1.2)], 11.91, 12.9)
+bulwark('Pom-pom tub', [(aft[0][0], -1.2)] + aft + [(aft[-1][0], 1.2)], 11.25, 12.9)
 rod('Ventilator pipe', (-46.05, 0, 9.2), (-46.05, 0, 14.2), .2, 'naval', vertices=12)
-cyl('Ventilator cowl', (-46.05, 0, 14.3), .34, .3, 'black', vertices=14)
-# Shelter deck guard rails follow the deck edge.
-for sid in ['shelter-deck-forward', 'shelter-deck-aft']:
+cyl('Ventilator cowl', (-46.05, 0, 14.3), .25, .22, 'black', vertices=14)
+# Shelter deck guard rails follow the deck edge (not the joints between its pieces).
+SEAMS = [9.3, -26.6, -42.8]
+for sid in ['shelter-deck-forward', 'shelter-deck-well-roof', 'shelter-deck-midships', 'shelter-deck-aft']:
     o = [(-z, -x) for x, z in S[sid]['footprint']]
     for a, b in zip(o, o[1:] + o[:1]):
-        if abs(a[0] + 42.8) < .01 and abs(b[0] + 42.8) < .01: continue
+        if any(abs(a[0] - k) < .01 and abs(b[0] - k) < .01 for k in SEAMS): continue
         rail('Shelter deck rail', [(a[0], a[1], 9.2), (b[0], b[1], 9.2)], 1.0, 2.4)
+
+
+def half_width(outline, x):
+    """Largest |y| where a Blender-frame outline crosses the station x."""
+    ys = [ay + (by - ay) * (x - ax) / (bx - ax) for (ax, ay), (bx, by) in zip(outline, outline[1:] + outline[:1]) if (ax - x) * (bx - x) <= 0 and ax != bx]
+    return max(abs(y) for y in ys) if ys else 0
+
+
+# The well under the shelter deck: pillars, deck beams from the casings to the deck edge, and the
+# plated bulwark along the upper deck.
+ASSEMBLY = 'shelter-deck-well'
+roof = [(-z, -x) for x, z in S['shelter-deck-well-roof']['footprint']]
+casings = [[(-z, -x) for x, z in S[c]['footprint']] for c in ['well-casing-forward', 'well-casing-aft']]
+for side in [-1, 1]:
+    for z in [-5.98, -.48, 3.16, 6.82, 12.31, 15.96, 19.62, 23.28]:
+        for y in [10.49, 12.84]:
+            box('Well pillar', (-z, side * y, (5.33 + 8.95) / 2), (.1, .1, 8.95 - 5.33), 'naval')
+    k = 0
+    while -26.5 + k * 1.22 < 9.2:
+        x = -26.5 + k * 1.22; k += 1
+        inner = max(half_width(c, x) for c in casings); outer = half_width(roof, x) - .1
+        if outer - inner > .3:
+            box('Well deck beam', (x, side * (inner + outer) / 2, 8.85), (.12, outer - inner, .2), 'naval')
+    pts = [(x, side * (sidewidth(x, deckz(x) - .01) - .04)) for x in [-26.6 + i * 35.9 / 24 for i in range(25)]]
+    bulwark('Well bulwark', pts, 5.3, 6.5)
+    for x, y in pts[2::5]:
+        rod('Bulwark stay', (x, y * .985, 6.4), (x, y * .94, 5.35), .04, 'naval', vertices=6)
 for side in [-1, 1]:
     # Forward HACS on a plated column off the superstructure roof, reached by a short bridge.
     box('HACS column', (29.7, side * 7.6, 13.18), (1.3, 1.2, 2.36), 'naval')
@@ -449,8 +478,8 @@ black = 'black'
 rod('Foremast pole', (33.45, 0, 12.0), (33.45, 0, 32.0), .5, 'naval', r2=.44, vertices=20)
 rod('Foremast upper pole', (33.45, 0, 32.0), (33.45, 0, 35.2), .38, black, r2=.34, vertices=16)
 for side in [-1, 1]:
-    rod('Foremast tripod leg', (29.17, side * 4.35, 12.0), (32.54, side * .85, 31.6), .47, 'naval', r2=.42, vertices=16)
-    rod('Upper leg collar', (32.2, side * 1.2, 29.6), (32.54, side * .85, 31.6), .48, black, vertices=16)
+    rod('Foremast tripod leg', (29.05, side * 4.39, 12.0), (32.58, side * .72, 31.6), .44, 'naval', r2=.42, vertices=16)
+    rod('Upper leg collar', (32.22, side * 1.09, 29.6), (32.58, side * .72, 31.6), .45, black, vertices=16)
 ladder('Foremast ladder', (33.95, 0, 25.0), (33.95, 0, 31.5), .45)
 # Spotting top: platform on radiating web plates, a lower after house and a taller forward one.
 top = [(29.88, 0), (29.88, 1.5), (29.32, 2.05), (29.27, 2.65), (29.55, 3.18), (30.15, 3.53), (30.9, 3.23), (31.25, 2.73), (32.05, 2.73), (32.08, 4.0),
@@ -458,10 +487,13 @@ top = [(29.88, 0), (29.88, 1.5), (29.32, 2.05), (29.27, 2.65), (29.55, 3.18), (3
 top = top + [(x, -y) for x, y in reversed(top) if y > 0]
 prism('Spotting top platform', top, 32.66, .24, black)
 rail('Spotting top rail', [(x, y, 32.9) for x, y in top + top[:1] if x < 32.2 or x > 34.4], .9, 1.4)
-for (ex, ey), depth in [((27.2, 0), 2.4), ((30.2, 3.4), 1.9), ((32.2, 3.9), 1.6), ((35.8, 2.3), 1.7), ((38.4, 1.2), 2.2), ((39.2, 0), 2.4)]:
+# Radiating web plates run from the platform edge down to a flat-bottomed keel round the pole.
+box('Spotting top keel', (33.0, 0, 31.95), (4.4, .6, 1.42), black)
+for ex, ey in [(27.0, 0), (28.0, 1.9), (29.6, 3.8), (32.2, 3.9), (35.0, 1.7), (37.5, 2.3), (39.2, 0)]:
     for side in ([1] if ey == 0 else [-1, 1]):
-        mesh('Spotting top web', [(33.45, 0, 32.66), (ex, side * ey, 32.66), (33.45, 0, 32.66 - depth)], [(0, 1, 2)], black)
-        rod('Web flange', (ex, side * ey, 32.62), (33.45, 0, 32.66 - depth), .05, black, vertices=6)
+        e = Vector((ex, side * ey, 32.66)); c = Vector((33.0, 0, 32.66)); m = c + (e - c) * .38; m.z = 31.25
+        mesh('Spotting top web', [e, c, (33.0, 0, 31.25), m], [(0, 1, 2, 3), (3, 2, 1, 0)], black)
+        rod('Web flange', (ex, side * ey, 32.6), m, .05, black, vertices=6)
 aft_house = [(31.2, 0), (31.2, 2.78), (33.3, 2.73), (33.85, 2.53), (34.3, 2.03)]
 aft_house = aft_house + [(x, -y) for x, y in reversed(aft_house) if y > 0]
 fwd_house = [(34.3, 2.1), (35.5, 1.97), (36.3, 1.38), (37.4, 1.17), (38.55, .97), (39.08, .4)]
@@ -478,7 +510,8 @@ for outline, zz in [(aft_house, 34.4), (fwd_house, 34.85)]:
             if nx * ((ax + bx) / 2 - 34.5) + ny * (ay + by) / 2 < 0: nx, ny = -nx, -ny
             box('Spotting top window', (ax + (bx - ax) * t + nx * .015, ay + (by - ay) * t + ny * .015, zz), (length / count * .7, .03, .34), 'glass').rotation_euler.z = math.atan2(by - ay, bx - ax)
 # Signal post and yard over the after end of the top; lower yard under the lookout platform.
-box('Signal post', (30.15, 0, 34.0), (.4, .35, 2.2), black)
+box('Signal post', (30.15, 0, 33.9), (.4, .35, 2.1), black)
+rod('Signal post strut', (28.1, 0, 32.9), (30.0, 0, 34.8), .07, black, vertices=8)
 for zz, span, x in [(29.25, 9.8, 29.85), (34.9, 9.3, 30.2)]:
     rod('Foremast yard', (x, -span, zz), (x, span, zz), .08, black, r2=.08, vertices=10)
     for side in [-1, 1]:
@@ -495,28 +528,29 @@ for side in [-1, 1]:
     cyl('Daylight lantern', (32.37, side * 3.65, 33.2), .16, .66, black, vertices=10)
     rod('Siren', (33.1, side * 1.37, 29.6), (33.1, side * 1.37, 30.4), .12, 'bright', r2=.06, vertices=10)
 # Small lookout platform abaft the pole below the top.
-prism('Mast lookout platform', octagon(30.6, 0, 2.0, 2.6, .3), 28.9, .12, black)
-rail('Mast lookout rail', [(x, y, 29.02) for x, y in octagon(30.6, 0, 2.0, 2.6, .3)], .9, 1.2)
-for side in [-1, 1]: rod('Lookout bracket', (29.7, side * 1.1, 28.9), (32.4, side * .7, 27.6), .06, black, vertices=8)
-rod('Signal gaff', (32.9, 0, 29.2), (27.6, 0, 29.3), .07, black, vertices=8)
+lookout = [(29.6, 1.1), (33.3, 2.15), (33.3, -2.15), (29.6, -1.1)]
+prism('Mast lookout platform', lookout, 28.9, .12, black)
+rail('Mast lookout rail', [(x, y, 29.02) for x, y in lookout + lookout[:1]], .9, 1.2)
+for side in [-1, 1]: rod('Lookout bracket', (29.8, side * 1.1, 28.9), (32.2, side * 1.0, 27.8), .06, black, vertices=8)
+rod('Signal gaff', (32.9, 0, 29.05), (27.4, 0, 29.1), .07, black, vertices=8)
 # 15 in director (reference BRS_1): cabinet with a sloped face and the rangefinder inside its front
 # plate; the Type 284 trough on struts above.
 ASSEMBLY = 'dct-foretop'; before = set(scene.objects)
-cyl('DCT roller path', (33.7, 0, 35.075), 1.5, .65, 'edge', vertices=32)
-profile = [(31.9, 35.4), (35.6, 35.4), (35.6, 36.3), (34.0, 37.65), (31.9, 37.65)]
+cyl('DCT pedestal', (33.15, 0, 35.3), 1.15, 1.1, 'naval', vertices=28)
+cyl('DCT roller path', (33.15, 0, 35.8), 1.3, .12, 'edge', vertices=28)
+profile = [(31.55, 35.85), (35.6, 35.85), (35.6, 36.3), (34.2, 37.6), (31.55, 37.6)]
 vs = [(bx, side * 1.85, bz) for side in [-1, 1] for bx, bz in profile]; n = len(profile)
 mesh('DCT cabinet', vs, [tuple(range(n)), tuple(reversed(range(n, 2 * n)))] + [(i, i + n, (i + 1) % n + n, (i + 1) % n) for i in range(n)], 'naval')
-box('DCT front plate', (35.75, 0, 35.9), (.3, 4.3, .9), 'naval')
-box('DCT sight ports', (35.91, 0, 36.05), (.03, 3.6, .3), 'glass')
-box('DCT horn', (36.15, 0, 36.05), (.5, .5, .8), 'naval')
+box('DCT front plate', (35.75, 0, 36.45), (.3, 4.4, 1.2), 'naval')
+box('DCT sight ports', (35.91, 0, 36.6), (.03, 3.6, .3), 'glass')
+rod('DCT horn', (35.9, 0, 36.1), (36.3, 0, 36.1), .12, 'naval', r2=.3, vertices=12)
 box('DCT roof hatch', (32.8, 0, 37.72), (1.1, 1.0, .14), 'roof')
 for side in [-1, 1]:
-    rod('284 strut', (33.35, side * 1.0, 37.65), (33.35, side * 1.0, 38.65), .06, 'naval', vertices=8)
-    rod('284 brace', (33.35, side * 1.4, 37.65), (33.35, side * 2.7, 38.65), .05, 'naval', vertices=6)
-box('Type 284 aerial trough', (33.35, 0, 39.0), (.3, 6.8, .7), 'naval')
-box('284 trough face', (33.19, 0, 39.0), (.02, 6.6, .56), 'dark')
-rod('284 mast stub', (33.45, 0, 37.65), (33.45, 0, 39.35), .12, 'naval', vertices=10)
-node = pivot('dct-foretop.yaw', (33.7, 0, 35.3)); attach_world(set(scene.objects) - before - {node}, node)
+    rod('284 strut', (33.15, side * 1.1, 37.6), (33.15, side * 1.1, 38.65), .06, 'naval', vertices=8)
+    rod('284 brace', (33.15, side * 1.9, 37.6), (33.15, side * 3.2, 38.65), .05, 'naval', vertices=6)
+box('Type 284 aerial trough', (33.15, 0, 39.0), (.3, 6.8, .7), 'naval')
+box('284 trough face', (33.29, 0, 39.0), (.02, 6.6, .56), 'dark')
+node = pivot('dct-foretop.yaw', (33.15, 0, 35.3)); attach_world(set(scene.objects) - before - {node}, node)
 
 # Conning-tower director with its 30 ft rangefinder (reference BD_1 housing): a twelve-sided
 # cabinet with a sloped face, the long rangefinder across its after end.
@@ -562,7 +596,7 @@ for id, (x, y, z), kind in [('hacs-p', (29.7, 7.6, 14.36), 'hacs'), ('hacs-s', (
                             ('pom-pom-director-p', (30.4, 4.4, 19.8), 'pp'), ('pom-pom-director-s', (30.4, -4.4, 19.8), 'pp'), ('pom-pom-director-aft', (-42.8, 0, 16.25), 'pp')]:
     director(id, x, y, z, kind)
 ASSEMBLY = 'hacs-aft-pedestal'
-cyl('After HACS pedestal', (-39.55, 0, 17.27), 1.45, 2.05, 'naval', vertices=24, r2=.8)
+cyl('After HACS pedestal', (-39.55, 0, 17.27), 1.2, 2.05, 'naval', vertices=24, r2=.55)
 for side in [-1, 1]:
     # 12 ft rangefinders on plated towers from the superstructure roof, tube fore and aft.
     ASSEMBLY = 'rangefinder-tower-' + ('p' if side > 0 else 's')
@@ -580,18 +614,24 @@ for side in [-1, 1]:
 # 42.4 m, raked tripod legs, a small signal platform, a lookout platform and the Type 279 array.
 ASSEMBLY = 'mainmast'
 rod('Main lower mast', (-28.8, 0, 9.2), (-28.8, 0, 24.7), .55, 'naval', r2=.47, vertices=18)
-rod('Main topmast', (-30.25, 0, 22.8), (-30.25, 0, 42.4), .3, 'black', r2=.2, vertices=12)
-cyl('Topmast cap', (-30.25, 0, 42.45), .24, .12, 'black', vertices=12)
-box('Mast doubling', (-29.5, 0, 23.7), (2.0, .8, 1.8), 'black')
+rod('Main topmast', (-30.2, 0, 22.8), (-30.2, 0, 42.4), .17, 'black', r2=.14, vertices=12)
+cyl('Topmast cap', (-30.2, 0, 42.45), .2, .12, 'black', vertices=12)
+box('Mast doubling', (-29.5, 0, 23.7), (1.4, .8, 1.8), 'black')
+# The lower mast carries on as a plated column to a skirt under the signal platform.
+box('Mast column', (-28.85, 0, 25.85), (.9, .9, 2.5), 'naval')
+skirt_top = [(-26.35, 1.5), (-26.7, 1.9), (-30.3, 1.9), (-31.2, 1.1), (-31.2, -1.1), (-30.3, -1.9), (-26.7, -1.9), (-26.35, -1.5)]
+skirt_bot = [(max(-29.3, min(-28.4, x)), max(-.45, min(.45, y))) for x, y in skirt_top]
+n = len(skirt_top)
+mesh('Signal platform skirt', [(x, y, 28.3) for x, y in skirt_top] + [(x, y, 27.1) for x, y in skirt_bot],
+     [tuple(reversed(range(n, 2 * n)))] + [(i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)], 'black')
 for side in [-1, 1]:
     rod('Mainmast tripod leg', (-31.93, side * 3.35, 9.2), (-29.43, side * .48, 24.6), .5, 'naval', r2=.4, vertices=14)
-prism('Mainmast top', octagon(-29.3, 0, 2.6, 2.4, .35), 24.55, .15, 'black')
-rail('Mainmast top rail', [(x, y, 24.7) for x, y in octagon(-29.3, 0, 2.6, 2.4, .35)], .85, 1.2)
 signal = [(-26.35, 1.5), (-26.7, 1.9), (-30.3, 1.9), (-31.2, 1.1), (-31.2, -1.1), (-30.3, -1.9), (-26.7, -1.9), (-26.35, -1.5)]
 prism('Signal platform', signal, 28.3, .15, 'black')
 rail('Signal platform rail', [(x, y, 28.45) for x, y in signal + signal[:1]], .9, 1.5)
-for x, y in [(-26.7, 1.6), (-26.7, -1.6), (-31.0, 1.0), (-31.0, -1.0)]:
-    rod('Signal platform bracket', (x, y, 28.3), (-30.1 if x < -29 else -29.4, 0, 26.6 if x < -29 else 24.7), .05, 'black', vertices=6)
+rod('Signal yard boom', (-31.2, 0, 28.25), (-33.55, 0, 28.25), .06, 'black', vertices=8)
+mesh('Signal boom web', [(-31.2, 0, 28.2), (-33.5, 0, 28.2), (-30.5, 0, 27.4)], [(0, 1, 2), (2, 1, 0)], 'black')
+box('Signal locker', (-27.1, 1.2, 28.85), (.6, .5, .8), 'naval')
 for zz in [20.7, 22.3, 23.8]:
     rod('Mast signal lamp', (-28.25, 0, zz), (-27.8, 0, zz), .26, 'naval', vertices=16)
     rod('Mast lamp lens', (-27.8, 0, zz), (-27.78, 0, zz), .21, 'bright', vertices=16)
@@ -612,6 +652,8 @@ ASSEMBLY = 'radar-279'
 rod('Type 279 pole', (-30.85, 0, 40.74), (-30.85, 0, 47.4), .08, 'black', r2=.05, vertices=8)
 box('Type 279 office', (-30.85, .35, 41.4), (.35, .3, 1.3), 'black')
 rod('Type 279 crossarm', (-30.85, -.35, 45.4), (-30.85, .35, 45.4), .03, 'edge', vertices=6)
+rod('Type 279 head bar', (-31.65, 0, 47.35), (-29.8, 0, 47.35), .04, 'black', vertices=6)
+for x in [-31.6, -29.85]: rod('Type 279 wire', (x, 0, 47.35), (x, 0, 43.75), .01, 'edge', vertices=4)
 before = set(scene.objects)
 for dx in [-.85, .85]:
     rod('Type 279 frame bar', (-30.85 + dx, -2.18, 43.7), (-30.85 + dx, 2.18, 43.7), .045, 'naval', vertices=6)
@@ -853,7 +895,7 @@ for side in [-1, 1]:
 
 # ------------------------------------------------------------------ landmarks, simulation volumes, appearance
 COL = collections['Masts and directors']; ASSEMBLY = 'landmarks'
-for id, pos in [('funnel-cap', (22.42, 0, 23.3)), ('foremast-top', (33.45, 0, 39.35)), ('mainmast-top', (-30.85, 0, 47.4)), ('fore-director', (33.7, 0, 35.05)), ('bridge-front', (39.5, 0, 25.0))]:
+for id, pos in [('funnel-cap', (22.42, 0, 23.3)), ('foremast-top', (33.45, 0, 39.35)), ('mainmast-top', (-30.85, 0, 47.4)), ('fore-director', (33.15, 0, 35.3)), ('bridge-front', (39.5, 0, 25.0))]:
     pivot('landmark.' + id, pos)
 COL = collections['Simulation volumes']
 for group in ['armor', 'modules', 'compartments', 'obstructions']:

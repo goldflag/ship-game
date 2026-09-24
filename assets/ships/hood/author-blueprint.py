@@ -186,7 +186,14 @@ def sym(half):
     return pts + [[-x, z] for x, z in reversed(pts) if x > 1e-6]
 
 
-structure('shelter-deck-forward', 'Shelter deck and forecastle superstructure', P['shelter-deck-forward'], DECK_MID, 9.2)
+# The shelter deck is plated in fore and aft; amidships (WELL) it roofs an open-sided well over the
+# upper deck, carried on pillars round the boiler-room casings.
+WELL = (-9.3, 26.6)
+structure('shelter-deck-forward', 'Shelter deck and forecastle superstructure', clip_aft(P['shelter-deck-forward'], WELL[0]), DECK_MID, 9.2)
+structure('shelter-deck-well-roof', 'Shelter deck over the well', clip_fore(clip_aft(P['shelter-deck-forward'], WELL[1]), WELL[0]), 8.95, 9.2)
+structure('shelter-deck-midships', 'Shelter deck abaft the well', clip_fore(P['shelter-deck-forward'], WELL[1]), DECK_MID, 9.2)
+structure('well-casing-forward', 'Boiler-room casing in the well', sym([(0, WELL[0]), (8.6, WELL[0]), (8.6, -4.4), (5.2, -4.4), (5.2, -1.9), (8.6, -1.9), (8.6, 7.4), (8.2, 8.0), (0, 8.0)]), DECK_MID, 8.95)
+structure('well-casing-aft', 'Engine-room casing in the well', sym([(0, 9.8), (5.2, 9.8), (5.2, 11.0), (6.05, 11.0), (6.05, WELL[1]), (0, WELL[1])]), DECK_MID, 8.95)
 structure('shelter-deck-aft', 'After shelter deck over the quarterdeck break', P['shelter-deck-aft'], 2.48, 9.2)
 structure('forward-superstructure', 'Forward superstructure', P['forward-superstructure'], 9.2, 12.0)
 # Bridge, measured tier by tier on the reference: enclosed houses are solid tiers; the open decks
@@ -232,7 +239,7 @@ structure('after-control-tower-roof', 'After control position roof', sym([(0, 35
 for side, sign in [('port', -1), ('starboard', 1)]:
     structure('searchlight-lobe-' + side, side.title() + ' after searchlight platform',
               [[sign * x, z] for x, z in [(2.8, 34.9), (3.2, 34.0), (4.4, 33.6), (5.3, 33.5), (6.4, 33.9), (7.0, 35.0), (6.5, 36.1), (5.3, 36.6), (4.12, 37.5), (4.05, 35.7), (3.8, 35.48), (2.95, 35.48)]], 13.15, 13.3)
-structure('after-deckhouse', 'After deckhouse', [[-2.8, 49.0], [2.8, 49.0], [2.8, 53.2], [-2.8, 53.2]], 9.2, 11.79)
+structure('after-deckhouse', 'After deckhouse', sym([(0, 49.67), (3.35, 49.67), (3.68, 50.6), (3.68, 52.73), (0, 52.73)]), 9.2, 11.79)
 structure('after-deckhouse-roof', 'After gun platform', [[-4.7, 45.8], [4.7, 45.8], [4.8, 51.5], [3.6, 53.9], [0, 54.3], [-3.6, 53.9], [-4.8, 51.5]], 11.79, 11.91, 'roof')
 
 # Coarse firing-clearance proxies: each footprint split into <=10 m slices, kept inside the visual.
