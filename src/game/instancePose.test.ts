@@ -22,11 +22,15 @@ test('an instance pose written in place stores the floats Matrix4.compose and se
 
 test('the radix order is the order a stable comparison sort gives, ties included', () => {
   const random = seeded(11);
-  for (const n of [0, 1, 2, 7, 47, 48, 49, 300, 1165, 4000]) for (let round = 0; round < 4; round++) {
+  for (const n of [0, 1, 2, 7, 47, 48, 49, 300, 1165, 4000]) for (let round = 0; round < 6; round++) {
     const keys = sortKeys(n), values: number[] = [];
+    // Keys a few units in the last place apart share their high words: short runs of them, and one long run.
+    const near = (base: number, spread: number) => base + Math.floor(random() * spread) * 2 ** (Math.floor(Math.log2(base)) - 52);
+    const clusters = Array.from({ length: 12 }, () => 1 + random() * 1e6);
     for (let i = 0; i < n; i++) {
       // Squared distances: wide range, whole-number ties, repeated values and exact zeros.
-      const value = round === 0 ? Math.floor(random() * 50) : round === 1 ? random() * 1e8 : round === 2 ? (random() < .2 ? 0 : random() ** 8 * 1e6) : 42;
+      const value = round === 0 ? Math.floor(random() * 50) : round === 1 ? random() * 1e8 : round === 2 ? (random() < .2 ? 0 : random() ** 8 * 1e6) : round === 3 ? 42
+        : round === 4 ? (random() < .3 ? random() * 1e6 : near(clusters[Math.floor(random() * 12)], 40)) : near(4096.5, 1e6);
       keys[i] = value; values.push(value);
     }
     const expected = values.map((value, index) => ({ value, index })).sort((a, b) => b.value - a.value).map(entry => entry.index);
