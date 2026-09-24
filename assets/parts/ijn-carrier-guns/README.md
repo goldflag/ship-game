@@ -26,7 +26,7 @@ Each mount's origin is the reference hardpoint. The ship supplies the support up
 | `muzzleForward` | 4.107 | 3.783 | 1.68 | 1.83 |
 | `barrelSpacing` | 0.682 | 0.677 | 0.28 | 0.30 |
 | `barrelBaseRadius` | 0.18 | 0.12 | 0.048 | 0.048 |
-| `barbetteRadius` | 1.47 (deck disc, 0.11 m below the datum) | 3.31 (turntable, sole on the datum) | 0.6 (foundation ring) | 1.7 (drum) |
+| `barbetteRadius` | 1.47 (deck disc on the datum; the reference hangs it 0.11 m lower) | 3.31 (turntable, sole on the datum) | 0.6 (foundation ring) | 1.7 (drum) |
 
 The 25 mm visuals have no elevation joint. Their trunnions come from the barrels, which are baked at 30 degrees:
 the bore line through them meets the reference muzzle points and the trunnion-pin component.

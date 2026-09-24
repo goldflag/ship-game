@@ -257,8 +257,9 @@ def create_open(mount, col, helpers, materials):
     s = k.spec
     tf, ph, mf = s['trunnionForward'], s['pivotHeight'], s['muzzleForward']
 
-    # Training disc and roller path; the disc stands 0.11 m proud below the datum as on the reference.
-    k.drum('deck-disc', (0, 0, -.015), 1.47, .19, 'naval', n=24)
+    # Training disc and roller path. The reference's disc hangs 0.11 m below its hardpoint; catalog guns
+    # stand on their datum, so the disc is a 0.08 m plate on it and the platform carries the difference.
+    k.drum('deck-disc', (0, 0, .04), 1.47, .08, 'naval', n=24)
     k.drum('roller-path', (0, 0, .095), 1.30, .03, 'edge', n=24)
     for i in range(12):
         t = math.tau * i / 12

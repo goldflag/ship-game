@@ -387,7 +387,7 @@ for mount in D['mounts']:
         # Forward 12.7 cm pairs: rectangular platforms with chamfered outboard
         # corners, a 1 m splinter bulwark and knee brackets (pjsa108).
         inner=hangar_side(x,sign)-.05;outer=abs(y)+2.45;L2=3.0
-        z-=.13  # the open twin's deck disc hangs 0.11 m below its datum (GJ); 2 cm clear
+        z-=.02  # the open twin's deck disc stands on its datum; 2 cm clear
         pts=[(x-L2,inner),(x+L2,inner),(x+L2,outer-1.1),(x+L2-1.1,outer),(x-L2+1.1,outer),(x-L2,outer-1.1)]
         poly(mount['id']+' sponson platform',[(px,sign*py) for px,py in pts],z-.25,z,M['naval'],col)
         rim=pts[1:]+[pts[0]]
@@ -408,7 +408,7 @@ for mount in D['mounts']:
             # plain round floor just under it, no splinter tub.
             R=3.45;cyl(mount['id']+' sponson floor',(x,y,z-.14),R,.26,M['naval'],col,32)
         else:
-            R=3.15;z-=.13
+            R=3.15;z-=.02  # the open twin's deck disc stands on its datum; 2 cm clear
             cyl(mount['id']+' sponson floor',(x,y,z-.13),R,.26,M['naval'],col,32)
             tub_wall(mount['id']+' splinter tub',x,y,R,z,z+.75,col)
         box(mount['id']+' tub neck',(x,sign*(wall+abs(y))/2,z-.16),(R*1.4,abs(y)-wall+.05,.24),M['naval'],col)
