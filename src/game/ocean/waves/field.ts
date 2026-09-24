@@ -8,6 +8,7 @@ import { clamp, cos, dFdx, dFdy, exp, float, floor, fract, int, ivec2, log2, max
   texture, uniform, uniformArray, vec2, vec3, vec4 } from 'three/tsl';
 import type { HullFootprint, HullSeaWave, OceanRealism, WaveCascadeInfo, WaveField, WaveFoamParameters, WaveParameters, WaveSurfaceSample } from '../contracts';
 import { fftRadices } from './fft';
+import { perRender } from '../../renderUniforms';
 import { HullSea, cascadeModes, hullSeaWavelength, splitLevel } from './hullSea';
 import { drawnSea, seaStateCascades } from './seaState';
 import { FOLD_PERIOD, GRAVITY, buildSpectrum, cascadeBands } from './spectrum';
@@ -185,7 +186,7 @@ export class GpuWaveField implements WaveField {
     this.top = Math.max(0, Math.log2(n / COARSEST_TEXELS));
     this.slopes = tier.map(floatUniform);
     this.gates = tier.map(floatUniform);
-    this.tiles = tier.map(floatUniform);
+    this.tiles = tier.map(() => perRender(floatUniform()));
     this.texels = tier.map(floatUniform);
     this.longestWaves = tier.map(floatUniform);
     this.slickShares = tier.map(floatUniform);

@@ -37,6 +37,7 @@ import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
 import { installBindGroupReuse } from './BindGroupReuse';
+import { installUniformUploads } from './UniformUploads';
 import { subtreePruning } from './SubtreeLayers';
 import { installInstanceBufferNames } from './InstanceBufferNames';
 import { prepareInstanceUploads } from './InstanceUploads';
@@ -421,6 +422,7 @@ export class Game {
     requireWebGPUBackend(this.renderer);
     installFleetBatchInstancing(this.renderer.backend);
     installBindGroupReuse(this.renderer.backend);
+    installUniformUploads(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
     for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
     configureRenderOrder(this.renderer);

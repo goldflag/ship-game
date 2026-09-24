@@ -2,6 +2,7 @@ import { Color, Vector3, type Material, type Mesh, type Node, type Object3D, typ
 import { uniform } from 'three/tsl';
 import type { HullFootprint, HullSeaWave, OceanApi, OceanQuality, OceanRealism, OceanSky, WakeSampler, WaveParameters } from './contracts';
 import { OCEAN_TIERS } from './quality';
+import { perRender } from '../renderUniforms';
 import { oceanFog } from './screen/fog';
 import { createUnderwaterPass, nearPlaneMayBeSubmerged } from './screen/underwater';
 import { createWaveField, createWaveHeightSampler } from './waves';
@@ -51,7 +52,7 @@ export class Ocean implements OceanApi {
   /** `cameraNearSurface` for the underwater pass's uniform branch. */
   private readonly nearSurface = uniform(true);
   /** Whether the fog follows real extinction this frame: the realism switch and the scene's permission. */
-  private readonly aerialHaze = uniform(true);
+  private readonly aerialHaze = perRender(uniform(true));
   private readonly underwater: (scenePass: PassNode, color: Node<'vec4'>) => Node<'vec4'>;
 
   static async create(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, { quality, seed }: { quality: OceanQuality; seed: number }): Promise<Ocean> {

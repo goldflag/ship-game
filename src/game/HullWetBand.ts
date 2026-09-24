@@ -1,5 +1,6 @@
 import type { Node } from 'three/webgpu';
 import { Fn, If, attribute, float, mx_noise_float, positionWorld, smoothstep, uniform, vec3 } from 'three/tsl';
+import { perRender } from './renderUniforms';
 
 type Height = (x: Node<'float'>, z: Node<'float'>) => Node<'float'>;
 
@@ -8,17 +9,17 @@ type Height = (x: Node<'float'>, z: Node<'float'>) => Node<'float'>;
  * serves every shared ship paint. */
 export class HullWetBand {
   /** 1 while the band draws; 0 leaves the paint exactly as authored. */
-  readonly enabled = uniform(1);
+  readonly enabled = perRender(uniform(1));
   /** Albedo and roughness lost where the hull is wet. */
-  readonly darkening = uniform(.45);
-  readonly glossing = uniform(.6);
+  readonly darkening = perRender(uniform(.45));
+  readonly glossing = perRender(uniform(.6));
   /** Metres the band climbs per metre of significant wave height. */
   seaGain = .2;
-  private readonly seaBand = uniform(0);
+  private readonly seaBand = perRender(uniform(0));
   /** Fragments above this height, band included, stay dry without reading the sea. */
-  private readonly highest = uniform(8);
+  private readonly highest = perRender(uniform(8));
   /** Fragments below this height are always under or just out of the water. */
-  private readonly lowest = uniform(-8);
+  private readonly lowest = perRender(uniform(-8));
   /** 0 dry, 1 wet. */
   readonly wetness: Node<'float'>;
   /** Albedo multiplier. */
