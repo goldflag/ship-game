@@ -20,6 +20,14 @@ export function ballisticStep(position: Vec3, velocity: Vec3, seconds: number, d
   return { position: [position[0] + velocity[0] * factor + 0, position[1] + velocity[1] * factor + -drop, position[2] + velocity[2] * factor + 0] as Vec3,
     velocity: [velocity[0] * decay + 0, velocity[1] * decay + -GRAVITY * factor, velocity[2] * decay + 0] as Vec3 };
 }
+/** `ballisticStep` into `out`, position then velocity, with the same operations and nothing allocated. */
+export function ballisticStepInto(out: Float64Array, position: Vec3, velocity: Vec3, seconds: number, dragPerSecond = 0): Float64Array {
+  const factor = travelFactor(seconds, dragPerSecond), decay = Math.exp(-dragPerSecond * seconds);
+  const drop = gravityDrop(seconds, dragPerSecond, factor);
+  out[0] = position[0] + velocity[0] * factor + 0; out[1] = position[1] + velocity[1] * factor + -drop; out[2] = position[2] + velocity[2] * factor + 0;
+  out[3] = velocity[0] * decay + 0; out[4] = velocity[1] * decay + -GRAVITY * factor; out[5] = velocity[2] * decay + 0;
+  return out;
+}
 
 type ArcBracket = { left: number; right: number; leftFactor2: number; rightFactor2: number; leftDrop: number; rightDrop: number; lower?: ArcBracket; upper?: ArcBracket };
 type ArcTree = { root: ArcBracket; count: number };

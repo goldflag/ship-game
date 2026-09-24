@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import { sortDescending, sortKeys } from './instancePose';
 import { attribute, cameraPosition, float, positionWorld, smoothstep, texture, uniform, uv, vec4 } from 'three/tsl';
 
 const SEGMENTS = 18;
@@ -51,9 +52,11 @@ export class WaterPlumes {
 
   constructor(readonly capacity: number, map: THREE.DataTexture) {
     const geometry = new THREE.BufferGeometry();
-    this.position = new THREE.BufferAttribute(new Float32Array(capacity * VERTICES * 3), 3).setUsage(THREE.DynamicDrawUsage);
-    this.color = new THREE.BufferAttribute(new Float32Array(capacity * VERTICES * 3), 3).setUsage(THREE.DynamicDrawUsage);
-    this.opacity = new THREE.BufferAttribute(new Float32Array(capacity * VERTICES * 2), 2).setUsage(THREE.DynamicDrawUsage);
+    // Versioned uploads: publish() flags the live sheets' range. Dynamic usage would also send the whole
+    // array again on every other pass that draws the mesh, and every frame while no sheet is live.
+    this.position = new THREE.BufferAttribute(new Float32Array(capacity * VERTICES * 3), 3);
+    this.color = new THREE.BufferAttribute(new Float32Array(capacity * VERTICES * 3), 3);
+    this.opacity = new THREE.BufferAttribute(new Float32Array(capacity * VERTICES * 2), 2);
     const coords = new Float32Array(capacity * VERTICES * 2), indices: number[] = [];
     for (let sheet = 0; sheet < capacity; sheet++) {
       for (let row = 0; row <= SEGMENTS; row++) for (let side = 0; side < 2; side++) {
@@ -129,6 +132,8 @@ export class WaterPlumes {
 
   publish(camera: THREE.Camera): void {
     this.active.length = 0;
+    const keys = sortKeys(this.capacity);
+    let finite = true;
     for (const sheet of this.sheets) {
       if (sheet.age < 0 || sheet.age >= sheet.life) continue;
       if ((camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
@@ -145,11 +150,17 @@ export class WaterPlumes {
       const fall = GRAVITY / DRAG * (sheet.age - travel);
       if (sheet.up * travel - fall <= 0) continue;
       sheet.distance = sheet.origin.distanceToSquared(camera.position);
+      if (!Number.isFinite(sheet.distance)) finite = false;
+      keys[this.active.length] = sheet.distance;
       this.active.push(sheet);
     }
-    this.active.sort((a, b) => b.distance - a.distance);
+    // Back to front, in the order a stable sort by distance gives (see sortDescending).
+    let order: Uint32Array | undefined;
+    if (finite) order = sortDescending(this.active.length); else this.active.sort((a, b) => b.distance - a.distance);
+    // Straight into the vertex arrays: what setXYZ/setXY store, without a call per vertex.
+    const positions = this.position.array as Float32Array, colors = this.color.array as Float32Array, opacities = this.opacity.array as Float32Array;
     for (let index = 0; index < this.active.length; index++) {
-      const sheet = this.active[index], age = sheet.age;
+      const sheet = this.active[order ? order[index] : index], age = sheet.age;
       const travel = -Math.expm1(-DRAG * age) / DRAG;
       const fall = GRAVITY / DRAG * (age - travel);
       const { cosine, sine } = sheet;
@@ -175,12 +186,13 @@ export class WaterPlumes {
         // Dense lower water carries the sea's blue shadow; aerated tips scatter
         // more sky light. The shared sun follows time of day and battle weather.
         const red = profile.red * sunlight * shade, green = profile.green * sunlight * (.5 + .5 * shade), blue = profile.blue * sunlight;
+        const y = sheet.origin.y + Math.max(-.5, height), opacity = alpha * .82, tear = .38 + breakup * .34 + along * .05;
         for (let side = 0; side < 2; side++) {
-          const vertex = index * VERTICES + row * 2 + side;
+          const vertex = index * VERTICES + row * 2 + side, v3 = vertex * 3, v2 = vertex * 2;
           const lateral = (side - .5) * width + bend;
-          this.position.setXYZ(vertex, centerX - sine * lateral, sheet.origin.y + Math.max(-.5, height), centerZ + cosine * lateral);
-          this.color.setXYZ(vertex, red, green, blue);
-          this.opacity.setXY(vertex, alpha * .82, .38 + breakup * .34 + along * .05);
+          positions[v3] = centerX - sine * lateral; positions[v3 + 1] = y; positions[v3 + 2] = centerZ + cosine * lateral;
+          colors[v3] = red; colors[v3 + 1] = green; colors[v3 + 2] = blue;
+          opacities[v2] = opacity; opacities[v2 + 1] = tear;
         }
       }
     }

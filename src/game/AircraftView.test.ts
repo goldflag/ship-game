@@ -302,3 +302,42 @@ test('spotted enemy airframes render and move between reports, use local lookout
     expect(JSON.stringify(report)).toBe(wire);
   } finally { await view.dispose(); loader.mockRestore(); }
 });
+
+test('a pose recomputes only the joints: every part lands where updating the whole airframe puts it', async () => {
+  // Fixed nodes with their own offsets around joints nested under fixed nodes and under other joints.
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group(), body = new Group(), gear = new Group(), leg = new Group(), prop = new Group(), wing = new Group(), aileron = new Group();
+    body.position.set(0, .4, -1); body.rotation.set(.05, .1, 0);
+    gear.userData = { nodeId: 'gear.main.port' }; gear.position.set(1.2, -.5, .3);
+    leg.position.set(0, -.6, 0); leg.rotation.z = .2;
+    prop.userData = { nodeId: 'propeller.spin' }; prop.position.set(0, 0, -3.8);
+    wing.userData = { nodeId: 'wing.fold.port', foldAxis: [0, 0, -1], foldAngleDegrees: 90 }; wing.position.set(2.5, 0, 0);
+    aileron.userData = { nodeId: 'control.aileron.port' }; aileron.position.set(1.5, 0, .6);
+    const part = (parent: Group, x: number) => { const mesh = new Mesh(new BoxGeometry(1 + x, .3, .5), new MeshBasicMaterial()); mesh.position.x = x; parent.add(mesh); };
+    part(body, 0); part(leg, .1); part(prop, .2); part(wing, .3); part(aileron, .4);
+    wing.add(aileron); gear.add(leg); body.add(gear, prop, wing); scene.add(body);
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load(['a6m2-zero']);
+    const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
+    for (const plane of sim.aircraft) plane.phase = 'lost';
+    const planes = sim.player.airWing!.planes.slice(0, 3);
+    planes.forEach((plane, i) => {
+      Object.assign(plane, { modelId: 'a6m2-zero', phase: 'outbound', position: [i * 30, 300, 0], previousPosition: [i * 30 - 5, 299, 1], heading: i, pitch: .1 * i, bank: -.2 * i, wingFold: i / 2 });
+      plane.controls = { ...plane.controls, propeller: i * 1.3, gear: i / 2, aileron: .1 * i, elevator: -.05 * i, rudder: .02 * i };
+    });
+    const camera = new PerspectiveCamera(50, 1, .5, 20000);
+    camera.position.set(30, 310, 120); camera.lookAt(30, 300, 0); camera.updateMatrixWorld(true);
+    const poses = () => view.root.children.filter(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && drawCount(c) > 0)
+      .map(c => Array.from((c as InstancedMesh).instanceMatrix.array.subarray(0, drawCount(c as InstancedMesh) * 16)));
+    view.update(sim, camera, true);
+    const moving = poses();
+    expect(moving.flat().length).toBeGreaterThan(3 * 16);
+    // The same frame with the whole airframe updated, as before.
+    for (const model of (view as unknown as { models: Map<string, { root: Group; movers: Group[] }> }).models.values()) model.movers = [model.root];
+    view.update(sim, camera, true);
+    expect(poses()).toEqual(moving);
+  } finally { await view.dispose(); loader.mockRestore(); }
+});

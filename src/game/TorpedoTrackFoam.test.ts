@@ -58,3 +58,19 @@ test('airborne and deep rounds leave no track, and a pause or reset holds or cle
   expect((foam.texture.image as { data: Uint8Array }).data.every(value => value === 0)).toBe(true);
   foam.dispose();
 });
+
+test('expiry cuts exactly the samples a filter of the whole track would, however deep each round ran', () => {
+  const painted = (foam: TorpedoTrackFoam) => (foam as unknown as { samples: { x: number; z: number; surfaced: number }[] }).samples;
+  const foam = new TorpedoTrackFoam(RESOLUTION, cpuWakeFoamPainter), reference = new TorpedoTrackFoam(RESOLUTION, cpuWakeFoamPainter);
+  // The reference drops expired samples by filtering the whole list, as the track did before it cut only the old run.
+  Object.assign(reference, { expire(this: { samples: { surfaced: number }[] }, now: number) { this.samples = this.samples.filter(s => now - s.surfaced <= 30); } });
+  const rounds = Array.from({ length: 6 }, (_, i) => ({ id: i + 1, position: [i * 40, -(1 + i * 1.4), 0] as [number, number, number], velocity: [0, 0, -SPEED] as [number, number, number] }));
+  for (let frame = 0; frame < 1500; frame++) {
+    const live = frame < 700 ? rounds : rounds.filter(r => r.id % 2);
+    for (const r of live) r.position[2] -= SPEED * .05 * (1 + r.id * .1);
+    for (const f of [foam, reference]) f.update(live, frame % 50 ? .05 : .031, 0, 0);
+    expect(painted(foam).map(s => [s.x, s.z, s.surfaced])).toEqual(painted(reference).map(s => [s.x, s.z, s.surfaced]));
+  }
+  expect(painted(foam).length).toBeGreaterThan(0);
+  foam.dispose(); reference.dispose();
+});

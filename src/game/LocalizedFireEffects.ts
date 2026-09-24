@@ -126,7 +126,10 @@ export class LocalizedFireEffects {
       const reach = Math.max(30, Math.hypot(pose.x - this.cameraPosition.x, pose.z - this.cameraPosition.z) - def.hull.length * .5);
       const outranked = this.sources.length >= MAX_SOURCES && 2.1 / reach <= this.sources[MAX_SOURCES - 1].score;
       for (let i = 0; i < control.rooms.length; i++) {
-        const fire = control.rooms[i], vent = def.compartments[i]?.fire?.ventPosition;
+        const fire = control.rooms[i];
+        // Most rooms neither burn nor remember a fire: remember() would return nothing for them.
+        if (!memories.rooms[i] && !(fire.intensity > 0)) continue;
+        const vent = def.compartments[i]?.fire?.ventPosition;
         if (!vent) continue;
         const flooded = (actor.damage.compartments?.[i]?.waterM3 ?? 0) >= .25 * def.compartments[i].capacityM3;
         const m = this.remember(memories.rooms, i, fire, dt, flooded);
@@ -139,6 +142,7 @@ export class LocalizedFireEffects {
       let trained = false;
       for (let i = 0; i < control.mounts.length; i++) {
         const fire = control.mounts[i];
+        if (!memories.mounts[i] && !(fire.intensity > 0)) continue;
         const m = this.remember(memories.mounts, i, fire, dt, false);
         if (!m || outranked) continue;
         if (!trained) { this.trains.length = 0; for (const state of actor.mounts) this.trains.push(state.train); trained = true; }

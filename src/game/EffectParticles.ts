@@ -1,8 +1,17 @@
 import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
+import { sortDescending, sortKeys, writeInstancePose } from './instancePose';
 
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
-const RIGHT = new THREE.Vector3(1, 0, 0);
+/** Water-aligned sprites lie flat: a quarter turn about +X. */
+const WATER_FACING = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+/** How a slot ranks for reuse: a spent particle first, then the largest share of its life spent. NaN never ranks, and a
+ * live particle's infinite share stays below a spent one. */
+const claimKey = (p: EffectParticle) => {
+  if (p.age >= p.life) return Infinity;
+  const fraction = p.age / p.life;
+  return fraction !== fraction ? -Infinity : fraction === Infinity ? Number.MAX_VALUE : fraction;
+};
 /** Speed (m/s) at which a `streak` particle reaches its full smear. */
 const STREAK_SPEED = 20;
 const smooth = (n: number) => { const t = clamp(n); return t * t * (3 - 2 * t); };
@@ -129,20 +138,15 @@ export class EffectParticlePool {
   private readonly tint?: THREE.InstancedBufferAttribute;
   private readonly progress?: THREE.InstancedBufferAttribute;
   // Instance poses do not need a scene object's synchronized Euler rotation or
-  // world-matrix propagation. Compose their quaternion poses directly.
+  // world-matrix propagation: publish() composes them straight into the buffers.
   private readonly position = new THREE.Vector3();
   private readonly orientation = new THREE.Quaternion();
-  private readonly scale = new THREE.Vector3();
-  private readonly matrix = new THREE.Matrix4();
   private readonly facing = new THREE.Matrix4();
   private readonly up = THREE.Object3D.DEFAULT_UP.clone();
-  private readonly axis = new THREE.Vector3(0, 0, 1);
-  private readonly turn = new THREE.Quaternion();
   private readonly cameraInverse = new THREE.Quaternion();
   private readonly direction = new THREE.Vector3();
   private readonly frustum = new THREE.Frustum();
   private readonly projection = new THREE.Matrix4();
-  private readonly bounds = new THREE.Sphere();
   private cursor = 0;
   private emitted = 0;
 
@@ -191,6 +195,15 @@ export class EffectParticlePool {
   density = 1;
   private densityPhase = 0;
   private scratch?: EffectParticle;
+  /** Instances whose buffer slots may hold a pose: every slot past it is already cleared. */
+  private filled = 0;
+  /** A max tree over every slot's claim key (`claimKey`), built when a full pool is first searched after `advance`. */
+  private claims?: Float64Array;
+  private claimLeaves = 0;
+  private claimsValid = false;
+  /** The slot claimed last. Its caller sets it up after `emit` returns (every emitter finishes one particle before it emits
+   * the next), so its key is refreshed on the next claim. */
+  private claimed = -1;
 
   emit(position: THREE.Vector3, sourceId?: string): EffectParticle {
     if (this.density < 1) {
@@ -214,15 +227,79 @@ export class EffectParticlePool {
   /** The next free slot in ring order. A full pool gives up the particle nearest the end of its
    * life, so a burst of short gunfire never cuts a long-lived plume short. */
   private claim(): EffectParticle {
-    let chosen = this.cursor % this.capacity, spent = -Infinity;
-    for (let probe = 0; probe < this.capacity; probe++) {
-      const index = (this.cursor + probe) % this.capacity, p = this.particles[index];
-      if (p.age >= p.life) { chosen = index; break; }
+    const capacity = this.capacity, particles = this.particles;
+    if (this.claimsValid && this.claimed >= 0) this.updateClaim(this.claimed);
+    // The ring usually offers a free slot within a few probes. Past them the tree answers what probing the whole ring
+    // would: the first spent slot in ring order, else the first with the largest share of its life spent.
+    let chosen = this.cursor % capacity, spent = -Infinity, free = false;
+    const probes = Math.min(capacity, 32);
+    for (let probe = 0; probe < probes; probe++) {
+      const index = (this.cursor + probe) % capacity, p = particles[index];
+      if (p.age >= p.life) { chosen = index; free = true; break; }
       const fraction = p.age / p.life;
       if (fraction > spent) { spent = fraction; chosen = index; }
     }
+    if (!free && probes < capacity) chosen = this.search();
     this.cursor = chosen + 1;
-    return this.particles[chosen];
+    this.claimed = chosen;
+    return particles[chosen];
+  }
+
+  /** Probing the whole ring from the cursor, as a query on the claim tree. */
+  private search(): number {
+    if (!this.claimsValid) this.buildClaims();
+    const start = this.cursor % this.capacity;
+    const ahead = this.claimMax(start, this.capacity), behind = start ? this.claimMax(0, start) : -Infinity;
+    const best = ahead >= behind ? ahead : behind;
+    // Nothing beats the probe's starting -Infinity: it keeps its first slot.
+    if (best === -Infinity) return start;
+    return this.firstClaim(ahead >= behind ? start : 0, best);
+  }
+
+  private buildClaims(): void {
+    let leaves = this.claimLeaves;
+    if (!this.claims) {
+      leaves = 1; while (leaves < this.capacity) leaves *= 2;
+      this.claimLeaves = leaves; this.claims = new Float64Array(leaves * 2).fill(-Infinity);
+    }
+    const tree = this.claims;
+    for (let i = 0; i < this.capacity; i++) tree[leaves + i] = claimKey(this.particles[i]);
+    for (let i = leaves - 1; i >= 1; i--) { const a = tree[i * 2], b = tree[i * 2 + 1]; tree[i] = a >= b ? a : b; }
+    this.claimsValid = true;
+  }
+
+  private updateClaim(index: number): void {
+    const tree = this.claims!;
+    let i = index + this.claimLeaves;
+    tree[i] = claimKey(this.particles[index]);
+    for (i >>= 1; i >= 1; i >>= 1) { const a = tree[i * 2], b = tree[i * 2 + 1]; tree[i] = a >= b ? a : b; }
+  }
+
+  /** Largest claim key over slots [from, to). */
+  private claimMax(from: number, to: number): number {
+    const tree = this.claims!;
+    let best = -Infinity;
+    for (let lo = from + this.claimLeaves, hi = to + this.claimLeaves; lo < hi; lo >>= 1, hi >>= 1) {
+      if (lo & 1) { const key = tree[lo++]; if (key > best) best = key; }
+      if (hi & 1) { const key = tree[--hi]; if (key > best) best = key; }
+    }
+    return best;
+  }
+
+  /** First slot at or after `from` whose key reaches `target`, the largest key of a range starting there. */
+  private firstClaim(from: number, target: number): number {
+    const tree = this.claims!, leaves = this.claimLeaves;
+    let i = from + leaves;
+    if (!(tree[i] >= target)) {
+      for (;;) {
+        while (i & 1) i >>= 1;
+        if (i === 0) return from;
+        i++;
+        if (tree[i] >= target) break;
+      }
+      while (i < leaves) { i *= 2; if (!(tree[i] >= target)) i++; }
+    }
+    return i - leaves;
   }
 
   update(dt: number, camera: THREE.Camera, wind: THREE.Vector3, hiddenSourceId?: string): void {
@@ -232,6 +309,7 @@ export class EffectParticlePool {
 
   /** Age existing particles before new events are emitted. */
   advance(dt: number, wind: THREE.Vector3): void {
+    this.claimsValid = false;
     for (const p of this.particles) {
       if (p.age >= p.life) continue;
       const previousAge = p.age;
@@ -255,109 +333,152 @@ export class EffectParticlePool {
     }
   }
 
-  /** Build the sorted instance buffers once, after all emissions for this frame. */
+  /** Build the sorted instance buffers once, after all emissions for this frame. Poses go straight into the instance
+   * arrays through three's own arithmetic (the quaternion product, then `Matrix4.compose`), so every float is the same. */
   publish(camera: THREE.Camera, hiddenSourceId?: string): void {
-    this.active.length = 0;
-    this.cameraInverse.copy(camera.quaternion).invert();
-    const cull = this.cullOffscreen && (camera as THREE.PerspectiveCamera).isPerspectiveCamera;
+    const active = this.active, particles = this.particles;
+    active.length = 0;
+    const cameraRotation = camera.quaternion, qx = cameraRotation.x, qy = cameraRotation.y, qz = cameraRotation.z, qw = cameraRotation.w;
+    // The camera's inverse rotation, as Quaternion.invert() makes it.
+    const ix = qx * -1, iy = qy * -1, iz = qz * -1, iw = qw;
+    this.cameraInverse.set(ix, iy, iz, iw);
+    const perspective = !!(camera as THREE.PerspectiveCamera).isPerspectiveCamera;
+    const cull = this.cullOffscreen && perspective, volumes = !!this.sphere, fineWater = this.cullFineWater && perspective;
+    const cameraPosition = camera.position, cx = cameraPosition.x, cy = cameraPosition.y, cz = cameraPosition.z;
+    const planes = this.frustum.planes;
     if (cull) this.frustum.setFromProjectionMatrix(this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
-    for (const p of this.particles) {
+    // Plane.distanceToPoint(p) is normal.dot(p) + constant, summed in this order.
+    const n0 = planes[0].normal, n1 = planes[1].normal, n2 = planes[2].normal, n3 = planes[3].normal, n4 = planes[4].normal, n5 = planes[5].normal;
+    const n0x = n0.x, n0y = n0.y, n0z = n0.z, c0 = planes[0].constant, n1x = n1.x, n1y = n1.y, n1z = n1.z, c1 = planes[1].constant;
+    const n2x = n2.x, n2y = n2.y, n2z = n2.z, c2 = planes[2].constant, n3x = n3.x, n3y = n3.y, n3z = n3.z, c3 = planes[3].constant;
+    const n4x = n4.x, n4y = n4.y, n4z = n4.z, c4 = planes[4].constant, n5x = n5.x, n5y = n5.y, n5z = n5.z, c5 = planes[5].constant;
+    const view = camera.matrixWorldInverse.elements, projection = camera.projectionMatrix.elements;
+    // Most particles share a stretch, and so the Math.hypot of their bounding sphere.
+    let boundStretch = NaN, boundScale = NaN, finite = true;
+    const keys = sortKeys(this.capacity);
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
       if (p.age < 0 || p.age >= p.life) continue;
       // Hidden smoke still ages and drifts, so leaving optics restores its current state.
       if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
+      const position = p.position, x = position.x, y = position.y, z = position.z;
       if (cull) {
         // Linear growth bounds the decaying expansion. Include the full rotated
         // quad and stretch; particles outside still age and drift in advance().
         const size = Math.max(.01, p.size + Math.max(0, p.growth) * p.age + Math.max(0, p.diffusion) * p.age);
-        this.bounds.set(p.position, size * .5 * Math.hypot(1, p.stretch));
-        if (this.sphere) {
-          // Volume rays start at the camera, including gas inside the near
-          // plane. Only the four side planes can reject their bounding sphere;
-          // the fragment shader owns depth clipping against the captured scene.
-          const planes = this.frustum.planes;
-          if (planes[0].distanceToPoint(p.position) < -this.bounds.radius
-            || planes[1].distanceToPoint(p.position) < -this.bounds.radius
-            || planes[2].distanceToPoint(p.position) < -this.bounds.radius
-            || planes[3].distanceToPoint(p.position) < -this.bounds.radius) continue;
-        } else if (!this.frustum.intersectsSphere(this.bounds)) continue;
+        if (p.stretch !== boundStretch) { boundStretch = p.stretch; boundScale = Math.hypot(1, p.stretch); }
+        const reach = -(size * .5 * boundScale);
+        // Volume rays start at the camera, including gas inside the near
+        // plane. Only the four side planes can reject their bounding sphere;
+        // the fragment shader owns depth clipping against the captured scene.
+        if (n0x * x + n0y * y + n0z * z + c0 < reach || n1x * x + n1y * y + n1z * z + c1 < reach
+          || n2x * x + n2y * y + n2z * z + c2 < reach || n3x * x + n3y * y + n3z * z + c3 < reach) continue;
+        if (!volumes && (n4x * x + n4y * y + n4z * z + c4 < reach || n5x * x + n5y * y + n5z * z + c5 < reach)) continue;
       }
-      if (this.cullFineWater && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
-        this.direction.copy(p.position).applyMatrix4(camera.matrixWorldInverse);
-        const depth = -this.direction.z, radius = p.size + p.growth * p.age;
-        const projection = camera.projectionMatrix.elements;
-        if (depth + radius < .1 || Math.abs(this.direction.x) > Math.max(0, depth) / projection[0] + radius
-          || Math.abs(this.direction.y) > Math.max(0, depth) / projection[5] + radius
+      if (fineWater) {
+        // The view-space position, as Vector3.applyMatrix4 computes it.
+        const w = 1 / (view[3] * x + view[7] * y + view[11] * z + view[15]);
+        const vx = (view[0] * x + view[4] * y + view[8] * z + view[12]) * w;
+        const vy = (view[1] * x + view[5] * y + view[9] * z + view[13]) * w;
+        const vz = (view[2] * x + view[6] * y + view[10] * z + view[14]) * w;
+        const depth = -vz, radius = p.size + p.growth * p.age;
+        if (depth + radius < .1 || Math.abs(vx) > Math.max(0, depth) / projection[0] + radius
+          || Math.abs(vy) > Math.max(0, depth) / projection[5] + radius
           || radius * projection[5] / Math.max(1, depth) < .0007) continue;
       }
-      p.distance = p.position.distanceToSquared(camera.position);
-      this.active.push(p);
+      const dx = x - cx, dy = y - cy, dz = z - cz, distance = dx * dx + dy * dy + dz * dz;
+      p.distance = distance;
+      if (!Number.isFinite(distance)) finite = false;
+      keys[active.length] = distance;
+      active.push(p);
     }
-    if (!this.additive) this.active.sort((a, b) => b.distance - a.distance);
-    this.active.forEach((p, index) => {
+    const count = active.length;
+    // Back to front; distances a radix order could rank differently keep the comparison sort.
+    let order: Uint32Array | undefined;
+    if (!this.additive) {
+      if (finite) order = sortDescending(count);
+      else active.sort((a, b) => b.distance - a.distance);
+    }
+    const matrices = this.mesh.instanceMatrix.array as Float32Array, colors = this.mesh.instanceColor!;
+    const colorArray = colors.array as Float32Array, colorStride = colors.itemSize, alphas = this.alpha.array as Float32Array;
+    const sphere = this.sphere?.array as Float32Array | undefined, volume = this.volume?.array as Float32Array;
+    const tint = this.tint?.array as Float32Array, progress = this.progress?.array as Float32Array;
+    const facing = volumes && perspective;
+    for (let index = 0; index < count; index++) {
+      const p = active[order ? order[index] : index];
       const t = p.age / p.life;
       const fade = (1 - smooth((t - .18) / .82)) * (p.fadeIn > 0 ? smooth(p.age / p.fadeIn) : 1);
       const expansion = p.growthDecay > 0 ? (1 - Math.exp(-p.age * p.growthDecay)) / p.growthDecay : p.age;
       const size = Math.max(.01, p.size + p.growth * expansion + p.diffusion * p.age);
-      this.position.copy(p.position);
-      if (this.sphere && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
-        const radiusSq = size * size / 4;
+      let px = p.position.x, py = p.position.y, pz = p.position.z, ox: number, oy: number, oz: number, ow: number, sx: number, sy: number;
+      if (facing) {
+        const radiusSq = size * size / 4, orientation = this.orientation;
         if (p.distance > radiusSq * 1.01) {
           // A sphere's perspective silhouette extends beyond a diameter-sized
           // billboard. Face its center and bound the camera's tangent cone.
-          this.orientation.setFromRotationMatrix(this.facing.lookAt(camera.position, this.position, this.up));
-          const span = size * Math.sqrt(p.distance / (p.distance - radiusSq));
-          this.scale.set(span, span, 1);
+          orientation.setFromRotationMatrix(this.facing.lookAt(cameraPosition, p.position, this.up));
+          sx = sy = size * Math.sqrt(p.distance / (p.distance - radiusSq));
         } else {
           // Inside the volume, every screen ray may intersect gas. Cover the
           // viewport at a valid clip depth; the shader still uses the real sphere.
-          this.orientation.copy(camera.quaternion);
+          orientation.copy(cameraRotation);
           // Mid-clip depth stays inside the frustum with standard AND reversed
           // depth; zero lies on the far plane when reversed depth is active.
-          this.position.set(0, 0, .5).unproject(camera);
-          this.direction.set(1, 1, .5).unproject(camera).sub(this.position).applyQuaternion(this.cameraInverse);
-          this.scale.set(Math.abs(this.direction.x) * 2, Math.abs(this.direction.y) * 2, 1);
+          const center = this.position.set(0, 0, .5).unproject(camera);
+          px = center.x; py = center.y; pz = center.z;
+          this.direction.set(1, 1, .5).unproject(camera).sub(center).applyQuaternion(this.cameraInverse);
+          sx = Math.abs(this.direction.x) * 2; sy = Math.abs(this.direction.y) * 2;
         }
+        ox = orientation.x; oy = orientation.y; oz = orientation.z; ow = orientation.w;
       } else {
-        let angle = p.angle, stretch = p.stretch;
-        if (p.align === 'water') this.orientation.setFromAxisAngle(RIGHT, -Math.PI / 2);
-        else {
-          this.orientation.copy(camera.quaternion);
-          if (p.align === 'velocity' || p.align === 'streak') {
-            this.direction.copy(p.velocity).applyQuaternion(this.cameraInverse);
-            angle = Math.atan2(-this.direction.x, this.direction.y);
-            const speed = Math.max(.01, p.velocity.length()), across = Math.hypot(this.direction.x, this.direction.y) / speed;
-            // An exposure smear grows with speed and foreshortens; the drop itself stays round.
-            if (p.align === 'streak') stretch = 1 + (stretch - 1) * Math.min(1, speed / STREAK_SPEED) * across;
-            else stretch *= Math.max(.35, across);
-          }
+        let angle = p.angle, stretch = p.stretch, ax = qx, ay = qy, az = qz, aw = qw;
+        if (p.align === 'water') { ax = WATER_FACING.x; ay = WATER_FACING.y; az = WATER_FACING.z; aw = WATER_FACING.w; }
+        else if (p.align === 'velocity' || p.align === 'streak') {
+          // The velocity in camera space, as Vector3.applyQuaternion turns it.
+          const velocity = p.velocity, vx = velocity.x, vy = velocity.y, vz = velocity.z;
+          const tx = 2 * (iy * vz - iz * vy), ty = 2 * (iz * vx - ix * vz), tz = 2 * (ix * vy - iy * vx);
+          const dx = vx + iw * tx + iy * tz - iz * ty, dy = vy + iw * ty + iz * tx - ix * tz;
+          angle = Math.atan2(-dx, dy);
+          const speed = Math.max(.01, Math.sqrt(vx * vx + vy * vy + vz * vz)), across = Math.hypot(dx, dy) / speed;
+          // An exposure smear grows with speed and foreshortens; the drop itself stays round.
+          if (p.align === 'streak') stretch = 1 + (stretch - 1) * Math.min(1, speed / STREAK_SPEED) * across;
+          else stretch *= Math.max(.35, across);
         }
-        this.orientation.multiply(this.turn.setFromAxisAngle(this.axis, angle));
-        this.scale.set(size, size * stretch, 1);
+        // Then the roll about the view axis: Quaternion.setFromAxisAngle((0, 0, 1), angle) and multiplyQuaternions.
+        const half = angle / 2, s = Math.sin(half), bx = 0 * s, by = 0 * s, bz = 1 * s, bw = Math.cos(half);
+        ox = ax * bw + aw * bx + ay * bz - az * by;
+        oy = ay * bw + aw * by + az * bx - ax * bz;
+        oz = az * bw + aw * bz + ax * by - ay * bx;
+        ow = aw * bw - ax * bx - ay * by - az * bz;
+        sx = size; sy = size * stretch;
       }
-      this.mesh.setMatrixAt(index, this.matrix.compose(this.position, this.orientation, this.scale));
-      // Component setters support both packed vertex RGB and aligned WebGPU
-      // storage colors; InstancedMesh.setColorAt assumes a three-float stride.
-      this.mesh.instanceColor!.setXYZ(index, p.color.r, p.color.g, p.color.b);
-      this.alpha.setX(index, p.opacity * fade);
-      if (this.sphere && this.volume && this.tint) {
-        this.sphere.setXYZW(index, p.position.x, p.position.y, p.position.z, size / 2);
-        this.volume.setXYZW(index, p.age, p.seed, p.heat * (1 - smooth(p.age / p.cooling)), p.density);
+      writeInstancePose(matrices, index * 16, px, py, pz, ox, oy, oz, ow, sx, sy, 1);
+      // Component writes suit both packed vertex RGB and aligned WebGPU storage
+      // colors; InstancedMesh.setColorAt assumes a three-float stride.
+      const color = p.color, c = index * colorStride;
+      colorArray[c] = color.r; colorArray[c + 1] = color.g; colorArray[c + 2] = color.b;
+      alphas[index] = p.opacity * fade;
+      if (sphere) {
+        const v = index * 4;
+        sphere[v] = p.position.x; sphere[v + 1] = p.position.y; sphere[v + 2] = p.position.z; sphere[v + 3] = size / 2;
+        volume[v] = p.age; volume[v + 1] = p.seed; volume[v + 2] = p.heat * (1 - smooth(p.age / p.cooling)); volume[v + 3] = p.density;
         // The narrow jet gradually opens into billows; freeze its launch axis
         // instead of snapping it toward gravity as the initial velocity decays.
-        this.tint.setXYZW(index, p.color.r, p.color.g, p.color.b, 1 + (p.volumeAspect - 1) * Math.exp(-p.age * .7));
+        tint[v] = color.r; tint[v + 1] = color.g; tint[v + 2] = color.b; tint[v + 3] = 1 + (p.volumeAspect - 1) * Math.exp(-p.age * .7);
         // Ease into thinning after the flash; approach empty gas continuously,
         // well before storage expires. The same clock freezes on pause.
         const dispersal = p.dissipationTime > 0 ? Math.max(0, p.age - p.cooling) / p.dissipationTime : 0;
-        this.progress!.setXYZW(index, t, 1 - Math.exp(-dispersal * dispersal), p.volumeYaw, p.volumeAxisY);
+        progress[v] = t; progress[v + 1] = 1 - Math.exp(-dispersal * dispersal); progress[v + 2] = p.volumeYaw; progress[v + 3] = p.volumeAxisY;
       }
-    });
-    this.alpha.array.fill(0, this.active.length);
-    this.mesh.instanceMatrix.array.fill(0, this.active.length * 16);
-    this.mesh.geometry.instanceCount = this.active.length;
-    this.mesh.visible = this.active.length > 0;
-    if (this.active.length) for (const buffer of [this.mesh.instanceMatrix, this.mesh.instanceColor, this.alpha, this.sphere, this.volume, this.tint, this.progress]) if (buffer) {
+    }
+    // Slots past the live count stay cleared: only those the last publication used need clearing again.
+    if (this.filled > count) { alphas.fill(0, count, this.filled); matrices.fill(0, count * 16, this.filled * 16); }
+    this.filled = count;
+    this.mesh.geometry.instanceCount = count;
+    this.mesh.visible = count > 0;
+    if (count) for (const buffer of [this.mesh.instanceMatrix, this.mesh.instanceColor, this.alpha, this.sphere, this.volume, this.tint, this.progress]) if (buffer) {
       buffer.clearUpdateRanges();
-      buffer.addUpdateRange(0, this.active.length * buffer.itemSize);
+      buffer.addUpdateRange(0, count * buffer.itemSize);
       buffer.needsUpdate = true;
     }
   }
@@ -365,7 +486,7 @@ export class EffectParticlePool {
   get count(): number { return this.active.length; }
   reset(): void {
     for (const p of this.particles) { p.age = 0; p.life = 0; }
-    this.active.length = 0; this.cursor = 0; this.emitted = 0;
+    this.active.length = 0; this.cursor = 0; this.emitted = 0; this.filled = 0; this.claimsValid = false; this.claimed = -1;
     this.mesh.geometry.instanceCount = 0; this.mesh.visible = false;
     this.alpha.array.fill(0); this.alpha.needsUpdate = true;
     this.mesh.instanceMatrix.array.fill(0); this.mesh.instanceMatrix.needsUpdate = true;

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { WakeFoam } from './WakeFoam';
+import { WAKE_TUNING, WakeFoam } from './WakeFoam';
 import { WakeStampCollector } from './WakeFoamGpu';
 
 for (const speed of [3, -3]) test(`wake stays at the trailing hull end during a tight turn at ${speed} m/s`, () => {
@@ -52,4 +52,22 @@ test('impact foam reaches the ocean field while stopped, freezes on pause, and c
   for (let i = 0; i < 60 * 13; i++) foam.update(state, 1 / 60);
   expect(pixels.every(value => value === 0)).toBe(true);
   foam.dispose();
+});
+
+test('the realistic trail reads its live tuning: a change repaints every sample as if it had always been set', () => {
+  const hull = { length: 180, beam: 26, forwardSpeed: 15, centerX: .4, centerZ: -2 };
+  const tuned = { ...WAKE_TUNING, churnPower: 2.1, turnChurn: .2, slickPower: 1.4, lobes: .6, meander: .9 };
+  const [late, early] = [new WakeStampCollector(), new WakeStampCollector()];
+  const foams = [new WakeFoam(256, hull, late), new WakeFoam(256, hull, early)];
+  foams[1].tuning = tuned;
+  const state = { x: 0, z: 0, heading: .3, speed: 12 };
+  for (const foam of foams) foam.realistic = true;
+  for (let frame = 0; frame < 900; frame++) {
+    state.heading += frame > 400 && frame < 600 ? .01 : 0; state.speed = frame > 700 ? -4 : 12;
+    state.x += Math.sin(state.heading) * state.speed / 60; state.z -= Math.cos(state.heading) * state.speed / 60;
+    if (frame === 850) foams[0].tuning = tuned;
+    for (const foam of foams) foam.update({ ...state }, 1 / 60);
+  }
+  expect(late.count).toBeGreaterThan(100);
+  expect(Array.from(late.values.subarray(0, late.count * 8))).toEqual(Array.from(early.values.subarray(0, early.count * 8)));
 });
