@@ -5,6 +5,7 @@ Blender frame as in build.py: X forward (= -z runtime), Y port (= -x runtime), Z
 Positions are runtime metres measured on the viewing reference; every part is seated on the loft.
 """
 import math
+import bmesh
 
 
 def build_underwater(D, helpers, materials, col):
@@ -62,7 +63,11 @@ def build_underwater(D, helpers, materials, col):
             for i in range(n):
                 j = (i + 1) % n
                 ff.append((r * n + i, r * n + j, (r + 1) * n + j, (r + 1) * n + i))
-        return tag(mesh(name, vv, ff, mat, col, smooth), name.split('.')[0])
+        obj = tag(mesh(name, vv, ff, mat, col, smooth), name.split('.')[0])
+        bm = bmesh.new(); bm.from_mesh(obj.data)
+        bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+        bm.to_mesh(obj.data); bm.free()
+        return obj
 
     def lerp_table(table, z):
         for (a, va), (b, vb) in zip(table, table[1:]):

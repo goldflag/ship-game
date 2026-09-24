@@ -77,20 +77,7 @@ for structure in D.get('structures',[]):
         if structure['id'].endswith('-funnel'):
             face.use_smooth=abs(face.normal.z)<.8
         elif face.normal.z>.8:face.material_index=1
-# Original oval uptake jackets with measured rake and sloping open caps.
-for name,x,bottom,top in [('forward-funnel',5.55,8.27,22.35),('after-funnel',-6.5,8.27,22.0)]:
-    n=40;rake=-.094*(top-bottom)
-    structure=next(s for s in D['structures'] if s['id']==name)
-    vv=[(-z,-x,y) for x,y,z in structure['surface']['vertices']]
-    throat=mesh(name+'.throat',vv[3*n:],[tuple(range(n))],boot,collection);throat['assemblyId']=name
-    for z in [bottom+3,bottom+6,top-.3]:
-        shift=-.094*(z-bottom)
-        for i in range(n):
-            a=i*math.tau/n;b=(i+1)*math.tau/n
-            tilt=.47 if z>top-1 else 0
-            ob=rod(name+'.band',(x+shift+1.9*math.cos(a),1.65*math.sin(a),z+tilt*math.cos(a)),(x+shift+1.9*math.cos(b),1.65*math.sin(b),z+tilt*math.cos(b)),.045,boot,collection,vertices=8);ob['assemblyId']=name
-    for side in [-1,1]:
-        rod(name+'.steam pipe',(x+.8,side*1.48,bottom),(x+rake+.8,side*1.48,top-.7),.085,naval,collection,vertices=10)
+# Funnel throats, waste-steam pipes and galleries are in upperworks.py (called from fittings.py).
 
 def inside_footprint(x,y,poly):
     inside=False
@@ -98,6 +85,8 @@ def inside_footprint(x,y,poly):
         if (a[1]>y)!=(b[1]>y) and x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]:inside=not inside
     return inside
 
+sys.path.insert(0,str(Path(__file__).parent))
+from fittings import TUB_RADIUS
 for mount in D['mounts']:
     x,y,z=-mount['position'][2],-mount['position'][0],mount['position'][1]
     support=deck_height(x)
@@ -105,13 +94,19 @@ for mount in D['mounts']:
         roof=structure['baseY']+structure['height']
         if roof<=z+.08 and inside_footprint(-y,-x,structure['footprint']):support=max(support,roof)
     radius=mount['weapon']['barbetteRadius']
+    # The 40 mm tubs beside the forward and midships deckhouses stand on round pedestals, as the reference.
+    if mount['id'] in ['aa-11','aa-12','aa-13','aa-14']:radius=1.8
     if z>support+.02:
         base=cyl(mount['id']+'.barbette',(x,y,(support+z)/2),radius,z-support,naval,collection,48)
         base['assemblyId']=mount['id']
     # Elevated wing batteries stand on plated sponsons with diagonal knees.
     if mount['id'].startswith(('aa-','secondary-')) and z>support+.6:
-        platform_radius=max(radius+.25,1.85 if mount['weapon']['caliberM']>.03 else .85)
-        plate=cyl(mount['id']+'.platform',(x,y,z-.10),platform_radius,.20,deck,collection,32)
+        # Floored out to the splinter-tub wall where the mount has one (fittings.TUB_RADIUS).
+        platform_radius=TUB_RADIUS.get(mount['id'],max(radius+.25,1.85 if mount['weapon']['caliberM']>.03 else .85))
+        if mount['id'] in ['aa-11','aa-12','aa-13','aa-14']:
+            # A flared skirt carries the tub floor out from the pedestal.
+            plate=cyl(mount['id']+'.platform',(x,y,z-.24),radius,.48,deck,collection,48,platform_radius)
+        else:plate=cyl(mount['id']+'.platform',(x,y,z-.10),platform_radius,.20,deck,collection,32)
         plate['assemblyId']=mount['id']
         for dx,dy in [(platform_radius*.8,0),(-platform_radius*.8,0),(0,platform_radius*.8),(0,-platform_radius*.8)]:
             ob=rod(mount['id']+'.platform knee',(x+dx,y+dy,z-.2),(x,y,max(support,z-1.8)),.10,naval,collection,vertices=8)

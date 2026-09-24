@@ -5,6 +5,19 @@ from mathutils import Matrix
 from blender_fidelity import Fittings, loft_breadth
 from blender_rig import radar_pivot
 
+# Bofors splinter tubs; build.py floors each to its wall.
+TUB_RADIUS={'aa-7':2.6,'aa-8':2.6,'aa-11':2.72,'aa-12':2.72,'aa-13':2.72,'aa-14':2.72,'aa-24':2.58,'aa-25':2.58}
+# Platform bulwarks as the reference: height and which edges carry one (Blender x = -z runtime);
+# 'rail' is an open guard rail.
+BULWARKS={
+    'forward-bridge-lower-platform':(1.3,lambda a,b:True),
+    'forward-bridge-middle-platform':(1.2,lambda a,b:max(a[0],b[0])>9.7),
+    'forward-bridge-upper-platform':(1.1,lambda a,b:max(a[0],b[0])>12.6),
+    'pilot-house-platform':(1.1,lambda a,b:min(a[0],b[0])<18.4),
+    'after-bridge-upper-platform':(1.2,lambda a,b:min(a[0],b[0])<-13.9),
+    'after-mast-house-platform':('rail',None),
+}
+
 def build_fittings(D,helpers,materials,col,deck_height):
     mesh,cyl,rod,box=(helpers[k] for k in ['mesh','cyl','rod','box'])
     naval,roof,dark=(materials[k] for k in ['naval','roof','dark'])
@@ -26,34 +39,15 @@ def build_fittings(D,helpers,materials,col,deck_height):
         if not m['id'].startswith('aa-'):continue
         x,y,z=-m['position'][2],-m['position'][0],m['position'][1]
         heavy=m['weapon']['caliberM']>.03
-        r=({7:2.6,8:2.6,11:2.73,12:2.73,13:2.73,14:2.73,24:2.58,25:2.58}.get(int(m['id'][3:]),2.4)) if heavy else .95
-        if m['id'] in ['aa-19','aa-20','aa-3','aa-4','aa-5','aa-6','aa-15','aa-16','aa-17','aa-18','aa-26','aa-27','aa-28','aa-29','aa-30','aa-31']:continue
+        r=TUB_RADIUS.get(m['id'],2.4) if heavy else .95
+        # Only the 40 mm mounts have round tubs; the reference's 20 mm stand in deck-edge bulwarks
+        # (upperworks.py) or in the open, and aa-19/20 are in the after 02 deck's sponsons.
+        if not heavy or m['id'] in ['aa-19','aa-20']:continue
         start,end={7:(310,550),8:(170,410),11:(335,655),12:(65,385),13:(270,600),14:(120,450),24:(20,245),25:(115,340)}.get(int(m['id'][3:]),(0,360))
-        ringwall(m['id']+'.splinter tub',x,y,z,r,.72 if heavy else .85,start,end)
-    # Tripod legs, fighting tops, yards and separate antenna poles.
-    for name,x,bottom,top in [('foremast',10.9,8.27,28.1),('mainmast',-12,10.5,27)]:
-        head=(x-1.2,0,top)
-        for px,py in [(x+1,0),(x-3.1,-2.15),(x-3.1,2.15)]:
-            beam(name+'.leg',(px,py,bottom),head,.19)
-        tag(cyl(name+'.top',(head[0],0,top),1.4,.16,roof,col,24),name)
-        yardx,yardz,span=(9.756,28.186,8.38) if name=='foremast' else (-11.30,26.852,5.07)
-        beam(name+'.yard root',head,(yardx,0,yardz),.13)
-        beam(name+'.yard',(yardx,-span,yardz),(yardx,span,yardz),.12)
-        for y in [-span,-span*.55,span*.55,span]:
-            beam(name+'.yard brace',(x,0,top-3.5),(yardx,y,yardz),.045)
-            beam(name+'.signal halyard',(yardx,y,yardz),(x+1,y*.42,bottom+6),.018,dark)
-        if name=='foremast':
-            beam(name+'.antenna pole',(8.29,0,bottom+2),(7.19,0,34.62),.10)
-            beam(name+'.pole brace',head,(7.19,0,33.62),.025)
-        else:
-            # The selected A mast carries the TDY pole forward of its fighting top.
-            beam(name+'.upper bearer',head,(-9.14,0,27),.13)
-            beam(name+'.upper bearer knee',(-11,0,24.2),(-9.14,0,27),.09)
-            beam(name+'.antenna pole',(-9.14,0,27),(-9.14,0,33.914),.11)
-            beam(name+'.pole brace',(-8.2,0,27),(-8.85,0,33.7),.025)
-            beam(name+'.brace foot',(-9.14,0,27),(-8.2,0,27),.065)
-            tag(cyl(name+'.pole cap',(-9.14,0,33.83),.31,.17,naval,col,16),name)
-        F.ladder(name+'.ladder',(x+.2,.32,bottom+1),(head[0]+.2,.32,top-.2),.45)
+        ringwall(m['id']+'.splinter tub',x,y,z,r,.85,start,end)
+    # Pole masts, funnel fittings and funnel galleries.
+    from upperworks import build_upperworks
+    build_upperworks(D,helpers,materials,col,F)
     # Original TDY fan aerial: mast bearing, angled spine and thirteen dipoles.
     name='aerial-tdy';x,z=-9.14,33.914
     tag(cyl(name+'.bearing',(x,0,z+.29),.19,.58,naval,col,16),name)
@@ -79,7 +73,7 @@ def build_fittings(D,helpers,materials,col,deck_height):
             tag(box(name+'.glass',(x+.415,y,z+1.19),(.025,.24,.31),dark,col),name)
         F.ladder(name+'.access',(x-1.55,0,z-2),(x-1.55,0,z+1.7),.5)
     # Mk.37 enclosed directors, with sloped front and sight apertures.
-    for ident,x,z,bearing in [('forward',23.55,17.35,0),('after',-23.32,15.48,180)]:
+    for ident,x,z,bearing in [('forward',23.55,17.25,0),('after',-23.32,15.48,180)]:
         name='mk37-'+ident;sign=1 if bearing==0 else -1
         tag(cyl(name+'.bearing',(x,0,z+.2),1.55,.4,naval,col,24),name)
         vv=[(x+sign*a,b,z+c) for a,b,c in [(-1.65,-1.7,.35),(-1.65,1.7,.35),(1.8,1.7,.35),(1.8,-1.7,.35),(-1.65,-1.6,2.3),(-1.65,1.6,2.3),(.7,1.6,2.45),(.7,-1.6,2.45)]]
@@ -88,8 +82,9 @@ def build_fittings(D,helpers,materials,col,deck_height):
         for y in [-1.0,0,1.0]:
             tag(box(name+'.sight',(x+sign*1.17,y,z+1.83),(.3,.38,.3),dark,col),name)
     # Rectangular SK antenna, open lattice and rear structural braces.
-    x,z=10.99,28.13;name='radar-sk'
+    x,z=11.55,28.07;name='radar-sk'
     tag(cyl(name+'.pedestal',(x,0,z+.3),.40,.6,naval,col,20),name)
+    tag(box(name+'.base housing',(x-.58,0,z+.6),(.85,2.4,1.2),naval,col),name)
     for y in [-2.55,2.55]:beam(name+'.frame',(x,y,z+.6),(x,y,z+5.8),.055)
     for h in [0.6+i*.43 for i in range(13)]:beam(name+'.horizontal',(x,-2.55,z+h),(x,2.55,z+h),.023)
     for y in [-2.55+i*.425 for i in range(13)]:beam(name+'.vertical',(x,y,z+.6),(x,y,z+5.8),.023)
@@ -97,7 +92,7 @@ def build_fittings(D,helpers,materials,col,deck_height):
         beam(name+'.rear brace',(x-1,0,z+2.5),(x,-2.55,z+h),.055)
         beam(name+'.rear brace',(x-1,0,z+2.5),(x,2.55,z+h),.055)
     # SG rotating search aerial on the fore pole and SM lattice aft.
-    for name,x,z,w,h in [('radar-sg',7.19,34.62,1.28,1.23),('radar-sm',-11.96,26.98,2.46,2.91)]:
+    for name,x,z,w,h in [('radar-sg',7.17,34.62,1.28,1.23),('radar-sm',-11.9,27.21,2.46,2.91)]:
         tag(cyl(name+'.base',(x,0,z+.22),.23,.44,naval,col,16),name)
         beam(name+'.stem',(x,0,z),(x,0,z+h),.075)
         for i in range(7):
@@ -110,12 +105,14 @@ def build_fittings(D,helpers,materials,col,deck_height):
     for i,(sx,z,x) in enumerate(stations):
         y=-sx;name=f'mk51-{i+1}'
         floor=z
-        if i in [4,5,6,7]:
-            anchorx=3.5 if i in [4,5] else -14
-            anchory=math.copysign(1.65,y) if i in [4,5] else y
-            tag(cyl(name+'.platform',(x,y,z-.1),.8,.2,roof,col,24),name)
-            beam(name+'.platform bearer',(anchorx,anchory,z-.15),(x,y,z-.15),.14)
-            beam(name+'.platform knee',(anchorx,anchory,z-1.7),(x,y,z-.2),.10)
+        if i in [6,7]:
+            # Round platforms beside the mainmast on a column from the after 02 deck (12.8 m).
+            # Round tubs beside the mainmast on a column and raking struts from the after 02 deck (12.8 m).
+            px,py=-10.81,math.copysign(2.99,y)
+            tag(cyl(name+'.platform',(px,py,z-.08),1.28,.16,roof,col,28),name)
+            tag(cyl(name+'.platform column',(px,py,(12.8+z-.16)/2),.16,z-.16-12.8+.04,naval,col,12),name)
+            for dx,dy in [(-1.0,0),(1.0,0),(0,-math.copysign(1.0,py))]:beam(name+'.platform strut',(px+dx*.6,py+dy*.6,12.8),(px+dx,py+dy,z-.16),.07)
+            ringwall(name+'.tub',px,py,z,1.28,1.0,0,360)
         tag(cyl(name+'.foot',(x,y,floor+.075),.38,.15,naval,col,20),name)
         tag(cyl(name+'.column',(x,y,floor+.58),.13,1.05,naval,col,16),name)
         tag(box(name+'.instrument',(x-.07,y,floor+1.25),(.65,.60,.42),naval,col),name)
@@ -131,8 +128,8 @@ def build_fittings(D,helpers,materials,col,deck_height):
             if a[0]<=x<=b[0]:
                 t=(x-a[0])/(b[0]-a[0]);return a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t
         return points[-1][1],points[-1][2]
-    # Stanchions every 2.5 m from the fantail bulwark (x -83.6) to the stem head.
-    xs=[-83.6+2.5*i for i in range(int((90+83.6)/2.5)+1)]
+    # Stanchions every 2.5 m from the fantail bulwark (x -83.6) to the bow gun bulwark (x 83.4).
+    xs=[-83.6+2.5*i for i in range(int((83.4+83.6)/2.5)+1)]+[83.4]
     for sign in [-1,1]:
         edge=[]
         for x in xs:
@@ -142,7 +139,7 @@ def build_fittings(D,helpers,materials,col,deck_height):
         for a,b in zip(edge,edge[1:]):
             for h in [.32,.64,.96]:beam('deck-rail.wire',(a[0],a[1],a[2]+h),(b[0],b[1],b[2]+h),.016)
     # Deckhouse openings and attached doors; no texture planes hovering off the hull.
-    for ident,x,z in [('forward-deckhouse',30,6.3),('forward-deckhouse',20,6.1),('center-deckhouse',6,6.1),('center-deckhouse',-7,6.1),('after-deckhouse',-23,6.1),('after-deckhouse',-30,6.2)]:
+    for ident,x,z in [('forward-deckhouse',30,6.3),('forward-deckhouse',13,6.1),('center-deckhouse',-1,6.1),('center-deckhouse',-8,6.1),('after-deckhouse',-23,6.1),('after-deckhouse',-30,6.2)]:
         structure=next(s for s in D['structures'] if s['id']==ident)
         poly=[(-zz,-xx) for xx,zz in structure['footprint']]
         for offset,kind in [(0,'door'),(1.5,'vent')]:
@@ -230,10 +227,17 @@ def build_fittings(D,helpers,materials,col,deck_height):
     for structure in D['structures']:
         if not structure['id'].endswith('-platform'):continue
         poly=[(-z,-x) for x,z in structure['footprint']];z=structure['baseY']+structure['height'];name=structure['id']
+        height,keep=BULWARKS.get(name,(.84,lambda a,b:True))
         for a,b in zip(poly,poly[1:]+poly[:1]):
             dx,dy=b[0]-a[0],b[1]-a[1];length=math.hypot(dx,dy)
-            ob=box(name+'.bulwark',((a[0]+b[0])/2,(a[1]+b[1])/2,z+.42),(length,.085,.84),naval,col);ob.rotation_euler.z=math.atan2(dy,dx);tag(ob,name)
-            beam(name+'.cap',(a[0],a[1],z+.85),(b[0],b[1],z+.85),.045)
+            if height=='rail':
+                for t in [0,.5] if length>1.2 else [0]:
+                    px,py=a[0]+dx*t,a[1]+dy*t
+                    beam(name+'.stanchion',(px,py,z),(px,py,z+.95),.025)
+                for h in [.48,.95]:beam(name+'.rail',(a[0],a[1],z+h),(b[0],b[1],z+h),.018,dark)
+            elif keep(a,b):
+                ob=box(name+'.bulwark',((a[0]+b[0])/2,(a[1]+b[1])/2,z+height/2),(length,.085,height),naval,col);ob.rotation_euler.z=math.atan2(dy,dx);tag(ob,name)
+                beam(name+'.cap',(a[0],a[1],z+height+.01),(b[0],b[1],z+height+.01),.045)
             # End each diagonal at the closest point on the actual supporting
             # cabin, so changes to cabin width cannot leave a hanging bracket.
             if length>1:
@@ -310,6 +314,6 @@ def build_fittings(D,helpers,materials,col,deck_height):
                 beam(name+'.rack',(x+dx,math.copysign(6.20,y),z+h),(x+dx,y,z+h),.045)
 
     # Only aerials rotate; mast platforms and foundation pedestals remain fixed.
-    for name,position in [('radar-sk',(10.99,0,28.13)),('radar-sg',(7.19,0,34.62)),('radar-sm',(-11.96,0,26.98))]:
+    for name,position in [('radar-sk',(11.55,0,28.07)),('radar-sg',(7.17,0,34.62)),('radar-sm',(-11.9,0,27.21))]:
         moving=[o for o in col.objects if o.get('assemblyId')==name and not o.name.startswith((name+'.base',name+'.pedestal'))]
         radar_pivot(name+'.yaw',position,moving)
