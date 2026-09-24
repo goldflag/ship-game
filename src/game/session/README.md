@@ -42,7 +42,10 @@ field costs a comparison; patch text is written lazily, and keys and container
 headers reach the buffer only once something below them moves. Numbers are
 compared as the client would read them, integers apart from floats and floats
 bit for bit. A runtime with no reference — after init, deploy or restart — sends
-the frame whole. `detailShipIds` narrowing works unchanged: the fields it adds
+the frame whole. The worker relays the update as the text Rust wrote and the
+session parses it once: parsing on the worker and structured-cloning the tree
+cost the main thread more than the parse.
+`detailShipIds` narrowing works unchanged: the fields it adds
 and removes travel as ordinary additions and removals. `frameDelta.test.ts`
 applies real Rust updates through a carrier battle whose detail list changes
 mid-stream and compares each rebuilt frame against the complete Rust snapshot,
