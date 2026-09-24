@@ -8,7 +8,8 @@ from pathlib import Path
 import bpy, bmesh, json, math, os, sys, random
 from mathutils import Vector
 sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
-from blender_components import create_gun_mount
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'parts'))
+from library import create_mount
 from blender_supports import SupportSurface
 from blender_rig import radar_pivot
 from blender_fidelity import authored_hull, authored_structure, Fittings
@@ -262,7 +263,7 @@ for m in D['mounts']:
   pts=[(x+2.0*math.cos(a*2*math.pi/32),y+2.0*math.sin(a*2*math.pi/32)) for a in range(32)]
   for a,b in zip(pts,pts[1:]+pts[:1]):
    o=mesh('Quad splinter tub',[(a[0],a[1],z),(b[0],b[1],z),(b[0],b[1],z+.8),(a[0],a[1],z+.8)],[(0,1,2,3)],M['naval'],COL['Armament']);o['assemblyId']=m['id']+'-platform'
- create_gun_mount(m,COL['Armament'],dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M,lambda x:z)
+ create_mount(m,COL['Armament'],dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M)
 # Exposed starboard walkway, around the island footprint.
 box('Island AA gallery',(10,-15.5,FLIGHT-.15),(48,2.0,.3),M['naval'],COL['Island'])
 railing([(-14,-16.45),(35,-16.45)],FLIGHT,'Island gallery',COL['Island'])

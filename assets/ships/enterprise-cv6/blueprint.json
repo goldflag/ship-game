@@ -12157,7 +12157,7 @@
     {
       "id": "five-inch-port-1",
       "name": "Port 5-inch 1",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         -13.02,
@@ -12176,7 +12176,7 @@
     {
       "id": "five-inch-port-2",
       "name": "Port 5-inch 2",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         -13.02,
@@ -12195,7 +12195,7 @@
     {
       "id": "five-inch-port-3",
       "name": "Port 5-inch 3",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         -13.2,
@@ -12214,7 +12214,7 @@
     {
       "id": "five-inch-port-4",
       "name": "Port 5-inch 4",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         -13.2,
@@ -12233,7 +12233,7 @@
     {
       "id": "five-inch-starboard-1",
       "name": "Stbd 5-inch 1",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         13.02,
@@ -12252,7 +12252,7 @@
     {
       "id": "five-inch-starboard-2",
       "name": "Stbd 5-inch 2",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         13.02,
@@ -12271,7 +12271,7 @@
     {
       "id": "five-inch-starboard-3",
       "name": "Stbd 5-inch 3",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         13.2,
@@ -12290,7 +12290,7 @@
     {
       "id": "five-inch-starboard-4",
       "name": "Stbd 5-inch 4",
-      "partId": "us-5in38-mk21-single",
+      "partId": "us-5in38-mk24-single",
       "battery": "main",
       "position": [
         13.2,
@@ -12381,7 +12381,7 @@
     {
       "id": "oerlikon-port-1",
       "name": "Port 20 mm 1",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -13.1,
@@ -12399,7 +12399,7 @@
     {
       "id": "oerlikon-port-2",
       "name": "Port 20 mm 2",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -13.1,
@@ -12417,7 +12417,7 @@
     {
       "id": "oerlikon-port-3",
       "name": "Port 20 mm 3",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12435,7 +12435,7 @@
     {
       "id": "oerlikon-port-4",
       "name": "Port 20 mm 4",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12453,7 +12453,7 @@
     {
       "id": "oerlikon-port-5",
       "name": "Port 20 mm 5",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12471,7 +12471,7 @@
     {
       "id": "oerlikon-port-6",
       "name": "Port 20 mm 6",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12489,7 +12489,7 @@
     {
       "id": "oerlikon-port-7",
       "name": "Port 20 mm 7",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12507,7 +12507,7 @@
     {
       "id": "oerlikon-port-8",
       "name": "Port 20 mm 8",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12525,7 +12525,7 @@
     {
       "id": "oerlikon-port-9",
       "name": "Port 20 mm 9",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12543,7 +12543,7 @@
     {
       "id": "oerlikon-port-10",
       "name": "Port 20 mm 10",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12561,7 +12561,7 @@
     {
       "id": "oerlikon-port-11",
       "name": "Port 20 mm 11",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12579,7 +12579,7 @@
     {
       "id": "oerlikon-port-12",
       "name": "Port 20 mm 12",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         -14.2,
@@ -12597,7 +12597,7 @@
     {
       "id": "oerlikon-starboard-1",
       "name": "Starboard 20 mm 1",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         13.1,
@@ -12615,7 +12615,7 @@
     {
       "id": "oerlikon-starboard-2",
       "name": "Starboard 20 mm 2",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         13.1,
@@ -12633,7 +12633,7 @@
     {
       "id": "oerlikon-starboard-3",
       "name": "Starboard 20 mm 3",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12651,7 +12651,7 @@
     {
       "id": "oerlikon-starboard-4",
       "name": "Starboard 20 mm 4",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12669,7 +12669,7 @@
     {
       "id": "oerlikon-starboard-5",
       "name": "Starboard 20 mm 5",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12687,7 +12687,7 @@
     {
       "id": "oerlikon-starboard-6",
       "name": "Starboard 20 mm 6",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12705,7 +12705,7 @@
     {
       "id": "oerlikon-starboard-7",
       "name": "Starboard 20 mm 7",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12723,7 +12723,7 @@
     {
       "id": "oerlikon-starboard-8",
       "name": "Starboard 20 mm 8",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12741,7 +12741,7 @@
     {
       "id": "oerlikon-starboard-9",
       "name": "Starboard 20 mm 9",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12759,7 +12759,7 @@
     {
       "id": "oerlikon-starboard-10",
       "name": "Starboard 20 mm 10",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12777,7 +12777,7 @@
     {
       "id": "oerlikon-starboard-11",
       "name": "Starboard 20 mm 11",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12795,7 +12795,7 @@
     {
       "id": "oerlikon-starboard-12",
       "name": "Starboard 20 mm 12",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         14.2,
@@ -12813,7 +12813,7 @@
     {
       "id": "oerlikon-island-1",
       "name": "Island 20 mm 1",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         15.5,
@@ -12831,7 +12831,7 @@
     {
       "id": "oerlikon-island-2",
       "name": "Island 20 mm 2",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         15.5,
@@ -12849,7 +12849,7 @@
     {
       "id": "oerlikon-island-3",
       "name": "Island 20 mm 3",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         15.5,
@@ -12867,7 +12867,7 @@
     {
       "id": "oerlikon-island-4",
       "name": "Island 20 mm 4",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         15.5,
@@ -12885,7 +12885,7 @@
     {
       "id": "oerlikon-island-5",
       "name": "Island 20 mm 5",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         15.5,
@@ -12903,7 +12903,7 @@
     {
       "id": "oerlikon-island-6",
       "name": "Island 20 mm 6",
-      "partId": "oerlikon-20mm-single",
+      "partId": "us-20mm-oerlikon-mk4",
       "battery": "secondary",
       "position": [
         15.5,

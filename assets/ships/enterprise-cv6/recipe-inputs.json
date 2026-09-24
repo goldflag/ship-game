@@ -9,6 +9,7 @@
     "assets/ships/appearance/finishes.json",
     "assets/ships/enterprise-cv6/appearance.json",
     "assets/parts/library.py",
-    "assets/parts/library.json"
+    "assets/parts/library.json",
+    "assets/parts/us-carrier-guns/geometry.py"
   ]
 }

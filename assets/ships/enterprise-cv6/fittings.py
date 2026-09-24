@@ -11,7 +11,7 @@ def build_fittings():
         # Open AA galleries of 1942: floater nets under the outer edge, ready boxes between guns.
         for a, b, yedge in [(-69, -34, 14.2), (31, 67, 14.2), (-121, -109, 13.1)]:
             outer = yedge + .82
-            guns = [-m['position'][2] for m in D['mounts'] if m['partId'].startswith('oerlikon') and
+            guns = [-m['position'][2] for m in D['mounts'] if 'oerlikon' in m['partId'] and
                     a - .5 <= -m['position'][2] <= b + .5 and m['position'][0] * -sign > 0]
             for x in [a + 2.5 + i * 7.5 for i in range(int((b - a - 2) / 7.5) + 1)]:
                 if x + 1.1 > b: continue

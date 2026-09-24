@@ -24,7 +24,7 @@ describe('original component library', () => {
   test('every catalog part has explicit metadata and only real usage is listed', () => {
     expect(() => validateLibrary(library, catalog)).not.toThrow();
     const usages = installationsFor('oerlikon-20mm-single', Object.values(shipPresets) as unknown as ShipDefinition[]);
-    expect(usages.some(i => i.shipId === 'enterprise-cv6')).toBe(true);
+    expect(usages.some(i => i.shipId === 'fletcher')).toBe(true);
     expect(usages.some(i => i.shipId === 'iowa')).toBe(false); // distinct accepted source variant
   });
   test('rejects ambiguous identities and non-original builder paths', () => {
