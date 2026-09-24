@@ -6,6 +6,7 @@ import { ShipView } from './ShipView';
 import { batchShipModel } from './ShipBatching';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { ShipPoseMatrices } from './ShipPoseMatrices';
+import { jointTurns } from './jointTurns';
 
 test('offscreen hulls retain interpolation and restore current joint poses on re-entry', async () => {
   const sim = mixedSimulation(), actor = sim.player, model = await loadShipGeometry(actor.definition.id);
@@ -162,3 +163,86 @@ test('deferred poses keep every other pose, compose on demand as a full update d
   expect(poses.poses.every((_, i) => poses.current(i))).toBe(true);
   reference.impactMarks.dispose(); view.impactMarks.dispose(); reference.rig.dispose(); view.rig.dispose();
 }, 30000);
+
+test('direct joint turns pose every joint, appendage, radar and surface as three\'s Euler path does, bit for bit', async () => {
+  const sim = mixedSimulation();
+  let seed = 17;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  type Fields = { _x: number; _y: number; _z: number; _w: number; _order: string };
+  const state = (v: ShipView) => {
+    const internals = v as unknown as { renderedMounts: Record<string, unknown>[]; gunCovers: { mesh: THREE.Mesh }[] };
+    const out: unknown[] = [];
+    for (const { object } of v.poseMatrices.poses) {
+      const r = object.rotation as unknown as Fields, q = object.quaternion as unknown as Fields;
+      out.push(...object.matrixWorld.elements, r._x, r._y, r._z, r._order, q._x, q._y, q._z, q._w, ...object.position.toArray());
+    }
+    for (const m of internals.renderedMounts) out.push(m.train, m.elevation, m.recoil, m.hp, JSON.stringify(m));
+    for (const { mesh } of internals.gunCovers) out.push(...mesh.morphTargetInfluences!);
+    return out;
+  };
+  let appendages = 0, launchers = 0, covers = 0, radars = 0;
+  for (const id of ['bismarck', 'type-viic', 'fletcher', 'yamato']) {
+    const actor = sim.actors.find(a => a.definition.id === id)!, model = await loadShipGeometry(id);
+    batchShipModel(model);
+    const reference = new ShipView(model.clone(true), actor.definition, actor), view = new ShipView(model.clone(true), actor.definition, actor);
+    const internals = view as unknown as { appendages: unknown[]; launcherBindings: unknown[]; gunCovers: unknown[] };
+    appendages += internals.appendages.length; launchers += internals.launcherBindings.length; covers += internals.gunCovers.length; radars += view.rig.radars.length;
+    try {
+      for (let step = 0; step < 16; step++) {
+        reference.capturePreviousPose(); view.capturePreviousPose();
+        Object.assign(actor.motion, { x: random() * 900, z: -random() * 900, heading: random() * 6, roll: (random() - .5) * .2, pitch: (random() - .5) * .05,
+          rudder: random() * 2 - 1, distance: random() * 500, speed: (random() - .5) * 20 });
+        // Mounts change in place after the capture, as the retired simulation's do; one is knocked out, then the hull sinks.
+        actor.mounts.forEach(m => { if (random() < .5) Object.assign(m, { train: (random() - .5) * 3, elevation: random() * .6, recoil: random() }); });
+        if (step === 6) actor.mounts[0].hp = 0;
+        if (step === 12) actor.damage.sunk = true;
+        actor.torpedoLaunchers?.forEach(l => { l.train = (random() - .5) * 4; });
+        if (actor.submarine) actor.submarine.planes = random() * 2 - 1;
+        for (const alpha of [0, .4, 1]) {
+          jointTurns.direct = false;
+          reference.update(alpha); reference.rig.update(.05, 8, 1, reference.root, reference.motion, actor.damage.sunk); reference.updateRenderMatrices();
+          jointTurns.direct = true;
+          view.update(alpha); view.rig.update(.05, 8, 1, view.root, view.motion, actor.damage.sunk); view.updateRenderMatrices();
+          const expected = state(reference), actual = state(view);
+          expect(actual.length).toBe(expected.length);
+          expect(actual.every((value, i) => Object.is(value, expected[i]))).toBe(true);
+        }
+      }
+    } finally { jointTurns.direct = true; actor.damage.sunk = false; }
+    reference.impactMarks.dispose(); view.impactMarks.dispose(); reference.rig.dispose(); view.rig.dispose();
+  }
+  // Every kind of turned joint took part.
+  expect(Math.min(appendages, launchers, covers, radars)).toBeGreaterThan(0);
+}, 30000);
+
+test('impact marks keep their receiver\'s pose and three\'s world matrix as receivers gain, lose and swap marks', async () => {
+  const sim = mixedSimulation(), actor = sim.actors.find(a => a.definition.id === 'fletcher')!, model = await loadShipGeometry('fletcher');
+  batchShipModel(model);
+  const view = new ShipView(model, actor.definition, actor), poses = view.poseMatrices, marks = view.impactMarks;
+  // Every surface deferred, as the fleet's batches leave them: only a mark's receiver brings its pose back.
+  poses.defer(poses.poses.filter(p => !p.moving).map(p => p.object));
+  const receivers = view.renderMeshes.map(r => r.mesh).filter(m => m.geometry.attributes.position.count > 30).slice(0, 4);
+  const internals = marks as unknown as { rebuild(receiver: THREE.Mesh): void; marks: { receiver: THREE.Mesh; geometry: THREE.BufferGeometry; shellId: number; point: THREE.Vector3 }[] };
+  const local = new THREE.Matrix4(), world = new THREE.Matrix4();
+  let checked = 0;
+  for (let step = 0; step < 12; step++) {
+    // A mark lands on a receiver, or the oldest goes: the receiver's batch is rebuilt, moving it to the end of the list.
+    const receiver = receivers[step % receivers.length];
+    if (step % 5 === 4) { const gone = internals.marks.shift()!; internals.rebuild(gone.receiver); }
+    else { internals.marks.push({ receiver, geometry: new THREE.PlaneGeometry(1, 1), shellId: step, point: new THREE.Vector3() }); internals.rebuild(receiver); }
+    if (step === 9) marks.clear();
+    Object.assign(actor.motion, { x: step * 30, heading: step * .3, roll: .02 * step });
+    view.update(); view.updateRenderMatrices();
+    for (const mark of marks.renderMeshes) {
+      expect(mark.matrixAutoUpdate).toBe(false);
+      local.compose(mark.position, mark.quaternion, mark.scale);
+      expect(mark.matrix.elements.every((v, i) => Object.is(v, local.elements[i]))).toBe(true);
+      expect(poses.current(poses.indexOf(mark.parent!))).toBe(true);
+      world.multiplyMatrices(mark.parent!.matrixWorld, local);
+      expect(mark.matrixWorld.elements.every((v, i) => Object.is(v, world.elements[i]))).toBe(true);
+      checked++;
+    }
+  }
+  expect(checked).toBeGreaterThan(10);
+  marks.dispose(); view.rig.dispose();
+});

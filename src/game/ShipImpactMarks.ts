@@ -71,6 +71,8 @@ export class ShipImpactMarks {
   private sequence = 0;
   private readonly pending: CombatEvent[] = [];
   private disposed = false;
+  /** Bumped whenever `renderMeshes` gains, loses or moves a mesh. */
+  version = 0;
 
   constructor(private readonly root: THREE.Group, model: THREE.Group, private readonly mounts: Map<string, THREE.Object3D>,
     private readonly reversedDepthBuffer = false) {
@@ -150,6 +152,7 @@ export class ShipImpactMarks {
 
   private rebuild(receiver: THREE.Mesh): void {
     const old = this.batches.get(receiver);
+    this.version++;
     if (old) { old.removeFromParent(); old.geometry.dispose(); this.batches.delete(receiver); }
     const geometries = this.marks.filter(mark => mark.receiver === receiver).map(mark => mark.geometry);
     if (!geometries.length) return;
@@ -166,6 +169,8 @@ export class ShipImpactMarks {
     // configureRenderOrder keeps authored order ascending on both depth
     // conventions, so a negative order draws before the effect pools' zero.
     batch.renderOrder = -1; batch.raycast = () => {};
+    // The marks are in the receiver's space: the batch's own matrix stays the identity it was made with.
+    batch.matrixAutoUpdate = false;
     receiver.add(batch); this.batches.set(receiver, batch);
   }
 
@@ -195,7 +200,7 @@ export class ShipImpactMarks {
   clear(): void {
     this.marks.forEach(mark => mark.geometry.dispose()); this.marks.length = 0;
     this.batches.forEach(batch => { batch.removeFromParent(); batch.geometry.dispose(); }); this.batches.clear();
-    this.sequence = 0; this.pending.length = 0;
+    this.sequence = 0; this.pending.length = 0; this.version++;
   }
 
   dispose(): void {

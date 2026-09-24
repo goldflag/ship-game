@@ -10,6 +10,7 @@ import { tubeLocalPosition } from './torpedoAim';
 import { PreparedPoseGroup } from './FrameScene';
 import { ShipPoseMatrices } from './ShipPoseMatrices';
 import { ShipRigView } from './ShipRigView';
+import { setJointsX, setJointY, turnFrom } from './jointTurns';
 import { gunAimPoints } from './gunAim';
 import type { Combatant } from '../game/session/elements';
 import { muzzleWorld, shotDirection } from './mountGeometry';
@@ -29,9 +30,10 @@ export class ShipView {
   private damageSource: Combatant['damage'];
   private previousMotion: Combatant['motion'];
   private motionSource: Combatant['motion'];
-  private previousMounts: Combatant['mounts'];
+  /** The previous tick as articulation reads it: each mount's train, elevation and recoil, and each launcher's train. */
+  private readonly priorMounts: Float64Array;
+  private readonly priorLaunchers: Float64Array;
   private renderedMounts: Combatant['mounts'];
-  private previousLaunchers: number[];
   private renderedLaunchers: NonNullable<Combatant['torpedoLaunchers']>;
   private launcherBindings: THREE.Object3D[];
   private tubeBindings: THREE.Object3D[];
@@ -41,6 +43,11 @@ export class ShipView {
   private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[]; baseAngle: number }[] = [];
   private surfaces: { material: THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
+  /** Whether any mount rides another, so that articulation derives carrier frames. */
+  private readonly carried: boolean;
+  /** Each impact-mark mesh with the receiver it was on and that receiver's pose, as of `markVersion`. */
+  private markPoses: { mark: THREE.Object3D; receiver: THREE.Object3D | null; pose: number }[] = [];
+  private markVersion = -1;
   /** Surface and moving-joint world matrices for rendering; the fleet's batches defer the ones they draw. */
   readonly poseMatrices: ShipPoseMatrices;
   private appendages: { node: THREE.Object3D; base: THREE.Quaternion; kind: keyof NonNullable<ShipDefinition['submarine']>['appendages']; index: number }[] = [];
@@ -49,12 +56,14 @@ export class ShipView {
     this.damageSource = actor.damage;
     this.motion = { ...actor.motion };
     this.previousMotion = { ...actor.motion };
-    this.previousMounts = actor.mounts.map(m => ({ ...m }));
+    this.priorMounts = new Float64Array(actor.mounts.length * 3);
+    this.carried = definition.mounts.some(m => !!m.parentMountId);
     this.renderedMounts = actor.mounts.map(m => ({ ...m }));
     this.renderedLaunchers = (definition.torpedoLaunchers ?? []).map(l => ({
       id: l.id, train: actor.torpedoLaunchers?.find(state => state.id === l.id)?.train ?? 0,
     }));
-    this.previousLaunchers = this.renderedLaunchers.map(l => l.train);
+    this.priorLaunchers = Float64Array.from(this.renderedLaunchers, l => l.train);
+    this.captureMounts();
     this.root.name = actor.motion.id;
     this.inspection = new ShipInspection(definition);
     const nodes = new Map<string, THREE.Object3D>();
@@ -142,7 +151,17 @@ export class ShipView {
     this.poseMatrices.update();
     this.rig.root.updateMatrixWorld(true);
     if (this.internals.visible) this.internals.updateMatrixWorld(true);
-    for (const mark of this.impactMarks.renderMeshes) { if (mark.parent) this.poseMatrices.ensureObject(mark.parent); mark.updateMatrixWorld(true); }
+    const poses = this.poseMatrices;
+    if (this.markVersion !== this.impactMarks.version) {
+      this.markVersion = this.impactMarks.version;
+      this.markPoses = Array.from(this.impactMarks.renderMeshes, mark => ({ mark, receiver: mark.parent, pose: mark.parent ? poses.indexOf(mark.parent) : -1 }));
+    }
+    for (let i = 0; i < this.markPoses.length; i++) {
+      const { mark, receiver, pose } = this.markPoses[i];
+      // A scar draws in its receiver's space: the receiver's pose first.
+      if (mark.parent === receiver) poses.ensure(pose); else if (mark.parent) poses.ensureObject(mark.parent);
+      mark.updateMatrixWorld(true);
+    }
   }
 
   /** Read-only check of the loaded joints against the CPU poses sampled for this frame. */
@@ -167,8 +186,23 @@ export class ShipView {
   capturePreviousPose(): void {
     this.motionSource = this.actor.motion;
     Object.assign(this.previousMotion, this.actor.motion);
-    this.previousMounts.forEach((m, i) => Object.assign(m, this.actor.mounts[i]));
-    this.previousLaunchers = this.renderedLaunchers.map(l => this.actor.torpedoLaunchers?.find(state => state.id === l.id)?.train ?? 0);
+    this.captureMounts();
+    const states = this.actor.torpedoLaunchers;
+    for (let i = 0; i < this.renderedLaunchers.length; i++) {
+      const id = this.renderedLaunchers[i].id;
+      let train = 0;
+      if (states) for (const state of states) if (state.id === id) { train = state.train ?? 0; break; }
+      this.priorLaunchers[i] = train;
+    }
+  }
+  /** Articulation interpolates only a mount's train, elevation and recoil from the previous tick; a mount missing from the
+   * actor keeps what it had. */
+  private captureMounts(): void {
+    const mounts = this.actor.mounts, prior = this.priorMounts;
+    for (let i = 0, o = 0; o < prior.length; i++, o += 3) {
+      const mount = mounts[i];
+      if (mount) { prior[o] = mount.train; prior[o + 1] = mount.elevation; prior[o + 2] = mount.recoil; }
+    }
   }
   /** Teleports and port transitions must not interpolate across the old voyage. */
   snap(): void { this.capturePreviousPose(); this.rig.reset(); this.update(); }
@@ -200,29 +234,32 @@ export class ShipView {
   }
   /** Re-entry uses the latest pair of CPU snapshots, never an old visual pose. */
   updateArticulation(alpha = 1): void {
-    const t = THREE.MathUtils.clamp(alpha, 0, 1), motion = this.motion, mounts = this.renderedMounts;
-    mounts.forEach((m, i) => {
-      const currentMount = this.actor.mounts[i], previousMount = this.previousMounts[i];
+    const t = THREE.MathUtils.clamp(alpha, 0, 1), motion = this.motion, mounts = this.renderedMounts, current = this.actor.mounts, prior = this.priorMounts;
+    for (let i = 0, o = 0; i < mounts.length; i++, o += 3) {
+      const m = mounts[i], currentMount = current[i];
       Object.assign(m, currentMount);
       // Mount train is a bounded interval; wrapping would cross forbidden arcs.
-      for (const key of ['train', 'elevation', 'recoil'] as const) {
-        // A gun can be disabled after it trained in the current tick. Stop at
-        // the authoritative angle immediately instead of finishing that turn
-        // across later display frames. Recoil may still settle independently.
-        const stopped = key !== 'recoil' && (currentMount.hp <= 0 || currentMount.status === 'disabled' || this.actor.damage.sunk);
-        m[key] = stopped ? currentMount[key] : THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
-      }
-    });
-    updateMountCarriers(this.definition, mounts);
-    this.bindings.forEach((b, i) => {
+      // A gun can be disabled after it trained in the current tick. Stop at
+      // the authoritative angle immediately instead of finishing that turn
+      // across later display frames. Recoil may still settle independently.
+      const stopped = currentMount.hp <= 0 || currentMount.status === 'disabled' || this.actor.damage.sunk;
+      m.train = stopped ? currentMount.train : THREE.MathUtils.lerp(prior[o], currentMount.train, t);
+      m.elevation = stopped ? currentMount.elevation : THREE.MathUtils.lerp(prior[o + 1], currentMount.elevation, t);
+      m.recoil = THREE.MathUtils.lerp(prior[o + 2], currentMount.recoil, t);
+    }
+    // A hull mount has no carrier: `updateMountCarriers` would only delete one, and none has one to delete.
+    if (this.carried) updateMountCarriers(this.definition, mounts);
+    else for (let i = 0; i < this.definition.mounts.length; i++) if ('carrier' in mounts[i]) delete mounts[i].carrier;
+    for (let i = 0; i < this.bindings.length; i++) {
+      const b = this.bindings[i], mount = mounts[i];
       // A 180° imported quaternion can decompose into nonzero X/Z Euler angles.
       // Replace the complete joint rotation instead of retaining those alternate axes.
-      b.yaw.rotation.set(0, -(b.bearing + mounts[i].train), 0);
-      b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
-      b.recoil.forEach(n => { n.position.z = mounts[i].recoil * b.recoilM; });
+      setJointY(b.yaw, -(b.bearing + mount.train));
+      setJointsX(b.elevation, mount.elevation);
+      for (let k = 0; k < b.recoil.length; k++) b.recoil[k].position.z = mount.recoil * b.recoilM;
       // Recoil runs from 0 to 1; anything beyond would slide a barrel past the travel its pose bounds allow.
-      if (!(mounts[i].recoil >= -1e-9 && mounts[i].recoil <= 1 + 1e-9)) this.poseMatrices.bounded = false;
-    });
+      if (!(mount.recoil >= -1e-9 && mount.recoil <= 1 + 1e-9)) this.poseMatrices.bounded = false;
+    }
     // Cloth is visual-only: the same interpolated gun angle drives its shapes.
     // Fixed seams stay on the gunhouse or carriage; moving seams follow pitch.
     for (const { mesh, elevation, angles, baseAngle } of this.gunCovers) {
@@ -237,18 +274,18 @@ export class ShipView {
     this.launcherBindings.forEach((node, i) => {
       const launcher = this.renderedLaunchers[i];
       const train = this.actor.torpedoLaunchers?.find(state => state.id === launcher.id)?.train ?? 0;
-      const previous = this.previousLaunchers[i] ?? train;
+      const previous = this.priorLaunchers[i];
       // Wire snapshots can reorder banks; bounded travel must also stay inside its stops.
       launcher.train = this.definition.torpedoLaunchers![i].traverseLimitsDeg
         ? THREE.MathUtils.lerp(previous, train, t) : previous + wrapAngle(train - previous) * t;
-      node.rotation.set(0, -this.renderedLaunchers[i].train + radians(node.userData.constructionBearingDeg ?? 0), 0);
+      setJointY(node, -this.renderedLaunchers[i].train + radians(node.userData.constructionBearingDeg ?? 0));
     });
-    this.appendages.forEach(({ node, base, kind, index }) => {
-      node.quaternion.copy(base);
-      if (kind === 'rudders') node.rotateY(-motion.rudder * radians(35));
-      else if (kind === 'propellers') node.rotateZ(motion.distance * (index % 2 ? -1 : 1) * Math.sign(motion.speed) * 1.8);
-      else node.rotateX((this.actor.submarine?.planes ?? 0) * radians(kind === 'bowPlanes' ? -20 : 20));
-    });
+    // Each appendage turns from its rest quaternion about its own Y (rudders), Z (propellers) or X (planes).
+    for (const { node, base, kind, index } of this.appendages) {
+      if (kind === 'rudders') turnFrom(node, base, 0, 1, 0, -motion.rudder * radians(35));
+      else if (kind === 'propellers') turnFrom(node, base, 0, 0, 1, motion.distance * (index % 2 ? -1 : 1) * Math.sign(motion.speed) * 1.8);
+      else turnFrom(node, base, 1, 0, 0, (this.actor.submarine?.planes ?? 0) * radians(kind === 'bowPlanes' ? -20 : 20));
+    }
     this.updateInspection();
   }
   /** Match the displayed barrels; readiness remains from the authoritative tick. */

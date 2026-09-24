@@ -24,6 +24,8 @@ export class FleetBatch extends THREE.BatchedMesh {
   static keepBounds = true;
   /** Off: the draw list's instance ids are uploaded after every cull, as three does, even when no id changed. */
   static keepIds = true;
+  /** Off: `writePose` goes through three's `setMatrixAt`, one texture version per pose, for comparison. */
+  static directPoses = true;
   private drawCamera?: THREE.Camera;
   private drawGeometry?: THREE.BufferGeometry;
   private readonly projection = new THREE.Matrix4();
@@ -43,6 +45,10 @@ export class FleetBatch extends THREE.BatchedMesh {
   /** Bumped by every change to which instances draw, with which geometry, or to the geometry ranges: the depth caster
    * passes keep their draw order of the parts until it moves. */
   layoutVersion = 0;
+  /** Poses written since the last `commitPoses`, and whether the kept bounds followed the matrix texture before the first. */
+  private writing = false;
+  private writingKnown = false;
+  private readonly scratch = new THREE.Matrix4();
 
   invalidateDrawList(): void { this.drawCamera = undefined; }
 
@@ -70,6 +76,27 @@ export class FleetBatch extends THREE.BatchedMesh {
     }
     this.drawCamera = reusable ? camera : undefined; this.drawGeometry = geometry; this.wireframe = wireframe;
     this.projection.copy(camera.projectionMatrix); this.view.copy(camera.matrixWorldInverse); this.world.copy(this.matrixWorld);
+  }
+
+  /** `setMatrixAt(instanceId, matrix)` from the matrix's elements, for a caller that writes many poses in a row and then
+   * calls `commitPoses`: the same floats in the matrix texture and the same kept bounds, with the texture marked for upload
+   * once for them all (its version moves once rather than once per pose; every reader only asks whether it moved). */
+  writePose(instanceId: number, e: ArrayLike<number>): void {
+    if (!FleetBatch.directPoses) { this.setMatrixAt(instanceId, this.scratch.fromArray(e)); return; }
+    const texture = (this as unknown as CullState)._matricesTexture;
+    if (!this.writing) { this.writing = true; this.writingKnown = texture === this.boundsTexture && texture.version === this.boundsVersion; }
+    const data = texture.image.data as Float32Array, o = instanceId * 16;
+    data[o] = e[0]; data[o + 1] = e[1]; data[o + 2] = e[2]; data[o + 3] = e[3]; data[o + 4] = e[4]; data[o + 5] = e[5]; data[o + 6] = e[6]; data[o + 7] = e[7];
+    data[o + 8] = e[8]; data[o + 9] = e[9]; data[o + 10] = e[10]; data[o + 11] = e[11]; data[o + 12] = e[12]; data[o + 13] = e[13]; data[o + 14] = e[14]; data[o + 15] = e[15];
+    if (this.writingKnown) this.bound(instanceId);
+  }
+  /** Mark the poses `writePose` wrote since the last commit for upload. Their bounds stay kept unless the texture took a
+   * write since that the batch did not see. */
+  commitPoses(): void {
+    if (!this.writing) return;
+    const texture = (this as unknown as CullState)._matricesTexture, known = this.writingKnown && texture === this.boundsTexture && texture.version === this.boundsVersion;
+    this.writing = false; texture.needsUpdate = true;
+    if (known) this.boundsVersion = texture.version;
   }
 
   override setMatrixAt(instanceId: number, matrix: THREE.Matrix4): this {
