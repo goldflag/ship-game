@@ -30907,7 +30907,7 @@
       "battery": "secondary",
       "position": [
         5.64,
-        8.4,
+        8.465,
         -41.53
       ],
       "bearingDeg": 90,
@@ -30926,7 +30926,7 @@
       "battery": "secondary",
       "position": [
         2.47,
-        17.68,
+        17.755,
         -18.86
       ],
       "bearingDeg": 90,
@@ -30964,7 +30964,7 @@
       "battery": "secondary",
       "position": [
         6.462,
-        8.4,
+        8.465,
         48.6515
       ],
       "bearingDeg": 90,
@@ -31177,7 +31177,7 @@
       "battery": "secondary",
       "position": [
         -5.64,
-        8.4,
+        8.465,
         -41.53
       ],
       "bearingDeg": -90,
@@ -31196,7 +31196,7 @@
       "battery": "secondary",
       "position": [
         -2.47,
-        17.68,
+        17.755,
         -18.86
       ],
       "bearingDeg": -90,
@@ -31234,7 +31234,7 @@
       "battery": "secondary",
       "position": [
         -6.462,
-        8.4,
+        8.465,
         48.6515
       ],
       "bearingDeg": -90,

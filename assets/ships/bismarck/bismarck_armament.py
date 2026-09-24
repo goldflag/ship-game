@@ -42,6 +42,9 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
  # Foundations use the authored deck edges. Outboard sponsons span back to a
  # wall with knees; a light gun is never left floating beside a narrowed house.
  # A region that builds this mount's own tub or pedestal lists it in own_foundations.
+ # Seats stop 5 mm under the lowest rotating part (the 3.7 cm mounting sole hangs 0.10 m
+ # below its pivot), so a training mount never sweeps through its own foundation.
+ seat=z-(.105 if mount and mount['partId']=='flak-37-bismarck-1941' else .005)
  if mount is not None and mount['id'] in own_foundations:pass
  elif z>deckz(x)+.8:
   candidates=[]
@@ -51,14 +54,14 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
     wall,_=house_side(pts,x,1 if y>0 else -1);candidates.append((z-top+max(0,abs(y)-abs(wall))*.12,top,wall))
   if candidates:
    _,top,wall=min(candidates);r=.95 if caliber>.025 or quad else .65
-   cyl(name+' supported foundation',(x,y,(top+z)/2),r,max(.12,z-top),materials['roof'],detailcol,24)
+   if seat-top>.005:cyl(name+' supported foundation',(x,y,(top+seat)/2),r,seat-top,materials['roof'],detailcol,24)
    if abs(y)+r>abs(wall):
     sign=1 if y>0 else -1;outer=y+sign*r;inner=wall-sign*.35
-    box(name+' sponson deck',(x,(inner+outer)/2,z-.11),(2*r,abs(outer-inner),.22),materials['roof'],detailcol)
-    for dx in [-r*.64,r*.64]:rod(name+' sponson knee',(x+dx,outer-sign*.08,z-.19),(x+dx,wall-sign*.2,top-1.05),.065,materials['naval'],detailcol,vertices=8)
+    box(name+' sponson deck',(x,(inner+outer)/2,seat-.11),(2*r,abs(outer-inner),.22),materials['roof'],detailcol)
+    for dx in [-r*.64,r*.64]:rod(name+' sponson knee',(x+dx,outer-sign*.08,seat-.19),(x+dx,wall-sign*.2,top-1.05),.065,materials['naval'],detailcol,vertices=8)
  else:
   floor=aa_support.below(x,y,z)
-  if z-floor>.015:cyl(name+' deck seating',(x,y,(floor+z)/2),1.50 if caliber>.08 else .76 if caliber>.025 else .42,z-floor+.02,materials['naval'],detailcol,24)
+  if seat-floor>.005:cyl(name+' deck seating',(x,y,(floor+seat)/2),1.50 if caliber>.08 else .76 if caliber>.025 else .42,seat-floor,materials['naval'],detailcol,24)
  if mount and mount['partId']=='flak-37-bismarck-1941':
   create_library_mount(mount,detailcol,helpers,materials)
   return
