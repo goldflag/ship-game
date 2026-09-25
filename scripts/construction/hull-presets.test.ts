@@ -2,7 +2,8 @@ import { expect, test } from 'bun:test';
 import { readFile } from 'node:fs/promises';
 import type { Hull } from '../../src/ships/blueprint';
 import { DEFAULT_HULL_PRESET, HULL_PRESETS } from '../../src/ships/constructionHullPresets';
-import { makeHull, invalidReason } from '../../src/ships/customHullModel';
+import { invalidReason } from '../../src/ships/customHullModel';
+import { makeHull } from '../../src/ships/customHullStarter';
 import { deriveHullPreset, PRESET_OPTIONS } from './hull-presets';
 
 test('the chooser provides two existing ship hulls per class and an available default', () => {

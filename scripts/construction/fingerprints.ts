@@ -6,8 +6,13 @@ import { canonical, definitionData, hash } from './artifacts';
 
 /** Packages a recipe may import besides Three.js. Each one's pinned version joins the hash of the recipes that use it. */
 const EXTERNAL = ['fflate'];
-/** Follow value imports, including new transitive helpers; types/comments aren't inputs. */
-export async function recipeHash(root: string, entries: string[]) {
+/** Entry modules of each recipe; `recipeHash` follows their value imports. The GLB is exactly what export.ts runs (the
+ * construction model, posed neutral by ShipJoints). Review images draw the published GLB through ShipRenderView,
+ * not ShipView's aiming and muzzle checks. Keep ShipView, the sight and the editor's hull presets out of both. */
+export const MODEL_RECIPE = ['tools/construction/export.ts'];
+export const PRESENTATION_RECIPE = ['tools/construction/presentation.ts', 'tools/construction/pose.ts', 'src/game/ShipRenderView.ts'];
+/** The files a recipe hashes, with the external packages they import. */
+export async function recipeInputs(root: string, entries: string[]) {
   const files = new Map<string, string>(),
     externals = new Set<string>();
   const visit = async (path: string): Promise<void> => {
@@ -44,6 +49,11 @@ export async function recipeHash(root: string, entries: string[]) {
     }
   };
   for (const entry of entries) await visit(entry);
+  return { files, externals };
+}
+/** Follow value imports, including new transitive helpers; types/comments aren't inputs. */
+export async function recipeHash(root: string, entries: string[]) {
+  const { files, externals } = await recipeInputs(root, entries);
   const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
   const sorted = [...files].sort(([a], [b]) => a.localeCompare(b, 'en'));
   // Recipes without other packages keep the hash they had before EXTERNAL existed.
@@ -53,8 +63,8 @@ export async function recipeHash(root: string, entries: string[]) {
 export async function constructionFingerprints(root: string, source: ConstructionSource, result: ConstructionResult) {
   if (!result.definition) throw new Error('Missing construction definition');
   const [modelRecipe, presentation] = await Promise.all([
-    recipeHash(root, ['src/game/constructionModel.ts', 'src/game/ShipView.ts', 'tools/construction/export.ts']),
-    recipeHash(root, ['tools/construction/presentation.ts', 'tools/construction/pose.ts', 'src/game/ShipView.ts']),
+    recipeHash(root, MODEL_RECIPE),
+    recipeHash(root, PRESENTATION_RECIPE),
   ]);
   return {
     definition: hash(definitionData(result.definition, source.id)),

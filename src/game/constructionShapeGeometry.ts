@@ -9,7 +9,7 @@ import { cornerVertices, VERTEX_FACES } from '../ships/constructionVertex';
 import type { ConstructionPrimitive, Vec3 } from '../ships/blueprint';
 import { CONSTRUCTION_SHAPES } from '../ships/constructionShapes';
 import { constructionVertexNormals, customHullSmoothingGroup, SMOOTH_HULL_SHAPES } from './constructionShading';
-import { customHullFaces, customHullPoints, customHullPrimitive, makeHull } from '../ships/customHullModel';
+import { customHullFaces, customHullPoints } from '../ships/customHullModel';
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
@@ -44,7 +44,9 @@ export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(faces.flatMap(f=>f.points.flat()),3));g.computeVertexNormals();return g;
   }
   if (kind === 'custom-hull') {
-    const p = { ...customHullPrimitive(makeHull()), size, ...(customHull ? { customHull } : {}) };
+    // Callers name the sections: the editor's starter hull (customHullStarter) stays out of the construction model.
+    if (!customHull) throw new Error('A custom hull needs its sections.');
+    const p: ConstructionPrimitive = { id: '', kind, size, position: [0, 0, 0], rotationDeg: 0, customHull };
     const faces = customHullFaces(p).map(f => ({ ...f, group: customHullSmoothingGroup(f.group, p.customHull?.creases), normal: new THREE.Vector3(...f.vertices[1]).sub(new THREE.Vector3(...f.vertices[0])).cross(new THREE.Vector3(...f.vertices[2]).sub(new THREE.Vector3(...f.vertices[0]))).normalize().toArray() as Vec3 }));
     const normalAt = constructionVertexNormals(faces, -1), positions: number[] = [], normals: number[] = [];
     for (const face of faces) for (const point of face.vertices) { positions.push(...point); normals.push(...normalAt(point, face.normal, face.group)); }

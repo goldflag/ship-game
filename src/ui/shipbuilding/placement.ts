@@ -6,7 +6,8 @@ import { balconyFaces } from '../../ships/constructionBalcony';
 import { normalizedBearing, gridCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './builderScene';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
-import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
+import { customHullFaces, customHullPrimitive } from '../../ships/customHullModel';
+import { makeHull } from '../../ships/customHullStarter';
 import { CORNER_SIGNS, VERTEX_FACES, cornerVertices } from '../../ships/constructionVertex';
 
 /** An unwarped vertex hull is the unit box; its warped corners live on the source piece. */

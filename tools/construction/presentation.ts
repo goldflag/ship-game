@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { WebGLRenderer } from 'three';
-import type { ShipView } from '../../src/game/ShipView';
+import type { ShipRenderView } from '../../src/game/ShipRenderView';
 import type { ConstructionSource, ShipDefinition } from '../../src/ships/blueprint';
 import type { ReviewView } from './review';
 
@@ -17,7 +17,7 @@ export function createReviewCanvas() {
 export type ReviewCanvas = ReturnType<typeof createReviewCanvas>;
 
 /** Presentation changes invalidate images, never the exported model. */
-export function createReviewPresentation(view: ShipView, model: THREE.Object3D, source: ConstructionSource,
+export function createReviewPresentation(view: ShipRenderView, model: THREE.Object3D, source: ConstructionSource,
   definition: ShipDefinition, resetPose: () => void, focus: (id?: string, isolate?: boolean) => THREE.Object3D, canvas: ReviewCanvas = createReviewCanvas()) {
   const { scene, renderer } = canvas; scene.add(view.root);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .01, 10000);
