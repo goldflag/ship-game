@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { ballisticStep, solveDragArc, travelFactor } from './ballistics';
+import { ballisticStep, ballisticStepInto, solveDragArc, travelFactor } from './ballistics';
 import { length, scale, sub } from './geometry';
 import type { Vec3 } from '../ships/blueprint';
 
@@ -32,5 +32,18 @@ test('fast drag aim matches an independent low-arc solution and rejects unreacha
       expect(Math.abs(actual.time - expected)).toBeLessThan(1e-7);
       expect(length(sub(ballisticStep([0, 0, 0], scale(actual.direction, speed), actual.time, drag).position, target))).toBeLessThan(.0001);
     }
+  }
+});
+
+test('the in-place ballistic step stores exactly what ballisticStep returns', () => {
+  let seed = 5;
+  const random = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const out = new Float64Array(6);
+  for (let i = 0; i < 5000; i++) {
+    const position: Vec3 = [(random() - .5) * 1e4, random() * 3000, (random() - .5) * 1e4], velocity: Vec3 = [(random() - .5) * 900, (random() - .5) * 900, -0];
+    const seconds = i % 11 ? random() * 12 : 0, drag = i % 3 ? random() * 2 : i % 2 ? 1e-9 : 0;
+    const { position: p, velocity: v } = ballisticStep(position, velocity, seconds, drag);
+    ballisticStepInto(out, position, velocity, seconds, drag);
+    expect([...out].map(x => Object.is(x, -0) ? '-0' : x)).toEqual([...p, ...v].map(x => Object.is(x, -0) ? '-0' : x));
   }
 });

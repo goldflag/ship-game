@@ -5,6 +5,7 @@ import { MIXED_SHIPS } from '../../scripts/diagnostics/mixed-fleet';
 import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail, shipDetailLevels } from './ShipDetail';
 import { FleetShipDraws } from './FleetShipDraws';
+import { ShipPoseMatrices } from './ShipPoseMatrices';
 import type { ShipView } from './ShipView';
 
 test('all ten ship presets retain their original geometry and vertex attributes alongside smaller render buffers', async () => {
@@ -66,7 +67,7 @@ test('distance and binocular zoom select detail, subpixel parts return, and insp
     const model = template.clone(true), mesh = model.children[0] as THREE.Mesh, root = new THREE.Group();
     root.add(model);
     root.updateMatrixWorld(true);
-    return { root, model, renderMeshes: [{ mesh, material }], impactMarks: { renderMeshes: [] }, inspection: { mode: 'exterior' } } as unknown as ShipView;
+    return { root, model, renderMeshes: [{ mesh, material }], impactMarks: { renderMeshes: [] }, inspection: { mode: 'exterior' }, poseMatrices: new ShipPoseMatrices(root, model, new Set()) } as unknown as ShipView;
   });
   const draws = new FleetShipDraws(views);
   const camera = new THREE.PerspectiveCamera(60, 16 / 9, .1, 100000);

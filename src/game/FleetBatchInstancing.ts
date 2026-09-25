@@ -17,6 +17,9 @@ type Backend = {
 };
 type Range = { start: number; count: number; first: number; instances: number };
 type CachedBundle = { bundle: object; pipeline: object; index: object | undefined; buffers: (object | undefined)[]; bindings: (object | undefined)[]; bytes: number; ranges: Range[] };
+/** Bundles kept per draw, most recent first. The ocean and wake fields a hull's paint samples are ping-ponged every frame, so
+ * its bind group alternates between two (`BindGroupReuse`); one bundle each lets both frames replay. */
+export const KEPT_BUNDLES = 4;
 const installed = new WeakSet<object>();
 const bundleSettings = new WeakMap<object, { enabled: boolean; hits: number; builds: number }>();
 export function setFleetBatchBundlesEnabled(backend: object, enabled: boolean): void {
@@ -47,7 +50,7 @@ export function installFleetBatchInstancing(value: object): void {
   const backend = value as Backend;
   if (REVISION !== '185' || !backend._draw || installed.has(value)) return;
   const original = backend._draw;
-  const bundles = new WeakMap<RenderObject, CachedBundle>();
+  const bundles = new WeakMap<RenderObject, CachedBundle[]>();
   if (!bundleSettings.has(value)) setFleetBatchBundlesEnabled(value, true);
   const stats = bundleSettings.get(value)!;
   backend._draw = function (...args: DrawArgs) {
@@ -72,9 +75,12 @@ export function installFleetBatchInstancing(value: object): void {
       const indexBuffer = index ? backend.get(index).buffer : undefined;
       const buffers = vertexBuffers.map(buffer => backend.get!(buffer).buffer);
       const groups = bindings.map(group => backend.get!(group).group);
-      let cached = bundles.get(renderObject);
-      if (!cached || cached.pipeline !== pipeline || cached.index !== indexBuffer || cached.bytes !== bytes ||
-          !sameResources(cached.buffers, buffers) || !sameResources(cached.bindings, groups) || !sameRanges(state, length, cached.ranges)) {
+      let kept = bundles.get(renderObject);
+      if (!kept) bundles.set(renderObject, kept = []);
+      const found = kept.findIndex(entry => entry.pipeline === pipeline && entry.index === indexBuffer && entry.bytes === bytes &&
+        sameResources(entry.buffers, buffers) && sameResources(entry.bindings, groups) && sameRanges(state, length, entry.ranges));
+      let cached = found < 0 ? undefined : kept[found];
+      if (!cached) {
         const bundleEncoder = backend.pipelineUtils.createBundleEncoder(renderObject.context, 'Fleet surface draws');
         const bundleArgs: DrawArgs = [...args];
         bundleArgs[7] = bundleEncoder;
@@ -90,8 +96,11 @@ export function installFleetBatchInstancing(value: object): void {
           ranges.push({ start, count, first, instances: end - first }); first = end;
         }
         cached = { bundle: bundleEncoder.finish(), pipeline, index: indexBuffer, buffers, bindings: groups, bytes, ranges };
-        bundles.set(renderObject, cached); stats.builds++;
-      } else stats.hits++;
+        kept.unshift(cached); if (kept.length > KEPT_BUNDLES) kept.length = KEPT_BUNDLES; stats.builds++;
+      } else {
+        if (found) { kept.splice(found, 1); kept.unshift(cached); }
+        stats.hits++;
+      }
       encoder.executeBundles([cached.bundle]);
       // WebGPU clears these bindings after executeBundles. Three must bind
       // them again before the following ordinary mesh is submitted.

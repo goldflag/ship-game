@@ -70,6 +70,8 @@ export class FleetWakeFoam {
   private readonly knobs = Object.fromEntries(Object.entries(WAKE_SHADING).map(([key, value]) => [key, knob(value)])) as Record<ShadingKey, ReturnType<typeof knob>>;
   private dirty = true;
   private churned = false;
+  /** The pose and speed a trail reads, reused for every hull: its speed is what shows above water. */
+  private readonly motion = { x: 0, z: 0, heading: 0, speed: 0 };
   /** Whether trails still paint the bow-shoulder crests; off while the analytic bow waves draw them. */
   bowShoulders = true;
   /** Live shape of the realistic trails (stamps) and how they read on the water (shading). */
@@ -220,7 +222,9 @@ export class FleetWakeFoam {
       // Keep every turn/emission sample, but refresh distant coverage at 5 Hz.
       // Optical magnification restores the nearby 20 Hz rate automatically.
       const apparentDistance = camera ? distance * 2.05 / camera.projectionMatrix.elements[5] : 0;
-      entry.foam.update({ ...ship.motion, speed: ship.motion.speed * surface }, dt, apparentDistance > 2500 ? .2 : .05);
+      const motion = this.motion;
+      motion.x = ship.motion.x; motion.z = ship.motion.z; motion.heading = ship.motion.heading; motion.speed = ship.motion.speed * surface;
+      entry.foam.update(motion, dt, apparentDistance > 2500 ? .2 : .05);
       const tx = slot % TILES, ty = Math.floor(slot / TILES);
       this.centers[slot].set(entry.foam.center.x, entry.foam.center.y, tx, ty);
       this.slickCenters[slot].set(entry.foam.slickCenter.x, entry.foam.slickCenter.y, 0, 0);

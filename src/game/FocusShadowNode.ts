@@ -1,15 +1,51 @@
 import {
-  Box3, MathUtils, Matrix4, Object3D, ShadowBaseNode, ShadowNode, Vector3,
+  Box3, MathUtils, Matrix4, Object3D, PCFSoftShadowMap, ShadowBaseNode, ShadowNode, Vector3,
   type DepthTexture, type DirectionalLight, type DirectionalLightShadow, type Node, type PerspectiveCamera, type RenderTarget, type Sphere,
 } from 'three/webgpu';
-import { abs, distance, float, Fn, If, lightShadowMatrix, max, select, shadowPositionWorld, smoothstep, uniform, vec4 } from 'three/tsl';
+import {
+  abs, add, distance, float, fract, Fn, If, ivec2, lightShadowMatrix, max, mix, reference, renderGroup, select, shadowPositionWorld, smoothstep, texture, uniform, vec2, vec4,
+} from 'three/tsl';
 import type { ShadowCasterPass } from './ShadowCasterPass';
+
+type FilterInputs = { depthTexture: DepthTexture; shadowCoord: Node<'vec3'>; depthLayer: Node<'int'> };
+type ShadowFilter = (inputs: FilterInputs) => Node<'float'>;
+type FilteredShadow = DirectionalLightShadow & { filterNode: ShadowFilter | null };
+type Gathered = Node<'vec4'> & Record<'x' | 'y' | 'z' | 'w', Node<'float'>>;
+type Gather = { depth(layer: Node): Gather; compare(z: Node): Gathered };
+
+/** Three r185's `PCFSoftShadowFilter` over one `mapSize` uniform per map. Three's builds a new `mapSize` reference in every
+ * material it compiles into, and the renderer shares a render bind group only between materials whose uniforms are the same
+ * nodes: every lit material then kept its own copy of the camera, light and shadow uniforms and compared and rewrote it on
+ * every draw. The same arithmetic on the same samples, so the same shader apart from uniform names. */
+export function softShadowFilter(shadow: DirectionalLightShadow): ShadowFilter {
+  const mapSize = (reference('mapSize', 'vec2', shadow) as unknown as { setGroup(group: Node): Node<'vec2'> }).setGroup(renderGroup);
+  return Fn(({ depthTexture, shadowCoord, depthLayer }: FilterInputs) => {
+    const texelSize = vec2(1).div(mapSize);
+    const uv = shadowCoord.xy as unknown as Node<'vec2'> & { subAssign(value: Node<'vec2'>): void };
+    const f = fract(uv.mul(mapSize).add(.5)).toConst();
+    uv.subAssign(f.sub(.5).mul(texelSize));
+    const gatherCompare = (offset: Node<'ivec2'>) => {
+      let t = (texture(depthTexture, uv) as unknown as { offset(o: Node): { gather(): Gather } }).offset(offset).gather();
+      if ((depthTexture as unknown as { isArrayTexture?: boolean }).isArrayTexture) t = t.depth(depthLayer);
+      return t.compare(shadowCoord.z).toConst() as Gathered;
+    };
+    const c1 = gatherCompare(ivec2(-1, 1)), c2 = gatherCompare(ivec2(1, 1)), c3 = gatherCompare(ivec2(-1, -1)), c4 = gatherCompare(ivec2(1, -1));
+    return add(
+      mix(c1.x, c2.y, f.x).add(c1.y).add(c2.x).mul(f.y),
+      mix(c1.w, c2.z, f.x).add(c1.z).add(c2.w),
+      mix(c3.x, c4.y, f.x).add(c3.y).add(c4.x),
+      mix(c3.w, c4.z, f.x).add(c3.z).add(c4.w).mul(f.y.oneMinus()),
+    ).mul(1 / 9);
+  }) as unknown as ShadowFilter;
+}
 
 /** A shadow-casting stand-in the renderer treats as a directional light. */
 class CascadeLight extends Object3D {
   readonly target = new Object3D();
   castShadow = true;
-  constructor(public shadow: DirectionalLightShadow) { super(); }
+  /** This map's soft filter (`softShadowFilter`), which `FocusShadowNode.setup` hands to three's shadow node. */
+  readonly softFilter: ShadowFilter;
+  constructor(public shadow: DirectionalLightShadow) { super(); this.softFilter = softShadowFilter(shadow); }
 }
 
 /** One map. Its draw goes through the owner's caster pass when that can take it, else three's scene pass. */
@@ -105,6 +141,9 @@ const stepUp = (half: number) => 2 ** (Math.ceil(Math.log2(Math.max(half, VIEW_M
  * next at that map's edge. Map size, intensity and updates follow the light's own
  * shadow settings. */
 export class FocusShadowNode extends ShadowBaseNode {
+  /** Off: each map's soft filter is three's own, which gives every lit material its own render bind group. For comparison;
+   * read when the maps' shadow nodes are first built. */
+  static sharedMapSize = true;
   readonly near: CascadeLight;
   readonly wide: CascadeLight;
   readonly views: readonly ViewCascade[];
@@ -228,6 +267,9 @@ export class FocusShadowNode extends ShadowBaseNode {
     const cascade = (light: CascadeLight) => new CascadeShadowNode(light, this) as unknown as Node<'vec4'>;
     const near = this.nearNode ??= cascade(this.near), wide = this.wideNode ??= cascade(this.wide);
     const views = this.views.map(view => view.node ??= cascade(view.light));
+    // Three reads a shadow's filter when it builds that map's node, and again after the shadow type changes.
+    const soft = FocusShadowNode.sharedMapSize && builder.renderer.shadowMap.type === PCFSoftShadowMap;
+    for (const light of [this.near, this.wide, ...this.views.map(view => view.light)]) (light.shadow as FilteredShadow).filterNode = soft ? light.softFilter : null;
     return Fn(() => {
       this.setupShadowPosition(builder);
       const position = shadowPositionWorld as unknown as Node<'vec3'>;

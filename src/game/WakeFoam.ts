@@ -5,8 +5,13 @@ import type { ShipState } from '../game/session/elements';
 
 type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
 /** `along` counts the trail samples laid before this one, so a feature can follow distance along the track; `turn` is
- * the hull's rate of turn when it was laid (rad/s). */
-type WakeSample = Motion & { born: number; strength: number; along: number; turn: number };
+ * the hull's rate of turn when it was laid (rad/s). The rest never changes once laid, so it is worked out then: the
+ * heading's unit vector, where the trailing hull end was (`trailX`, `trailZ`: the stern, or the bow when sailing astern),
+ * the realistic band's wander and each side's lobe, and the band's and slick's strength at full share (`churn`, `slick`)
+ * for the tuning they were last read with. */
+type WakeSample = Motion & { born: number; strength: number; along: number; turn: number;
+  forwardX: number; forwardZ: number; trailX: number; trailZ: number; wander: number; port: number; starboard: number;
+  churn: number; churnPower: number; turnChurn: number; slick: number; slickPower: number };
 /** `rightX`, `rightZ` and `aspect` turn and stretch the impact's rings a little, so no two read as the same circle. */
 type ImpactSample = { x: number; z: number; born: number; scale: number; rightX: number; rightZ: number; aspect: number };
 type WakeHull = { length: number; beam: number; forwardSpeed: number; centerX?: number; centerZ?: number };
@@ -99,6 +104,8 @@ export class WakeFoam {
   private readonly slickSamples: WakeSample[] = [];
   private readonly impacts: ImpactSample[] = [];
   private previous?: Motion;
+  /** Storage for `previous`: only the pose and speed are kept between updates. */
+  private readonly last: Motion = { x: 0, z: 0, heading: 0, speed: 0 };
   private sampleDistance = 0;
   private sampleCount = 0;
   private elapsed = 0;
@@ -173,7 +180,7 @@ export class WakeFoam {
       for (let along = SAMPLE_DISTANCE - this.sampleDistance; along <= distance; along += SAMPLE_DISTANCE) {
         const fraction = along / distance;
         const speed = previous.speed + (state.speed - previous.speed) * fraction;
-        const sample = {
+        const sample = this.lay({
           x: previous.x + (state.x - previous.x) * fraction,
           z: previous.z + (state.z - previous.z) * fraction,
           heading: previous.heading + headingDelta * fraction,
@@ -182,7 +189,7 @@ export class WakeFoam {
           along: this.sampleCount,
           turn: Math.abs(headingDelta) / dt,
           born: this.time.value - dt * (1 - fraction),
-        };
+        });
         this.samples.push(sample);
         // The slick keeps a sparser record for longer, whichever trail is drawn, so switching shows its whole length.
         if (this.sampleCount++ % SLICK_EVERY === 0) this.slickSamples.push(sample);
@@ -190,7 +197,9 @@ export class WakeFoam {
       }
       this.sampleDistance = (this.sampleDistance + distance) % SAMPLE_DISTANCE;
     }
-    this.previous = { ...state };
+    const last = this.last;
+    last.x = state.x; last.z = state.z; last.heading = state.heading; last.speed = state.speed;
+    this.previous = last;
     while (this.samples.length && this.time.value - this.samples[0].born > LIFETIME) this.samples.shift();
     while (this.slickSamples.length && this.time.value - this.slickSamples[0].born > SLICK_LIFETIME) this.slickSamples.shift();
     while (this.impacts.length && this.time.value - this.impacts[0].born > IMPACT_LIFETIME) this.impacts.shift();
@@ -199,6 +208,21 @@ export class WakeFoam {
     this.elapsed = Number.isFinite(this.elapsed) ? this.elapsed % updateInterval : 0;
     this.rasterize(state);
     this.dirty = this.samples.length > 0 || this.impacts.length > 0 || slick;
+  }
+
+  /** A new sample with everything that stays fixed for its life worked out, by the same expressions its stamps used to
+   * repeat on every rasterisation. */
+  private lay(motion: Motion & { born: number; strength: number; along: number; turn: number }): WakeSample {
+    const hull = this.hull, forwardX = Math.sin(motion.heading), forwardZ = -Math.cos(motion.heading);
+    const rightX = -forwardZ, rightZ = forwardX;
+    const centerX = motion.x + rightX * (hull.centerX ?? 0) - forwardX * (hull.centerZ ?? 0);
+    const centerZ = motion.z + rightZ * (hull.centerX ?? 0) - forwardZ * (hull.centerZ ?? 0);
+    const aft = (motion.speed >= 0 ? 1 : -1) * hull.length * .468;
+    const along = motion.along * SAMPLE_DISTANCE, laps = along / hull.beam;
+    const lobe = (phase: number) => Math.sin(laps * 4.8 + phase) * .6 + Math.sin(laps * 2.1 + phase * 1.7) * .4;
+    return { ...motion, forwardX, forwardZ, trailX: centerX - forwardX * aft, trailZ: centerZ - forwardZ * aft,
+      wander: Math.sin(along / 37) * .6 + Math.sin(along / 83 + 1.7) * .4, port: lobe(2.3), starboard: lobe(0),
+      churn: 0, churnPower: NaN, turnChurn: NaN, slick: 0, slickPower: NaN };
   }
 
   splash(x: number, z: number, caliberM: number): void {
@@ -255,7 +279,7 @@ export class WakeFoam {
     if (this.churned) { this.churn(); this.texture.needsUpdate = true; return; }
     for (const sample of this.samples) {
       const age = this.time.value - sample.born;
-      const forwardX = Math.sin(sample.heading), forwardZ = -Math.cos(sample.heading);
+      const { forwardX, forwardZ } = sample;
       const rightX = -forwardZ, rightZ = forwardX;
       const centerX = sample.x + rightX * (this.hull.centerX ?? 0) - forwardX * (this.hull.centerZ ?? 0);
       const centerZ = sample.z + rightZ * (this.hull.centerX ?? 0) - forwardZ * (this.hull.centerZ ?? 0);
@@ -288,16 +312,6 @@ export class WakeFoam {
     this.texture.needsUpdate = true;
   }
 
-  /** Where a sample's trailing hull end was: the stern, or the bow when sailing astern. */
-  private trailing(sample: WakeSample): { x: number; z: number; forwardX: number; forwardZ: number } {
-    const forwardX = Math.sin(sample.heading), forwardZ = -Math.cos(sample.heading);
-    const rightX = -forwardZ, rightZ = forwardX, hull = this.hull;
-    const centerX = sample.x + rightX * (hull.centerX ?? 0) - forwardX * (hull.centerZ ?? 0);
-    const centerZ = sample.z + rightZ * (hull.centerX ?? 0) - forwardZ * (hull.centerZ ?? 0);
-    const aft = (sample.speed >= 0 ? 1 : -1) * hull.length * .468;
-    return { x: centerX - forwardX * aft, z: centerZ - forwardZ * aft, forwardX, forwardZ };
-  }
-
   /** Centre the slick's square on the trail it holds, not on the hull: a straight run then keeps nearly twice the length.
    * The hull stays inside with a margin, so the newest slick is never cut; the oldest falls off the far edge. Whole
    * slick cells only, so repainting never shifts the slick against its texels. */
@@ -319,30 +333,36 @@ export class WakeFoam {
     const tuning = this.tuning, beam = this.hull.beam, now = this.time.value;
     const churnCell = MIN_CELLS * EXTENT / this.resolution, slickCell = MIN_CELLS * SLICK_EXTENT / this.resolution;
     for (const sample of this.samples) {
-      const age = now - sample.born, ratio = Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1);
-      const slide = Math.min(1, sample.turn * this.hull.length / Math.max(Math.abs(sample.speed), 1));
-      const churn = Math.min(1, smooth(ratio) ** tuning.churnPower * (1 + tuning.turnChurn * slide));
-      const strength = churn * Math.exp(-age / tuning.churnLife) * (1 - smooth((age - 40) / (LIFETIME - 40)));
+      const age = now - sample.born;
+      if (sample.churnPower !== tuning.churnPower || sample.turnChurn !== tuning.turnChurn) {
+        const ratio = Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1);
+        const slide = Math.min(1, sample.turn * this.hull.length / Math.max(Math.abs(sample.speed), 1));
+        sample.churn = Math.min(1, smooth(ratio) ** tuning.churnPower * (1 + tuning.turnChurn * slide));
+        sample.churnPower = tuning.churnPower; sample.turnChurn = tuning.turnChurn;
+      }
+      const strength = sample.churn * Math.exp(-age / tuning.churnLife) * (1 - smooth((age - 40) / (LIFETIME - 40)));
       if (strength < .015) continue;
-      const { x, z, forwardX, forwardZ } = this.trailing(sample), rightX = -forwardZ, rightZ = forwardX;
+      const rightX = -sample.forwardZ, rightZ = sample.forwardX;
       const run = age * Math.abs(sample.speed), spread = Math.sqrt(run / beam);
       const width = Math.max(beam * (tuning.churnWidth + tuning.churnSpread * spread), churnCell);
       // The band wanders a little along the track as its eddies grow.
-      const along = sample.along * SAMPLE_DISTANCE, wander = Math.sin(along / 37) * .6 + Math.sin(along / 83 + 1.7) * .4;
-      const meander = wander * Math.min(tuning.meander * Math.sqrt(age), beam / 6);
-      const centerX = x + rightX * meander, centerZ = z + rightZ * meander, laps = along / beam;
+      const meander = sample.wander * Math.min(tuning.meander * Math.sqrt(age), beam / 6);
+      const centerX = sample.trailX + rightX * meander, centerZ = sample.trailZ + rightZ * meander;
       // Each side is its own stamp, bulging and drawing in on its own, so the outline is ragged, not a string of beads.
-      for (const side of [-1, 1]) {
-        const phase = side > 0 ? 0 : 2.3, lobe = Math.sin(laps * 4.8 + phase) * .6 + Math.sin(laps * 2.1 + phase * 1.7) * .4;
-        const half = Math.max(width * .65 * (1 + tuning.lobes * lobe), churnCell);
+      for (let side = -1; side <= 1; side += 2) {
+        const half = Math.max(width * .65 * (1 + tuning.lobes * (side > 0 ? sample.starboard : sample.port)), churnCell);
         this.stamp(centerX + rightX * side * width * .35, centerZ + rightZ * side * width * .35, rightX, rightZ, half, Math.max(4, width * .35), strength);
       }
     }
     for (const sample of this.slickSamples) {
-      const age = now - sample.born, ratio = Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1);
-      const strength = smooth(ratio) ** tuning.slickPower * Math.exp(-age / tuning.slickLife) * (1 - smooth((age - SLICK_LIFETIME * .75) / (SLICK_LIFETIME * .25)));
+      const age = now - sample.born;
+      if (sample.slickPower !== tuning.slickPower) {
+        sample.slick = smooth(Math.min(Math.abs(sample.speed) / this.hull.forwardSpeed, 1)) ** tuning.slickPower;
+        sample.slickPower = tuning.slickPower;
+      }
+      const strength = sample.slick * Math.exp(-age / tuning.slickLife) * (1 - smooth((age - SLICK_LIFETIME * .75) / (SLICK_LIFETIME * .25)));
       if (strength < .015) continue;
-      const { x, z, forwardX, forwardZ } = this.trailing(sample), rightX = -forwardZ, rightZ = forwardX;
+      const x = sample.trailX, z = sample.trailZ, rightX = -sample.forwardZ, rightZ = sample.forwardX;
       const run = age * Math.abs(sample.speed), spread = Math.sqrt(run / beam);
       const width = Math.max(beam * (tuning.slickWidth + tuning.slickSpread * spread), slickCell);
       // Long enough along the track to join the next sample SLICK_EVERY × SAMPLE_DISTANCE on.
