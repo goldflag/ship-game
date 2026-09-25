@@ -63,20 +63,13 @@ export function checkLegacyShip(root: string, id: string) {
     throw new Error(`ship:check ${id} failed; run bun run ship:build ${id} first.\n` + (check.stderr.toString() || check.stdout.toString()).trim().slice(-2000));
 }
 
-/** Add the ship's funnel count to the smoke test's table of registered presets. */
-export async function addFunnelCount(root: string, id: string) {
+/** The funnel mouths the smoke finds on a newly registered preset. ShipFunnelSmoke.test.ts checks every registered
+ * surface ship by rule (at least one mouth, each at the top of its own funnel), so there is no table to add to; a
+ * surface ship with none gets the fix here instead of from that test. */
+export async function funnelReport(root: string, id: string) {
   const { funnelOutlets } = await import('../../src/game/ShipFunnelSmoke');
   const definition = JSON.parse(await readFile(join(root, 'public/models', id + '.json'), 'utf8'));
-  const count = funnelOutlets(definition).length;
-  const file = join(root, 'src/game/ShipFunnelSmoke.test.ts'),
-    text = await readFile(file, 'utf8');
-  const table = /(const counts: Record<string, number> = \{)([\s\S]*?)( \};)/.exec(text);
-  const key = /^[a-z][a-z0-9]*$/.test(id) ? id : `'${id}'`;
-  if (!table) return { funnels: count, testRow: 'counts table not found; add it by hand' };
-  if (new RegExp(`[{,\\s]${key}:`).test(table[2])) return { funnels: count, testRow: 'already present' };
-  // Wrap onto a fresh row rather than growing the last one past the source line width.
-  const last = (text.slice(0, table.index) + table[1] + table[2]).split('\n').pop()!, entry = `${key}: ${count}`;
-  const row = last.length + entry.length > 170 ? ',\n    ' + entry : ', ' + entry;
-  await writeFile(file, text.slice(0, table.index) + table[1] + table[2] + row + table[3] + text.slice(table.index + table[0].length));
-  return { funnels: count, testRow: 'added' };
+  const funnels = funnelOutlets(definition).length;
+  if (funnels || definition.submarine) return { funnels };
+  return { funnels, funnelWarning: 'No funnel smoke: name the funnel structure <x>-funnel or funnel-jacket, or give it an exhaust datum.' };
 }

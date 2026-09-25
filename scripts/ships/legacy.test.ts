@@ -1,13 +1,13 @@
 import { expect, test } from 'bun:test';
-import { copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { compileShip } from '../../src/ships/blueprint';
-import { addFunnelCount, isLegacyShip, scaffoldLegacyShip } from './legacy';
+import { funnelReport, isLegacyShip, scaffoldLegacyShip } from './legacy';
 
 const root = resolve(import.meta.dir, '../..');
 
-test('a scaffolded Blender-recipe preset compiles, is recognised and gets its funnel row', async () => {
+test('a scaffolded Blender-recipe preset compiles, is recognised and smokes from its funnel', async () => {
   const temp = await mkdtemp(join(tmpdir(), 'legacy-scaffold-'));
   try {
     await mkdir(join(temp, 'assets/ships'), { recursive: true });
@@ -29,11 +29,9 @@ test('a scaffolded Blender-recipe preset compiles, is recognised and gets its fu
 
     await mkdir(join(temp, 'public/models'), { recursive: true });
     await writeFile(join(temp, 'public/models/starter-cruiser.json'), JSON.stringify(definition));
-    await mkdir(join(temp, 'src/game'), { recursive: true });
-    await copyFile(join(root, 'src/game/ShipFunnelSmoke.test.ts'), join(temp, 'src/game/ShipFunnelSmoke.test.ts'));
-    expect(await addFunnelCount(temp, 'starter-cruiser')).toEqual({ funnels: 1, testRow: 'added' });
-    expect(await readFile(join(temp, 'src/game/ShipFunnelSmoke.test.ts'), 'utf8')).toContain("'starter-cruiser': 1 };");
-    expect(await addFunnelCount(temp, 'starter-cruiser')).toEqual({ funnels: 1, testRow: 'already present' });
+    expect(await funnelReport(temp, 'starter-cruiser')).toEqual({ funnels: 1 });
+    await writeFile(join(temp, 'public/models/starter-cruiser.json'), JSON.stringify({ ...definition, structures: [] }));
+    expect(await funnelReport(temp, 'starter-cruiser')).toMatchObject({ funnels: 0, funnelWarning: expect.stringContaining('No funnel smoke') });
   } finally {
     await rm(temp, { recursive: true, force: true });
   }
