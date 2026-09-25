@@ -84,6 +84,14 @@ for mount in D['mounts']:
     else:
         kit.gun_seat(mount)
     create_mount(mount, col, helpers, materials)
+    if mount['partId'] == 'type96-25-kongo-single':
+        # The shared single's ring sight hangs 8 cm off its rail; the sight's cross-wires, owned by
+        # the same elevating joint, carry it on the rail's end.
+        elev = bpy.data.objects[mount['id'] + '.center.elevation']
+        for a, b in (((.13, .17, .21), (.13, .17, .41)), ((.13, .07, .31), (.13, .27, .31))):
+            wire = kit.rod(mount['id'] + '.sight cross-wire', a, b, .007, 'edge', col, vertices=5)
+            wire.parent = elev
+            wire['assemblyId'] = mount['id']
 
 # ---------------------------------------------------------------- fittings
 takao_fittings.build(D, kit)

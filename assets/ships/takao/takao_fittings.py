@@ -164,7 +164,7 @@ def torpedo_mounts(D, kit):
             local(kit.part('rod', lid, col, '610 mm tube', breech, muzzle, .34, 'naval', vertices=20), pivot)
             local(kit.part('rod', lid, col, 'tube mouth', muzzle - Vector((.03, 0, 0)), muzzle + Vector((.005, 0, 0)), .29, 'dark', vertices=20), pivot)
             local(kit.part('rod', lid, col, 'breech door', breech - Vector((.14, 0, 0)), breech + Vector((.1, 0, 0)), .38, 'edge', vertices=20), pivot)
-            for xx in (-6.6, -4.2, -1.8, .4):
+            for xx in (-7.0, -4.7, -2.4, -.45):
                 c = muzzle + Vector((xx, 0, 0))
                 local(kit.part('rod', lid, col, 'tube band', c - Vector((.05, 0, 0)), c + Vector((.05, 0, 0)), .365, 'edge', vertices=20), pivot)
             kit.empty(tube['id'] + '.muzzle', tuple(muzzle - Vector(pivot.location)), pivot, lid, col)
@@ -214,7 +214,7 @@ def mainmast(D, kit):
     kit.part('rod', aid, col, 'topmast', V(0, 22.4, 43.4), V(0, 33.08, 43.4), .15, 'naval', r2=.08, vertices=12)
     kit.part('rod', aid, col, 'masthead box', V(0, 22.57, 42.72), V(0, 25.87, 42.72), .45, 'naval', vertices=12)
     kit.part('rod', aid, col, 'gaff', V(0, 28.6, 43.57), V(0, 31.42, 46.66), .07, 'naval', r2=.045, vertices=8)
-    kit.part('rod', aid, col, 'topmast yard', V(-3.3, 30.9, 42.74), V(3.3, 30.9, 42.74), .07, 'naval', r2=.07, vertices=8)
+    kit.part('rod', aid, col, 'topmast yard', V(-3.3, 30.9, 43.3), V(3.3, 30.9, 43.3), .07, 'naval', r2=.07, vertices=8)
     for yy, hw, z0, z1 in ((10.68, 2.17, 41.2, 44.12), (13.4, 1.71, 42.08, 45.14), (17.1, .98, 42.12, 43.88), (22.57, 2.4, 41.62, 44.09)):
         kit.boxc(aid, col, 'mast platform', V(0, yy, (z0 + z1) / 2), (z1 - z0, 2 * hw, .1), 'roof')
     kit.boxc(aid, col, 'crane post', V(0, 8.33, 44.35), (.75, 1.0, 4.6), 'naval')
@@ -271,6 +271,9 @@ def directors(D, kit):
         for aid, (x, y, z), (w, h, l) in [(f'ha-director-{side}', (s * 6.057, 12.707, -22.104), (2.38, 1.75, 2.37)),
                                           (f'aa-director-{side}', (s * 3.621, 11.169, -.79), (2.15, 2.13, 2.13))]:
             c = V(x, y, z)
+            floor = kit.below(c.x, c.y, c.z + .2, c.z)
+            if c.z - floor > .02:
+                kit.cylz(aid, col, 'director pedestal', Vector((c.x, c.y, floor - .01)), w * .3, c.z - floor + .02, 'naval', 16)
             kit.cylz(aid, col, 'director base', c, w * .38, .3, 'naval', 20)
             kit.cylz(aid, col, 'director body', c + Vector((0, 0, .3)), w * .45, h - .5, 'naval', 20)
             kit.boxc(aid, col, 'optics', c + Vector((0, 0, h - .1)), (.7, w, .35), 'naval')
@@ -298,7 +301,8 @@ def rangefinders(D, kit):
             kit.boxc(aid, col, 'end hood', c + Vector((t * 2.2, 0, .9)), (.45, 1.9, .8), 'naval')
         aid = 'rangefinder-1m5-' + ('port' if s < 0 else 'starboard')
         c = V(s * 2.799, 14.385, -29.944)
-        kit.cylz(aid, col, 'pillar', c, .12, .55, 'naval', 10)
+        floor = kit.below(c.x, c.y, c.z + .2, c.z)
+        kit.cylz(aid, col, 'pillar', Vector((c.x, c.y, floor - .01)), .12, c.z + .68 - floor, 'naval', 10)
         kit.part('rod', aid, col, 'rangefinder', c + Vector((0, -.8, .75)), c + Vector((0, .8, .75)), .1, 'naval', vertices=10)
 
 
@@ -333,7 +337,10 @@ def radars(D, kit):
         kit.part('rod', aid, col, 'aerial rail', base + Vector((0, t * .5, 0)), base + Vector((0, t * .5, 4.6)), .03, 'edge', vertices=6)
     for k in range(9):
         kit.part('rod', aid, col, 'aerial element', base + Vector((0, -.95, .3 + k * .5)), base + Vector((0, .95, .3 + k * .5)), .02, 'edge', vertices=5)
-    kit.member(aid, col, base + Vector((0, 0, 2.3)), V(0, 21.8, -13.2), .05)
+    # Two brackets from the aerial's frame back to the foremast's main leg.
+    for k, yy in enumerate((20.4, 23.4)):
+        leg_z = -17.17 + (yy - 8.68) / (25.1 - 8.68) * (17.17 - 13.45)
+        kit.member(aid, col, V(0, yy, -11.85), V(0, yy, leg_z + .05), .06)
 
 
 def searchlights(D, kit):
@@ -363,42 +370,78 @@ def boat(kit, aid, col, c, length, beam, depth, heading=0.0, covered=False):
         ring = []
         for k in range(9):
             a = math.pi * k / 8
-            ring.append((x, -half * math.cos(a), top - depth * .85 * math.sin(a) ** 1.4 * (1 - .4 * fore)))
+            ring.append((x, -half * math.cos(a), top - depth * .85 * math.sin(a) ** 1.4 * (1 - .4 * fore) - depth * .15))
         rings.append(ring)
     rot = Matrix.Rotation(heading, 3, 'Z')
     rings = [[tuple(Vector(c) + rot @ Vector(p)) for p in ring] for ring in rings]
     hull = kit.loft(aid, col, 'boat hull', rings, 'white', True, True, True)
     if covered:
-        kit.boxc(aid, col, 'cabin', Vector(c) + rot @ Vector((-length * .12, 0, depth + .45)), (length * .45, beam * .6, .9), 'white', heading)
+        kit.boxc(aid, col, 'cabin', Vector(c) + rot @ Vector((-length * .12, 0, depth * .85 + .42)), (length * .45, beam * .6, .9), 'white', heading)
     else:
         for k in range(4):
-            kit.boxc(aid, col, 'thwart', Vector(c) + rot @ Vector(((k - 1.5) * length * .2, 0, depth * .75)), (.2, beam * .85, .06), 'wood', heading)
+            kit.boxc(aid, col, 'thwart', Vector(c) + rot @ Vector(((k - 1.5) * length * .2, 0, depth * .6)), (.2, beam * .85, .06), 'wood', heading)
     return hull
 
 
 def boats(D, kit):
     col = kit.collections['Boats and aviation']
-    # 9 m cutters in davits abreast the forward funnel.
+    # 9 m cutters in chocks on the shelter deck abreast the forward funnel, under their davits.
     for s in (-1, 1):
         aid = 'cutter-' + ('port' if s < 0 else 'starboard')
-        c = V(s * 7.29, 6.4, -17.75)
-        boat(kit, aid, col, c, 9.1, 2.35, 1.3)
-        for dz in (-3.6, 3.6):
-            top = V(s * 7.29, 9.55, -17.75 + dz)
-            foot = V(s * 8.9, 6.16, -17.75 + dz)
-            kit.part('rod', aid, col, 'davit', foot, top + Vector((0, 0, 0)), .11, 'naval', vertices=10)
-            kit.wire(aid, col, top, top + Vector((0, 0, -2.0)), .015, False)
+        keel = V(s * 7.29, 6.27, -17.75)
+        boat(kit, aid, col, keel, 9.1, 2.35, 1.5)
+        for dz in (-2.6, 2.6):
+            chock = V(s * 7.29, 6.16, -17.75 + dz)
+            kit.boxc(aid, col, 'chock', chock + Vector((0, 0, .06)), (.3, 1.4, .12), 'edge')
+            top = V(s * 7.29, 9.55, -17.75 + dz * 1.38)
+            foot = V(s * 8.9, 6.16, -17.75 + dz * 1.38)
+            kit.part('rod', aid, col, 'davit', foot, top, .11, 'naval', vertices=10)
+            kit.part('rod', aid, col, 'davit head', top, top + Vector((0, s * -.6, -.3)), .09, 'naval', vertices=8)
+            kit.wire(aid, col, top + Vector((0, s * -.6, -.35)), V(s * 7.29, 7.6, -17.75 + dz * 1.2), .015, False)
     # Motor boats and the 12 m launch stowed in cradles on the deck abaft the shelter deck.
     for s in (-1, 1):
         aid = 'motor-boat-' + ('port' if s < 0 else 'starboard')
-        c = V(s * 3.5, 4.3, 23.98)
-        boat(kit, aid, col, c, 11.2, 3.0, 1.8, 0, True)
+        keel = V(s * 3.5, 4.1, 23.98)
+        boat(kit, aid, col, keel, 11.2, 3.0, 1.9, 0, True)
         for dz in (-3.5, 0, 3.5):
-            kit.boxc(aid, col, 'cradle', V(s * 3.5, 4.1, 23.98 + dz), (.3, 2.6, .5), 'edge')
+            kit.boxc(aid, col, 'cradle', V(s * 3.5, 3.97, 23.98 + dz), (.3, 1.6, .3), 'edge')
     aid = 'motor-launch'
-    boat(kit, aid, col, V(0, 4.0, 22.66), 12.2, 2.8, 1.6, 0, False)
+    boat(kit, aid, col, V(0, 4.1, 22.66), 12.2, 2.8, 1.7, 0, False)
     for dz in (-4, 0, 4):
-        kit.boxc(aid, col, 'cradle', V(0, 3.95, 22.66 + dz), (.3, 2.4, .3), 'edge')
+        kit.boxc(aid, col, 'cradle', V(0, 3.97, 22.66 + dz), (.3, 1.4, .3), 'edge')
+
+
+# ---------------------------------------------------------------- lattice pedestals
+# Tapered four-legged lattice towers from the shelter deck (reference components at these datums):
+# the Type 95 directors' towers abreast the forward funnel, the searchlights' abaft the after
+# funnel and the 25 mm twins' between them.
+TOWERS = [(3.645, -.81, 6.13, 11.21), (3.195, 10.395, 6.13, 11.21), (4.8, 6.37, 6.04, 10.51)]
+
+
+def towers(D, kit):
+    col = kit.collections['Superstructure']
+    for x, z, y0, y1 in TOWERS:
+        for s in (-1, 1):
+            aid = f'lattice-tower-{"port" if s < 0 else "starboard"}-{z:+.0f}'
+            c = V(s * x, 0, z)
+            floor = kit.below(c.x, c.y, y0 + .3, y0)
+            top = y1 - .08
+            b, t = 1.05, .62
+            corners = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
+            legs = [(Vector((c.x + i * b, c.y + j * b, floor)), Vector((c.x + i * t, c.y + j * t, top))) for i, j in corners]
+            for lo, hi in legs:
+                kit.member(aid, col, lo, hi, .075, 'naval', 8)
+            levels = 4
+            for k in range(levels + 1):
+                f = k / levels
+                ring = [lo.lerp(hi, f) for lo, hi in legs]
+                for p, q in zip(ring, ring[1:] + ring[:1]):
+                    kit.member(aid, col, p, q, .045, 'naval', 6)
+                if k < levels:
+                    nxt = [lo.lerp(hi, (k + 1) / levels) for lo, hi in legs]
+                    for i in range(4):
+                        kit.member(aid, col, ring[i], nxt[(i + 1) % 4], .035, 'naval', 5)
+            kit.boxc(aid, col, 'foot plate', Vector((c.x, c.y, floor + .025)), (2.35, 2.35, .06), 'edge')
 
 
 # ---------------------------------------------------------------- deck gear
@@ -436,7 +479,7 @@ def deck_gear(D, kit):
     for x, y, z in [(-3.75, 4.59, -50.28), (3.6, 4.49, 50.43)]:
         c = V(x, y - .6, z)
         kit.boxc('winches', col, 'winch bed', c, (2.1, .9, .3), 'edge')
-        kit.part('rod', 'winches', col, 'winch drum', c + Vector((0, -.6, .6)), c + Vector((0, .6, .6)), .35, 'naval', vertices=14)
+        kit.part('rod', 'winches', col, 'winch drum', c + Vector((0, -.6, .48)), c + Vector((0, .6, .48)), .35, 'naval', vertices=14)
     kit.cylz('capstan', col, 'after capstan', V(.44, 3.1, 85.72), .45, .55, 'naval', 16)
     # Ventilators: the large cowls and mushroom heads on the weather decks.
     for x, y, z in [(-.01, 4.67, -64.53), (.81, 4.19, -36.47), (-2.45, 4.19, -38.08), (.18, 4.24, 55.33), (-2.91, 4.23, 53.73), (3.15, 4.24, 55.48)]:
@@ -452,6 +495,7 @@ def deck_gear(D, kit):
     # Paravanes stowed by No. 3 barbette, smoke floats at the stern, leadsman's platforms at the bow.
     for x, z in [(3.31, -36.22), (-2.88, -36.04)]:
         c = V(x, 4.0, z)
+        c.z = kit.below(c.x, c.y, 5.0, 3.9) - .12
         kit.part('rod', 'paravanes', col, 'paravane body', c + Vector((-1.6, 0, .35)), c + Vector((1.6, 0, .35)), .22, 'naval', vertices=10)
         kit.boxc('paravanes', col, 'paravane plane', c + Vector((-.6, 0, .35)), (.9, 1.2, .04), 'naval')
     for x, z in [(1.08, 101.65), (1.37, 100.75), (-1.07, 101.63), (-1.46, 100.74)]:
@@ -476,12 +520,13 @@ def underwater(D, kit):
     for x, y, z, hub in [(6.95, -5.06, 77.81, 'outer'), (-6.95, -5.06, 77.81, 'outer'), (3.28, -5.79, 89.74, 'inner'), (-3.28, -5.79, 89.74, 'inner')]:
         aid = f'screw-{"port" if x < 0 else "starboard"}-{hub}'
         c = V(x, y, z)
-        kit.part('rod', aid, col, 'hub', c + Vector((.7, 0, 0)), c + Vector((-.9, 0, 0)), .42, 'bronze', r2=.18, vertices=14)
+        kit.part('rod', aid, col, 'hub', c + Vector((.7, 0, 0)), c + Vector((-.5, 0, 0)), .42, 'bronze', r2=.36, vertices=14)
+        kit.part('rod', aid, col, 'hub cone', c + Vector((-.5, 0, 0)), c + Vector((-1.0, 0, 0)), .36, 'bronze', r2=.08, vertices=14)
         for k in range(4):
             a = math.pi / 4 + k * math.pi / 2
             ca, sa = math.cos(a), math.sin(a)
             sections = []
-            for r, w in ((.35, .7), (.9, .95), (1.35, .85), (1.62, .45)):
+            for r, w in ((.3, .7), (.9, .95), (1.35, .85), (1.62, .45)):
                 le = (c.x - w * .15, c.y + r * ca - w * sa * .5, c.z + r * sa + w * ca * .5)
                 te = (c.x + w * .15, c.y + r * ca + w * sa * .5, c.z + r * sa - w * ca * .5)
                 sections.append((le, te))
@@ -529,6 +574,7 @@ def underwater(D, kit):
 
 
 def build(D, kit):
+    towers(D, kit)
     torpedo_rooms(D, kit)
     torpedo_mounts(D, kit)
     foremast(D, kit)
