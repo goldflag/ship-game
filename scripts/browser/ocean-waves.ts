@@ -4,12 +4,12 @@
  * view and sea to `.build/ocean-waves/<tag>/`; --validate / --timing check every tier, --coverage measures crest foam
  * against Monahan's whitecap fraction from 6 to 30 m/s on --quality, --lattice how strongly whitecaps repeat with each
  * cascade's tile at the same winds; all write `results.json`. */
-import type { Server } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import { chromium, type Browser } from 'playwright';
-import { authoringServer, serverUrl } from '../construction/browser';
+import type { Browser } from 'playwright';
+import { diagnosticTargets } from './baseline';
+import { launchDiagnosticBrowser, openDiagnosticPage } from './diagnosticPage';
 import { ROOT } from './harness';
 
 const { values } = parseArgs({ options: {
@@ -22,22 +22,18 @@ const { values } = parseArgs({ options: {
 } });
 const out = resolve(ROOT, '.build/ocean-waves', values.tag!);
 mkdirSync(out, { recursive: true });
-const server = values.url ? undefined : await authoringServer(ROOT, 0, true);
-const url = values.url ?? serverUrl(server!);
+// The server pushes no reloads, so a source edit during a 20-minute sweep leaves the page (and the sweep) alone.
+const { targets: [target], close } = await diagnosticTargets({ url: values.url });
 let browser: Browser | undefined;
-const pageErrors: string[] = [];
+let pageErrors: string[] = [];
 const results: Record<string, unknown> = {};
 try {
-  browser = await chromium.launch({ headless: false, args: ['--enable-unsafe-webgpu', '--window-position=0,0', '--window-size=1600,990'],
-    ...(process.env.HARNESS_CHROME ? { executablePath: process.env.HARNESS_CHROME } : {}) });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
-  page.setDefaultTimeout(600_000);
-  page.on('pageerror', error => pageErrors.push(error.message));
-  page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') pageErrors.push(message.text()); });
+  browser = await launchDiagnosticBrowser();
   // A blurred window pauses requestAnimationFrame-driven timing; the page renders on demand instead.
   const query = new URLSearchParams({ quality: values.quality!, show: values.show!, seaState: values['sea-state']! });
-  await page.goto(`${url}/scripts/diagnostics/ocean-waves.html?${query}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready, undefined, { polling: 250 });
+  const opened = await openDiagnosticPage(browser, `${target.url}/scripts/diagnostics/ocean-waves.html?${query}`, { warnings: true });
+  const page = opened.page;
+  pageErrors = opened.errors;
   results.backend = await page.evaluate(() => (window as any).oceanWaves.backend);
   const views = values.views ? values.views.split(',') : [];
   for (const sea of views.length ? values.seas!.split(',') : []) for (const view of views) {
@@ -88,6 +84,5 @@ try {
   if (pageErrors.length) console.error(pageErrors.join('\n'));
 } finally {
   await browser?.close().catch(() => undefined);
-  (server?.httpServer as Server | null)?.closeAllConnections();
-  await server?.close();
+  await close();
 }

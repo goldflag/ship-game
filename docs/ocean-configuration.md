@@ -642,7 +642,12 @@ a real coast, 5 and 20 km zoom, air, submerged, periscope, a ninety-second wake,
 up after three minutes, close astern, through a turn, behind a destroyer and across the morning
 glitter: `wakeAir`, `wakeStern`, `wakeTurn`, `wakeDestroyer`, `wakeGlint`) into
 `.build/ocean-review/<name>/`; `--measure` adds serialised frame costs and `--param realism=off` renders
-the look tuned to the replaced library. Compare a change against a baseline tag. Other GPU work on the
+the look tuned to the replaced library. `--baseline origin/master` compares a change against another commit
+in one run: it checks the ref out as a bootstrapped worktree under `.build/baseline/<sha>` (reused while the
+ref stays put), serves it on its own port, renders every scene on both into `<name>/baseline/` and
+`<name>/branch/` with the share of pixels that differ, and measures `near`, `wide` and `grazing`
+`--rounds` times (default 3) alternating baseline and branch, then prints both medians with every run. Run
+to run, identical code has measured 8.8 and 11.3 ms, so one reading of each side decides nothing. Other GPU work on the
 machine moves frame times by several milliseconds: compare shading costs by flipping
 `game.ocean.realism` between `oceanReview.measure()` calls in one page and reading low percentiles. Every page above freezes waves with `game.ocean.time = seconds`; a paused frame never
 advances it, and parameter changes still apply on the next update. Temporary captures belong in

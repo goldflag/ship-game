@@ -3,7 +3,7 @@
 | Directory | Holds |
 | --- | --- |
 | `tests/` | `run.ts` (the `bun run test` runner and `known-failures.json` ledger), `check.ts` (`bun run check`) with its test selection (`affected.ts`), and `*-browser.*` modules that export `check…` functions for `ship:browser:check` |
-| `browser/` | The account-free harness driver (`harness.ts`), `ui:shot` (`shot.ts`), the film driver (`film.ts`) and the saved-design cache (`designs.ts`). See [browser verification](../docs/browser-verification.md) |
+| `browser/` | The account-free harness driver (`harness.ts`), `ui:shot` (`shot.ts`), the film driver (`film.ts`), the saved-design cache (`designs.ts`), standalone diagnostics pages (`diagnosticPage.ts`) and master-against-branch runs (`baseline.ts`). See [browser verification](../docs/browser-verification.md) |
 | `film/` | Films: types, camera rigs, the page-side runner, scout helpers, the soundtrack and the films themselves (`films/`). See [films](../docs/film.md) |
 | `diagnostics/` | Standalone pages and measurement scripts. `app.html` is the harness page; most others are one-off studies and may be stale |
 | `construction/` | Construction authoring CLI, review server and `check-browser.ts` |
