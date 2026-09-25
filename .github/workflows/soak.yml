@@ -1,0 +1,26 @@
+name: Nightly simulation soak
+# Tests too long for every push: bots keeping off the real charts' coasts (terrain_soak, about 45 s of
+# simulation). They are #[ignore]d in the per-push run; this runs every ignored naval-sim test nightly.
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+jobs:
+  soak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.3
+      - name: Install pinned Rust toolchain
+        run: rustup show
+      - uses: Swatinem/rust-cache@v2
+      - run: bun install --frozen-lockfile
+      - name: Simulation content
+        run: bun scripts/multiplayer/content.ts
+      - name: Ignored naval-sim tests
+        run: cargo test --profile ci-test --locked -p naval-sim --test terrain_soak -- --ignored

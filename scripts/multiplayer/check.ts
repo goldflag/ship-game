@@ -13,9 +13,9 @@ process.exit(await runSteps('Multiplayer check', [
   { label: 'Generated protocol types', command: [bun, 'scripts/multiplayer/check-generated-types.ts'] },
   // The workspace is rustfmt-clean; keeping it so makes `cargo fmt` a no-noise command.
   { label: 'cargo fmt --check', command: [cargo, 'fmt', '--all', '--check'] },
-  // Full carrier scenarios are numerical simulation workloads. Test the optimized
-  // production profile so CI can run every case within its execution budget.
-  { label: 'cargo test --release', command: [cargo, 'test', '--release', '--workspace', '--locked', '--no-fail-fast'] },
+  // Full carrier scenarios are numerical simulation workloads: test at release optimisation so CI runs every case
+  // within its budget, on the ci-test profile (release without LTO), which links the test binaries far faster.
+  { label: 'cargo test', command: [cargo, 'test', '--profile', 'ci-test', '--workspace', '--locked', '--no-fail-fast'] },
   { label: 'cargo clippy', command: [cargo, 'clippy', '--workspace', '--all-targets', '--locked', '--', '-D', 'warnings'] },
   { label: 'Release WASM', command: [bun, 'scripts/multiplayer/build-wasm.ts'] },
 ], resolve(root, '.build/multiplayer-check'), { root }));
