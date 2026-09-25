@@ -140,15 +140,43 @@ repeatability. Navigation, mission and carrier tests run the same force solver.
 the battle movement entry point: time to cruise, crash stopping, turns in both
 directions, countersteering, preserved top speed and navigation braking estimates.
 
-For reproducible movement-only timing and 180-second ahead/half/turn/coast/astern
-trials, run:
+### Handling trial and gate
+
+`bun run ship:trial <id>` runs 180-second ahead/half/turn/coast/astern trials on any
+preset, Blender-recipe or construction, and prints a table: top speed, time to 90%
+speed, hard-turn speed and its share of top speed, hard-turn rate, time to turn 90°,
+steady turning circle, crash stop, astern speed, plus the port's turning circle,
+displacement, draft and wetted area for context. It compiles the working tree's
+blueprint (no `ship:build` needed; `--published` reads `public/models/<id>.json`)
+and builds the example on the `test-fast` profile (about 30 s cold, then instant).
+
+`--vs [ref]` (default `origin/master`) runs the same trial on the definition published
+at that ref (`git show <ref>:public/models/<id>.json`; no worktree) and prints both
+columns with the change. The trial needs nothing else: the hydrostatic table serves
+flotation and sea motion, not this planar solver. **The handling gate**
+(`HANDLING_GATE` in `scripts/construction/trial.ts`): top speed, hard-turn speed as a
+share of top, hard-turn rate and time to turn 90° stay within 10% of the baseline. A
+row that gets worse beyond it fails (exit 1); a gain beyond it is reported and kept
+when it follows from the corrected hull. Run it after any hull, draft, mass or
+screw/rudder/steering-room change. Legacy ships infer a centreline screw at 0.6 × draft
+that washes the steering-room rudder, so re-seating a hull can move the screw against
+the steering room: King George V's re-seat cut her hard-turn speed from 71% to 27% of
+top speed until the steering room was put back 3.3 m above the inferred screw.
+
+Fix a regression in ship data, never by editing `handling.maxYawRate`: for a legacy
+ship it sets the inferred rudder area and it also feeds the port's turning circle and
+maneuverability score (`src/ships/statistics.ts`), so tuning it to pass the gate
+shows players a worse turn than the ship makes. The table's "Port turning circle"
+row shows that display value.
+
+The raw example is still available for scripting:
 
 ```sh
-cargo run --release --locked -p naval-sim --example maneuvering_trial -- public/models/fletcher.json public/models/bismarck.json public/models/valiant.json
+cargo run --profile test-fast --locked -p naval-sim --example maneuvering_trial -- public/models/fletcher.json public/models/bismarck.json
 ```
 
-The diagnostic reports time to half/90% ahead speed, a 90° course change and a
-crash stop, plus speed/heading at 10, 30 and 60 seconds. It also reports preparation
-time and microseconds per ship tick separately.
+It prints one JSON line per ship: time to half/90% ahead speed, a 90° course change
+and a crash stop, plus speed/heading at 10, 30 and 60 seconds, preparation time and
+microseconds per ship tick (use `--release` for timing).
 It excludes flooding, weapons, collision detection, rendering and match scheduling;
 it must not be presented as a whole-game frame-rate measurement.

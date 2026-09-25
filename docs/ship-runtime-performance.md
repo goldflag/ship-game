@@ -105,7 +105,7 @@ bun run ship:authoring:check
 cargo test --release --locked -p naval-sim --no-fail-fast
 bun run ship:check all
 bun run ship:review resolute
-bun run ship:trial resolute --seconds 15
+bun run ship:trial resolute --live --seconds 15
 bun run build
 ```
 

@@ -1,4 +1,5 @@
-//! cargo run --release -p naval-sim --example maneuvering_trial -- public/models/fletcher.json
+//! `bun run ship:trial <id> [--vs [ref]]` runs this on any preset and prints a table (docs/maneuvering.md).
+//! cargo run --profile test-fast -p naval-sim --example maneuvering_trial -- public/models/fletcher.json (--release for timing)
 //! Isolates movement CPU cost; hull compilation and flooding solves are timed separately elsewhere.
 use naval_sim::{
     damage::Combatant,
