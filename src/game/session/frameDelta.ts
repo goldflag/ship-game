@@ -28,7 +28,16 @@ export function applyFramePatch(previous: unknown, patch: FramePatch | undefined
   if (patch === null || typeof patch !== 'object') return patch;
   if ('value' in patch) return patch.value;
   if ('array' in patch) {
-    const result = (previous as unknown[]).slice();
+    let result: unknown[];
+    if (patch.from) {
+      // A keyed collection: copy each run of survivors to where it now sits; the patches fill the rest.
+      result = [];
+      for (const [index, from, count] of patch.from) {
+        while (result.length < index) result.push(undefined);
+        for (let i = 0; i < count; i++) result.push((previous as unknown[])[from + i]);
+      }
+      while (result.length < patch.length!) result.push(undefined);
+    } else result = (previous as unknown[]).slice();
     for (const [index, change] of patch.array) result[index] = applyFramePatch(result[index], change);
     return result;
   }

@@ -115,8 +115,9 @@ export class LocalBattleSession extends SnapshotSession {
       if (data.type === 'snapshot') {
         if (data.cost) { const c = session.cost; c.ticks += data.cost.ticks; c.stepMs += data.cost.stepMs; c.snapshotMs += data.cost.snapshotMs; c.batches++; }
         if (data.reset) { session.received = undefined; session.pending = undefined; if (!data.trialAction) session.resetIntents(); }
-        // The worker parsed the update; its reference is the frame received last.
-        const frame = decodeFrameUpdate(session.received, data.update as FrameUpdate);
+        // The update arrives as the text Rust wrote: one parse here costs less than a
+        // structured clone of a tree the worker parsed. Its reference is the frame received last.
+        const frame = decodeFrameUpdate(session.received, JSON.parse(data.update) as FrameUpdate);
         session.received = frame;
         if (!session.actors.length || data.reset || data.trialAction) { session.pending = undefined; session.apply(frame); } else session.pending = frame;
         session.busy = false;
