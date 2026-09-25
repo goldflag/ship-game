@@ -21,6 +21,7 @@ const identities: Record<string, { type: string; nation: string }> = {
   cleveland: { type: 'Light cruiser', nation: 'United States' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
   mogami: { type: 'Heavy cruiser', nation: 'Japan' },
+  takao: { type: 'Heavy cruiser', nation: 'Japan' },
   'enterprise-cv6': { type: 'Aircraft carrier', nation: 'United States' },
   shokaku: { type: 'Aircraft carrier', nation: 'Japan' },
   'liberty-cargo': { type: 'Cargo ship', nation: 'United States' },

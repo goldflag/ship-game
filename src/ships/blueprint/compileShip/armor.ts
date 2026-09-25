@@ -1,6 +1,6 @@
 /** Authored armor plus the plates compiled from fitted gunhouse meshes. */
 import type { GunPart, Vec3 } from '../blueprintTypes';
-import { fail, record, text, numeric, list, literal, id, vector, volumes, type Rec } from '../validators';
+import { fail, record, text, numeric, list, literal, id, sourceReference, vector, volumes, type Rec } from '../validators';
 
 export function compileArmor(b: Rec, parts: Rec[], mounts: Rec[]): unknown[] {
   const compiledArmor = [
@@ -33,7 +33,7 @@ export function compileArmor(b: Rec, parts: Rec[], mounts: Rec[]): unknown[] {
     if (a.exterior !== undefined) literal(a.exterior, [true, false], `${a.id}.exterior`);
     if (a.provenance !== undefined) {
       const p = record(a.provenance, `${a.id}.provenance`);
-      id(p.sourceId, 'sourceId');
+      sourceReference(p.sourceId, `${a.id}.provenance.sourceId`);
       text(p.note, 'provenance.note');
       literal(p.basis, ['documented', 'plan-measured', 'estimated', 'inferred'], 'provenance.basis');
     }
