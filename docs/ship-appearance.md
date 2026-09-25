@@ -34,6 +34,8 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
   player-built windows and portholes install. Author it opaque; its tint is the dim room
   behind the pane. The game draws every such material as glass, whatever finish the
   recipe gave it (see below), so do not paint windows with a dark-grey paint instead.
+  A recipe's `dark` paint is for openings, not panes: vision slits, sight apertures,
+  bores, grilles and recesses stay matte; a scuttle, window or rangefinder window is glass.
 - **Deliberate colors:** reuse a named paint when the intended paint is the same.
   Nationality alone does not force identical gray. Identify reference-specific
   interpretations explicitly; do not label estimated RGB values as measured

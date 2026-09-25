@@ -409,7 +409,7 @@ for x in xs:
    rafts.rod((x+dx,sign*10.18,z-.62),(x+dx,y,z-.62),.045,'naval',6)
    rafts.rod((x+dx,y,z-.64),(x+dx,y,z-.4),.035,'naval',5)
 rafts.emit()
-# Scuttles are dark recess discs, with gunmetal rims oriented in the hull side.
+# Scuttles are glazed discs set in the hull side.
 scuttles=Kit('Hull scuttles',COL['Hull'],'hull-scuttles')
 for x in range(-105,114,4):
  station=x+H['length']/2;w=interpolate(H['halfBreadths'],station)
@@ -418,7 +418,7 @@ for x in range(-105,114,4):
   s=min(H['sections'],key=lambda p:abs(p['station']-station));breadth=interpolate([(p[1],p[0]) for p in s['points']],z)
   for sign in [-1,1]:
    yy=sign*(loft_width(x,z)-.01)
-   scuttles.rod((x,yy,z),(x,yy+sign*.035,z),.125,'dark',8)
+   scuttles.rod((x,yy,z),(x,yy+sign*.035,z),.125,'glass',8)
 scuttles.emit()
 # Forecastle anchoring machinery and independent anchor shapes.
 for sign in [-1,1]:

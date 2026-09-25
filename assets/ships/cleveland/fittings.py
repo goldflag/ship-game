@@ -73,7 +73,7 @@ def build_fittings(D,helpers,materials,col,deck_height):
         beam(name+'.rangefinder',(hx+sign*.1,-2.92,z+.91),(hx+sign*.1,2.92,z+.91),.22)
         for y in [-2.75,2.75]:
             tag(box(name+'.optic',(hx+sign*.23,y,z+.92),(.55,.34,.48),naval,col),name)
-            tag(box(name+'.glass',(hx+sign*.515,y,z+.92),(.025,.24,.31),dark,col),name)
+            tag(box(name+'.glass',(hx+sign*.515,y,z+.92),(.025,.24,.31),materials['glass'],col),name)
         F.ladder(name+'.access',(x-sign*1.55,.3,z-2),(x-sign*1.55,.3,z+.3),.5)
     # Mk.37 enclosed directors as the reference: a roller base, a house with a vertical face and a sloped
     # upper front, the rangefinder ears aft of centre and an equipment box behind.
@@ -168,7 +168,7 @@ def build_fittings(D,helpers,materials,col,deck_height):
     for x in [14,16,18,20,22,24]:
         for y in [-2.185,2.185]:
             F.ring('bridge scuttle',(x,y,10.05),.17,.034,'y',segments=12)
-            ob=cyl('bridge scuttle glass',(x,y,10.05),.135,.025,dark,col,16);ob.rotation_euler.x=math.pi/2;tag(ob,'forward-bridge-lower')
+            ob=cyl('bridge scuttle glass',(x,y,10.05),.135,.025,materials['glass'],col,16);ob.rotation_euler.x=math.pi/2;tag(ob,'forward-bridge-lower')
     # Capstans, bollards, mushroom ventilators and anchor cables at the reference's positions.
     for y in [-2.55,2.55]:
         x=70.1;z=deck_height(x)

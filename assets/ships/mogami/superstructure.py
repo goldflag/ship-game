@@ -31,7 +31,7 @@ def create_superstructure(d, col, helpers, materials, deck):
         for a,b in zip(pts,pts[1:]+[pts[0]]):
             o=box(name,((a[0]+b[0])/2,(a[1]+b[1])/2,z+h/2),(math.dist(a,b),.055,h));o.rotation_euler.z=math.atan2(b[1]-a[1],b[0]-a[0])
     def porthole(name,x,y,z,side=1,r=.14):
-        rod(name+' dark glass',(x,y,z),(x,y+side*.035,z),r,'dark',vertices=16)
+        rod(name+' glass',(x,y,z),(x,y+side*.035,z),r,'glass',vertices=16)
         pts=[(x+r*1.1*math.cos(i*math.tau/16),y+side*.05,z+r*1.1*math.sin(i*math.tau/16)) for i in range(16)]
         for a,b in zip(pts,pts[1:]+[pts[0]]):rod(name+' frame',a,b,.022,'edge',vertices=6)
     # Helpers for Fittings include explicit material/collection arguments; use the original helpers.

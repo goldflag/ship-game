@@ -228,7 +228,7 @@ for structure in definition.get('structures', []):
         for side in [-1,1]:
             for x in [x0+.8+i*1.3 for i in range(max(1,int((x1-x0-1.6)/1.3)))]:
                 rod(sid+'.scuttle-rim',(x,side*(y1+.006),base+height*.58),(x,side*(y1+.034),base+height*.58),.16,materials['edge'],vertices=20)
-                rod(sid+'.scuttle',(x,side*(y1+.034),base+height*.58),(x,side*(y1+.04),base+height*.58),.125,materials['dark'],vertices=20)
+                rod(sid+'.scuttle',(x,side*(y1+.034),base+height*.58),(x,side*(y1+.04),base+height*.58),.125,materials['glass'],vertices=20)
             box(sid+'.door',(x0+.75,side*(y1+.025),base+.90),(.65,.05,1.65),materials['edge'])
             box(sid+'.door-inset',(x0+.75,side*(y1+.056),base+.9),(.52,.018,1.5),materials['naval'],bev=0)
     if sid in ['wheelhouse','bridge-house']:
@@ -560,10 +560,10 @@ else:
         for x in [15,17.2,19.4,21.6,23.8,26.0]:
             z=3.64;y=side*(surface_width(x,z)+.012)
             rod('forecastle-scuttles.rim',(x,y,z),(x,y+side*.035,z),.15,materials['edge'],vertices=20)
-            rod('forecastle-scuttles.glass',(x,y+side*.036,z),(x,y+side*.04,z),.12,materials['dark'],vertices=20)
+            rod('forecastle-scuttles.glass',(x,y+side*.036,z),(x,y+side*.04,z),.12,materials['glass'],vertices=20)
         for x in [-24,-20,-16,-12,-8,-4,0,4]:
             y=side*(surface_width(x,1.32)+.014)
-            rod('hull-scuttles',(x,y,1.32),(x,y+side*.035,1.32),.115,materials['dark'],vertices=20)
+            rod('hull-scuttles',(x,y,1.32),(x,y+side*.035,1.32),.115,materials['glass'],vertices=20)
 
 # Bow ground tackle, capstan and anchor chains.
 ax=length*.43
