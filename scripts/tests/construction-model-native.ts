@@ -17,12 +17,13 @@ export async function nativeConstructionMuzzles(input: unknown) {
     env: { ...process.env, CARGO_TARGET_DIR: resolve(root, 'target') },
     stdin: 'pipe',
     stdout: 'pipe',
-    stderr: 'inherit',
+    stderr: 'pipe',
   });
   child.stdin.write(JSON.stringify(input));
   child.stdin.end();
-  const text = await new Response(child.stdout).text();
-  if (await child.exited) throw new Error('Native muzzle oracle failed');
+  const [text, errors, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
+  // Say why: a build error, a missing toolchain and a panic in the oracle all read the same without cargo's output.
+  if (code) throw new Error(`Native muzzle oracle failed (cargo run exited ${code}):\n${errors.trim().split('\n').slice(-20).join('\n')}`);
   return JSON.parse(text);
 }
 if (import.meta.main) {
