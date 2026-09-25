@@ -50,14 +50,24 @@ for face in hull.data.polygons:
 
 # ---------------------------------------------------------------- superstructure
 shells = []
+FUNNEL_TOPS = {}
+for s in D['structures']:
+    if s['id'].startswith(('forward-funnel', 'after-funnel')):
+        top = max(v[1] for v in s['surface']['vertices']) if s.get('surface') else s['baseY'] + s['height']
+        key = s['id'].rsplit('-', 1)[0]
+        FUNNEL_TOPS[key] = max(FUNNEL_TOPS.get(key, 0), top)
 for s in D['structures']:
     ob = authored_structure(s, kit.mesh, materials, collections['Superstructure'])
     ob.data.materials.append(materials[kit.roof(s)])
+    ob.data.materials.append(materials['black'])
+    funnel = s['id'].rsplit('-', 1)[0] in FUNNEL_TOPS
     for face in ob.data.polygons:
-        if face.normal.z > .8:
+        if funnel and face.center.z > FUNNEL_TOPS[s['id'].rsplit('-', 1)[0]] - 1.25:
+            # The funnel caps are black from about 1.2 m below the mouth, as the reference paints them.
+            face.material_index = 2
+        elif face.normal.z > .8:
             face.material_index = 1
-    for face in ob.data.polygons:
-        face.use_smooth = 'exhaust' in s and abs(face.normal.z) < .5
+        face.use_smooth = funnel and abs(face.normal.z) < .5
     shells.append(ob)
 support = SupportSurface([hull, *shells])
 kit.support = support
