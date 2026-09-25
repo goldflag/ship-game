@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { deckPlanks, DETAIL, detailTexels, finishTexels, isPlatedPaint, PLATE, plateTexels, setShipSurfaceDetail, STREAK, STREAK_V, streakTexels, TEAK, teakTexels } from './ShipSurfaceDetail';
+import { deckPlanks, DETAIL, detailTexels, finishTexels, isPlatedPaint, PLATE, plateTexels, setShipSurfaceDetail, STREAK, STREAK_V, streakTexels, TEAK, teakShift, teakTexels } from './ShipSurfaceDetail';
 
 const channel = (pixels: Uint8Array, c: number) => pixels.filter((_, i) => i % 4 === c);
 const mean = (values: ArrayLike<number>) => Array.from(values).reduce((a, b) => a + b, 0) / values.length;
@@ -86,6 +86,20 @@ test('teak keeps the map mean tone, with caulked planks and staggered butts', ()
     const a = buttRows(plank), b = new Set(buttRows(plank + 1));
     expect(a.length).toBeGreaterThan(0);
     expect(a.some(z => b.has(z))).toBe(false);
+  }
+});
+
+test('teak boards weather where the tile lays them: the shader finds a board from teakShift, so the tile butts fall there', () => {
+  const width = TEAK.width, length = TEAK.length, pixels = teakTexels(width, length), caulk = channel(pixels, 1);
+  const plankTexels = width * TEAK.plank / TEAK.across, sz = TEAK.along / length;
+  for (let plank = 0; plank < 16; plank++) {
+    const x = Math.round((plank + .5) * plankTexels);
+    // A butt is where (along + shift) crosses a whole board length; the texels there are caulked across the plank.
+    for (let board = 1; board < 4; board++) {
+      const along = board * TEAK.butt - teakShift(plank), z = Math.floor((((along % TEAK.along) + TEAK.along) % TEAK.along) / sz);
+      const near = [-1, 0, 1].map(d => caulk[((z + d + length) % length) * width + x]);
+      expect(Math.max(...near)).toBeGreaterThan(25);
+    }
   }
 });
 
