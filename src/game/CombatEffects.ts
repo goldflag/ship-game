@@ -15,6 +15,7 @@ import { smokeBillowTexture } from './SmokeSpriteMaterial';
 import { shellGeometry } from '../../assets/effects/naval/shellGeometry';
 import { ShellTrails } from './ShellTrails';
 import { BlastEffects } from './BlastEffects';
+import { writeInstancePose } from './instancePose';
 import type { CombatEvent } from '../game/session/elements';
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -95,7 +96,10 @@ export class CombatEffects {
   private readonly normal = new THREE.Vector3();
   private readonly across = new THREE.Vector3();
   private readonly vertical = new THREE.Vector3();
-  private readonly dummy = new THREE.Object3D();
+  private readonly streak = new THREE.Vector3();
+  // Instance poses need no Object3D: its rotation would re-derive an Euler angle at every quaternion change.
+  private readonly pose = new THREE.Quaternion();
+  private readonly tumble = new THREE.Euler();
   private readonly tracerBasis = new THREE.Matrix4();
   private readonly cameraPosition = new THREE.Vector3();
   private readonly cameraRotation = new THREE.Quaternion();
@@ -197,12 +201,17 @@ export class CombatEffects {
     this.updateTorpedoes(sim);
     this.depthChargeCount = sim.depthCharges.length;
     sim.depthCharges.forEach((charge, i) => {
-      this.dummy.position.fromArray(charge.position);
-      this.dummy.rotation.set(Math.PI / 2, 0, charge.submerged ? 0 : charge.age * 2);
-      this.dummy.scale.set(charge.weapon.diameterM, charge.weapon.lengthM, charge.weapon.diameterM);
-      this.dummy.updateMatrix(); this.depthChargeBodies.setMatrixAt(i, this.dummy.matrix);
+      this.position.fromArray(charge.position);
+      this.pose.setFromEuler(this.tumble.set(Math.PI / 2, 0, charge.submerged ? 0 : charge.age * 2));
+      this.place(this.depthChargeBodies, i, this.position, this.pose, charge.weapon.diameterM, charge.weapon.lengthM, charge.weapon.diameterM);
     });
     this.depthChargeBodies.publish(this.depthChargeCount);
+  }
+
+  /** `mesh.setMatrixAt(index, matrix.compose(position, rotation, scale))`, written in place. */
+  private place(mesh: ExpandableInstances<THREE.BufferGeometry, THREE.Material>, index: number, position: THREE.Vector3, rotation: THREE.Quaternion, sx: number, sy: number, sz: number): void {
+    writeInstancePose(mesh.page(index).instanceMatrix.array as Float32Array, index % mesh.pageSize * 16, position.x, position.y, position.z,
+      rotation.x, rotation.y, rotation.z, rotation.w, sx, sy, sz);
   }
 
   private updateAirbursts(sim: BattleSession): void {
@@ -312,10 +321,8 @@ export class CombatEffects {
     for (let i = 0; i < count; i++) {
       const t = sim.torpedoes[i];
       this.direction.fromArray(t.velocity).normalize();
-      this.dummy.position.fromArray(t.position);
-      this.dummy.quaternion.setFromUnitVectors(UP, this.direction);
-      this.dummy.scale.set(t.weapon.diameterM, t.weapon.lengthM / 2, t.weapon.diameterM);
-      this.dummy.updateMatrix(); this.torpedoBodies.setMatrixAt(i, this.dummy.matrix);
+      this.position.fromArray(t.position);
+      this.place(this.torpedoBodies, i, this.position, this.pose.setFromUnitVectors(UP, this.direction), t.weapon.diameterM, t.weapon.lengthM / 2, t.weapon.diameterM);
     }
     // ShipWake lays the bubble tracks on the ocean surface itself.
     this.torpedoBodies.publish(count);
@@ -335,9 +342,8 @@ export class CombatEffects {
       this.position.fromArray(shell.position);
       this.direction.fromArray(shell.velocity).normalize();
       if (this.direction.lengthSq() === 0) this.direction.copy(UP);
-      this.dummy.position.copy(this.position);
-      this.dummy.quaternion.setFromUnitVectors(UP, this.direction);
-      this.dummy.scale.setScalar(shell.caliberM);
+      const pose = this.pose.setFromUnitVectors(UP, this.direction);
+      let body = shell.caliberM;
       // Preserve physical shell size, with a restrained tip for tracking at range.
       // Projection scale follows binocular zoom without enlarging the glow.
       this.normal.copy(this.position).applyMatrix4(camera.matrixWorldInverse);
@@ -348,10 +354,10 @@ export class CombatEffects {
       // zero-scale shells while idle (WebGPU retains each page's draw count).
       if (shell.caliberM / viewHeight > .002) {
         this.detailedProjectiles.setScalarAttributeAt('shellHeat', detailCount, luminous ? 1 : 0);
-        this.dummy.updateMatrix(); this.detailedProjectiles.setMatrixAt(detailCount++, this.dummy.matrix);
-        this.dummy.scale.setScalar(0);
+        this.place(this.detailedProjectiles, detailCount++, this.position, pose, body, body, body);
+        body = 0;
       }
-      this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix);
+      this.place(this.projectiles, i, this.position, pose, body, body, body);
       // The short exposure recedes in close views; the incandescent body and
       // warm halo remain visible, including in the T follow camera.
       const tracking = THREE.MathUtils.smoothstep(this.cameraPosition.distanceTo(this.position), 65, 150);
@@ -359,17 +365,15 @@ export class CombatEffects {
       // made 20 mm rounds look as large as main-battery shells at equal range.
       const caliberScale = Math.sqrt(shell.caliberM / .38);
       const glowSize = luminous ? Math.max(shell.caliberM * 1.8, Math.min(16, viewHeight * .003) * caliberScale) : 0;
-      this.dummy.quaternion.copy(this.cameraRotation);
-      this.dummy.scale.set(glowSize, glowSize, 1);
-      this.dummy.updateMatrix(); this.shellGlows.setMatrixAt(i, this.dummy.matrix);
+      this.place(this.shellGlows, i, this.position, this.cameraRotation, glowSize, glowSize, 1);
 
       // Compact white-gold exposure at the head; pale recorded trails carry the
       // longer path. Neither head nor trail extends behind a fresh muzzle.
       const speed = Math.hypot(...shell.velocity);
       const exposure = .024 * THREE.MathUtils.clamp((shell.caliberM / .38) ** .35, .4, 1.2);
       const length = luminous ? Math.min(24, speed * Math.min(exposure, shell.age)) * (.04 + .96 * tracking) : 0;
-      this.dummy.position.addScaledVector(this.direction, -length / 2);
-      this.normal.subVectors(this.cameraPosition, this.dummy.position).normalize();
+      const streak = this.streak.copy(this.position).addScaledVector(this.direction, -length / 2);
+      this.normal.subVectors(this.cameraPosition, streak).normalize();
       this.across.crossVectors(this.direction, this.normal);
       // End-on trails collapse naturally; the round tip stays visible in shell follow.
       if (this.across.lengthSq() < 1e-8) {
@@ -380,9 +384,8 @@ export class CombatEffects {
       this.across.normalize();
       this.normal.crossVectors(this.across, this.direction).normalize();
       this.tracerBasis.makeBasis(this.across, this.direction, this.normal);
-      this.dummy.quaternion.setFromRotationMatrix(this.tracerBasis);
-      this.dummy.scale.set(Math.max(shell.caliberM * .55, Math.min(18, viewHeight * .0045) * caliberScale) * (.2 + .8 * tracking), length, 1);
-      this.dummy.updateMatrix(); this.streaks.setMatrixAt(i, this.dummy.matrix);
+      this.place(this.streaks, i, streak, this.pose.setFromRotationMatrix(this.tracerBasis),
+        Math.max(shell.caliberM * .55, Math.min(18, viewHeight * .0045) * caliberScale) * (.2 + .8 * tracking), length, 1);
     }
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows]) {
       mesh.publish(count);

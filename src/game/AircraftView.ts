@@ -23,11 +23,15 @@ import { aircraftDeckSpot, onFlightDeck } from './airWing';
 // Three may bind the full matrix array as uniforms even when few instances draw.
 // Keep each allocation below WebGPU's 64 KiB uniform binding limit.
 const BATCH_CAPACITY = 768;
+const FLYING = new Set(['takeoff', 'outbound', 'attack', 'returning', 'landing']);
+const UNARMED = new Set(['ready', 'queued', 'rearming', 'parking', 'rollout']);
 type AircraftBatch = THREE.InstancedMesh<THREE.InstancedBufferGeometry>;
 type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
 type Model = {
   root: THREE.Group;
   joints: Joint[];
+  /** The outermost joints: all that moves. Every other node keeps the world matrix it was given at load. */
+  movers: THREE.Object3D[];
   meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[];
   parts: AircraftPartsBatch[];
   count: number;
@@ -77,6 +81,9 @@ export class AircraftView {
   private payloadMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, metalness: 0.25 });
   private bombs = new ExpandableInstances(this.bombGeometry, this.payloadMaterial, 768);
   private direction = new THREE.Vector3();
+  private latest = new THREE.Vector3();
+  private attitude = new THREE.Euler();
+  private foldAxis = new THREE.Vector3();
   private releaseRotation = new THREE.Quaternion();
   private nose = new THREE.Vector3(0, 0, -1);
   private payloads = new ExpandableInstances(this.payloadGeometry, this.payloadMaterial, 768);
@@ -131,6 +138,7 @@ export class AircraftView {
             const model: Model = {
               root,
               joints: [],
+              movers: [],
               meshes: [],
               parts: [],
               count: 0,
@@ -168,6 +176,12 @@ export class AircraftView {
                 object.updateMatrix();
                 object.matrixAutoUpdate = false;
               }
+            });
+            // A pose then recomputes only the joints' subtrees: the rest of the airframe's world matrices never change.
+            root.updateMatrixWorld(true);
+            model.movers = model.joints.map((j) => j.object).filter((object) => {
+              for (let parent = object.parent; parent; parent = parent.parent) if (moving.has(parent)) return false;
+              return true;
             });
             this.models.set(`${id}/${lod}`, model);
           }),
@@ -207,8 +221,9 @@ export class AircraftView {
       const crashing = plane.phase === 'lost' && plane.wreck && !plane.wreck.impacted;
       if ((plane.phase === 'lost' && !crashing) || (inPort && (crashing || plane.ownerId !== sim.player.motion.id))) continue;
       const deck = onFlightDeck(plane);
-      if (!deck && !crashing && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) continue;
+      if (!deck && !crashing && !FLYING.has(plane.phase)) continue;
       const actor = actors.get(plane.ownerId)!;
+      const attitude = aircraftAttitude(plane, alpha);
       if (deck) {
         const local = plane.deckPosition ?? aircraftDeckSpot(actor, plane);
         this.position.fromArray(local);
@@ -219,20 +234,19 @@ export class AircraftView {
           this.quaternion.premultiply(carrierRoot.getWorldQuaternion(this.hullQuaternion));
         } else {
           this.position.fromArray(plane.position);
-          this.quaternion.setFromEuler(new THREE.Euler(plane.pitch, -plane.heading, plane.bank, 'YXZ'));
+          this.quaternion.setFromEuler(this.attitude.set(plane.pitch, -plane.heading, plane.bank, 'YXZ'));
         }
       } else {
-        this.position.fromArray(plane.previousPosition).lerp(new THREE.Vector3().fromArray(plane.position), alpha);
-        const attitude = aircraftAttitude(plane, alpha);
-        this.quaternion.setFromEuler(new THREE.Euler(attitude.pitch, -attitude.heading, attitude.bank, 'YXZ'));
+        this.position.fromArray(plane.previousPosition).lerp(this.latest.fromArray(plane.position), alpha);
+        this.quaternion.setFromEuler(this.attitude.set(attitude.pitch, -attitude.heading, attitude.bank, 'YXZ'));
       }
       const payload =
-        plane.payload && !['ready', 'queued', 'rearming', 'parking', 'rollout'].includes(plane.phase)
+        plane.payload && !UNARMED.has(plane.phase)
           ? plane.role === 'dive-bomber'
             ? 'bomb'
             : 'torpedo'
           : undefined;
-      this.drawAircraft(plane, camera, inPort, deck, !!crashing, alpha, aircraftAttitude(plane, alpha).bank, payload);
+      this.drawAircraft(plane, camera, inPort, deck, !!crashing, alpha, attitude.bank, payload);
     }
     const reports = inPort ? [] : (sim.observedAircraft ?? []);
     this.observedMotion.update(reports, sim.tick, dt);
@@ -326,7 +340,7 @@ export class AircraftView {
       object.rotation.copy(rotation);
       if (id.startsWith('wing.fold.'))
         object.rotateOnAxis(
-          new THREE.Vector3().fromArray(object.userData.foldAxis),
+          this.foldAxis.fromArray(object.userData.foldAxis),
           (plane.wingFold * Number(object.userData.foldAngleDegrees) * Math.PI) / 180,
         );
       if (id === 'propeller.spin') object.rotateZ(controls.propeller);
@@ -341,7 +355,7 @@ export class AircraftView {
       if (id === 'arrestor.hook') object.rotateX(controls.hook * 0.65);
       if (id.startsWith('diveBrake.')) object.rotateX(controls.brakes * 0.55 * Number(object.userData.rotationMultiplier ?? 1));
     }
-    model.root.updateMatrixWorld(true);
+    for (const mover of model.movers) mover.updateMatrixWorld(true);
     for (const { source, batches } of model.meshes)
       batches[Math.floor(model.count / BATCH_CAPACITY)].setMatrixAt(
         model.count % BATCH_CAPACITY,

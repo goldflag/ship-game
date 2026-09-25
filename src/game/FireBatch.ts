@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import { sortDescending, sortKeys } from './instancePose';
 
 /** One particle of a ship fire: a flame tongue or a puff of its smoke column. */
 export interface FireParticle {
@@ -55,6 +56,7 @@ export class FireBatch {
   private readonly color: THREE.InstancedBufferAttribute;
   private readonly order: number[] = [];
   private readonly depth: Float32Array;
+  private readonly sorted: Uint32Array;
   private readonly extents: Float32Array;
   private readonly frustum = new THREE.Frustum();
   private readonly projection = new THREE.Matrix4();
@@ -94,6 +96,7 @@ export class FireBatch {
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
     this.depth = new Float32Array(capacity);
+    this.sorted = new Uint32Array(capacity);
     this.extents = new Float32Array(capacity);
     this.particles = Array.from({ length: capacity }, () => ({
       origin: new THREE.Vector3(), position: new THREE.Vector3(), drift: new THREE.Vector3(), drag: 0, age: 0, life: 0,
@@ -181,7 +184,15 @@ export class FireBatch {
       }
       this.order.push(i);
     }
-    this.order.sort((a, b) => this.depth[b] - this.depth[a]);
+    // Back to front, in the order a stable sort by depth gives (see sortDescending).
+    const keys = sortKeys(this.order.length);
+    let finite = true;
+    for (let k = 0; k < this.order.length; k++) { keys[k] = this.depth[this.order[k]]; if (!Number.isFinite(keys[k])) finite = false; }
+    if (finite) {
+      const sorted = sortDescending(this.order.length), indices = this.sorted;
+      for (let k = 0; k < this.order.length; k++) indices[k] = this.order[sorted[k]];
+      for (let k = 0; k < this.order.length; k++) this.order[k] = indices[k];
+    } else this.order.sort((a, b) => this.depth[b] - this.depth[a]);
     // One shared basis per frame. Flames: upright on the world axis, facing the camera in azimuth,
     // easing toward a full billboard when looking steeply down so no tongue collapses to a line.
     if (this.mode === 'flame') {

@@ -39,7 +39,6 @@ export class ShellTrails {
   private readonly direction = new THREE.Vector3();
   private readonly normal = new THREE.Vector3();
   private readonly across = new THREE.Vector3();
-  private readonly basis = new THREE.Matrix4();
   private readonly center = new THREE.Vector3();
   private readonly frustum = new THREE.Frustum();
   private readonly projection = new THREE.Matrix4();
@@ -93,7 +92,9 @@ export class ShellTrails {
     const near = perspective ? (camera as THREE.PerspectiveCamera).near : 0;
     const cull = perspective || (camera as THREE.OrthographicCamera).isOrthographicCamera;
     if (cull) this.frustum.setFromProjectionMatrix(this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
-    const widthScale = .0064 / camera.projectionMatrix.elements[5];
+    const widthScale = .0064 / camera.projectionMatrix.elements[5], view = camera.matrixWorldInverse.elements;
+    // Depth in front of the camera: -z of Vector3.applyMatrix4(matrixWorldInverse), the same operations.
+    const depthOf = (p: THREE.Vector3) => -((view[2] * p.x + view[6] * p.y + view[10] * p.z + view[14]) * (1 / (view[3] * p.x + view[7] * p.y + view[11] * p.z + view[15])));
     this.count = 0;
     for (const [id, trail] of this.trails) {
       const cutoff = trail.age - LIFE;
@@ -108,8 +109,8 @@ export class ShellTrails {
         let startAge = Math.max(a.age, cutoff);
         this.start.copy(a.position).lerp(end, age > a.age ? (startAge - a.age) / (age - a.age) : 0);
         this.end.copy(end);
-        let tailDepth = perspective ? -this.normal.copy(this.start).applyMatrix4(camera.matrixWorldInverse).z : 1;
-        let headDepth = perspective ? -this.normal.copy(this.end).applyMatrix4(camera.matrixWorldInverse).z : 1;
+        let tailDepth = perspective ? depthOf(this.start) : 1;
+        let headDepth = perspective ? depthOf(this.end) : 1;
         if (tailDepth < near && headDepth < near) continue;
         // A followed trail passes beside and behind the camera. Clip before
         // widening it, so segments crossing the eye cannot fill the screen.
@@ -134,18 +135,21 @@ export class ShellTrails {
           this.across.crossVectors(this.direction, this.normal);
         }
         this.across.normalize(); this.normal.crossVectors(this.across, this.direction).normalize();
-        // Compose the basis directly: no quaternion or Object3D matrix update
-        // for each segment, and no per-frame sample/vector allocation.
+        // Write the basis straight into the instance: Matrix4.makeBasis(across, direction, normal).setPosition(center),
+        // with no quaternion, Object3D matrix update or per-frame sample/vector allocation.
         this.direction.multiplyScalar(length);
-        this.basis.makeBasis(this.across, this.direction, this.normal).setPosition(this.center);
-        const caliber = trail.caliber;
+        const caliber = trail.caliber, page = this.mesh.page(this.count), slot = this.count % CAPACITY, attributes = page.geometry.attributes;
+        const matrix = page.instanceMatrix.array as Float32Array, m = slot * 16, { across, direction, normal, center } = this;
+        matrix[m] = across.x; matrix[m + 1] = across.y; matrix[m + 2] = across.z; matrix[m + 3] = 0;
+        matrix[m + 4] = direction.x; matrix[m + 5] = direction.y; matrix[m + 6] = direction.z; matrix[m + 7] = 0;
+        matrix[m + 8] = normal.x; matrix[m + 9] = normal.y; matrix[m + 10] = normal.z; matrix[m + 11] = 0;
+        matrix[m + 12] = center.x; matrix[m + 13] = center.y; matrix[m + 14] = center.z; matrix[m + 15] = 1;
         // Size each endpoint by projected depth. A physical minimum or one
         // midpoint width makes near ribbons fat and forced the old 65 m hide.
-        this.mesh.setScalarAttributeAt('tailWidth', this.count, Math.min(10, tailDepth * widthScale) * caliber);
-        this.mesh.setScalarAttributeAt('headWidth', this.count, Math.min(10, headDepth * widthScale) * caliber);
-        this.mesh.setMatrixAt(this.count, this.basis);
-        this.mesh.setScalarAttributeAt('tailOpacity', this.count, .48 * caliber * THREE.MathUtils.smoothstep(1 - (trail.age - startAge) / LIFE, 0, 1));
-        this.mesh.setScalarAttributeAt('headOpacity', this.count, .48 * caliber * THREE.MathUtils.smoothstep(1 - (trail.age - age) / LIFE, 0, 1));
+        (attributes.tailWidth.array as Float32Array)[slot] = Math.min(10, tailDepth * widthScale) * caliber;
+        (attributes.headWidth.array as Float32Array)[slot] = Math.min(10, headDepth * widthScale) * caliber;
+        (attributes.tailOpacity.array as Float32Array)[slot] = .48 * caliber * THREE.MathUtils.smoothstep(1 - (trail.age - startAge) / LIFE, 0, 1);
+        (attributes.headOpacity.array as Float32Array)[slot] = .48 * caliber * THREE.MathUtils.smoothstep(1 - (trail.age - age) / LIFE, 0, 1);
         this.count++;
       }
     }
