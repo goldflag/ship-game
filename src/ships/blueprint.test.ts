@@ -29,6 +29,15 @@ test('rejects invalid IDs, missing parts, unsupported versions, invalid numbers 
   bad(b => b.compartments[0].capacityM3 = 1e8, /capacity/);
   bad(b => b.modelUrl = 'https://example.com/ship.glb', /local/);
 });
+test('a fitted gunhouse keeps its catalog source reference, GameModels3D underscores included', () => {
+  const b = structuredClone(blueprint) as any;
+  b.mounts[0].partId = 'type3-203-furutaka-twin';
+  const plates = compileShip(b, catalog).armor.filter((a) => a.plate?.mountId === b.mounts[0].id && a.provenance);
+  expect(plates.length).toBeGreaterThan(0);
+  expect(plates[0].provenance!.sourceId).toBe('gm3d-jgm146_203mm50_type_e');
+  b.armor[0].provenance = { sourceId: 'Not A Source', basis: 'estimated', note: 'x' };
+  expect(() => compileShip(b, catalog)).toThrow(/provenance.sourceId/);
+});
 test('changing a mount in the blueprint changes the compiled ship without ship-specific code', () => {
   const b = structuredClone(blueprint); b.mounts[0].position[2] += 2;
   const d = compileShip(b, catalog);
