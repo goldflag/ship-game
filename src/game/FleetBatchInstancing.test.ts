@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { FleetBatch, type FleetDrawState } from './FleetBatch';
-import { fleetBatchSubmissionStats, installFleetBatchInstancing, setFleetBatchBundlesEnabled } from './FleetBatchInstancing';
+import { KEPT_BUNDLES, fleetBatchSubmissionStats, installFleetBatchInstancing, setFleetBatchBundlesEnabled } from './FleetBatchInstancing';
 
 for (const indexed of [false, true]) test(`native fleet draws preserve every culled pose and geometry (${indexed ? 'indexed' : 'nonindexed'})`, () => {
   const box = new THREE.BoxGeometry(), plane = new THREE.PlaneGeometry();
@@ -108,6 +108,15 @@ test('bundles reuse live pose buffers but rebuild changed draw ranges and GPU bi
     resources.get(mesh.geometry.index!)!.buffer = {}; draw(); expect(recorded).toHaveLength(5);
     args[3] = {}; draw(); expect(recorded).toHaveLength(6);
     expect(fleetBatchSubmissionStats(backend)).toEqual({ enabled: true, builds: 6, hits: 1 });
-    setFleetBatchBundlesEnabled(backend, false); draw(); expect(native).toBe(2); expect(recorded).toHaveLength(6);
+    // A bind group that alternates between two GPU groups (ping-ponged textures) replays a bundle for each.
+    const even = resources.get(group)!.group, odd = {};
+    resources.get(group)!.group = odd; draw(); expect(recorded).toHaveLength(7);
+    for (let frame = 0; frame < 4; frame++) { resources.get(group)!.group = frame % 2 ? odd : even; draw(); }
+    expect(recorded).toHaveLength(7); expect(executed.at(-1)).toEqual([recorded[6]]); expect(executed.at(-2)).toEqual([recorded[5]]);
+    // Only the most recent bundles are kept.
+    for (let i = 0; i < KEPT_BUNDLES; i++) { resources.get(group)!.group = {}; draw(); }
+    resources.get(group)!.group = even; draw(); expect(recorded).toHaveLength(8 + KEPT_BUNDLES);
+    expect(fleetBatchSubmissionStats(backend)).toEqual({ enabled: true, builds: 8 + KEPT_BUNDLES, hits: 5 });
+    setFleetBatchBundlesEnabled(backend, false); draw(); expect(native).toBe(2); expect(recorded).toHaveLength(8 + KEPT_BUNDLES);
   } finally { mesh.dispose(); box.dispose(); plane.dispose(); material.dispose(); }
 });

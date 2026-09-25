@@ -37,6 +37,7 @@ import { primeHullProfile } from './HullContactFoam';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
+import { installBindGroupReuse } from './BindGroupReuse';
 import { subtreePruning } from './SubtreeLayers';
 import { installInstanceBufferNames } from './InstanceBufferNames';
 import { prepareInstanceUploads } from './InstanceUploads';
@@ -201,6 +202,12 @@ export class Game {
   private torpedoMarkers: TorpedoMarkers;
   private hitDirections: HitDirectionIndicators;
   private hudScale = 1;
+  /** The host's CSS box, read once while a frame runs. The host is fixed to the viewport, so nothing a frame writes
+   * resizes it: every overlay projection reads the numbers a live read would, without a forced layout after each
+   * overlay's style writes. Outside a frame (and across an await) reads go to the element. */
+  private frameHost?: { clientWidth: number; clientHeight: number };
+  private get hostBox(): { readonly clientWidth: number; readonly clientHeight: number } { return this.frameHost ?? this.host; }
+  private readHostBox(): void { this.frameHost = { clientWidth: this.host.clientWidth, clientHeight: this.host.clientHeight }; }
   private loadedModel?: THREE.Group;
   /** Scene light, wind and depth shared by every effect material. */
   private effectLighting = new EffectLighting();
@@ -439,6 +446,7 @@ export class Game {
     await this.renderer.init();
     requireWebGPUBackend(this.renderer);
     installFleetBatchInstancing(this.renderer.backend);
+    installBindGroupReuse(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
     for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
     configureRenderOrder(this.renderer);
@@ -1151,6 +1159,7 @@ export class Game {
     const presentationDt = dt * (ended ? 1 : this.simulation.simulationSpeed ?? 1);
     try {
       if (this.resizePending) this.resize();
+      this.readHostBox();
       let state = this.simulation.ship;
       this.updateSpectator();
       const focusView = this.cameraShipView;
@@ -1280,7 +1289,7 @@ export class Game {
         // asynchronously and renders its capture passes before this frame may.
         this.coupleHullSea(emptyBerth);
         const stepping = this.ocean!.update(dt);
-        if (stepping) { await stepping; if (this.disposed) return; }
+        if (stepping) { this.frameHost = undefined; await stepping; if (this.disposed) return; this.readHostBox(); }
         this.renderFrame();
         updateWaterShadows(this.ocean!, this.sunShadows!, this.renderer.reversedDepthBuffer, this.settings.waterShadows, this.cloudShadow);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
@@ -1318,7 +1327,7 @@ export class Game {
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
-              const point = projectShipLabel(new THREE.Vector3(...f.position).add(new THREE.Vector3(0, 24, 0)), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
+              const point = projectShipLabel(new THREE.Vector3(...f.position).add(new THREE.Vector3(0, 24, 0)), this.camera, this.hostBox.clientWidth / this.hudScale, this.hostBox.clientHeight / this.hudScale);
               return { ...f, team: actor.team, ownerId: actor.motion.id, screen: point };
             })),
           shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId,
@@ -1332,7 +1341,7 @@ export class Game {
     } catch (error) {
       if (warmingUp) throw error;
       if (!this.disposed) this.callbacks.error(error instanceof Error ? error.message : String(error));
-    }
+    } finally { this.frameHost = undefined; }
   }
 
   get graphics(): GraphicsSettings { return this.settings; }
@@ -1543,7 +1552,7 @@ export class Game {
     return this.airMapController ??= new AirMapController({
       get simulation() { return game.simulation; }, get camera() { return game.camera; }, get battlefieldCamera() { return game.battlefieldCamera; },
       get fleetViews() { return game.fleetViews; }, get aircraftView() { return game.aircraftView; }, get observedShipViews() { return game.observedShipViews; },
-      get host() { return game.host; }, get canvas() { return game.renderer.domElement; }, get hudScale() { return game.hudScale; },
+      get host() { return game.hostBox; }, get canvas() { return game.renderer.domElement; }, get hudScale() { return game.hudScale; },
     });
   }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.airMap.pan(dx, dy, x, y); }

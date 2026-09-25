@@ -16726,15 +16726,15 @@
         "design": "white-ensign",
         "position": [
           0,
-          7,
-          28.242
+          17.3,
+          10.2
         ],
         "width": 1.5,
-        "staffHeight": 2.8
+        "staffHeight": 0
       }
     ],
     "radars": []
   },
   "compilerVersion": 1,
-  "contentHash": "ddfdb58f9605ddfee99ed912c6a389f088f05eb11629d6f3794cbe521e4285df"
+  "contentHash": "16d57e1f42a37054c6409b70ec2146b0196a3e76ab4bb29c230901655926f03d"
 }
