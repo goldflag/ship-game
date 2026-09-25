@@ -124,7 +124,6 @@ export class AircraftView {
       mesh.instanceMatrix.array.fill(0);
       mesh.visible = false;
       mesh.frustumCulled = false;
-      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     }
   }
   resize(height: number) {

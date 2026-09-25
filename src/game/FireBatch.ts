@@ -84,13 +84,13 @@ export class FireBatch {
     geometry.setAttribute('position', plane.getAttribute('position'));
     geometry.setAttribute('uv', plane.getAttribute('uv'));
     geometry.instanceCount = 0;
-    const vec4 = () => new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
+    // Static usage (the default): `publish` flags the live range once a frame for every pass that draws it.
+    const vec4 = () => new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
     this.center = vec4(); this.state = vec4(); this.color = vec4();
     geometry.setAttribute('fireCenter', this.center);
     geometry.setAttribute('fireState', this.state);
     geometry.setAttribute('fireColor', this.color);
     this.mesh = new THREE.InstancedMesh(geometry, material, capacity);
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     // Three sizes the matrix buffer from the capacity at compilation; instanceCount draws the live part.
     this.mesh.instanceMatrix.array.fill(0);
     this.mesh.frustumCulled = false;

@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { sortDescending, sortKeys } from './instancePose';
+import { effectUploads } from './InstanceUploads';
 import { attribute, cameraPosition, float, positionWorld, smoothstep, texture, uniform, uv, vec4 } from 'three/tsl';
 
 const SEGMENTS = 18;
@@ -31,6 +32,8 @@ interface WaterSheet {
   seed: number;
   crown: boolean;
   distance: number;
+  /** Which launch the sheet holds: every launch has its own. */
+  launch: number;
 }
 
 /** A bounded batch of curved water sheets, each spanning a range of launch
@@ -49,6 +52,17 @@ export class WaterPlumes {
   private readonly illumination = uniform(1);
   private readonly center = new THREE.Vector3();
   private cursor = 0;
+  private launches = 0;
+  /** Moves with every change of the sun's direction, which the sheets' colours read. */
+  private sunVersion = 0;
+  /** What each drawn slot's vertices hold: the launch, the age its shape and opacity were written at, and the sun its colours were.
+   * A slot that still holds the same sheet at the same age writes and uploads nothing again; a new sun only its colours. */
+  private readonly slotLaunch: Float64Array;
+  private readonly slotAge: Float64Array;
+  private readonly slotSun: Float64Array;
+  /** This publication's runs of slots to upload ([start, end) pairs): shapes and opacities, and colours. */
+  private readonly placed: number[] = [];
+  private readonly painted: number[] = [];
 
   constructor(readonly capacity: number, map: THREE.DataTexture) {
     const geometry = new THREE.BufferGeometry();
@@ -88,7 +102,8 @@ export class WaterPlumes {
     this.mesh.frustumCulled = false;
     this.sheets = Array.from({ length: capacity }, () => ({ origin: new THREE.Vector3(), age: 0, life: 0,
       scale: 1, cosine: 1, sine: 0, bends: new Float64Array(SEGMENTS + 1), widths: new Float64Array(SEGMENTS + 1),
-      up: 0, out: 0, width: 1, leanX: 0, leanZ: 0, seed: 0, crown: false, distance: 0 }));
+      up: 0, out: 0, width: 1, leanX: 0, leanZ: 0, seed: 0, crown: false, distance: 0, launch: 0 }));
+    this.slotLaunch = new Float64Array(capacity).fill(-1); this.slotAge = new Float64Array(capacity); this.slotSun = new Float64Array(capacity);
   }
 
   emit(origin: THREE.Vector3, scale: number, direction: THREE.Vector3, random: () => number): void {
@@ -100,6 +115,7 @@ export class WaterPlumes {
     for (let i = 0; i < 24; i++) {
       const sheet = this.sheets[this.cursor++ % this.capacity];
       const crown = i >= 14, count = crown ? 10 : 14;
+      sheet.launch = ++this.launches;
       sheet.origin.copy(origin); sheet.scale = scale; sheet.crown = crown;
       sheet.age = -random() * (crown ? .025 : .085);
       const angle = rotation + ((crown ? i - 14 : i) + random() * .65) / count * Math.PI * 2;
@@ -123,6 +139,7 @@ export class WaterPlumes {
   }
 
   setSun(direction: THREE.Vector3, intensity = 1): void {
+    if (!this.sun.equals(direction)) this.sunVersion++;
     this.sun.copy(direction); this.sunDirection.value.copy(direction); this.illumination.value = intensity;
   }
 
@@ -159,8 +176,20 @@ export class WaterPlumes {
     if (finite) order = sortDescending(this.active.length); else this.active.sort((a, b) => b.distance - a.distance);
     // Straight into the vertex arrays: what setXYZ/setXY store, without a call per vertex.
     const positions = this.position.array as Float32Array, colors = this.color.array as Float32Array, opacities = this.opacity.array as Float32Array;
+    // A slot's vertices are known only while every range flagged for them has reached the GPU: ranges three has not consumed (the
+    // mesh was not drawn, or its buffers were made whole from the arrays) put every slot back to be written.
+    const versioned = effectUploads.versioned, placed = this.placed, painted = this.painted;
+    if (!versioned || this.position.updateRanges.length || this.color.updateRanges.length || this.opacity.updateRanges.length) this.slotLaunch.fill(-1);
+    placed.length = 0; painted.length = 0;
     for (let index = 0; index < this.active.length; index++) {
       const sheet = this.active[order ? order[index] : index], age = sheet.age;
+      // The same sheet at the same age has the same shape and opacity, and under the same sun the same colours: the values written
+      // before are the ones this would write.
+      const same = this.slotLaunch[index] === sheet.launch, place = !same || this.slotAge[index] !== age, paint = !same || this.slotSun[index] !== this.sunVersion;
+      if (!place && !paint) continue;
+      this.slotLaunch[index] = sheet.launch;
+      if (place) { this.slotAge[index] = age; addRun(placed, index); }
+      if (paint) { this.slotSun[index] = this.sunVersion; addRun(painted, index); }
       const travel = -Math.expm1(-DRAG * age) / DRAG;
       const fall = GRAVITY / DRAG * (age - travel);
       const { cosine, sine } = sheet;
@@ -176,6 +205,13 @@ export class WaterPlumes {
       const bending = .45 + .35 * Math.min(age, 2);
       for (let row = 0; row <= SEGMENTS; row++) {
         const profile = ROWS[row], along = profile.along;
+        if (paint) {
+          // Dense lower water carries the sea's blue shadow; aerated tips scatter
+          // more sky light. The shared sun follows time of day and battle weather.
+          const red = profile.red * sunlight * shade, green = profile.green * sunlight * (.5 + .5 * shade), blue = profile.blue * sunlight;
+          for (let side = 0, v3 = (index * VERTICES + row * 2) * 3; side < 2; side++, v3 += 3) { colors[v3] = red; colors[v3 + 1] = green; colors[v3 + 2] = blue; }
+        }
+        if (!place) continue;
         const height = sheet.up * along * travel - fall;
         const radius = sheet.scale * .35 + sheet.out * travel * profile.radius;
         const bend = sheet.bends[row] * bending * sheet.scale * opening;
@@ -183,15 +219,11 @@ export class WaterPlumes {
         const centerX = sheet.origin.x + cosine * radius + sheet.leanX * travel * along;
         const centerZ = sheet.origin.z + sine * radius + sheet.leanZ * travel * along;
         const alpha = fade * smooth(0, .65 * sheet.scale, height) * profile.alpha;
-        // Dense lower water carries the sea's blue shadow; aerated tips scatter
-        // more sky light. The shared sun follows time of day and battle weather.
-        const red = profile.red * sunlight * shade, green = profile.green * sunlight * (.5 + .5 * shade), blue = profile.blue * sunlight;
         const y = sheet.origin.y + Math.max(-.5, height), opacity = alpha * .82, tear = .38 + breakup * .34 + along * .05;
         for (let side = 0; side < 2; side++) {
           const vertex = index * VERTICES + row * 2 + side, v3 = vertex * 3, v2 = vertex * 2;
           const lateral = (side - .5) * width + bend;
           positions[v3] = centerX - sine * lateral; positions[v3 + 1] = y; positions[v3 + 2] = centerZ + cosine * lateral;
-          colors[v3] = red; colors[v3 + 1] = green; colors[v3 + 2] = blue;
           opacities[v2] = opacity; opacities[v2 + 1] = tear;
         }
       }
@@ -199,10 +231,13 @@ export class WaterPlumes {
     this.mesh.geometry.setDrawRange(0, this.active.length * SEGMENTS * 6);
     for (const buffer of [this.position, this.color, this.opacity]) {
       buffer.clearUpdateRanges();
-      if (this.active.length) {
-        buffer.addUpdateRange(0, this.active.length * VERTICES * buffer.itemSize);
-        buffer.needsUpdate = true;
+      if (!versioned) {
+        if (this.active.length) { buffer.addUpdateRange(0, this.active.length * VERTICES * buffer.itemSize); buffer.needsUpdate = true; }
+        continue;
       }
+      const runs = buffer === this.color ? painted : placed, floats = VERTICES * buffer.itemSize;
+      for (let i = 0; i < runs.length; i += 2) buffer.addUpdateRange(runs[i] * floats, (runs[i + 1] - runs[i]) * floats);
+      if (runs.length) buffer.needsUpdate = true;
     }
   }
 
@@ -213,4 +248,12 @@ export class WaterPlumes {
     this.mesh.geometry.setDrawRange(0, 0);
   }
   dispose(): void { this.mesh.geometry.dispose(); this.mesh.material.dispose(); }
+}
+
+/** Slots a few apart upload as one range: a few hundred bytes more rather than another write call. */
+const RUN_GAP = 8;
+/** Add `slot` to ascending [start, end) runs of slots. */
+function addRun(runs: number[], slot: number): void {
+  const last = runs.length - 1;
+  if (last > 0 && slot - runs[last] <= RUN_GAP) runs[last] = slot + 1; else runs.push(slot, slot + 1);
 }

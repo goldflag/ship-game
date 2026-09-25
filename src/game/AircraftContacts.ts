@@ -44,8 +44,6 @@ export class AircraftContacts {
   constructor() {
     this.geometry.setAttribute('aircraftOpacity', this.opacity);
     this.material.opacityNode = attribute('aircraftOpacity', 'float');
-    this.opacity.setUsage(THREE.DynamicDrawUsage);
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.visible = false; this.mesh.frustumCulled = false;
     this.mesh.name = 'Distant aircraft silhouettes';
   }

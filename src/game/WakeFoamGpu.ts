@@ -1,8 +1,52 @@
 import * as THREE from 'three/webgpu';
 import { attribute, dot, float, Fn, positionLocal, smoothstep, uv, vec2, vec4 } from 'three/tsl';
 import { SLICK_EXTENT, WAKE_EXTENT, WakeStampCollector } from './WakeFoam';
+import { effectUploads, effectUsage } from './InstanceUploads';
 
 export { WakeStampCollector };
+
+/** Copies runs of instances (`from`, `to`, `count`, in instances) within each attribute's GPU buffer, every run read before any is
+ * written, ahead of the uploads the next draw makes. False when it cannot (no GPU buffers yet, no WebGPU device): the runs upload. */
+export type InstanceMoves = (attributes: readonly THREE.InstancedBufferAttribute[], moves: readonly { from: number; to: number; count: number }[]) => boolean;
+
+// The WebGPU surface the moves use; TypeScript's DOM library does not declare WebGPU. `GPUBufferUsage` COPY_SRC | COPY_DST.
+type GpuBuffer = { readonly size: number; destroy(): void };
+type GpuDevice = {
+  queue: { submit(buffers: object[]): void };
+  createBuffer(descriptor: { label: string; size: number; usage: number }): GpuBuffer;
+  createCommandEncoder(descriptor: { label: string }): { copyBufferToBuffer(from: GpuBuffer, fromOffset: number, to: GpuBuffer, toOffset: number, size: number): void; finish(): object };
+};
+const SCRATCH_USAGE = 0x4 | 0x8;
+
+/** Moves on the GPU of `renderer` (three r185's WebGPU backend), through a scratch buffer, in their own submission: three writes this
+ * frame's changed quads while it encodes the next draw, after this. */
+export function gpuInstanceMoves(renderer: THREE.WebGPURenderer): InstanceMoves & { dispose(): void } {
+  let scratch: GpuBuffer | undefined;
+  const moves: InstanceMoves = (attributes, runs) => {
+    const backend = renderer.backend as unknown as { device?: GpuDevice; get?(resource: object): { buffer?: GpuBuffer } };
+    const device = backend.device, buffers = backend.get ? attributes.map(attribute => backend.get!(attribute).buffer) : [];
+    if (!device || !buffers.length || buffers.some(buffer => !buffer)) return false;
+    const instances = runs.reduce((n, run) => n + run.count, 0), size = attributes.reduce((n, attribute) => n + instances * attribute.itemSize * 4, 0);
+    if (!scratch || scratch.size < size) {
+      scratch?.destroy();
+      scratch = device.createBuffer({ label: 'Wake quads in transit', size: Math.max(size, (scratch?.size ?? 0) * 2), usage: SCRATCH_USAGE });
+    }
+    const encoder = device.createCommandEncoder({ label: 'Wake quads moved' });
+    let offset = 0;
+    attributes.forEach((attribute, i) => { for (const run of runs) {
+      const stride = attribute.itemSize * 4;
+      encoder.copyBufferToBuffer(buffers[i]!, run.from * stride, scratch!, offset, run.count * stride); offset += run.count * stride;
+    } });
+    offset = 0;
+    attributes.forEach((attribute, i) => { for (const run of runs) {
+      const stride = attribute.itemSize * 4;
+      encoder.copyBufferToBuffer(scratch!, offset, buffers[i]!, run.to * stride, run.count * stride); offset += run.count * stride;
+    } });
+    device.queue.submit([encoder.finish()]);
+    return true;
+  };
+  return Object.assign(moves, { dispose: () => { scratch?.destroy(); scratch = undefined; } });
+}
 
 /** One collector's painted quads (box, axes, shape: twelve floats each) for a tile, as of its `version`, and where they
  * sit in the instance buffers. */
@@ -29,7 +73,7 @@ export type WakeFoamPainterFactory = (resolution: number, tiles: number, channel
 
 /** The game's painter: every atlas is drawn on the GPU by `renderer`. */
 export const gpuWakeFoamPainter = (renderer: THREE.WebGPURenderer): WakeFoamPainterFactory =>
-  (resolution, tiles, channels) => new WakeFoamGpu(renderer, resolution, tiles, channels);
+  (resolution, tiles, channels) => new WakeFoamGpu(renderer, resolution, tiles, channels, gpuInstanceMoves(renderer));
 
 /** Paint the same max-coverage ellipses into an atlas using native GPU blending.
  * It owns visual textures only; ship motion and wake history remain on the CPU. */
@@ -49,8 +93,19 @@ export class WakeFoamGpu implements WakeFoamPainter {
   /** Each collector's quads, reused while it and its tile are unchanged; buffers they already fill are left alone. */
   private readonly blocks = new Map<WakeStampCollector, WakeBlock>();
   private updates = 0;
+  /** The GPU buffers hold the quads as the arrays laid them at the last update: every range flagged then was uploaded. */
+  private resident = false;
+  /** This update's runs of quads to upload ([start, end) pairs) and of unchanged quads that only shifted. */
+  private readonly written: number[] = [];
+  private readonly shifted: { from: number; to: number; count: number }[] = [];
+  /** Quads moved on the GPU and bytes flagged for upload, over the painter's life (diagnostics). */
+  private movedQuads = 0;
+  private uploadedQuads = 0;
 
-  constructor(private readonly renderer: THREE.WebGPURenderer, private readonly resolution: number, private readonly tiles = 8, readonly channels: 1 | 2 = 1) {
+  /** `moves` shifts unchanged quads on the GPU when an earlier collector's count changes, instead of uploading them again; without
+   * it, as before, everything from the first change on uploads. */
+  constructor(private readonly renderer: THREE.WebGPURenderer, private readonly resolution: number, private readonly tiles = 8, readonly channels: 1 | 2 = 1,
+    private readonly moves?: InstanceMoves & { dispose?(): void }) {
     const size = resolution * tiles;
     this.target = new THREE.RenderTarget(size, size, { format: channels === 2 ? THREE.RGFormat : THREE.RedFormat, type: THREE.UnsignedByteType,
       minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });
@@ -88,12 +143,13 @@ export class WakeFoamGpu implements WakeFoamPainter {
     geometry.index = previous.index;
     for (const name of ['position', 'normal', 'uv']) geometry.setAttribute(name, previous.attributes[name]);
     for (const [name, field] of [['wakeBox', 'boxes'], ['wakeAxes', 'axes'], ['wakeShape', 'shapes']] as const) {
-      this[field] = new THREE.InstancedBufferAttribute(new Float32Array(this.capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
+      this[field] = new THREE.InstancedBufferAttribute(new Float32Array(this.capacity * 4), 4).setUsage(effectUsage());
       geometry.setAttribute(name, this[field]);
     }
     this.mesh.geometry = geometry; previous.dispose();
     // New buffers hold nothing yet.
     for (const block of this.blocks.values()) block.start = -1;
+    this.resident = false;
   }
 
   get texture(): THREE.Texture { return this.target.texture; }
@@ -101,12 +157,14 @@ export class WakeFoamGpu implements WakeFoamPainter {
   reserve(count: number): void { this.allocate(count); }
 
   /** Lay the collectors' quads end to end in slot order. A collector unchanged since the last update keeps its quads, and
-   * where they already sit at the same place in the buffers nothing is written or uploaded again. */
+   * where they already sit at the same place in the buffers nothing is written or uploaded again. Where they only shifted (an earlier
+   * collector's count changed), the arrays are rewritten and the GPU moves its own copy; only repainted collectors upload. */
   update(collectors: readonly WakeStampCollector[]): void {
     this.allocate(collectors.reduce((n, tile) => n + tile.count, 0));
     const boxes = this.boxes.array as Float32Array, axes = this.axes.array as Float32Array, shapes = this.shapes.array as Float32Array;
-    const seen = ++this.updates;
+    const seen = ++this.updates, versioned = effectUploads.versioned, written = this.written, shifted = this.shifted, resident = this.resident;
     let count = 0, from = Infinity, to = 0;
+    written.length = 0; shifted.length = 0;
     collectors.forEach((tile, slot) => {
       let block = this.blocks.get(tile);
       if (!block || block.version !== tile.version || block.slot !== slot) {
@@ -122,8 +180,16 @@ export class WakeFoamGpu implements WakeFoamPainter {
           axes[j] = data[k + 4]; axes[j + 1] = data[k + 5]; axes[j + 2] = data[k + 6]; axes[j + 3] = data[k + 7];
           shapes[j] = data[k + 8]; shapes[j + 1] = data[k + 9]; shapes[j + 2] = data[k + 10]; shapes[j + 3] = data[k + 11];
         }
-        block.start = count;
         if (n) { from = Math.min(from, count); to = count + n; }
+        // A block painted before (start ≥ 0) already sits on the GPU where the arrays had it: consecutive ones shift as one run. While
+        // the GPU copy is unknown, everything drawn uploads instead (below).
+        if (n && resident) {
+          const run = shifted.at(-1);
+          if (block.start < 0) written.push(count, count + n);
+          else if (run && run.from + run.count === block.start && run.to + run.count === count) run.count += n;
+          else shifted.push({ from: block.start, to: count, count: n });
+        }
+        block.start = count;
       }
       count += block.count;
     });
@@ -131,9 +197,28 @@ export class WakeFoamGpu implements WakeFoamPainter {
     for (const [tile, block] of this.blocks) if (block.seen !== seen) this.blocks.delete(tile);
     this.mesh.geometry.instanceCount = count;
     this.count = count; this.draws++;
-    for (const attribute of [this.boxes, this.axes, this.shapes]) {
-      attribute.clearUpdateRanges();
-      if (to > from) { attribute.addUpdateRange(from * 4, (to - from) * 4); attribute.needsUpdate = true; }
+    const attributes = [this.boxes, this.axes, this.shapes];
+    // Unknown GPU contents (new buffers, or a draw that left its ranges): everything drawn uploads once.
+    if (!resident && count) written.push(0, count);
+    if (versioned && shifted.length) {
+      if (this.moves?.(attributes, shifted)) for (const run of shifted) this.movedQuads += run.count;
+      else for (const run of shifted) written.push(run.to, run.to + run.count);
+    }
+    if (written.length > 2) sortRuns(written);
+    for (const attribute of attributes) {
+      attribute.usage = effectUsage(); attribute.clearUpdateRanges();
+      if (!versioned) {
+        if (to > from) { attribute.addUpdateRange(from * 4, (to - from) * 4); attribute.needsUpdate = true; if (attribute === this.boxes) this.uploadedQuads += to - from; }
+        continue;
+      }
+      // Ranges in slot order, runs that touch joined into one write.
+      for (let i = 0; i < written.length; i += 2) {
+        let end = written[i + 1];
+        const start = written[i];
+        while (i + 2 < written.length && written[i + 2] <= end) { end = Math.max(end, written[i + 3]); i += 2; }
+        attribute.addUpdateRange(start * 4, (end - start) * 4); attribute.needsUpdate = true;
+        if (attribute === this.boxes) this.uploadedQuads += end - start;
+      }
     }
     const renderer = this.renderer, target = renderer.getRenderTarget(), clear = renderer.autoClear;
     const alpha = renderer.getClearAlpha(); renderer.getClearColor(this.savedColor);
@@ -141,6 +226,9 @@ export class WakeFoamGpu implements WakeFoamPainter {
       renderer.autoClear = true; renderer.setClearColor(0, 0); renderer.setRenderTarget(this.target);
       renderer.render(this.scene, this.camera);
     } finally { renderer.setRenderTarget(target); renderer.autoClear = clear; renderer.setClearColor(this.savedColor, alpha); }
+    // Three clears the ranges it uploaded. Ranges left over (a draw that did not happen, or buffers created whole from the arrays)
+    // leave the GPU copy unknown until everything shifted has uploaded once more.
+    this.resident = attributes.every(attribute => !attribute.updateRanges.length);
   }
 
   /** One collector's quads for its tile, rounded to the buffers' floats exactly as writing them there would. */
@@ -173,7 +261,19 @@ export class WakeFoamGpu implements WakeFoamPainter {
     return { version: tile.version, slot, count, start: -1, data, seen: 0 };
   }
 
-  diagnostics() { return { capacity: this.capacity, allocations: this.allocations, draws: this.draws, stamps: this.count }; }
+  diagnostics() {
+    return { capacity: this.capacity, allocations: this.allocations, draws: this.draws, stamps: this.count, movedQuads: this.movedQuads, uploadedQuads: this.uploadedQuads };
+  }
 
-  dispose(): void { this.mesh.geometry.dispose(); this.mesh.material.dispose(); this.target.dispose(); }
+  dispose(): void { this.mesh.geometry.dispose(); this.mesh.material.dispose(); this.target.dispose(); this.moves?.dispose?.(); }
+}
+
+/** Sort [start, end) pairs by start, in place (a handful per update). */
+function sortRuns(runs: number[]): void {
+  for (let i = 2; i < runs.length; i += 2) {
+    const start = runs[i], end = runs[i + 1];
+    let j = i - 2;
+    for (; j >= 0 && runs[j] > start; j -= 2) { runs[j + 2] = runs[j]; runs[j + 3] = runs[j + 1]; }
+    runs[j + 2] = start; runs[j + 3] = end;
+  }
 }

@@ -1,6 +1,8 @@
 import { expect, test } from 'bun:test';
-import { Camera, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { Camera, PerspectiveCamera, Vector3, type BufferAttribute } from 'three/webgpu';
 import { effectTexture } from './EffectParticles';
+import { effectUploads } from './InstanceUploads';
+import { GpuUploadModel, sameWords } from './testing/gpuUploads';
 import { WaterPlumes } from './WaterPlumes';
 
 // Inspect only vertices referenced by the current draw, as the renderer does.
@@ -134,4 +136,43 @@ test('offscreen sheets keep aging and distant views retain the original streaks'
   plumes.advance(10); plumes.publish(camera);
   expect(plumes.mesh.geometry.drawRange.count).toBe(0);
   plumes.dispose(); map.dispose();
+});
+
+test('sheets upload only what changed, and every draw reads what writing every sheet each frame would leave', () => {
+  const map = effectTexture('water'), camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  let seed = 17;
+  const random = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const pools = { versioned: new WaterPlumes(96, map), everything: new WaterPlumes(96, map) };
+  const models = { versioned: new GpuUploadModel(), everything: new GpuUploadModel() };
+  const buffers = (plumes: WaterPlumes) => ['position', 'color', 'waterOpacity', 'uv'].map(name => plumes.mesh.geometry.getAttribute(name) as BufferAttribute);
+  const sun = new Vector3(-.55, .74, -.39).normalize();
+  try {
+    for (let frame = 0; frame < 400; frame++) {
+      // Salvos land now and then; the game pauses (no ageing) for a stretch; the camera moves; the sun turns once.
+      const splash = random() < .06 ? { at: new Vector3((random() - .5) * 800, .35, (random() - .5) * 800), scale: .3 + random() * 2, seed: random() * 1e9 >>> 0 } : undefined;
+      const dt = frame >= 150 && frame < 200 ? 0 : 1 / 60;
+      if (frame === 260) sun.set(.3, .5, -.8).normalize();
+      if (frame % 90 < 30) { camera.position.set(Math.sin(frame / 40) * 900, 120, Math.cos(frame / 40) * 900); camera.lookAt(0, 0, 0); camera.updateMatrixWorld(); }
+      for (const [key, plumes] of Object.entries(pools)) {
+        effectUploads.versioned = key === 'versioned';
+        if (splash) { let s = splash.seed; plumes.emit(splash.at, splash.scale, new Vector3(0, -1, 0), () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296); }
+        plumes.setSun(sun);
+        plumes.advance(dt); plumes.publish(camera);
+      }
+      effectUploads.versioned = true;
+      // Some frames draw twice (another pass), a few not at all (the effects hidden).
+      const passes = frame % 23 === 11 ? 0 : frame % 5 === 0 ? 2 : 1;
+      for (let pass = 0; pass < passes; pass++) for (const key of ['versioned', 'everything'] as const) models[key].render(buffers(pools[key]));
+      const drawn = pools.everything.mesh.geometry.drawRange.count;
+      expect(pools.versioned.mesh.geometry.drawRange.count).toBe(drawn);
+      if (!passes) continue;
+      const vertices = drawn / (18 * 6) * 38;
+      buffers(pools.versioned).forEach((attribute, index) => {
+        const reference = buffers(pools.everything)[index].array as Float32Array, floats = vertices * attribute.itemSize;
+        expect(sameWords(attribute.array as Float32Array, reference, floats)).toBe(true);
+        expect(sameWords(models.versioned.gpu(attribute), reference, floats)).toBe(true);
+      });
+    }
+    expect(models.versioned.bytes).toBeLessThan(models.everything.bytes * .8);
+  } finally { effectUploads.versioned = true; pools.versioned.dispose(); pools.everything.dispose(); map.dispose(); }
 });

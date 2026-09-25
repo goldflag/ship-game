@@ -43,3 +43,75 @@ test('a painter that keeps unchanged tiles lays and uploads the quads a fresh pa
   }
   kept.dispose();
 });
+
+test('shifted quads move on the GPU and only repainted tiles upload, leaving what dynamic uploads left at every draw', async () => {
+  const { GpuUploadModel, sameWords } = await import('./testing/gpuUploads');
+  const { effectUploads } = await import('./InstanceUploads');
+  const random = seeded(31), models = { versioned: new GpuUploadModel(), dynamic: new GpuUploadModel(), refused: new GpuUploadModel() };
+  // A renderer whose draw is the modelled upload of the painter's quads.
+  const drawing = (model: InstanceType<typeof GpuUploadModel>) => ({ ...renderer, render(scene: { children: Mesh<InstancedBufferGeometry>[] }) {
+    model.render(NAMES.map(name => scene.children[0].geometry.getAttribute(name) as InstancedBufferAttribute));
+  } }) as unknown as WebGPURenderer;
+  const painters = {
+    versioned: new WakeFoamGpu(drawing(models.versioned), 128, 8, 2, models.versioned.moveInstances),
+    dynamic: new WakeFoamGpu(drawing(models.dynamic), 128, 8, 2, models.dynamic.moveInstances),
+    refused: new WakeFoamGpu(drawing(models.refused), 128, 8, 2, () => false),
+  };
+  const tiles = Array.from({ length: 30 }, () => new WakeStampCollector());
+  const paint = (tile: WakeStampCollector) => {
+    tile.begin((random() - .5) * 6000, (random() - .5) * 6000, (random() - .5) * 6000, (random() - .5) * 6000);
+    for (let i = 40 + Math.floor(random() * 300); i > 0; i--)
+      tile.stamp(tile.centerX + (random() - .5) * 1700, tile.centerZ + (random() - .5) * 1700, random() - .5, random() - .5, 1 + random() * 30, 1 + random() * 30, random(), random() < .2, random() < .3 ? 1 : 0);
+  };
+  try {
+    for (let round = 0; round < 200; round++) {
+      // Most rounds repaint a few tiles, as trails refresh at 5 to 20 Hz; now and then the fleet changes.
+      for (const tile of tiles) if (round === 0 || random() < .08) paint(tile);
+      const list = round % 50 === 49 ? tiles.filter((_, i) => i % 7) : tiles;
+      for (const [key, painter] of Object.entries(painters)) {
+        effectUploads.versioned = key !== 'dynamic';
+        painter.update(list);
+      }
+      effectUploads.versioned = true;
+      const count = quads(painters.dynamic).instanceCount;
+      for (const [key, painter] of Object.entries(painters)) {
+        const geometry = quads(painter), model = models[key as keyof typeof models];
+        expect(geometry.instanceCount).toBe(count);
+        for (const name of NAMES) {
+          const attribute = geometry.getAttribute(name) as InstancedBufferAttribute;
+          expect(sameWords(model.gpu(attribute), attribute.array as Float32Array, count * 4)).toBe(true);
+          expect(sameWords(attribute.array as Float32Array, quads(painters.dynamic).getAttribute(name).array as Float32Array, count * 4)).toBe(true);
+        }
+      }
+    }
+    // Moving shifted quads on the GPU leaves a fraction of the uploads; refusing moves sends them as before.
+    expect(models.versioned.moved).toBeGreaterThan(0);
+    expect(models.versioned.bytes).toBeLessThan(models.dynamic.bytes * .4);
+    expect(models.refused.bytes).toBeLessThanOrEqual(models.dynamic.bytes);
+    expect(models.refused.moved).toBe(0);
+  } finally { effectUploads.versioned = true; Object.values(painters).forEach(painter => painter.dispose()); }
+});
+
+test('a draw that did not upload leaves the painter sending everything it draws once more', async () => {
+  const { GpuUploadModel, sameWords } = await import('./testing/gpuUploads');
+  const random = seeded(7), model = new GpuUploadModel();
+  let draws = true;
+  const skipping = { ...renderer, render(scene: { children: Mesh<InstancedBufferGeometry>[] }) {
+    if (draws) model.render(NAMES.map(name => scene.children[0].geometry.getAttribute(name) as InstancedBufferAttribute));
+  } } as unknown as WebGPURenderer;
+  const painter = new WakeFoamGpu(skipping, 128, 8, 2, model.moveInstances), tiles = Array.from({ length: 12 }, () => new WakeStampCollector());
+  try {
+    for (let round = 0; round < 120; round++) {
+      for (const tile of tiles) if (round === 0 || random() < .2) {
+        tile.begin(random() * 100, random() * 100);
+        for (let i = 10 + Math.floor(random() * 80); i > 0; i--) tile.stamp(random() * 100, random() * 100, 1, 0, 5, 5, random(), false);
+      }
+      draws = round % 9 !== 4;
+      painter.update(tiles);
+      if (!draws) continue;
+      const geometry = quads(painter);
+      for (const name of NAMES) { const attribute = geometry.getAttribute(name) as InstancedBufferAttribute;
+        expect(sameWords(model.gpu(attribute), attribute.array as Float32Array, geometry.instanceCount * 4)).toBe(true); }
+    }
+  } finally { painter.dispose(); }
+});

@@ -1,9 +1,10 @@
-import { BufferAttribute, CustomBlending, DoubleSide, DynamicDrawUsage, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, NodeMaterial, OneFactor,
+import { BufferAttribute, CustomBlending, DoubleSide, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, NodeMaterial, OneFactor,
   Vector3, ZeroFactor } from 'three/webgpu';
 import { Fn, attribute, cameraProjectionMatrix, cameraViewMatrix, exp, float, max, mix, positionGeometry, screenSize, select, uniform, varyingProperty,
   vec2, vec3, vec4 } from 'three/tsl';
 import { createBoltChannel, MAX_BOLT_SEGMENTS } from './bolt';
 import { focalPixels } from './screen';
+import { effectUsage } from '../../InstanceUploads';
 
 /** Radiance of the channel's core at a return stroke's peak, in the sea's units: some 150 times a daylight sky, so
  * the display's bloom (above 2) haloes even a bolt thinner than a pixel. */
@@ -36,8 +37,9 @@ export class BoltMesh {
     const geometry = new InstancedBufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array([-1, 0, 0, 1, 0, 0, -1, 1, 0, 1, 1, 0]), 3));
     geometry.setIndex([0, 1, 2, 2, 1, 3]);
-    this.start = new InstancedBufferAttribute(this.channel.start, 4).setUsage(DynamicDrawUsage);
-    this.end = new InstancedBufferAttribute(this.channel.end, 4).setUsage(DynamicDrawUsage);
+    // Static usage: a channel uploads once, when `upload` flags it, not again on every frame and pass the flash lasts.
+    this.start = new InstancedBufferAttribute(this.channel.start, 4).setUsage(effectUsage());
+    this.end = new InstancedBufferAttribute(this.channel.end, 4).setUsage(effectUsage());
     geometry.setAttribute('boltStart', this.start);
     geometry.setAttribute('boltEnd', this.end);
     geometry.instanceCount = 0;
@@ -65,7 +67,7 @@ export class BoltMesh {
   upload(): void {
     const count = Math.min(this.channel.count, MAX_BOLT_SEGMENTS);
     for (const buffer of [this.start, this.end]) {
-      buffer.clearUpdateRanges();
+      buffer.usage = effectUsage(); buffer.clearUpdateRanges();
       buffer.addUpdateRange(0, count * 4);
       buffer.needsUpdate = true;
     }
