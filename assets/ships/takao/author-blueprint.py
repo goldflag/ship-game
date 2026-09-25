@@ -137,6 +137,9 @@ for id, name, y, z, bearing, rangefinder in MAIN:
     b['mounts'].append(dict(id=id, name=name + ' 20.3 cm', partId='type3-203-furutaka-twin-rf' if rangefinder else 'type3-203-furutaka-twin',
                             battery='main', position=[0, y, rz(z)], bearingDeg=bearing, rangefinder=rangefinder,
                             magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN))
+# No. 3 turret stows trained aft with its muzzles 0.7 m short of the bridge front at the horizontal;
+# it rests elevated so the barrels clear the bridge face (game rest pose, not a documented stowage).
+b['mounts'][2]['initialElevationDeg'] = 25
 # Four open twin 12.7 cm Type 89 on the shelter-deck sponsons; bearing is the centre of the beam arc.
 HA = [('ha-1', -7.501, 6.324, -10.045, -90), ('ha-2', 7.502, 6.324, -10.045, 90), ('ha-3', -7.443, 6.324, 10.868, -90), ('ha-4', 7.443, 6.324, 10.868, 90)]
 for id, x, y, z, bearing in HA:
@@ -236,6 +239,49 @@ for s in structures:
             continue
         b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
                                       size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+
+# Stowed boats and the catapults' girders: barrels stop at them and cannot fire through them.
+BOATS = [('cutter', (6.12, 8.46), (6.27, 7.8), (-22.3, -13.2)), ('motor-boat', (2.0, 5.0), (4.1, 6.9), (18.4, 29.6)),
+         ('catapult', (9.2, 10.45), (6.4, 7.95), (14.8, 34.3))]
+for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
+    for side, sign in [('port', -1), ('starboard', 1)]:
+        b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
+                                      size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
+b['obstructions'].append(dict(id='motor-launch', center=[0, 5.0, rz(22.66)], size=[2.8, 1.8, 12.2]))
+
+# ---------------------------------------------------------------- installation interlocks
+# CPU motion envelopes: the main and 12.7 cm barrels (with the full recoil stroke) and gunhouses
+# may not enter the blocks they can reach, and neighbouring turrets may not cross. Game clearance,
+# not verified historical stops.
+catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
+clear_mounts, reach = [], {}
+for m in b['mounts']:
+    if m['battery'] != 'main' and not m['id'].startswith('ha-'):
+        continue
+    w = catalog[m['partId']]
+    entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .85, 3))
+    if m['battery'] == 'main':
+        # Model E gunhouse in the yaw frame: 8.28 m long from 2.91 m ahead of the pivot, 6.0 m wide
+        # (6.9 m across the rangefinder ends), roof and perimeter rail to 2.9 m.
+        entry['body'] = dict(center=[0, 1.47, 1.23], size=[6.9 if m['rangefinder'] else 6.1, 2.86, 8.3])
+    clear_mounts.append(entry)
+    reach[m['id']] = (m['position'], w['muzzleForward'] + 1.0, m['position'][1] + w['pivotHeight'])
+nearby = []
+for st in structures:
+    xs = [p[0] for p in st['footprint']]
+    zs = [p[1] for p in st['footprint']]
+    best = None
+    for (x, y, z), r, pivot in reach.values():
+        dx = max(min(xs) - x, 0, x - max(xs))
+        dz = max(min(zs) - z, 0, z - max(zs))
+        if math.hypot(dx, dz) <= r and st['baseY'] < pivot + r * .8 and st['baseY'] + st['height'] > pivot - 3:
+            best = min(best if best is not None else 1e9, math.hypot(dx, dz))
+    if best is not None:
+        nearby.append((best, st['id']))
+nearby = [sid for _, sid in sorted(nearby)[:128]]
+b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the 20.3 cm and 12.7 cm mounts against the measured superstructure blocks they can reach, including the full recoil stroke, and between neighbouring turrets. Game clearance envelopes, not verified historical mechanical stops.',
+                           mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
+                           neighbors=[['main-1', 'main-2'], ['main-2', 'main-3'], ['main-1', 'main-3'], ['main-4', 'main-5']])
 
 # ---------------------------------------------------------------- rooms, machinery, directors
 def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):

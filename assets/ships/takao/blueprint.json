@@ -43708,7 +43708,8 @@
         "fuelSeconds": 90,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "initialElevationDeg": 25
     },
     {
       "id": "main-4",
@@ -83875,6 +83876,97 @@
         2.05,
         2.614
       ]
+    },
+    {
+      "id": "cutter-port",
+      "center": [
+        -7.29,
+        7.035,
+        -19.2395
+      ],
+      "size": [
+        2.34,
+        1.53,
+        9.1
+      ]
+    },
+    {
+      "id": "cutter-starboard",
+      "center": [
+        7.29,
+        7.035,
+        -19.2395
+      ],
+      "size": [
+        2.34,
+        1.53,
+        9.1
+      ]
+    },
+    {
+      "id": "motor-boat-port",
+      "center": [
+        -3.5,
+        5.5,
+        22.5105
+      ],
+      "size": [
+        3,
+        2.8,
+        11.2
+      ]
+    },
+    {
+      "id": "motor-boat-starboard",
+      "center": [
+        3.5,
+        5.5,
+        22.5105
+      ],
+      "size": [
+        3,
+        2.8,
+        11.2
+      ]
+    },
+    {
+      "id": "catapult-port",
+      "center": [
+        -9.825,
+        7.175,
+        23.0605
+      ],
+      "size": [
+        1.25,
+        1.55,
+        19.5
+      ]
+    },
+    {
+      "id": "catapult-starboard",
+      "center": [
+        9.825,
+        7.175,
+        23.0605
+      ],
+      "size": [
+        1.25,
+        1.55,
+        19.5
+      ]
+    },
+    {
+      "id": "motor-launch",
+      "center": [
+        0,
+        5,
+        21.1705
+      ],
+      "size": [
+        2.8,
+        1.8,
+        12.2
+      ]
     }
   ],
   "structures": [
@@ -90645,111 +90737,6 @@
           ]
         ]
       }
-    },
-    {
-      "id": "bridge-01",
-      "name": "Bridge tier 6.1-6.2 m",
-      "footprint": [
-        [
-          -2.821,
-          -33.476
-        ],
-        [
-          -2.641,
-          -33.715
-        ],
-        [
-          -2.191,
-          -33.715
-        ],
-        [
-          -2.011,
-          -33.475
-        ],
-        [
-          -1.891,
-          -33.415
-        ],
-        [
-          1.889,
-          -33.415
-        ],
-        [
-          2.009,
-          -33.475
-        ],
-        [
-          2.189,
-          -33.715
-        ],
-        [
-          2.639,
-          -33.715
-        ],
-        [
-          2.819,
-          -33.476
-        ],
-        [
-          3.089,
-          -33.416
-        ],
-        [
-          3.509,
-          -33.206
-        ],
-        [
-          3.644,
-          -33.071
-        ],
-        [
-          6.254,
-          -29.35
-        ],
-        [
-          6.014,
-          -25.841
-        ],
-        [
-          6.014,
-          -17.351
-        ],
-        [
-          5.909,
-          -17.245
-        ],
-        [
-          -5.911,
-          -17.245
-        ],
-        [
-          -6.016,
-          -17.351
-        ],
-        [
-          -6.016,
-          -25.871
-        ],
-        [
-          -6.256,
-          -29.32
-        ],
-        [
-          -3.646,
-          -33.071
-        ],
-        [
-          -3.511,
-          -33.206
-        ],
-        [
-          -3.091,
-          -33.416
-        ]
-      ],
-      "baseY": 6.105,
-      "height": 0.05,
-      "material": "naval"
     },
     {
       "id": "bridge-02",
@@ -214151,6 +214138,381 @@
       "launcherModuleId": "torpedo-4-equipment"
     }
   ],
+  "mountClearance": {
+    "version": 1,
+    "marginM": 0.03,
+    "basis": "Provisional CPU motion interlocks for the 20.3 cm and 12.7 cm mounts against the measured superstructure blocks they can reach, including the full recoil stroke, and between neighbouring turrets. Game clearance envelopes, not verified historical mechanical stops.",
+    "mounts": [
+      {
+        "mountId": "main-1",
+        "barrelRadiusM": 0.204,
+        "body": {
+          "center": [
+            0,
+            1.47,
+            1.23
+          ],
+          "size": [
+            6.1,
+            2.86,
+            8.3
+          ]
+        }
+      },
+      {
+        "mountId": "main-2",
+        "barrelRadiusM": 0.204,
+        "body": {
+          "center": [
+            0,
+            1.47,
+            1.23
+          ],
+          "size": [
+            6.9,
+            2.86,
+            8.3
+          ]
+        }
+      },
+      {
+        "mountId": "main-3",
+        "barrelRadiusM": 0.204,
+        "body": {
+          "center": [
+            0,
+            1.47,
+            1.23
+          ],
+          "size": [
+            6.1,
+            2.86,
+            8.3
+          ]
+        }
+      },
+      {
+        "mountId": "main-4",
+        "barrelRadiusM": 0.204,
+        "body": {
+          "center": [
+            0,
+            1.47,
+            1.23
+          ],
+          "size": [
+            6.9,
+            2.86,
+            8.3
+          ]
+        }
+      },
+      {
+        "mountId": "main-5",
+        "barrelRadiusM": 0.204,
+        "body": {
+          "center": [
+            0,
+            1.47,
+            1.23
+          ],
+          "size": [
+            6.1,
+            2.86,
+            8.3
+          ]
+        }
+      },
+      {
+        "mountId": "ha-1",
+        "barrelRadiusM": 0.153
+      },
+      {
+        "mountId": "ha-2",
+        "barrelRadiusM": 0.153
+      },
+      {
+        "mountId": "ha-3",
+        "barrelRadiusM": 0.153
+      },
+      {
+        "mountId": "ha-4",
+        "barrelRadiusM": 0.153
+      }
+    ],
+    "structures": [
+      {
+        "structureId": "midships-03",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-04",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-10",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-11",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "shelter-deck",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "torpedo-room-port",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "torpedo-room-starboard",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-53",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-52",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-41",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-55",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-57",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "aft-04",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "aft-03",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "aft-05",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-50",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-39",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-40",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-42",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-43",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-66",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-05",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-06",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-15",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-16",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-34",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-33",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-29",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-32",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-61",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-62",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "torpedo-casing",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-13",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-14",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-25",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-24",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-36",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-35",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-15",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-10",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-07",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-12",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-09",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-11",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-44",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-08",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-45",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-05",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-16",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-19",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-18",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-04",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-17",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-18",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-06",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "shelter-aft-port",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "shelter-aft-starboard",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-37",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "midships-38",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "aft-08",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-base-01",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-02",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bridge-03",
+        "topExtensionM": 0
+      }
+    ],
+    "neighbors": [
+      [
+        "main-1",
+        "main-2"
+      ],
+      [
+        "main-2",
+        "main-3"
+      ],
+      [
+        "main-1",
+        "main-3"
+      ],
+      [
+        "main-4",
+        "main-5"
+      ]
+    ]
+  },
   "propulsion": {
     "groups": [
       {
