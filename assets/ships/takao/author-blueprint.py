@@ -199,7 +199,7 @@ if opts.structures:
         structures.append(entry)
     # Names by region; the top block of each funnel carries its exhaust (the smoke's mouth).
     NAMES = {'bridge-base': 'Bridge base', 'bridge': 'Bridge tier', 'forward-funnel': 'Forward funnel', 'after-funnel': 'After funnel',
-             'midships': 'Midships deckhouse', 'aft': 'After deckhouse'}
+             'midships': 'Midships deckhouse', 'aft': 'After deckhouse', 'compass-bridge': 'Compass bridge', 'upper-bridge': 'Upper bridge'}
     for s in structures:
         prefix = s['id'].rsplit('-', 1)[0]
         if prefix in NAMES:

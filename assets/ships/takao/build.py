@@ -4,10 +4,12 @@ Blueprint meters: +Y up, -Z bow. Authoring meters: +X bow, +Y port, +Z up. The s
 exporter owns the sole basis conversion. Proportions follow the approved GameModels3D
 pjsc708 default configuration (Takao-class 1944 hull); no reference geometry or texture is
 loaded. The lofted hull and the measured superstructure blocks come from the blueprint;
-`takao_kit.py` holds the shared vocabulary and `takao_fittings.py` draws the masts,
-funnels' caps, directors, sensors, aviation, boats, torpedo mounts and deck fittings.
+`takao_kit.py` holds the shared vocabulary, `takao_fittings.py` draws the masts,
+funnels' caps, directors, sensors, aviation, boats, torpedo mounts and deck fittings, and
+`takao_windows.py` glazes the bridge.
 """
 import bpy
+import math
 import json
 import os
 import sys
@@ -23,6 +25,7 @@ from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from takao_kit import Kit, ZC
 import takao_fittings
+import takao_windows
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -67,7 +70,10 @@ for s in D['structures']:
             face.material_index = 2
         elif face.normal.z > .8:
             face.material_index = 1
-        face.use_smooth = funnel and abs(face.normal.z) < .5
+    # Traced outlines and lofted tiers turn in many small steps: shade them smooth and keep the
+    # corners of the blocks (over 30 degrees) sharp.
+    ob.data.shade_smooth()
+    ob.data.set_sharp_from_angle(angle=math.radians(30))
     shells.append(ob)
 support = SupportSurface([hull, *shells])
 kit.support = support
@@ -95,6 +101,7 @@ for mount in D['mounts']:
 
 # ---------------------------------------------------------------- fittings
 takao_fittings.build(D, kit)
+takao_windows.build(D, kit)
 
 scene['definitionHash'] = D['contentHash']
 scene['historicalConfiguration'] = D['configuration']

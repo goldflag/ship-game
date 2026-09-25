@@ -486,13 +486,20 @@ def deck_gear(D, kit):
         kit.part('rod', 'winches', col, 'winch drum', c + Vector((0, -.6, .48)), c + Vector((0, .6, .48)), .35, 'naval', vertices=14)
     kit.cylz('capstan', col, 'after capstan', V(.44, 3.1, 85.72), .45, .55, 'naval', 16)
     # Ventilators: the large mushroom heads (1.6 m across, 1.1 m tall) and the small ones (0.7 m) on the
-    # weather decks at the reference positions; the pair under No. 5 turret's overhang stay below its sole.
+    # weather decks at the reference positions. One a turret's gunhouse sweeps over (the rear corners
+    # reach 6.2 m from the pivot) stays 6 cm below its sole.
+    soles = [(*R(m['position'])[:2], m['position'][1] + m['weapon'].get('gunhouseBaseHeight', 0)) for m in D['mounts'] if m['battery'] == 'main']
     for x, y, z, r, h in [(-.01, 4.67, -64.53, .8, 1.11), (.81, 4.19, -36.47, .8, 1.11), (-2.45, 4.19, -38.08, .8, 1.11), (.18, 4.24, 55.33, .8, .96),
                           (-2.91, 4.23, 53.73, .8, .96), (3.15, 4.24, 55.48, .8, .96), (1.71, 4.46, -61.97, .35, .92), (1.14, 4.21, -46.46, .35, .92),
                           (-.62, 4.23, -37.39, .35, .92), (.18, 4.21, -46.11, .35, .92), (-.66, 4.23, -36.37, .35, .92), (1.91, 4.23, -38.21, .35, .92)]:
         c = V(x, 0, z)
         floor = kit.below(c.x, c.y, y + .5, y - .5)
         top = floor + h
+        for mx, my, sole in soles:
+            if math.hypot(c.x - mx, c.y - my) - r < 6.2 and top > sole - .06:
+                print('Takao ventilator', (x, z), 'lowered under the gunhouse from', round(top, 3), 'to', round(sole - .06, 3), 'floor', round(floor, 3))
+                top = sole - .06
+        h = top - floor
         kit.cylz('ventilators', col, 'ventilator trunk', Vector((c.x, c.y, floor - .01)), r * .55, h - .2, 'naval', 16)
         kit.cylz('ventilators', col, 'ventilator head', Vector((c.x, c.y, top - .22)), r, .22, 'naval', 16, r2=r * .8)
     # Paravanes stowed by No. 3 barbette, smoke floats at the stern, leadsman's platforms at the bow.
