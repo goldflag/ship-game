@@ -45,15 +45,19 @@ Superstructure blocks were traced from plan cuts of the reference every 5 cm, re
 midships platforms, aircraft deck) with each region's components on their own, and followed up through the levels:
 a block ends where its outline changes abruptly (a roof, a platform, an overhang); one whose walls stand still is a
 prism, one whose walls taper (the bridge's sloped faces, the raked forward funnel and its uptake trunk) is lofted
-straight between its measured bottom and top rings along a dynamic-time-warping correspondence, with extra rings every
-metre on the funnels. The compass bridge and the upper bridge are thin-walled rooms whose window rows are real openings
+straight between its measured bottom and top rings (and a middle ring where the wall knuckles). The funnels follow a
+dynamic-time-warping correspondence with extra rings every metre; the other lofts are rebuilt from their own rings
+with small attached features (ladders, lockers, pipes) opened and closed out, and, where every ring is star-shaped
+about a common centre, sampled at one set of bearings through all their corners, so each band is a run of near-planar
+facets. The compass bridge and the upper bridge are thin-walled rooms whose window rows are real openings
 and whose backs open onto the passages round the tower, so a filled plan cut cannot see them: their outlines are the
 tight hulls of the walls' cut points, closed along the open back. The shelter deck, the torpedo casing and the after
 shelter blocks are traced outlines of the hull shell's upper part. A tier that begins a few centimetres over the roof
 below it (a level lost between tracks) reaches down to that roof, so no slot shows through the upperworks. Where a
-light gun stood inside a traced tub or under a platform slab, the gun's working circle is cut out of the block (the
-25 mm twins' whole turning ring); where a roof stood over its base, the block stops under the gun and its upper part
-stands round it. Tops that would share a plane with a neighbour are resolved as `ship:check` asks (a thin slab gives
+light gun stood inside a traced tub or under a platform slab, the gun's working circle is cut out of the block (for
+the 25 mm twins, whose gunners' seats and footrests sweep a 1.36 m radius, a 1.44 m radius through the carriage's
+height), and out of any block rising beside it; where a roof stood over its base, the block stops under the gun and its upper part stands
+round it. Tops that would share a plane with a neighbour are resolved as `ship:check` asks (a thin slab gives
 up the part the other block covers). Blocks are shaded smooth with corners over 30° kept sharp.
 `author-blueprint.py` rebuilds the blueprint from the measurement files (`--loft`, `--structures`), which live in
 ignored `.build/takao/` with the scripts that make them.
