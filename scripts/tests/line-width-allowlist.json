@@ -54,7 +54,6 @@
   "src/game/ShipInspection.ts",
   "src/game/ShipLabels.ts",
   "src/game/ShipMaterialPalette.ts",
-  "src/game/ShipView.ts",
   "src/game/TorpedoPreview.ts",
   "src/game/airWing.ts",
   "src/game/audio.ts",
