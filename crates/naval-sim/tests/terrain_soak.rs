@@ -1,6 +1,10 @@
 //! Eight bots a side fight on each real chart for several simulated minutes:
 //! none may put its hull on the ground or end up stuck or circling in a bay.
 //! `examples/terrain_soak.rs` runs the same soak longer, with other fleets.
+//!
+//! About 45 s of simulation, so it runs nightly (.github/workflows/soak.yml), not on every push:
+//! `cargo test --profile ci-test -p naval-sim --test terrain_soak -- --ignored`, or
+//! `bun run rust:test -- terrain_soak -- --ignored` after a change to navigation or bots.
 #[path = "support/soak.rs"]
 mod soak;
 use naval_sim::{catalog::Catalog, vessel::CompiledShip};
@@ -42,18 +46,22 @@ fn soak(map: &str) {
     }
 }
 #[test]
+#[ignore = "nightly soak; run with --ignored"]
 fn bots_keep_off_the_coast_of_iron_bottom_sound() {
     soak("iron-bottom-sound");
 }
 #[test]
+#[ignore = "nightly soak; run with --ignored"]
 fn bots_keep_off_the_coast_of_vestfjord() {
     soak("vestfjord");
 }
 #[test]
+#[ignore = "nightly soak; run with --ignored"]
 fn bots_keep_off_the_coast_of_sunda_strait() {
     soak("sunda-strait");
 }
 #[test]
+#[ignore = "nightly soak; run with --ignored"]
 fn bots_keep_off_the_coast_of_the_strait_of_dover() {
     soak("strait-of-dover");
 }

@@ -1,7 +1,8 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
 import { pendingHullSurfaces } from './pendingHull';
-import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
+import { customHullPrimitive } from '../../ships/customHullModel';
+import { makeHull } from '../../ships/customHullStarter';
 import { customHullPanels } from '../../ships/constructionPanels';
 import { paintedHullFace } from '../../ships/constructionHullPaint';
 

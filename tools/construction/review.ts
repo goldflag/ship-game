@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { createReviewCanvas, createReviewPresentation } from './presentation';
 import { createViewStage } from './viewStage';
-import { exportReviewGlb } from './export';
+import { exportConstructionGlb } from './export';
 import { resetReviewPose } from './pose';
 import { createConstructionModel, disposeConstructionModel } from '../../src/game/constructionModel';
 import { effectiveConstructionCatalog } from '../../src/ships/constructionCustomFittings';
@@ -125,7 +125,7 @@ async function openCompiledReview(input: ReviewInput, definition: ShipDefinition
     resetPose();
     return { samples, torpedoSamples, maxMuzzleErrorM, blocked, scope: 'Sampled native gun clearance resolution and CPU/render muzzle agreement; blocked gun travel and torpedo bank clearance require visual installation review, and this is not an exhaustive geometric proof.' };
   };
-  const exportGlb = () => exportReviewGlb(model, view, actor, definition, source);
+  const exportGlb = () => exportConstructionGlb(source, result, definition);
   const trial = async (seconds = 10) => {
     if (!Number.isFinite(seconds) || seconds < 1 || seconds > 120) throw new Error('Trial duration must be 1–120 simulated seconds.');
     const started = performance.now();

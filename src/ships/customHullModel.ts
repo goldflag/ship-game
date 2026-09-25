@@ -1,7 +1,6 @@
 // Section editing and display helpers. Rust owns solid validity and physical derivation.
 import { hullPaintBandsError } from './hullPaintBands';
-import { bilgeKeelError, bilgeKeelFaces, defaultBilgeKeels } from './constructionBilgeKeels';
-import { DEFAULT_HULL_PRESET, HULL_PRESETS } from './constructionHullPresets';
+import { bilgeKeelError, bilgeKeelFaces } from './constructionBilgeKeels';
 import type { ConstructionBilgeKeels, ConstructionHullPaintBands, ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
 import { contourAt, contourWeight, hullCreasesError, hullEdgeId, MAX_HULL_POINTS, MAX_HULL_SECTIONS, MIN_HULL_POINTS, MIN_HULL_SECTIONS, outlineTopologyError } from './customHullTopology';
 import { endCap, spanCut } from './customHullSpans';
@@ -26,17 +25,6 @@ export function lockSymmetry(h: Hull): Hull {
     return { id: s.id, t: s.t, points };
   });
   return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, paintBands, bilgeKeels, ...(creases ? { creases } : {}), region, stations };
-}
-export const presets = HULL_PRESETS;
-export function makeHull(index = presets.findIndex(p => p.id === DEFAULT_HULL_PRESET)): Hull {
-  const p = presets[index];
-  return {
-    id: uid(), name: p.name, length: p.length, beam: p.beam, depth: p.depth, offset: 0,
-    bilgeKeels: defaultBilgeKeels(p.beam),
-    bulb: p.customHull.bulb, rake: p.customHull.rake, redPaintY: p.customHull.redPaintY,
-    region: { enabled: false, start: .25, end: .75, low: .32, high: .7, armor: 200, color: '#9aac9b' },
-    stations: clone(p.customHull.stations),
-  };
 }
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 export function sectionAt(h: Hull, t: number): Station {

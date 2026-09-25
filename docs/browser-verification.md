@@ -100,7 +100,7 @@ Every launch stage has a deadline (`DEADLINES`: dev server and browser 90 s, pag
 | --- | --- |
 | `args` | Extra Chromium switches |
 | `uncapped` | Launch with `--disable-gpu-vsync --disable-frame-rate-limit`, for frame timing |
-| `hmr: false` | Drop Vite's hot updates and full reloads, so a source edit does not restart the page (and a battle that takes minutes to reach speed); `harness.reload()` picks edits up |
+| `hmr` | Off by default: a source edit never reloads the page (and a battle that takes minutes to reach speed); `harness.reload()` picks edits up. `true` restores Vite's hot updates for a live session that should follow the source |
 | `allowGpuErrors` | Report WebGPU errors in `gpuErrors` without adding them to `errors` |
 | `errors`, `gpuErrors` | The current document's page errors, game errors and WebGPU errors. A reload starts a new list, so an error from a half-saved edit does not fail every later run |
 | `console` | Console errors and warnings from the first navigation on, across reloads |
@@ -124,19 +124,34 @@ The WebGPU timestamp routes mislead on this machine. `trackTimestamp` stalls the
 
 ### Effects review
 
-`bun scripts/browser/effects-review.ts --scene hit,fire` renders scripted combat-effect sequences (`effectsScenes.ts`) as frames and contact sheets. The battle has a fixed seed, the sea is held at `--sea-time` (default 60 s) and every hull rides it to that time as the berth does, so master and a branch draw the same ships, water and sky: two runs of a scene differ in about 0.1% of pixels, a few sea glints among them. `--serve <port>` keeps the battle open: `curl 'localhost:<port>/run?scene=hit&out=.build/effects/try1'` renders against the current source, `/reload` loads the page afresh, and `/stop` turns away queued runs, closes the browser and exits. A run first checks that every ship of the roster has a view and a model, so frames of an empty sea fail instead of passing. In `--serve` mode Vite reloads the page after every source edit and the next run waits for the new battle; `--no-hmr` keeps the page through edits until `/reload`. The server stops after `--idle` minutes without a request (default 60). The `splash-*` scenes review shell splashes (a straddling salvo from the air and abeam, one splash beside the hull, three sun angles, dusk, night and storm light, binoculars at 9 km, mixed calibers and `splash-cost`); the stage feeds its events to the sea's wake as a battle frame does, so their foam rings show.
+`bun scripts/browser/effects-review.ts --scene hit,fire` renders scripted combat-effect sequences (`effectsScenes.ts`) as frames and contact sheets. The battle has a fixed seed, the sea is held at `--sea-time` (default 60 s) and every hull rides it to that time as the berth does, so master and a branch draw the same ships, water and sky: two runs of a scene differ in about 0.1% of pixels, a few sea glints among them. `--serve <port>` keeps the battle open: `curl 'localhost:<port>/run?scene=hit&out=.build/effects/try1'` renders against the current source, `/reload` loads the page afresh, and `/stop` turns away queued runs, closes the browser and exits. A run first checks that every ship of the roster has a view and a model, so frames of an empty sea fail instead of passing. In `--serve` mode the page and its battle stay through source edits until `/reload`; `--hmr` lets Vite reload the page after every edit instead, and the next run waits for the new battle. The server stops after `--idle` minutes without a request (default 60). The `splash-*` scenes review shell splashes (a straddling salvo from the air and abeam, one splash beside the hull, three sun angles, dusk, night and storm light, binoculars at 9 km, mixed calibers and `splash-cost`); the stage feeds its events to the sea's wake as a battle frame does, so their foam rings show.
+
+### Master against a branch
+
+`bun scripts/browser/ocean-review.ts --tag ab --only near,wide --baseline origin/master [--rounds 3]` runs the ocean review on both sides in one command and prints a table of medians with every run. Do not build a baseline tree by hand: copying `src/generated` or symlinking `public/models` into a detached checkout left its port unloaded ("Battle setup requires an idle, loaded port"). `scripts/browser/baseline.ts` gives any script the same:
+
+| Helper | Does |
+| --- | --- |
+| `prepareBaseline(ref)` | Adds a detached worktree of the ref at `.build/baseline/<sha>` (reused while the ref stays on that commit) and runs `bun run bootstrap` in it, seconds with the shared WASM cache; the log is `.build/baseline/<sha>.bootstrap.log`. Remove one with `git worktree remove --force .build/baseline/<sha>` |
+| `diagnosticTargets({ baseline, url })` | Serves the baseline and this checkout each on a free port, without hot reloads; `targets` lists baseline first. `withHarness({ url: target.url })` drives the harness page on either |
+| `interleave(targets, rounds)` | A B A B A B: measure in alternation, so a drift in machine load falls on both sides. GPU timings of identical code have differed 8.8 against 11.3 ms from one run to the next |
+| `compareSamples`, `comparisonTable` | Medians of each side, the change, and a fixed-width table |
+
+`diagnosticPage.ts` opens a standalone diagnostics page (one that sets `window.ready`) in its own window, so a baseline page and a branch page draw side by side without one throttled as a hidden tab.
 
 What the driver already handles, so a script need not:
 
 - Headless Chromium reaches the port but its WebGPU frame loop stalls. The driver launches headed. `chrome-headless-shell` may also never run the page's Web Workers, silently.
 - `page.screenshot()` blurs a headed window, which cancels editor drags, ghosts and tooltips. `shot()` captures through CDP.
 - Each run starts its own Vite server on a free port, so it cannot collide with another worktree's dev server.
+- That server (`authoringServer` in `scripts/construction/browser.ts`, which the harness and every diagnostics script share) sends no hot updates or full reloads, so editing source while a run goes cannot reload its page ("Execution context was destroyed" 20 minutes into a sweep). It still watches files, so a deliberate reload serves the edit. Only `construction edit` asks for a live server (`'live'`).
+- Chromium asks every page for `/favicon.ico`; the game has none, and the 404 used to reach every console-error list as "Failed to load resource … 404". The dev and harness servers answer it with 204 (`scripts/build/favicon.ts`). Diagnostics pages opened through `diagnosticPage.ts` append the URL to any other failed-resource line, so never filter errors with `grep -v 404`.
 - Other sessions' test browsers share the GPU: frame timings swing 20–90 ms and launches slow down while they draw. The driver names them at launch (and says which are orphaned) but never kills them. Run one harness at a time, including across worktrees.
 - Judge a running battle by simulation ticks, not the FPS readout; a paused game still reports 120 FPS.
 - A ship accelerates for minutes: `definition.handling.forwardSpeed` is her calm-water speed, not what she reaches in a seaway, so wait for the speed to plateau rather than for that number.
 
 ## Known-red tests and checks
 
-`bun run test` prints only failing files (bounded to 160 lines, 400 columns) and one summary line. Its exit status reflects failures that are not in `scripts/tests/known-failures.json`, so a failure you see is yours. `bun run test -- --known` lists the ledger, `--verbose` restores full output and `--record-known` rewrites the ledger from a run on a clean master. Fix and remove entries rather than adding to them; the runner names entries that no longer fail.
+`bun run test` prints only failing files (bounded to 160 lines, 400 columns) and one summary line. Its exit status reflects failures that are not in `scripts/tests/known-failures.json`, or failing in master's latest completed CI run at or before your merge base (read through `gh` and cached in the main checkout's `.build/master-ci/`), so a failure you see is yours. Those master failures are listed separately and not counted; `bun run master:red` prints them, plus the cargo tests master's CI fails. `bun run test -- --known` lists the ledger, `--verbose` restores full output and `--record-known` rewrites the ledger from a run on a clean master. Fix and remove entries rather than adding to them; the runner names entries that no longer fail.
 
 `bun run ship:browser:check` runs every registered check even after one fails, and reports checks listed in `scripts/construction/known-browser-failures.json` as known red. `--list` shows registered and unregistered checks, and `--only <name>` or `--only <file>#<export>` runs one.

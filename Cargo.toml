@@ -28,6 +28,14 @@ lto = "off"
 codegen-units = 16
 incremental = true
 
+# CI's test build. Release optimisation without the thin-LTO single-unit link: the tests ran for
+# about 4 minutes of a 35-minute cargo test --release, which spent the rest linking some 77 test
+# binaries one codegen unit at a time.
+[profile.ci-test]
+inherits = "release"
+lto = "off"
+codegen-units = 16
+
 # The agent/developer edit-test loop (`bun run rust:test`). Release semantics, so
 # numerical scenarios stay within their budgets, without the thin-LTO single-unit
 # link that makes every cycle minutes long. CI keeps testing `--release`.

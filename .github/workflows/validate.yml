@@ -5,8 +5,9 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    # A full run takes about 53 minutes: rust-cache keeps dependencies, but the workspace crates rebuild in release for
-    # cargo test and again for the server smoke. Headroom so a slow runner doesn't turn CI red on its own.
+    # A full run took about 53 minutes, 31 of them linking the Rust test binaries in release (thin LTO, one codegen
+    # unit); multiplayer:check now tests on the ci-test profile instead. rust-cache keeps dependencies, but the workspace
+    # crates still rebuild for the tests and again in release for the server smoke. Headroom for a slow runner.
     timeout-minutes: 90
     services:
       postgres:
@@ -61,17 +62,21 @@ jobs:
           bun run accounts:migrate
           bun run accounts:check
       - run: bun run multiplayer:check
+      # The TypeScript tests run even when multiplayer:check fails: `bun run check` and `bun run master:red` read this
+      # run's failures as master's baseline, and a skipped step would leave them unknown.
       # The native construction compiler the authoring and construction tests run, built here rather than inside a test's timeout.
       - name: Build the native construction compiler
+        if: ${{ !cancelled() }}
         run: cargo build --locked --profile wasm-dev -p naval-sim --example compile_construction
       - run: bun run test
+        if: ${{ !cancelled() }}
       - run: bun run build
       - name: Exercise the release server over HTTP and WebSockets
         run: |
           cargo build --release --locked -p naval-server --bin naval-server
           cargo build --release --locked -p naval-sim --example compile_construction
           # The test refuses a URL without "_test" in it; this container's database is disposable, and the application name says so.
-          POSTGRES_TEST_URL="$BATTLE_DATABASE_URL?application_name=naval_ci_test" cargo test --release -p naval-server ordered_postgres_flush_terminal_immutability_and_restart_abort -- --ignored
+          POSTGRES_TEST_URL="$BATTLE_DATABASE_URL?application_name=naval_ci_test" cargo test --profile ci-test -p naval-server ordered_postgres_flush_terminal_immutability_and_restart_abort -- --ignored
           bun services/api/main.ts > /tmp/naval-api.log 2>&1 &
           naval_api_pid=$!
           bun services/compiler/worker.ts > /tmp/naval-compiler.log 2>&1 &

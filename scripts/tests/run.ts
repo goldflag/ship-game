@@ -2,6 +2,7 @@ import { availableParallelism } from 'node:os';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { requireBootstrapped } from '../build/ready';
+import { describeRun, masterStatus } from './master-ci';
 
 const roots = ['src', 'scripts'];
 const cwd = resolve(import.meta.dir, '../..');
@@ -65,7 +66,17 @@ export function boundedOutput(output: string, maxLines = 160, maxColumns = 400):
   return lines.length > maxLines ? [...lines.slice(0, maxLines - 40), `… ${lines.length - maxLines} lines omitted; rerun this file with bun test for all of it …`, ...lines.slice(-40)].join('\n') : lines.join('\n');
 }
 
-export interface RunOptions { verbose?: boolean; known?: KnownFailure[]; record?: boolean }
+/** Failures a baseline already has, as `file > test`, and where they come from; consulted only when a run has new ones. */
+export type Baseline = () => { source: string; failures: string[] } | { unavailable: string };
+export interface RunOptions { verbose?: boolean; known?: KnownFailure[]; record?: boolean; baseline?: Baseline }
+
+/** Master's latest completed CI run at or before `base`: its failures are not the change's, whether or not they are in
+ * the ledger yet (a test broken by a recent merge usually is not). */
+export const masterBaseline = (root: string, base: string): Baseline => () => {
+  const status = masterStatus(root, base);
+  if ('unavailable' in status) return status;
+  return status.tests ? { source: `master CI at ${describeRun(status.tests)}`, failures: status.tests.failures } : { unavailable: 'no completed master CI run found' };
+};
 
 /** Isolate files while limiting simultaneous CPU and model-loading work. Passing files print nothing; the exit
  * status reflects only failures that are not in the known-failures ledger. */
@@ -127,14 +138,22 @@ export async function runTestFiles(files: string[], concurrency: number, options
     console.log(`Recorded ${entries.length} known failures in ${LEDGER}`);
     return 0;
   }
-  const fresh = failures.filter(failure => !isKnown(failure.file, failure.test)), red = failures.filter(failure => isKnown(failure.file, failure.test));
+  const unlisted = failures.filter(failure => !isKnown(failure.file, failure.test)), red = failures.filter(failure => isKnown(failure.file, failure.test));
+  const master = unlisted.length && options.baseline ? options.baseline() : undefined;
+  const onMaster = master && 'failures' in master ? unlisted.filter(failure => master.failures.includes(`${failure.file} > ${failure.test}`)) : [];
+  const fresh = unlisted.filter(failure => !onMaster.includes(failure));
   const ran = new Set(files.map(file => file.replace(/^\.\//, '')));
   const fixed = known.filter(entry => !entry.flaky && ran.has(entry.file) && !failures.some(failure => failure.file === entry.file && (entry.test === '*' || failure.test === entry.test)));
   const list = (entries: { file: string; test: string }[]) => entries.map(entry => `  ${entry.file} > ${entry.test}`).join('\n');
   if (red.length) console.log(`\nKnown failures, already red on master and listed in ${LEDGER} (not counted):\n${list(red)}`);
-  if (fresh.length) console.log(`\nNew failures, not in ${LEDGER}:\n${list(fresh)}`);
+  if (onMaster.length && master && 'source' in master)
+    console.log(`\nAlso failing on ${master.source}\n(not caused by this change; not counted, no need to re-prove them against master):\n`
+      + list(onMaster));
+  if (fresh.length) console.log(`\nNew failures, not in ${LEDGER}${master && 'source' in master ? ' or failing on master CI' : ''}:\n${list(fresh)}`);
+  if (master && 'unavailable' in master) console.log(`(Master CI not consulted: ${master.unavailable}. bun run master:red lists what master fails.)`);
   if (fixed.length) console.log(`\nNo longer failing; remove from ${LEDGER}:\n${list(fixed)}`);
-  console.log(`\n${files.length} test files: ${fresh.length} new failures, ${red.length} known (${LEDGER}); ${((performance.now() - start) / 1000).toFixed(0)} s (${concurrency} workers)`);
+  const alsoOnMaster = onMaster.length ? `, ${onMaster.length} failing on master CI` : '';
+  console.log(`\n${files.length} test files: ${fresh.length} new failures, ${red.length} known (${LEDGER})${alsoOnMaster}; ${((performance.now() - start) / 1000).toFixed(0)} s (${concurrency} workers)`);
   return fresh.length ? 1 : 0;
 }
 
@@ -159,5 +178,7 @@ if (import.meta.main) {
   const glob = new Bun.Glob('**/*.{test,spec}.{js,jsx,ts,tsx,mjs,mts,cjs,cts}');
   const files = roots.flatMap(root => [...glob.scanSync({ cwd: resolve(cwd, root) })].map(file => `./${root}/${file}`)).sort();
   if (!files.length) throw new Error('No test files found');
-  process.exit(await runTestFiles(files, concurrency, { verbose: args.includes('--verbose'), record: args.includes('--record-known'), known: readKnownFailures() }));
+  process.exit(await runTestFiles(files, concurrency, {
+    verbose: args.includes('--verbose'), record: args.includes('--record-known'), known: readKnownFailures(), baseline: masterBaseline(cwd, 'origin/master'),
+  }));
 }

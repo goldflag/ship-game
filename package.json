@@ -14,6 +14,7 @@
     "deploy:hermes": "bash scripts/deploy-hermes.sh",
     "bootstrap": "bun scripts/build/bootstrap.ts",
     "check": "bun scripts/tests/check.ts",
+    "master:red": "bun scripts/tests/master-ci.ts",
     "harness:designs": "bun scripts/browser/designs.ts",
     "ui:shot": "bun scripts/browser/shot.ts",
     "film": "bun scripts/browser/film.ts",

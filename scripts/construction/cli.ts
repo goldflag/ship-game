@@ -55,6 +55,14 @@ try {
     process.exit(0);
   }
   constructionId(id);
+  if (action === 'trial' && !args.includes('--live')) {
+    // The maneuvering trial serves every preset, so it runs before a construction source is read.
+    if (option('--seconds') !== undefined || option('--out') !== undefined) throw new Error('--seconds and --out apply to --live.');
+    const { runShipTrial } = await import('./trial');
+    process.exit(await runShipTrial(root, id, { vs: option('--vs'), published: args.includes('--published'), json: args.includes('--json') }));
+  }
+  if (action === 'trial' && (option('--vs') !== undefined || args.includes('--json')))
+    throw new Error('--vs and --json apply to the maneuvering trial, not --live.');
   const store = repositoryStore(root);
   if (action === 'new') {
     if (existsSync(join(root, 'assets/ships', id))) throw new Error('Ship directory already exists. Choose a new ID.');
@@ -101,7 +109,7 @@ try {
     const port = Number(option('--port') ?? 0);
     if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Port must be 0–65535.');
     const { authoringServer, serverUrl } = await browserTools();
-    const server = await authoringServer(root, port, true);
+    const server = await authoringServer(root, port, 'live');
     print({ url: serverUrl(server) + '/tools/construction/editor.html?ship=' + id, source: sourcePath(root, id), ready: true });
     for (const signal of ['SIGINT', 'SIGTERM'] as const)
       process.on(signal, async () => {
@@ -142,8 +150,8 @@ try {
     print({
       id,
       registered: true,
-      // The smoke test checks every registered Blender-recipe preset's funnel count.
-      ...(recipe ? await legacy.addFunnelCount(root, id) : {}),
+      // The smoke test requires a funnel mouth on every registered surface preset: say now if there is none.
+      ...(recipe ? await legacy.funnelReport(root, id) : {}),
       next: 'Run bun run ship:hydrostatics and bun run multiplayer:content, then bun run build; registration does not certify visual acceptance.',
     });
   } else {

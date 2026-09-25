@@ -36,8 +36,12 @@ Integration tests live in `crates/<crate>/tests/<stem>.rs`, one binary per file.
 bun run rust:test -- construction_deck_fittings            # one naval-sim test binary
 bun run rust:test -- construction_deck_fittings railing    # plus a name filter
 bun run rust:test -- -p naval-protocol control             # another crate
+bun run rust:test -- hydrostatic_table -- --nocapture      # after a second --: the test binary's own flags
 bun run rust:test                                          # whole workspace, --no-fail-fast
 ```
+
+It regenerates `.build/naval-content/manifest.json` first (about a second), so the tests never read a
+catalog left over from bootstrap.
 
 This uses the `test-fast` profile (release semantics, no LTO, 16 codegen units, incremental):
 an edit-and-rerun of one binary takes seconds, not minutes. CI and `bun run multiplayer:check`

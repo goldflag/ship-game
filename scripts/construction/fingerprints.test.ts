@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { constructionFingerprints, recipeHash } from './fingerprints';
+import { constructionFingerprints, MODEL_RECIPE, PRESENTATION_RECIPE, recipeHash, recipeInputs } from './fingerprints';
 import type { ConstructionResult, ConstructionSource } from '../../src/ships/blueprint';
 let root: string;
 const put = async (path: string, text: string) => { await mkdir(join(root, path, '..'), { recursive: true }); await writeFile(join(root, path), text); };
@@ -14,8 +14,9 @@ beforeEach(async () => {
   await put('package.json', '{"dependencies":{"three":"0.185.0"}}');
   await put('src/game/constructionModel.ts', "import { size } from './helper'; export const model = () => size;");
   await put('src/game/helper.ts', 'export const size: number = 1;');
-  await put('src/game/ShipView.ts', 'export const pose = 0;');
-  await put('tools/construction/export.ts', 'export const exporter = 1;');
+  await put('src/game/ShipRenderView.ts', 'export const pose = 0;');
+  await put('src/game/ShipView.ts', "import { pose } from './ShipRenderView'; export const aim = pose;");
+  await put('tools/construction/export.ts', "import { model } from '../../src/game/constructionModel'; export const exporter = () => model();");
   await put('tools/construction/pose.ts', 'export const neutral = 0;');
   await put('tools/construction/presentation.ts', 'export const light = 1;');
 });
@@ -25,6 +26,7 @@ test('unrelated Rust/build identity, comments, type-only edits and orchestration
   await put('crates/naval-sim/src/unrelated.rs', '// another simulation build');
   await put('scripts/construction/pipeline.ts', 'export const orchestration = 2;');
   await put('tools/construction/review.ts', 'export const diagnostics = 2;');
+  await put('src/game/ShipView.ts', "import { pose } from './ShipRenderView'; export const aim = pose + 1;");
   await put('src/game/helper.ts', '// size in meters\ninterface Tool { editorOnly: string }\nexport const size: number = 1;');
   const native = structuredClone(result); native.contentHash = 'native-b'; native.definition!.contentHash = 'native-b'; native.definition!.id = 'local-test-b';
   expect(await get(native)).toEqual(before);
@@ -36,7 +38,7 @@ test('presentation edits invalidate only images; export and transitive geometry 
   expect(presentation.definition).toBe(before.definition); expect(presentation.model).toBe(before.model); expect(presentation.presentation).not.toBe(before.presentation);
   await put('src/game/helper.ts', 'export const size = 2;');
   const geometry = await get(); expect(geometry.model).not.toBe(presentation.model); expect(geometry.definition).toBe(before.definition);
-  await put('tools/construction/export.ts', 'export const exporter = 2;');
+  await put('tools/construction/export.ts', "import { model } from '../../src/game/constructionModel'; export const exporter = () => model() + 1;");
   expect((await get()).model).not.toBe(geometry.model);
 });
 test('native geometry and gameplay outputs invalidate the appropriate stage even with the same source', async () => {
@@ -51,8 +53,17 @@ test('native geometry and gameplay outputs invalidate the appropriate stage even
   expect((await get(keels)).definition).toBe(before.definition);
 });
 test('missing transitive inputs fail closed and key/file order remains stable', async () => {
-  const before = await recipeHash(root, ['src/game/ShipView.ts', 'src/game/constructionModel.ts']);
-  expect(await recipeHash(root, ['src/game/constructionModel.ts', 'src/game/ShipView.ts'])).toBe(before);
+  const before = await recipeHash(root, ['src/game/ShipRenderView.ts', 'src/game/constructionModel.ts']);
+  expect(await recipeHash(root, ['src/game/constructionModel.ts', 'src/game/ShipRenderView.ts'])).toBe(before);
   await rm(join(root, 'src/game/helper.ts'));
   await expect(get()).rejects.toThrow('Missing recipe dependency');
+});
+test('the real recipes hash what export and review images run, not the sight, ShipView or the editor hull presets', async () => {
+  const root = join(import.meta.dir, '../..');
+  const [model, presentation] = await Promise.all([recipeInputs(root, MODEL_RECIPE), recipeInputs(root, PRESENTATION_RECIPE)]);
+  for (const path of ['src/game/constructionModel.ts', 'src/game/shipJoints.ts']) expect(model.files.has(path)).toBe(true);
+  for (const path of ['src/game/ShipRenderView.ts', 'src/game/shipJoints.ts', 'src/game/ShipRigView.ts']) expect(presentation.files.has(path)).toBe(true);
+  const unrelated = ['src/game/ShipView.ts', 'src/game/gunAim.ts', 'src/game/ballistics.ts', 'src/game/mountGeometry.ts', 'src/game/torpedoAim.ts',
+    'src/ships/customHullStarter.ts', 'src/ships/constructionHullPresets.generated.json'];
+  for (const path of unrelated) { expect(model.files.has(path)).toBe(false); expect(presentation.files.has(path)).toBe(false); }
 });

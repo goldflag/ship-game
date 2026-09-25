@@ -7,11 +7,17 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import type { ReviewInput } from '../../tools/construction/review';
 import { constructionFiles } from './server';
+import { noFavicon } from '../build/favicon';
 
 /** Supplies review input JSON per request URL; a warm session serves one input per lease. */
 export type ReviewInputSource = (url: URL) => string | undefined;
 export const CHROMIUM_LAUNCH = () => ({ headless: true, args: ['--enable-unsafe-swiftshader', '--disable-dev-shm-usage'], ...(process.env.CONSTRUCTION_CHROME ? { executablePath: process.env.CONSTRUCTION_CHROME } : {}) });
-export async function authoringServer(root: string, port = 0, game = false, reviewInput?: ReviewInput | ReviewInputSource, repositoryRoot = root): Promise<ViteDevServer> {
+/** A Vite server for the construction review pages (`game` false, no game config) or for the game and its diagnostics pages
+ * (`game` true, with `vite.config.ts`). By default it pushes no hot updates or full reloads: a harness or diagnostics run is a
+ * measurement, and a source edit made while it runs must not reload its page (one ocean sweep died 20 minutes in with
+ * "Execution context was destroyed"). The file watcher stays, so a deliberate reload (`harness.reload()`, a new `page.goto`)
+ * serves the edited source. `game: 'live'` keeps Vite's hot updates, for an editor a person works in (`construction edit`). */
+export async function authoringServer(root: string, port = 0, game: boolean | 'live' = false, reviewInput?: ReviewInput | ReviewInputSource, repositoryRoot = root): Promise<ViteDevServer> {
   // Vite treats zero as its default port. Reserve an OS-selected port instead
   // of entering its port-increment retry path when another local app is open.
   if (!port) {
@@ -32,7 +38,7 @@ export async function authoringServer(root: string, port = 0, game = false, revi
     // Review servers may coexist with the editor or another asset build. Their
     // different entry graphs must not invalidate each other's optimized modules.
     cacheDir: join(root, '.build/construction/vite-cache', String(port)),
-    logLevel: 'error', plugins: game ? [] : [react(), constructionFiles(repositoryRoot), {
+    logLevel: 'error', plugins: game ? [] : [react(), constructionFiles(repositoryRoot), noFavicon(), {
       name: 'construction-review-input',
       configureServer(server) {
         server.middlewares.use((request, response, next) => {
@@ -49,7 +55,8 @@ export async function authoringServer(root: string, port = 0, game = false, revi
     // A fixed-input asset review must survive unrelated editor/test saves.
     // Only scan live entries, rather than retired diagnostic HTML imports.
     optimizeDeps: { entries: game ? ['index.html'] : ['tools/construction/review.html', 'tools/construction/editor.html'] },
-    server: { host: '127.0.0.1', port, strictPort: true, ...(game ? {} : { hmr: false }) },
+    // `.build` holds captures, caches and baseline worktrees (`scripts/browser/baseline.ts`), none of them this tree's source.
+    server: { host: '127.0.0.1', port, strictPort: true, watch: { ignored: ['**/.build/**'] }, ...(game === 'live' ? {} : { hmr: false }) },
   });
   await server.listen(); return server;
 }

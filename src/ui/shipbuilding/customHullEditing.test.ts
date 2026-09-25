@@ -4,10 +4,9 @@ import {
   clone,
   influence,
   invalidReason,
-  makeHull,
-  presets,
   worldPoint,
 } from "../../ships/customHullModel";
+import { makeHull, presets } from "../../ships/customHullStarter";
 import {
   applyReading,
   levelRing,

@@ -99,7 +99,6 @@
   "src/simulation/battle.ts",
   "src/simulation/combat.ts",
   "src/simulation/damage.ts",
-  "src/simulation/mountClearance.test.ts",
   "src/simulation/mountClearance.ts",
   "src/simulation/weapons.ts",
   "src/ui/AirOperations.css",

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { emptyProfile, openProfile, type ProgressProfile } from '../progression/rules';
 import type { ProgressSnapshot } from '../progression/store';
-import { modelledNodes } from '../progression/techTree';
+import { modelledNodes, TECH_TREE } from '../progression/techTree';
 import type { LocalShipRevision } from '../ships/localShips';
 import type { PortDesign } from './portDesigns';
 import { fallbackBerth, openingPreset, portFleet, STARTER_BERTH } from './portFleet';
@@ -20,12 +20,12 @@ const ENEMY_ONLY = ['valiant', 'resolute', 'liberty-cargo', 'liberty-collier', '
 describe('the fleet line', () => {
   test('groups owned tree ships by nation in tree order, line by line and oldest first, then ready designs', () => {
     const groups = portFleet(snapshot(openProfile()), [design('a', 'Baltimore design'), design('b', 'Draft hull', false)]);
-    expect(ids(groups)).toEqual([
-      ['usa', ['gleaves', 'fletcher', 'cleveland', 'baltimore', 'alaska', 'iowa', 'enterprise-cv6']],
-      ['japan', ['fubuki', 'yukikaze', 'mogami', 'kongo', 'yamato', 'shokaku']],
-      ['germany', ['admiral-hipper', 'bismarck', 'type-viic']],
-      ['uk', ['hood', 'king-george-v', 'flower-corvette']],
-      ['designs', ['local-a']],
+    // The tree is the order: a new tree ship joins her nation's group without editing this test.
+    const tree = TECH_TREE.map((nation) => [nation.id, nation.lines.flatMap((line) => line.nodes.flatMap((node) => node.presetId ? [node.presetId] : []))]);
+    expect(ids(groups)).toEqual([...tree, ['designs', ['local-a']]]);
+    expect(ids(groups).slice(0, 2)).toEqual([
+      ['usa', expect.arrayContaining(['gleaves', 'fletcher', 'iowa'])],
+      ['japan', expect.arrayContaining(['fubuki', 'yamato'])],
     ]);
     expect(groups.map((group) => group.label)).toEqual(['United States', 'Japan', 'Germany', 'United Kingdom', 'Your designs']);
     for (const id of ENEMY_ONLY) expect(groups.flatMap((group) => group.entries).some((entry) => entry.shipId === id)).toBe(false);
