@@ -405,15 +405,8 @@ b['damageControl'] = dict(version=1, teams=3, setupSeconds=8, repairPoints=240, 
                           basis='Placeholder; author-damage-control.ts writes the shared fleet defaults.')
 b['localDamage'] = dict(version=1, regions=[dict(id='hull-placeholder', name='Hull', kind='hull', durabilityFraction=1, center=[0, 0, 0], size=[round(beam, 3), 30, L])],
                         basis='Placeholder; author-local-damage.ts replaces it.')
-# Keep what the gameplay helpers wrote on the previous run unless the hull changed.
-if previous and not opts.loft:
-    for key in ['localDamage', 'damageControl', 'stability', 'floodRegions']:
-        if key in previous:
-            b[key] = previous[key]
-    helper_rooms = [c for c in previous['compartments'] if c['id'].startswith(('flood-', 'reserve-cell-'))]
-    b['compartments'] += helper_rooms
-    b['modules'] += [m for m in previous['modules'] if m['id'].startswith('support-')]
-    b['connections'] = previous.get('connections', [])
+# The gameplay helpers rewrite localDamage, the flood spaces and partitions, stability and
+# damageControl from these rooms; rerun all four after this script (see the README).
 write(HERE / 'blueprint.json', b)
 print(f'Authored takao: {len(sections)} sections, {round(volume * 1.025)} t at the reference waterline, {len(b["mounts"])} mounts, '
       f'{len(structures)} structures, {len(b["armor"])} armour plates. Next: author-local-damage, author-flood-spaces, author-stability, author-damage-control.')
