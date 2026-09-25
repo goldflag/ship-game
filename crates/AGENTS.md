@@ -40,8 +40,11 @@
   `naval_sim::catalog::installed_manifest()`, or share one parsed copy per process through
   `Catalog::installed()`. Both look for `.build/naval-content/manifest.json` from the workspace root or a
   crate directory and panic with the command to run when it is missing: `bun run bootstrap`, or
-  `bun run multiplayer:content` on its own (about a second, no `node_modules` needed). Rerun it after a ship,
-  map or rules change. A few `naval-protocol` and `naval-server` tests still read the file by path.
+  `bun run multiplayer:content` on its own (about a second, no `node_modules` needed). `bun run rust:test`
+  regenerates it before every run; plain `cargo test` reads whatever is there, so rerun it after a ship, map,
+  rules or hydrostatics change. A few `naval-protocol` and `naval-server` tests still read the file by path.
+- `hydrostatic_table` names the hull and attitude that broke a limit and prints each hull's worst roll arm;
+  `NAVAL_SHIPS=<id>[,<id>] bun run rust:test -- hydrostatic_table` checks only those hulls (under a second).
 - A cold `cargo test --release -p naval-sim` builds every test binary with thin LTO and one codegen unit, so
   it takes minutes (one session measured about eleven): run it in the background, or iterate with
   `bun run rust:test`, which uses the `test-fast` profile.
