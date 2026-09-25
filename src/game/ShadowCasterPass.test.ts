@@ -1,7 +1,11 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { positionLocal } from 'three/tsl';
-import { collectDepthCasters, collectShadowCasters, DepthCasterDraws, DepthCasterFrame, MorphPositions, noCasters, OVERRIDE_DEPTH, plainOverrideMaterial, plainShadowMaterial } from './ShadowCasterPass';
+import {
+  collectDepthCasters, collectShadowCasters, DepthCasterDraws, DepthCasterFrame, DepthCasterPass, DepthCasterStore, depthCasterStore, MorphPositions, noCasters, OVERRIDE_DEPTH,
+  plainOverrideMaterial, plainShadowMaterial, ShadowCasterPass,
+} from './ShadowCasterPass';
+import { FleetBatch } from './FleetBatch';
 
 const caster = (geometry: THREE.BufferGeometry, material: THREE.Material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide })) => {
   const mesh = new THREE.Mesh(geometry, material); mesh.castShadow = true; return mesh;
@@ -133,4 +137,186 @@ for (const relative of [true, false]) test(`morph casters blend as three's verte
   // Gun covers keep their morphs: they are drawn here, not left to three.
   const scene = new THREE.Scene(); scene.add(mesh);
   expect(collectShadowCasters(scene, 1).meshes).toEqual([mesh]);
+});
+
+/** A WebGPU queue whose buffers keep the bytes written to them, and a log of the writes. */
+function fakeDevice() {
+  type Buffer = { label: string; size: number; bytes: Uint8Array; destroy(): void };
+  const writes: { label: string; offset: number; bytes: number }[] = [];
+  const device = {
+    queue: {
+      writeBuffer(buffer: Buffer, offset: number, data: Float32Array | Int32Array, dataOffset = 0, size = data.length - dataOffset) {
+        const bytes = new Uint8Array(data.buffer, data.byteOffset + dataOffset * data.BYTES_PER_ELEMENT, size * data.BYTES_PER_ELEMENT);
+        buffer.bytes.set(bytes, offset); writes.push({ label: buffer.label, offset, bytes: bytes.byteLength });
+      },
+      submit() {},
+    },
+    createBuffer: ({ label, size }: { label: string; size: number }): Buffer => ({ label, size, bytes: new Uint8Array(size), destroy() {} }),
+  };
+  return { device, writes };
+}
+
+/** A frame's draws for `frustum` as what they draw: object, range, and each instance's matrix, bounds and world matrix. */
+function drawn(frame: DepthCasterFrame, frustum: THREE.Frustum) {
+  const draws = new DepthCasterDraws(); draws.cull(frame, frustum);
+  const objects = new Map(frame.blocks.map(block => [block.id, block.object]));
+  return Array.from({ length: draws.drawCount }, (_, i) => ({
+    object: objects.get(draws.source[i]), start: draws.start[i], count: draws.count[i],
+    slots: Array.from(draws.ids.subarray(draws.first[i], draws.first[i] + draws.instances[i]), slot => [
+      ...frame.matrices.subarray(slot * 16, slot * 16 + 16), ...frame.spheres.subarray(slot * 4, slot * 4 + 4), ...frame.models.subarray(draws.source[i] * 16, draws.source[i] * 16 + 16)]),
+  }));
+}
+
+test('passes sharing one store draw exactly what each would prepare alone, through poses, detail levels, visibility and new casters', () => {
+  let seed = 11;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide });
+  const geometries = [new THREE.BoxGeometry(2, 1, 4), new THREE.SphereGeometry(1.5, 8, 6), new THREE.ConeGeometry(1, 3, 7), new THREE.TorusGeometry(2, .3, 5, 9)];
+  const pose = (m: THREE.Matrix4) => m.compose(new THREE.Vector3((random() - .5) * 200, (random() - .5) * 10, (random() - .5) * 200),
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(random() * 6, random() * 6, random() * 6)), new THREE.Vector3().setScalar(.5 + random() * 2));
+  const matrix = new THREE.Matrix4();
+  // The fleet's batch in the world's frame, a plain batch under a moving parent, railings, a gun cover and loose parts.
+  const fleet = new FleetBatch(40, 4000, 12000, material), ids = geometries.map(g => fleet.addGeometry(g));
+  Object.assign(fleet, { castShadow: true, sortObjects: false, perObjectFrustumCulled: true, frustumCulled: false });
+  for (let i = 0; i < 30; i++) fleet.setMatrixAt(fleet.addInstance(ids[i % ids.length]), pose(matrix));
+  const plain = new THREE.BatchedMesh(8, 1000, 3000, material), plainIds = geometries.slice(0, 2).map(g => plain.addGeometry(g));
+  plain.castShadow = true;
+  for (let i = 0; i < 6; i++) plain.setMatrixAt(plain.addInstance(plainIds[i % 2]), pose(matrix));
+  const parent = new THREE.Group(); parent.add(plain);
+  const railings = new THREE.InstancedMesh(new THREE.BoxGeometry(.1, 1, .1), material, 8); railings.castShadow = true;
+  for (let i = 0; i < 8; i++) railings.setMatrixAt(i, pose(matrix));
+  const cover = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, 4, 4), material); cover.castShadow = true;
+  cover.geometry.morphAttributes.position = [new THREE.Float32BufferAttribute(Array.from({ length: 75 }, () => random()), 3)]; cover.updateMorphTargets();
+  // The first hull draws only in the second pass: it casts no shadow.
+  const hulls = [0, 1, 2].map(i => { const mesh = new THREE.Mesh(geometries[i], material); mesh.castShadow = i > 0; mesh.position.set(i * 30, 0, 0); return mesh; });
+  const scene = new THREE.Scene(); scene.add(fleet, parent, railings, cover, ...hulls);
+  const shared = new DepthCasterStore(), passes = [new DepthCasterFrame(shared), new DepthCasterFrame(shared)];
+  const { device, writes } = fakeDevice();
+  const gpu = (name: 'matrixBuffer' | 'sourceBuffer' | 'modelBuffer') => (shared[name] as unknown as { bytes: Uint8Array }).bytes;
+  const cameras = [new THREE.OrthographicCamera(-80, 80, 80, -80, 1, 600), new THREE.PerspectiveCamera(60, 1.5, 1, 300)];
+  let compared = 0;
+  for (let step = 0; step < 200; step++) {
+    const change = random(), instance = Math.floor(random() * 30);
+    if (change < .3) fleet.setMatrixAt(instance, pose(matrix));
+    else if (change < .4) fleet.setGeometryIdAt(instance, ids[Math.floor(random() * ids.length)]);
+    else if (change < .5) fleet.setVisibleAt(instance, random() < .6);
+    else if (change < .53) fleet.setGeometryAt(ids[3], new THREE.TorusGeometry(2 + random(), .3, 5, 9));
+    else if (change < .6) { parent.position.x = random() * 20; plain.setVisibleAt(Math.floor(random() * 6), random() < .7); }
+    else if (change < .66) { railings.setMatrixAt(Math.floor(random() * 8), pose(matrix)); railings.count = 4 + Math.floor(random() * 5); railings.instanceMatrix.needsUpdate = true; }
+    else if (change < .72) cover.morphTargetInfluences![0] = random();
+    else if (change < .8) hulls[Math.floor(random() * 3)].position.z = random() * 50;
+    else if (change < .84) hulls[0].frustumCulled = !hulls[0].frustumCulled;
+    else if (change < .88) { const hull = hulls[2]; if (hull.parent) hull.removeFromParent(); else scene.add(hull); }
+    // Otherwise a still frame: every pose written again unchanged, as the fleet does each frame.
+    else for (let i = 0; i < 30; i++) fleet.setMatrixAt(i, fleet.getMatrixAt(i, matrix));
+    scene.updateMatrixWorld();
+    const collections = [collectShadowCasters(scene, 1), collectDepthCasters(scene, 1, OVERRIDE_DEPTH)];
+    const before = writes.length;
+    passes.forEach((frame, i) => frame.prepare(collections[i]));
+    shared.upload(device as never);
+    // A still frame uploads no poses but the plain batch's, which is prepared afresh each time.
+    const loose = passes[0].blocks.find(block => block.object === plain)!;
+    if (change >= .88 && step > 0) expect(writes.slice(before).filter(write => write.label.includes('matrices'))).toEqual(loose.count ? [{ label: 'Depth casters matrices', offset: loose.start * 64, bytes: loose.count * 64 }] : []);
+    for (const camera of cameras) {
+      camera.position.set((random() - .5) * 100, 60 + random() * 60, (random() - .5) * 100); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
+      const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+      collections.forEach((casters, i) => {
+        // Alone and without reuse: every sphere computed here, none taken from the fleet batch.
+        const alone = new DepthCasterFrame(Object.assign(new DepthCasterStore(), { reuse: false })); alone.prepare(casters);
+        const draws = drawn(passes[i], frustum);
+        expect(draws).toEqual(drawn(alone, frustum));
+        compared += draws.length;
+      });
+    }
+    // The GPU copies hold every slot either pass draws.
+    for (const frame of passes) for (const block of frame.blocks) for (let slot = block.start; slot < block.start + block.count; slot++) {
+      expect(new Float32Array(gpu('matrixBuffer').buffer, slot * 64, 16)).toEqual(frame.matrices.subarray(slot * 16, slot * 16 + 16));
+      expect(new Int32Array(gpu('sourceBuffer').buffer, slot * 4, 1)[0]).toBe(block.id);
+      expect(new Float32Array(gpu('modelBuffer').buffer, block.id * 64, 16)).toEqual(frame.models.subarray(block.id * 16, block.id * 16 + 16));
+    }
+  }
+  expect(compared).toBeGreaterThan(500);
+});
+
+test('a shared store prepares each caster once a frame, uploads only what changed, and blends a morph once, when drawn', () => {
+  const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide });
+  const batch = new FleetBatch(4, 400, 1200, material), id = batch.addGeometry(new THREE.BoxGeometry());
+  Object.assign(batch, { castShadow: true, sortObjects: false, perObjectFrustumCulled: true, frustumCulled: false });
+  for (let i = 0; i < 4; i++) batch.setMatrixAt(batch.addInstance(id), new THREE.Matrix4().makeTranslation(i * 10, 0, 0));
+  const cover = new THREE.Mesh(new THREE.PlaneGeometry(), material); cover.castShadow = true;
+  cover.geometry.morphAttributes.position = [new THREE.Float32BufferAttribute(new Float32Array(12).fill(1), 3)]; cover.updateMorphTargets();
+  const scene = new THREE.Scene(); scene.add(batch, cover); scene.updateMatrixWorld();
+  const store = new DepthCasterStore(), shadow = new DepthCasterFrame(store), occlusion = new DepthCasterFrame(store);
+  const { device, writes } = fakeDevice();
+  const frame = () => { const before = writes.length; for (const pass of [occlusion, shadow]) pass.prepare(collectShadowCasters(scene, 1)); store.upload(device as never); return writes.slice(before); };
+  const first = frame();
+  expect(first.map(write => write.label).sort()).toEqual(['Depth casters matrices', 'Depth casters models', 'Depth casters sources']);
+  expect(shadow.blocks).toEqual(occlusion.blocks);
+  // Poses written again unchanged, as on a paused frame: nothing to upload.
+  for (let i = 0; i < 4; i++) batch.setMatrixAt(i, new THREE.Matrix4().makeTranslation(i * 10, 0, 0));
+  expect(frame()).toEqual([]);
+  // One part moves: its slot alone.
+  batch.setMatrixAt(2, new THREE.Matrix4().makeTranslation(25, 1, 0));
+  const slot = shadow.blocks[0].start + 2;
+  expect(frame()).toEqual([{ label: 'Depth casters matrices', offset: slot * 64, bytes: 64 }]);
+  // The cover's weights move: noted by both passes, blended once, and only when a pass draws it.
+  const morph = store.sources[shadow.blocks[1].id]!.morph!;
+  const version = morph.version;
+  cover.morphTargetInfluences![0] = .5; frame();
+  expect(morph.version).toBe(version);
+  morph.blend(); morph.blend();
+  expect(morph.version).toBe(version + 1);
+  expect(Array.from(morph.positions.subarray(0, 3))).toEqual([-.5 * .5 + .5, .5 * .5 + .5, .5]);
+  // Without reuse every preparation starts afresh and uploads everything.
+  const alone = Object.assign(new DepthCasterStore(), { reuse: false }), pass = new DepthCasterFrame(alone), fresh = fakeDevice();
+  for (let i = 0; i < 2; i++) { pass.prepare(collectShadowCasters(scene, 1)); alone.upload(fresh.device as never); }
+  expect(fresh.writes.filter(write => write.label.includes('matrices')).map(write => write.bytes)).toEqual([5 * 64, 5 * 64]);
+});
+
+test('casters no pass prepares for a while are released, and their slots reclaimed', () => {
+  const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide }), scene = new THREE.Scene();
+  const parts = Array.from({ length: 1500 }, () => { const mesh = caster(new THREE.BoxGeometry(), material); scene.add(mesh); return mesh; });
+  const store = new DepthCasterStore(), frame = new DepthCasterFrame(store);
+  frame.prepare(collectShadowCasters(scene, 1));
+  expect(store.slots).toBe(1500);
+  for (const part of parts.slice(0, 1400)) part.removeFromParent();
+  for (let i = 0; i < 300; i++) frame.prepare(collectShadowCasters(scene, 1));
+  expect(store.sources.filter(Boolean).length).toBe(100);
+  expect(store.slots).toBe(100);
+  expect(frame.blocks.map(block => block.object)).toEqual(parts.slice(1400));
+  expect(frame.blocks.map(block => block.start)).toEqual(parts.slice(1400).map((_, i) => i));
+});
+
+test('the depth passes of one renderer share its store until the last is disposed', () => {
+  const renderer = {} as THREE.WebGPURenderer, other = {} as THREE.WebGPURenderer;
+  const shadow = new ShadowCasterPass(renderer), occlusion = new DepthCasterPass(renderer, 'Ship occlusion', OVERRIDE_DEPTH), elsewhere = new ShadowCasterPass(other);
+  const store = (pass: DepthCasterPass) => (pass as unknown as { store: DepthCasterStore }).store;
+  expect(store(shadow)).toBe(store(occlusion));
+  expect(store(elsewhere)).not.toBe(store(shadow));
+  expect(store(shadow).users).toBe(2);
+  shadow.dispose(); shadow.dispose();
+  expect(store(occlusion).users).toBe(1);
+  // A pass made after the others were disposed starts a fresh store.
+  occlusion.dispose();
+  expect(depthCasterStore(renderer)).not.toBe(store(occlusion));
+  elsewhere.dispose();
+});
+
+test('changes upload as runs, joined across gaps shorter than a few kilobytes', () => {
+  const material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide }), scene = new THREE.Scene();
+  const parts = Array.from({ length: 150 }, (_, i) => { const mesh = caster(new THREE.BoxGeometry(), material); mesh.position.x = i; scene.add(mesh); return mesh; });
+  scene.updateMatrixWorld();
+  const store = new DepthCasterStore(), frame = new DepthCasterFrame(store), { device, writes } = fakeDevice();
+  const step = (moved: number[]) => {
+    for (const i of moved) parts[i].position.y += 1;
+    scene.updateMatrixWorld();
+    const before = writes.length;
+    frame.prepare(collectShadowCasters(scene, 1)); store.upload(device as never);
+    return writes.slice(before).map(write => [write.label, write.offset / 64, write.bytes / 64]);
+  };
+  step([]);
+  // Lone meshes keep the identity as their own matrix: only their world matrices go up.
+  expect(step([0, 149])).toEqual([['Depth casters models', 0, 1], ['Depth casters models', 149, 1]]);
+  expect(step([0, 10, 60])).toEqual([['Depth casters models', 0, 61]]);
+  expect(step([])).toEqual([]);
 });

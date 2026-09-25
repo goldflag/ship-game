@@ -6,13 +6,13 @@ export type FleetDrawState = {
 };
 type CullState = FleetDrawState & {
   _instanceInfo: { visible: boolean; active: boolean; geometryIndex: number }[];
-  _geometryInfo: { start: number; count: number }[];
+  _geometryInfo: { start: number; count: number; boundingSphere: THREE.Sphere | null }[];
   _matricesTexture: THREE.DataTexture;
   _visibilityChanged: boolean;
 };
 type Group = { count: number; ids: number[] };
 
-const viewProjection = new THREE.Matrix4(), frustum = new THREE.Frustum(), pose = new THREE.Matrix4(), sphere = new THREE.Sphere();
+const viewProjection = new THREE.Matrix4(), frustum = new THREE.Frustum(), sphere = new THREE.Sphere();
 
 /** Water's opaque capture and the main draw often use the same camera in
  * succession. Reuse that draw list within the completed fleet pose. A shadow
@@ -22,6 +22,8 @@ const viewProjection = new THREE.Matrix4(), frustum = new THREE.Frustum(), pose 
 export class FleetBatch extends THREE.BatchedMesh {
   /** Off: three's own culling, which transforms every part's bounds in every pass, for comparison. */
   static keepBounds = true;
+  /** Off: the draw list's instance ids are uploaded after every cull, as three does, even when no id changed. */
+  static keepIds = true;
   private drawCamera?: THREE.Camera;
   private drawGeometry?: THREE.BufferGeometry;
   private readonly projection = new THREE.Matrix4();
@@ -38,8 +40,22 @@ export class FleetBatch extends THREE.BatchedMesh {
   /** Per geometry: its group of consecutive draws, for the index width they were keyed with. */
   private groupOf: (Group | undefined)[] = [];
   private groupBytes = 0;
+  /** Bumped by every change to which instances draw, with which geometry, or to the geometry ranges: the depth caster
+   * passes keep their draw order of the parts until it moves. */
+  layoutVersion = 0;
 
   invalidateDrawList(): void { this.drawCamera = undefined; }
+
+  /** Instance `instanceId`'s bounds under its last pose (centre and radius at `4 * instanceId` of the array returned), in the
+   * batch's space, exactly as three's culling derives them; kept from `setMatrixAt` and brought up to date here if not. */
+  partBoundsAt(instanceId: number): Float64Array {
+    const state = this as unknown as CullState, texture = state._matricesTexture;
+    if (texture !== this.boundsTexture || texture.version !== this.boundsVersion) {
+      this.boundsGeometry.fill(-1); this.boundsTexture = texture; this.boundsVersion = texture.version;
+    }
+    if (this.boundsGeometry[instanceId] !== state._instanceInfo[instanceId].geometryIndex) this.bound(instanceId);
+    return this.bounds;
+  }
 
   override onBeforeRender(...args: Parameters<THREE.BatchedMesh['onBeforeRender']>): void {
     const [, , camera, geometry, material] = args;
@@ -67,8 +83,17 @@ export class FleetBatch extends THREE.BatchedMesh {
     const texture = (this as unknown as CullState)._matricesTexture, known = texture === this.boundsTexture && texture.version === this.boundsVersion;
     const id = super.addInstance(geometryId);
     if (known) this.boundsVersion = texture.version;
-    this.reserve(id); this.boundsGeometry[id] = -1;
+    this.reserve(id); this.boundsGeometry[id] = -1; this.layoutVersion++;
     return id;
+  }
+  override deleteInstance(instanceId: number): this { this.layoutVersion++; return super.deleteInstance(instanceId); }
+  override setVisibleAt(instanceId: number, visible: boolean): this {
+    if ((this as unknown as CullState)._instanceInfo[instanceId]?.visible !== visible) this.layoutVersion++;
+    return super.setVisibleAt(instanceId, visible);
+  }
+  override setGeometryIdAt(instanceId: number, geometryId: number): this {
+    if ((this as unknown as CullState)._instanceInfo[instanceId]?.geometryIndex !== geometryId) this.layoutVersion++;
+    return super.setGeometryIdAt(instanceId, geometryId);
   }
   // Ranges, bounds or the matrix texture itself change: every cached bound and group goes.
   override setGeometryAt(geometryId: number, geometry: THREE.BufferGeometry): number { this.forget(); return super.setGeometryAt(geometryId, geometry); }
@@ -78,7 +103,7 @@ export class FleetBatch extends THREE.BatchedMesh {
   override setInstanceCount(maxInstanceCount: number): void { this.forget(); super.setInstanceCount(maxInstanceCount); }
   override copy(source: THREE.BatchedMesh): this { this.forget(); return super.copy(source); }
 
-  private forget(): void { this.boundsTexture = undefined; this.groupOf = []; }
+  private forget(): void { this.boundsTexture = undefined; this.groupOf = []; this.layoutVersion++; }
 
   private reserve(instanceId: number): void {
     if (instanceId < this.boundsGeometry.length) return;
@@ -88,14 +113,19 @@ export class FleetBatch extends THREE.BatchedMesh {
     this.bounds = bounds; this.boundsGeometry = geometries;
   }
 
-  /** The instance's world bounds exactly as three's per-object culling derives them from the matrix texture. */
+  /** The instance's world bounds exactly as three's per-object culling derives them from the matrix texture:
+   * `getMatrixAt`, then `Sphere.applyMatrix4` (`Vector3.applyMatrix4` and `getMaxScaleOnAxis`), operation for operation. */
   private bound(instanceId: number): void {
-    const geometryId = (this as unknown as CullState)._instanceInfo[instanceId].geometryIndex;
-    this.getMatrixAt(instanceId, pose);
-    this.getBoundingSphereAt(geometryId, sphere)!.applyMatrix4(pose);
+    const state = this as unknown as CullState, geometryId = state._instanceInfo[instanceId].geometryIndex;
+    const local = state._geometryInfo[geometryId].boundingSphere ?? this.getBoundingSphereAt(geometryId, sphere)!;
+    const e = state._matricesTexture.image.data as Float32Array, m = instanceId * 16, x = local.center.x, y = local.center.y, z = local.center.z;
+    const e0 = e[m], e1 = e[m + 1], e2 = e[m + 2], e3 = e[m + 3], e4 = e[m + 4], e5 = e[m + 5], e6 = e[m + 6], e7 = e[m + 7];
+    const e8 = e[m + 8], e9 = e[m + 9], e10 = e[m + 10], e11 = e[m + 11], e12 = e[m + 12], e13 = e[m + 13], e14 = e[m + 14], e15 = e[m + 15];
+    const w = 1 / (e3 * x + e7 * y + e11 * z + e15);
     this.reserve(instanceId);
     const bounds = this.bounds, o = instanceId * 4;
-    bounds[o] = sphere.center.x; bounds[o + 1] = sphere.center.y; bounds[o + 2] = sphere.center.z; bounds[o + 3] = sphere.radius;
+    bounds[o] = (e0 * x + e4 * y + e8 * z + e12) * w; bounds[o + 1] = (e1 * x + e5 * y + e9 * z + e13) * w; bounds[o + 2] = (e2 * x + e6 * y + e10 * z + e14) * w;
+    bounds[o + 3] = local.radius * Math.sqrt(Math.max(e0 * e0 + e1 * e1 + e2 * e2, e4 * e4 + e5 * e5 + e6 * e6, e8 * e8 + e9 * e9 + e10 * e10));
     this.boundsGeometry[instanceId] = geometryId;
   }
 
@@ -119,7 +149,7 @@ export class FleetBatch extends THREE.BatchedMesh {
       if (this.groupBytes !== bytes) { this.groupOf = []; this.groupBytes = bytes; }
       for (const group of this.geometryGroups.values()) group.ids.length = 0;
     }
-    let drawn = 0;
+    let drawn = 0, changed = false;
     for (let i = 0, l = instances.length; i < l; i++) {
       const instance = instances[i];
       if (!instance.visible || !instance.active) continue;
@@ -134,16 +164,20 @@ export class FleetBatch extends THREE.BatchedMesh {
       if (grouped) {
         const group = this.groupOf[geometryId] ??= this.group(info.start * bytes | 0);
         group.count = info.count; group.ids.push(i);
-      } else { starts[drawn] = info.start * bytes; counts[drawn] = info.count; ids[drawn] = i; }
+      } else { starts[drawn] = info.start * bytes; counts[drawn] = info.count; if (ids[drawn] !== i) { ids[drawn] = i; changed = true; } }
       drawn++;
     }
     if (grouped) {
       let offset = 0;
       for (const [start, group] of this.geometryGroups) for (const id of group.ids) {
-        starts[offset] = start; counts[offset] = group.count; ids[offset++] = id;
+        starts[offset] = start; counts[offset] = group.count;
+        if (ids[offset] !== id) { ids[offset] = id; changed = true; }
+        offset++;
       }
     }
-    state._indirectTexture.needsUpdate = true;
+    // Only the ids reach the GPU (ranges and counts are the CPU's draw calls), and the texture's data holds what it last
+    // uploaded or is about to: the same ids need no upload. Most frames the fleet moves while the same parts stay in view.
+    if (changed || !FleetBatch.keepIds || state._indirectTexture.version === 0) state._indirectTexture.needsUpdate = true;
     state._multiDrawCount = drawn;
     state._visibilityChanged = false;
   }

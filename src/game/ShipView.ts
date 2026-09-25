@@ -41,7 +41,8 @@ export class ShipView {
   private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[]; baseAngle: number }[] = [];
   private surfaces: { material: THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
-  private readonly poseMatrices: ShipPoseMatrices;
+  /** Surface and moving-joint world matrices for rendering; the fleet's batches defer the ones they draw. */
+  readonly poseMatrices: ShipPoseMatrices;
   private appendages: { node: THREE.Object3D; base: THREE.Quaternion; kind: keyof NonNullable<ShipDefinition['submarine']>['appendages']; index: number }[] = [];
   constructor(readonly model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant, reversedDepthBuffer = false) {
     this.motionSource = actor.motion;
@@ -114,7 +115,9 @@ export class ShipView {
     ]);
     model.traverse(o => { if (!moving.has(o) && !o.animations.length) { o.updateMatrix(); o.matrixAutoUpdate = false; } });
     this.root.add(model, this.internals, this.rig.root);
-    this.poseMatrices = new ShipPoseMatrices(this.root, model, moving);
+    // Recoil slides a barrel from its rest position by up to its travel; every other joint only turns.
+    const travel = new Map(this.bindings.flatMap(b => b.recoil.map(n => [n, Math.abs(b.recoilM) + Math.abs(n.position.z)] as const)));
+    this.poseMatrices = new ShipPoseMatrices(this.root, model, moving, travel);
     this.impactMarks = new ShipImpactMarks(this.root, model, new Map(definition.mounts.map((m, i) => [m.id, this.bindings[i].yaw])), reversedDepthBuffer);
     this.update();
   }
@@ -139,7 +142,7 @@ export class ShipView {
     this.poseMatrices.update();
     this.rig.root.updateMatrixWorld(true);
     if (this.internals.visible) this.internals.updateMatrixWorld(true);
-    for (const mark of this.impactMarks.renderMeshes) mark.updateMatrixWorld(true);
+    for (const mark of this.impactMarks.renderMeshes) { if (mark.parent) this.poseMatrices.ensureObject(mark.parent); mark.updateMatrixWorld(true); }
   }
 
   /** Read-only check of the loaded joints against the CPU poses sampled for this frame. */
@@ -217,6 +220,8 @@ export class ShipView {
       b.yaw.rotation.set(0, -(b.bearing + mounts[i].train), 0);
       b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * b.recoilM; });
+      // Recoil runs from 0 to 1; anything beyond would slide a barrel past the travel its pose bounds allow.
+      if (!(mounts[i].recoil >= -1e-9 && mounts[i].recoil <= 1 + 1e-9)) this.poseMatrices.bounded = false;
     });
     // Cloth is visual-only: the same interpolated gun angle drives its shapes.
     // Fixed seams stay on the gunhouse or carriage; moving seams follow pitch.

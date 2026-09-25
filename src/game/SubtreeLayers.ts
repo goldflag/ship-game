@@ -21,6 +21,8 @@ export class Subtree {
   union = new Int32Array(0);
   /** Per slot: whether it and every ancestor are visible, as of the last `updateVisibility`. */
   visible = new Uint8Array(0);
+  /** Bumped whenever `visible` changes: a new array, or any slot turning on or off. */
+  visibleVersion = 0;
   /** Bumped by every rebuild; slots from an older version are void. */
   version = 0;
   /** Structure changed since the last rebuild: nothing below the root is published. */
@@ -48,7 +50,7 @@ export class Subtree {
     visit(this.root, -1);
     this.objects = objects; this.parent = Int32Array.from(parents); this.end = Int32Array.from(ends);
     this.own = new Int32Array(objects.length); this.union = new Int32Array(objects.length); this.visible = new Uint8Array(objects.length);
-    this.slots = undefined; this.version++; this.stale = false;
+    this.slots = undefined; this.version++; this.visibleVersion++; this.stale = false;
     this.computeLayers();
   }
 
@@ -68,12 +70,14 @@ export class Subtree {
     let above = true;
     for (let o = this.root.parent; o && above; o = o.parent) above = o === substitute ? substituteVisible : o.visible;
     const { objects, end, visible } = this, count = objects.length;
+    let changed = false;
     for (let i = 0; i < count;) {
       const object = objects[i];
       // A visited slot's parent is visible: a hidden one's whole subtree is skipped.
-      if ((object === substitute ? substituteVisible : object.visible) && (i > 0 || above)) visible[i++] = 1;
-      else { visible.fill(0, i, end[i]); i = end[i]; }
+      if ((object === substitute ? substituteVisible : object.visible) && (i > 0 || above)) { if (visible[i] !== 1) { visible[i] = 1; changed = true; } i++; }
+      else for (const next = end[i]; i < next; i++) if (visible[i] !== 0) { visible[i] = 0; changed = true; }
     }
+    if (changed) this.visibleVersion++;
   }
 }
 

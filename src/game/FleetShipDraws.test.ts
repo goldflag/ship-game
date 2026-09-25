@@ -5,8 +5,9 @@ import { mixedSimulation } from '../../scripts/diagnostics/mixed-fleet';
 import { ShipView } from './ShipView';
 import { batchShipModel } from './ShipBatching';
 import { FleetShipDraws } from './FleetShipDraws';
-import { prepareShipDetail } from './ShipDetail';
+import { prepareShipDetail, shipDetailLevels } from './ShipDetail';
 import { subtreePruning } from './SubtreeLayers';
+import { ShipPoseMatrices } from './ShipPoseMatrices';
 
 test('fleet instances preserve separate poses, inspection, hidden hulls and damage-mark children', async () => {
   const sim = mixedSimulation(), actors = [sim.player, sim.actors[10]], model = await loadShipGeometry('bismarck');
@@ -60,7 +61,8 @@ test('hiding one fixed component restores the remaining original surfaces withou
   const a = new THREE.Mesh(new THREE.BoxGeometry(), material), b = new THREE.Mesh(new THREE.BoxGeometry(), material);
   b.position.x = 4; b.updateMatrix(); a.matrixAutoUpdate = b.matrixAutoUpdate = model.matrixAutoUpdate = false;
   root.add(model); model.add(a, b); root.updateMatrixWorld(true);
-  const view = { root, model, renderMeshes: [a, b].map(mesh => ({ mesh, material })), inspection: { mode: 'exterior' }, impactMarks: { renderMeshes: [] } } as unknown as ShipView;
+  const view = { root, model, renderMeshes: [a, b].map(mesh => ({ mesh, material })), inspection: { mode: 'exterior' }, impactMarks: { renderMeshes: [] },
+    poseMatrices: new ShipPoseMatrices(root, model, new Set()) } as unknown as ShipView;
   const draws = new FleetShipDraws([view]);
   draws.update(); expect(draws.diagnostics().instances).toBe(1); expect(b.layers.mask).toBe(0);
   a.visible = false; draws.update();
@@ -173,3 +175,100 @@ test('skipping emptied hull subtrees keeps three\'s render list through inspecti
   draws.dispose(); pruning.subtrees = undefined;
   views.forEach(v => { v.impactMarks.dispose(); v.rig.dispose(); });
 }, 30000);
+
+test('deferred and bounded poses draw every batch, original surface, scar and flat proxy exactly as full pose updates do', async () => {
+  const sim = mixedSimulation(), actors = [sim.player, ...['yamato', 'baltimore', 'fletcher', 'enterprise-cv6', 'type-viic'].map(id => sim.actors.find(a => a.definition.id === id)!)];
+  const templates = new Map<string, THREE.Group>();
+  for (const { definition: { id } } of actors) if (!templates.has(id)) {
+    const model = await loadShipGeometry(id); batchShipModel(model); await prepareShipDetail(model); templates.set(id, model);
+  }
+  // The same fleet twice: the reference composes every pose each frame, the other defers and bounds them.
+  const fleets = [0, 1].map(() => actors.map(a => new ShipView(templates.get(a.definition.id)!.clone(true), a.definition, a)));
+  const draws = fleets.map(views => new FleetShipDraws(views)), camera = new THREE.PerspectiveCamera(55, 16 / 9, 1, 60000);
+  let seed = 7, culled = 0, left = 0, sequence = 0, inexact = 0, steady = 0;
+  const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+  const snapshot = (d: FleetShipDraws, views: ShipView[]) => {
+    const out: number[] = [];
+    for (const { mesh, sources } of d['batches']) {
+      const state = mesh as unknown as { _instanceInfo: { visible: boolean; geometryIndex: number }[]; _matricesTexture: THREE.DataTexture }, data = state._matricesTexture.image.data as Float32Array;
+      for (const s of sources) {
+        const info = state._instanceInfo[s.instance!];
+        out.push(info.visible ? 1 : 0, info.geometryIndex, s.level);
+        if (info.visible) out.push(...data.subarray(s.instance! * 16, s.instance! * 16 + 16));
+        if (s.armorContext?.visible) out.push(...s.armorContext.matrix.elements, shipDetailLevels(s.mesh.geometry).findIndex(l => l.geometry === s.armorContext!.geometry));
+      }
+      out.push(mesh.visible ? 1 : 0);
+    }
+    // Every original surface three may draw, and every scar.
+    for (const view of views) view.model.traverse(o => { if (o instanceof THREE.Mesh) { out.push(o.layers.mask); if (o.layers.mask) out.push(...o.matrixWorld.elements); } });
+    for (const view of views) for (const mark of view.impactMarks.renderMeshes) out.push(...mark.matrixWorld.elements);
+    for (const proxy of d['proxies'].values()) for (const child of proxy.root.children) out.push(child.visible ? 1 : 0, ...child.matrix.elements);
+    const diagnostics = d.diagnostics(); out.push(diagnostics.instances, diagnostics.reduced, diagnostics.subpixel);
+    return out;
+  };
+  // A shell scar on a turret face: a mount's surface is a deferred pose on a joint.
+  const scar = (index: number) => { sequence++; fleets.forEach(views => {
+    const view = views[index], mount = view.definition.mounts[0], yaw = (view as unknown as { bindings: { yaw: THREE.Object3D }[] }).bindings[0].yaw;
+    view.root.updateMatrixWorld(true);
+    let receiver: THREE.Mesh | undefined;
+    yaw.traverse(o => { if (!receiver && o instanceof THREE.Mesh && o.geometry.index && o.geometry.index.count > 300) receiver = o; });
+    const position = receiver!.geometry.getAttribute('position'), index3 = receiver!.geometry.index!, local = new THREE.Matrix4().copy(yaw.matrixWorld).invert().multiply(receiver!.matrixWorld);
+    const [a, b, c] = [0, 1, 2].map(k => new THREE.Vector3().fromBufferAttribute(position, index3.getX(k)).applyMatrix4(local));
+    const normal = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize(), point = a.add(b).add(c).divideScalar(3);
+    const event = { sequence, shipId: view.actor.motion.id, surfaceImpact: { position: point.toArray(), normal: normal.toArray(), direction: normal.clone().negate().toArray(), mountId: mount.id, outcome: 'penetration' },
+      shell: { id: sequence, caliberM: .38, type: 'AP' } };
+    view.impactMarks.update([event] as never, view.actor.motion.id, undefined, () => view.updateArticulation(.5));
+  }); };
+  try {
+    for (let step = 0; step < 48; step++) {
+      actors.forEach((actor, k) => {
+        Object.assign(actor.motion, { x: k * 700 + random() * 60, z: -k * 350 + random() * 60, y: random() - .5, heading: random() * 6.3, roll: (random() - .5) * .2, pitch: (random() - .5) * .06,
+          rudder: random() * 2 - 1, distance: random() * 200, speed: 8 });
+        actor.mounts.forEach(m => Object.assign(m, { train: (random() - .5) * 4, elevation: random() * .7, recoil: random() }));
+        actor.torpedoLaunchers?.forEach(l => { l.train = (random() - .5) * 3; });
+      });
+      const target = actors[step % actors.length].motion, distance = [40, 300, 2000, 8000, 25000][step % 5] * (.5 + random());
+      camera.fov = step % 3 ? 55 : 4; camera.updateProjectionMatrix();
+      camera.position.set(target.x + distance * Math.cos(step), 15 + random() * distance * .3, target.z + distance * Math.sin(step));
+      camera.lookAt(target.x, 0, target.z); camera.updateMatrixWorld(true);
+      // An inverted view rarely keeps an exact 1 in its corner; bounds must hold either way.
+      const exact = camera.matrixWorldInverse.elements[15] === 1, before = culled;
+      fleets.forEach(views => {
+        // A hidden turret, a hidden hull (the lens's own), armor and internals inspection, a hull out of view.
+        const turret = views[0].model.children.find(c => c.children.length > 1)!;
+        turret.visible = step < 10 || step > 14;
+        views[3].root.visible = step % 9 !== 4;
+        if (step === 18) { views[1].setInspection('armor'); views[5].setInspection('internals'); }
+        if (step === 26) { views[1].setInspection('exterior'); views[5].setInspection('exterior'); }
+        views[4].renderActive = step % 7 !== 3;
+      });
+      if (step === 20 || step === 33) scar(step === 20 ? 1 : 3);
+      const outputs = fleets.map((views, arm) => {
+        ShipPoseMatrices.deferring = arm === 1;
+        for (const view of views) { view.update(.5); view.updateRenderMatrices(); }
+        if (arm === 1) for (const view of views) {
+          // Poison what the frame left deferred: a stale read shows as a NaN in the draws.
+          const poses = view.poseMatrices, worlds = (poses as unknown as { worlds: number[][] }).worlds;
+          poses.poses.forEach((_, i) => { if (!poses.current(i)) worlds[i].fill(NaN); });
+        }
+        draws[arm].update(camera, 1440);
+        if (arm === 1) {
+          for (const { sources, anchors, settled } of draws[1]['batches']) sources.forEach((source, k) => {
+            if (anchors[k] >= 0 && source.ship.active && source.ship.batched && !source.ship.poses.current(source.pose)) culled++;
+            if (settled[k] && source.ship.steady) steady++;
+          });
+          for (const view of views) left += view.poseMatrices.poses.filter((_, i) => !view.poseMatrices.current(i)).length;
+        }
+        return snapshot(draws[arm], views);
+      });
+      expect(outputs[1].length).toBe(outputs[0].length);
+      expect({ step, first: outputs[1].findIndex((value, i) => !Object.is(value, outputs[0][i])) }).toEqual({ step, first: -1 });
+      if (!exact && culled > before) inexact++;
+    }
+  } finally { ShipPoseMatrices.deferring = true; }
+  expect(fleets[1].reduce((n, v) => n + v.impactMarks.count, 0)).toBeGreaterThan(0);
+  // Not vacuous: surfaces were culled on their bounds alone, and poses stayed undone.
+  expect(culled).toBeGreaterThan(100); expect(left).toBeGreaterThan(1000); expect(inexact).toBeGreaterThan(0); expect(steady).toBeGreaterThan(100);
+  draws.forEach(d => d.dispose());
+  fleets.flat().forEach(v => { v.impactMarks.dispose(); v.rig.dispose(); });
+}, 60000);

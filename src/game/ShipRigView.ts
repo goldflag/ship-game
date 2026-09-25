@@ -50,7 +50,8 @@ export class ShipRigView {
     this.flags = (definition.rig?.ensigns ?? []).map((flag, i) => {
       const cloth = new FlagCloth(flag.width, flag.width / ensignAspects[flag.design], (phase % 628) / 100 + i);
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(cloth.positions, 3).setUsage(THREE.DynamicDrawUsage));
+      // Uploaded once per new fold, when `update` or `reset` marks it: dynamic usage would upload it in every pass, still or not.
+      geometry.setAttribute('position', new THREE.BufferAttribute(cloth.positions, 3));
       geometry.setIndex(new THREE.BufferAttribute(cloth.indices, 1));
       const uv: number[] = [];
       for (let y = 0; y <= cloth.rows; y++) for (let x = 0; x <= cloth.columns; x++) uv.push(x / cloth.columns, 1 - y / cloth.rows);
