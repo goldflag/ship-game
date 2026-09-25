@@ -6,6 +6,8 @@ import { join } from 'node:path';
 export interface FlagSpec {
   /** Flags followed by a value, such as `--out file.json`. */
   values?: string[];
+  /** Value flags whose value may be left out, with the value they then take (`--vs` means `--vs origin/master`). */
+  defaults?: Record<string, string>;
   /** Flags that stand alone, such as `--dry-run`. */
   switches?: string[];
   /** Positional arguments allowed after the ship ID. */
@@ -50,9 +52,14 @@ export function parseFlags(input: string[], spec: FlagSpec) {
     if (values.has(word) || switches.has(word)) throw new Error('Flag ' + word + ' was given twice.');
     if (spec.switches?.includes(word)) switches.add(word);
     else if (spec.values?.includes(word)) {
-      const value = input[++i];
-      if (value === undefined || value.startsWith('--')) throw new Error('Flag ' + word + ' requires a value.');
-      values.set(word, value);
+      const next = input[i + 1];
+      if (next === undefined || next.startsWith('--')) {
+        const fallback = spec.defaults?.[word];
+        if (fallback === undefined) throw new Error('Flag ' + word + ' requires a value.');
+        values.set(word, fallback);
+        continue;
+      }
+      values.set(word, input[++i]);
     } else {
       const hint = closest(word, known);
       throw new Error(

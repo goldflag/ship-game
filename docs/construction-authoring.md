@@ -285,7 +285,7 @@ bun run ship:export my-ship .build/my-ship-backup.json
 bun run ship:import other-ship .build/my-ship-backup.json
 bun run ship:compile my-ship
 bun run ship:render my-ship
-bun run ship:trial my-ship --seconds 15
+bun run ship:trial my-ship --live --seconds 15
 ```
 
 Measuring a real vessel to build against — caching a reference mesh, slicing it for deck heights and hull
@@ -967,7 +967,7 @@ bun run ship:render my-ship --view quarter --quick
 bun run ship:render my-ship --part gun-forward --isolate --view profile
 bun run ship:render my-ship --pose .build/poses.json --view quarter
 bun run ship:render my-ship --published
-bun run ship:trial my-ship --seconds 15
+bun run ship:trial my-ship --live --seconds 15
 ```
 
 Render defaults to profile, plan, bow, stern and quarter orthographic views.
@@ -1026,7 +1026,12 @@ every focused ID, the section kept and the mode legend. A negative first number 
 the space form: `--region -8,0,…`. Gun poses are the defaults; use `ship:render --pose`
 for posed mounts.
 
-Trial advances the real local worker/WASM simulation with helm and firing commands,
+`ship:trial <id>` without `--live` is the native [handling trial](maneuvering.md#handling-trial-and-gate):
+a table of top speed and turning, and with `--vs [ref]` a comparison against the published
+definition at a git ref. It works on Blender-recipe presets too. Run it after any hull, draft
+or propulsion change.
+
+`--live` advances the real local worker/WASM simulation with helm and firing commands,
 then resets it. JSON includes source/hash, initial and final motion/ammunition,
 result, and reset state. Duration is 1–120 simulated seconds. Trial output stays
 in a directory unique to the call under `.build/construction/<id>/trial/`.

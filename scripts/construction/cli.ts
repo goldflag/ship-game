@@ -55,6 +55,14 @@ try {
     process.exit(0);
   }
   constructionId(id);
+  if (action === 'trial' && !args.includes('--live')) {
+    // The maneuvering trial serves every preset, so it runs before a construction source is read.
+    if (option('--seconds') !== undefined || option('--out') !== undefined) throw new Error('--seconds and --out apply to --live.');
+    const { runShipTrial } = await import('./trial');
+    process.exit(await runShipTrial(root, id, { vs: option('--vs'), published: args.includes('--published'), json: args.includes('--json') }));
+  }
+  if (action === 'trial' && (option('--vs') !== undefined || args.includes('--json')))
+    throw new Error('--vs and --json apply to the maneuvering trial, not --live.');
   const store = repositoryStore(root);
   if (action === 'new') {
     if (existsSync(join(root, 'assets/ships', id))) throw new Error('Ship directory already exists. Choose a new ID.');
