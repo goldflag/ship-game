@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { PerspectiveCamera, Vector3 } from 'three/webgpu';
-import { NEAR_SHADOW_MIN, nearShadowFocus } from './FocusShadowNode';
+import { DirectionalLight, PCFSoftShadowMap, PerspectiveCamera, Vector3, VSMShadowMap } from 'three/webgpu';
+import { FocusShadowNode, NEAR_SHADOW_MIN, nearShadowFocus } from './FocusShadowNode';
 
 function camera(fov = 52, zoom = 1) {
   const view = new PerspectiveCamera(fov, 16 / 9, .5, 60000);
@@ -34,4 +34,18 @@ test('the near map size moves in quarter-octave steps so small camera motion kee
   const first = nearShadowFocus(view, subject, 380, focus);
   view.position.multiplyScalar(1.01); view.updateMatrixWorld();
   expect(nearShadowFocus(view, subject, 380, focus)).toBe(first);
+});
+
+test('every map hands three one soft filter of its own, and three keeps its own filters otherwise', () => {
+  const node = new FocusShadowNode(new DirectionalLight()), builder = { renderer: { shadowMap: { type: PCFSoftShadowMap as number } } };
+  const lights = [node.near, node.wide, ...node.views.map(view => view.light)];
+  const filters = () => lights.map(light => (light.shadow as typeof light.shadow & { filterNode?: unknown }).filterNode);
+  node.setup(builder as never);
+  expect(filters()).toEqual(lights.map(light => light.softFilter));
+  expect(new Set(filters()).size).toBe(lights.length);
+  builder.renderer.shadowMap.type = VSMShadowMap; node.setup(builder as never);
+  expect(filters().every(filter => filter === null)).toBe(true);
+  builder.renderer.shadowMap.type = PCFSoftShadowMap; FocusShadowNode.sharedMapSize = false;
+  try { node.setup(builder as never); expect(filters().every(filter => filter === null)).toBe(true); }
+  finally { FocusShadowNode.sharedMapSize = true; node.dispose(); }
 });
