@@ -1,20 +1,5 @@
 [
   {
-    "file": "scripts/ships/appearance.test.ts",
-    "test": "published fleet appearance > valiant: shared finishes and their UVs survive the actual GLB export",
-    "since": "2026-09-19"
-  },
-  {
-    "file": "scripts/tests/construction-model.test.ts",
-    "test": "every published part has a supported fixture while weapons retain canonical stocks and tube identities",
-    "since": "2026-09-19"
-  },
-  {
-    "file": "scripts/tests/construction-model.test.ts",
-    "test": "fleet rendering preserves every connected path instance through ship preparation, motion and inspection",
-    "since": "2026-09-19"
-  },
-  {
     "file": "src/ships/constructionMesh.test.ts",
     "test": "hemisphere: rings insert without changing volume and remain editable",
     "since": "2026-09-19",
