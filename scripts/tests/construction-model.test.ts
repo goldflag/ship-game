@@ -111,7 +111,7 @@ test('fleet rendering preserves every connected path instance through ship prepa
     const instances = views.flatMap(view => view.renderMeshes.flatMap(({ mesh }) => mesh instanceof THREE.InstancedMesh ? [{ view, mesh, matrices: mesh.instanceMatrix.array.slice() }] : []));
     let draws: FleetShipDraws | undefined;
     try {
-      expect(instances).toHaveLength(8); // Rails, feet, rope and chain on each hull.
+      expect(instances).toHaveLength(6); // Railing bars, rope and chain on each hull (railings are plain bars, without feet).
       for (const view of views) {
         const rendered = assemblies.build(view);
         for (const { mesh } of instances.filter(instance => instance.view === view)) {

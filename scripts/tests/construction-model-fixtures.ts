@@ -1,5 +1,6 @@
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, Vec3 } from '../../src/ships/blueprint';
 import { createStarterSource } from '../../src/ships/constructionStarter';
+import { accessDefaults } from '../../assets/parts/construction/access_geometry';
 
 /** A test platform, not a playable preset: fixed original parts spaced for independent sweeps. */
 export function equipmentReviewSource(catalog: ConstructionCatalog, kind: 'collection' | 'neighbors' | 'patrol' | 'overhead' = 'collection'): ConstructionSource {
@@ -121,40 +122,61 @@ export function cruiserEquipmentFixture(catalog: ConstructionCatalog): Construct
   source.construction.version = 1;
   source.id = 'cruiser-equipment-review'; source.revision = 'cruiser-equipment-review-1';
   source.construction.defaultThicknessMm = 16;
-  source.construction.primitives = [{ id: 'platform', kind: 'box', position: [0, 0, 0], size: [400, 20, 400], rotationDeg: 0 }];
   source.construction.equipment = [];
   const core = new Set([...equipmentReviewSource(catalog).construction.equipment, ...deckFittingsFixture(catalog).construction.equipment].map(e => e.partId));
   const parts = catalog.equipment.filter(p => !core.has(p.id));
-  // Separate rows keep national variants supported without overlapping installations.
-  const length = 400, firstStation = -160;
   const add = (id: string, partId: string, position: Vec3, links: Partial<ConstructionEquipment> = {}) => source.construction.equipment.push({ id, partId, position, bearingDeg: 0, ...links });
-  const engine = parts.find(p => p.kind === 'engine')!;
-  add('cruiser-engine', engine.id, [0, -9.984, 130]);
-  parts.filter(p => p.kind === 'engine' && p.id !== engine.id).forEach((part, index) => {
-    add('review-' + part.id, part.id, [0, -9.984, 80 - index * 40]);
-  });
-  let gun = 0, deck = 0, screw = 0, rudder = 0, bank = 0;
+  // Shelf-pack each part into its own plan footprint (a gun's includes its magazine below deck), so the fixture grows
+  // with the catalog instead of running parts off a fixed platform or into each other.
+  const WIDTH = 360, GAP = 4, magazine = catalog.equipment.find(p => p.id === 'cruiser-magazine-50000')!;
+  let x = -WIDTH / 2, z = 0, row = 0;
+  const cell = (part: typeof parts[number], below?: typeof parts[number]) => {
+    const w = Math.max(part.size[0], below?.size[0] ?? 0), d = Math.max(part.size[2], below?.size[2] ?? 0);
+    if (x + w > WIDTH / 2) { x = -WIDTH / 2; z += row + GAP; row = 0; }
+    const centre = [x + w / 2, z + d / 2]; x += w + GAP; row = Math.max(row, d);
+    return centre;
+  };
+  const at = (part: typeof parts[number], [cx, cz]: number[], y: number): Vec3 => [cx - (part.boundsCenter?.[0] ?? 0), y, cz - (part.boundsCenter?.[2] ?? 0)];
+  const engine = parts.find(p => p.kind === 'engine')!, placed: [id: string, part: typeof parts[number], centre: number[], links: Partial<ConstructionEquipment>][] = [];
+  // Path fittings take a drawn path, laid out after the grid (below).
   for (const part of parts) {
-    if (part.kind === 'engine' || part.kind === 'magazine') continue;
-    const id = 'review-' + part.id, seat = part.sockets!.find(s => s.id === 'attachment')!;
-    if (part.kind === 'gun') {
-      const x = -160 + Math.floor(gun / 10) * 40, z = firstStation + gun++ % 10 * 32, magazineId = id + '-mag';
-      add(magazineId, 'cruiser-magazine-50000', [x, -9.984, z]);
-      add(id, part.id, [x, 10 - seat.position[1], z], { magazineId, gun: { initialElevationDeg: part.id === 'flak38-m43u-20-twin' ? 30 : 0 } });
-    } else if (part.kind === 'torpedo-launcher') {
-      const z = firstStation + bank++ * 40, magazineId = id + '-mag';
-      add(magazineId, 'cruiser-magazine-50000', [0, -9.984, z]);
-      add(id, part.id, [0, 10 - seat.position[1], z], { magazineId });
-    } else if (part.kind === 'propeller') {
-      add(id, part.id, [-12 + screw++ * 24, -9, length / 2 - seat.position[2]], { powerSourceId: 'cruiser-engine' });
-    } else if (part.kind === 'rudder') {
-      add(id, part.id, [-12 + rudder++ * 24, -10 - seat.position[1], length / 2 - 5]);
-    } else if (seat.direction[2] === 1) {
-      add(id, part.id, [20, 0, -length / 2 - seat.position[2]]);
-    } else {
-      const x = 40 + Math.floor(deck / 8) * 40, z = firstStation + deck++ % 8 * 40;
-      add(id, part.id, [x, 10 - seat.position[1], z], part.kind === 'funnel' ? { powerSourceId: 'cruiser-engine' } : {});
-    }
+    if (part.kind === 'magazine' || part.kind === 'propeller' || part.kind === 'rudder' || part.path) continue;
+    const seat = part.sockets?.find(s => s.id === 'attachment');
+    if (seat?.direction[2] === 1) continue;
+    const id = part === engine ? 'cruiser-engine' : 'review-' + part.id;
+    const armed = part.kind === 'gun' || part.kind === 'torpedo-launcher';
+    placed.push([id, part, cell(part, armed ? magazine : undefined), part.kind === 'funnel' ? { powerSourceId: 'cruiser-engine' } : {}]);
+  }
+  const depth = z + row, length = depth + 60, offset = -depth / 2;
+  source.construction.primitives = [{ id: 'platform', kind: 'box', position: [0, 0, 0], size: [WIDTH + 2 * GAP, 20, length], rotationDeg: 0 }];
+  for (const [id, part, [cx, cz], links] of placed) {
+    const seat = part.sockets?.find(s => s.id === 'attachment'), centre = [cx, cz + offset];
+    if (part.kind === 'engine') { add(id, part.id, at(part, centre, -9.984), links); continue; }
+    const magazineId = id + '-mag';
+    if (part.kind === 'gun' || part.kind === 'torpedo-launcher') add(magazineId, magazine.id, at(magazine, centre, -9.984));
+    add(id, part.id, at(part, centre, 10 - seat!.position[1]), {
+      ...links,
+      ...(part.kind === 'gun' ? { magazineId, gun: { initialElevationDeg: part.id === 'flak38-m43u-20-twin' ? 30 : 0 } } : {}),
+      ...(part.kind === 'torpedo-launcher' ? { magazineId } : {}),
+    });
+  }
+  let screw = 0, rudder = 0, bow = 0, rail = 0;
+  // Stern margin, clear of the screws and rudders at x ±12: a raised block for the access ladders (constructionAccess.test.ts's
+  // geometry), rails along the deck, and surface ladders up the platform's side.
+  const sx = -150, sz = length / 2 - 20;
+  source.construction.primitives.push({ id: 'ladder-block', kind: 'box', size: [6, 3, 1.8], position: [sx, 11.5, sz - .8], rotationDeg: 0 });
+  for (const part of parts) {
+    const id = 'review-' + part.id, seat = part.sockets?.find(s => s.id === 'attachment'), kind = part.path?.kind;
+    if (part.kind === 'propeller') add(id, part.id, [-12 + screw++ * 24, -9, length / 2 - seat!.position[2]], { powerSourceId: 'cruiser-engine' });
+    else if (part.kind === 'rudder') add(id, part.id, [-12 + rudder++ * 24, -10 - seat!.position[1], length / 2 - 5]);
+    else if (kind === 'inclined-ladder')
+      add(id, part.id, [sx - 1.2, 10, sz + 2.5], { path: { points: [[0, 0, 0], [0, 3, -2.5]], access: accessDefaults('inclined-ladder') } });
+    else if (kind === 'framed-ladder')
+      source.construction.equipment.push({ id, partId: part.id, position: [sx + 1.2, 10.16, sz + .1], bearingDeg: 180, path: { points: [[0, 0, 0], [0, 2.68, 0]], access: accessDefaults('framed-ladder') } });
+    else if (kind === 'ladder')
+      source.construction.equipment.push({ id, partId: part.id, position: [WIDTH / 2 + GAP, -5, sz - 10 * rail++], bearingDeg: 90, path: { points: [[0, 0, 0], [0, 8, 0]], slackM: 0 } });
+    else if (kind) add(id, part.id, [-100 + 10 * rail++, 10, sz - 10], { path: { points: [[0, 0, 0], [0, 0, 6]], slackM: 0 } });
+    else if (part.kind !== 'magazine' && seat?.direction[2] === 1) add(id, part.id, [-WIDTH / 2 + 20 + bow++ * 12, 0, -length / 2 - seat.position[2]]);
   }
   return source;
 }

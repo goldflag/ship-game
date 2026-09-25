@@ -11,7 +11,8 @@ describe('published fleet appearance', () => {
       const bytes = readFileSync(`public/models/${id}.glb`);
       const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
       if (shipPresets[id].hull.kind === 'constructed-volume-v1') {
-        const hullMaterials = gltf.materials.filter((m: any) => m.name?.startsWith('construction.'));
+        // Painted coatings are named construction.<paint>:<deck>; propeller shafts (construction.propeller.*) are bare steel.
+        const hullMaterials = gltf.materials.filter((m: any) => /^construction\.[^.]+:(true|false)$/.test(m.name ?? ''));
         expect(hullMaterials.length).toBeGreaterThan(0);
         for (const material of hullMaterials) {
           const pbr = material.pbrMetallicRoughness;
