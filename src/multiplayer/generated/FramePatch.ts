@@ -5,5 +5,9 @@
  * array is wrapped in `value`, because a bare object would read as a nested
  * patch; `array` patches elements in place (a length change replaces the
  * array whole); `object` patches fields and lists the keys that went away.
+ * A [`keyed`] array whose elements came and went also carries `from`, runs of
+ * `[index, previous index, count]` that copy surviving elements to where they
+ * now sit, and its new `length`; its `array` patches then apply to that array,
+ * and they cover every index no run does.
  */
-export type FramePatch = string | number | boolean | null | { value: unknown } | { array: Array<[number, FramePatch]> } | { object: { [key in string]: FramePatch }, removed?: Array<string> };
+export type FramePatch = string | number | boolean | null | { value: unknown } | { array: Array<[number, FramePatch]>, from?: Array<[number, number, number]>, length?: number } | { object: { [key in string]: FramePatch }, removed?: Array<string> };

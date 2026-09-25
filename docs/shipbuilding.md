@@ -191,7 +191,8 @@ it: each crease starts a new group, in the built model, the shape preview and th
 editor's pair add/remove keeps creased points fixed and re-spaces the points between them, and its
 section editor has a Crease toggle on the selected outline point.
 Starting hulls come from `HULL_PRESETS` in `src/ships/constructionHullPresets.ts` (six ship-based,
-four generic); regenerate ship-based sections with `bun scripts/construction/hull-presets.ts`.
+four generic); `bun run ship:build` of a source ship regenerates its sections (or run
+`bun scripts/construction/hull-presets.ts`).
 
 ### Armor on custom hull panels
 

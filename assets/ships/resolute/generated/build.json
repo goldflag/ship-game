@@ -2,13 +2,13 @@
   "format": "construction-v2",
   "inputs": {
     "definition": "919012b36b9e94eb44a86507d6fbbcb4e52f085e034cddd7ef7386c92b4b7567",
-    "model": "e23c80989891a7d079e5e111c85deec4d49ef7daf72eff9a96537ea8d1c3fce3"
+    "model": "e383d732feb39f7448ec253c5b8de791120cdfd761c15fdcb61b1dad5a1c95f5"
   },
   "contentHash": "f7ecd8f0f6d0395752deada8bd2399e0e66343f28c48f541bbecc4a6a2085e3e",
   "sourceRevision": "revision-4dd48689-1085-49fe-b7f2-38e92bf930fc",
   "payloadHash": "bd0296b73ae1326b924d18fe519c2a9cf9a3ed32a926c5d6412cdbf0faa6cc58",
-  "imageInput": "48668c1c4b4a2fff10ca11a2c692d85a69715db723fb084d30d70b6c1db5427f",
-  "reviewInput": "48668c1c4b4a2fff10ca11a2c692d85a69715db723fb084d30d70b6c1db5427f",
+  "imageInput": "31186f9c94f144b954f150c95fd3e24fc447ca397c81280da38731b41842bc90",
+  "reviewInput": "31186f9c94f144b954f150c95fd3e24fc447ca397c81280da38731b41842bc90",
   "modelHash": "db569059e9f23d9b9c444fb83a26afbe946fa076759f2c967f56d76849369604",
   "definitionHash": "3a286dfda160f78187f27c880abd6203a20667bcb7bd7c08a9b28de0b3086071",
   "thumbnailHash": "138627a31c974a7fec7aadcd5d918e02718ba9b6c534ca02753e046561f463ee",

@@ -42,7 +42,16 @@ field costs a comparison; patch text is written lazily, and keys and container
 headers reach the buffer only once something below them moves. Numbers are
 compared as the client would read them, integers apart from floats and floats
 bit for bit. A runtime with no reference — after init, deploy or restart — sends
-the frame whole. `detailShipIds` narrowing works unchanged: the fields it adds
+the frame whole. Collections whose elements come and go (the event window, shells
+and torpedoes in flight, the shell record) are keyed (`frame_delta::keyed`): each
+element is matched to its previous self by the unique field it leads with, the
+patch carries runs of survivors to copy (`from`) and the new `length`, and only
+arrivals and changes travel. Patched by index, one arrival shifted every later
+element and a length change resent the whole collection; in the 30-ship custom
+battle keying halves the mean update, from 363 to 188 KB. The worker relays the
+update as the text Rust wrote and the session parses it once: parsing on the
+worker and structured-cloning the tree cost the main thread more than the parse.
+`detailShipIds` narrowing works unchanged: the fields it adds
 and removes travel as ordinary additions and removals. `frameDelta.test.ts`
 applies real Rust updates through a carrier battle whose detail list changes
 mid-stream and compares each rebuilt frame against the complete Rust snapshot,

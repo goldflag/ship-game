@@ -25,8 +25,8 @@
 use serde::{
     Deserialize, Serialize, Serializer,
     ser::{
-        Error as _, SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant,
-        SerializeTuple, SerializeTupleStruct, SerializeTupleVariant,
+        Error as _, Impossible, SerializeMap, SerializeSeq, SerializeStruct,
+        SerializeStructVariant, SerializeTuple, SerializeTupleStruct, SerializeTupleVariant,
     },
 };
 use serde_json::Value;
@@ -62,14 +62,36 @@ pub struct FrameUpdate {
 /// array is wrapped in `value`, because a bare object would read as a nested
 /// patch; `array` patches elements in place (a length change replaces the
 /// array whole); `object` patches fields and lists the keys that went away.
+/// A [`keyed`] array whose elements came and went also carries `from`, runs of
+/// `[index, previous index, count]` that copy surviving elements to where they
+/// now sit, and its new `length`; its `array` patches then apply to that array,
+/// and they cover every index no run does.
 #[derive(TS)]
 #[ts(export)]
 pub struct FramePatch(
     #[ts(
-        type = "string | number | boolean | null | { value: unknown } | { array: Array<[number, FramePatch]> } | { object: { [key in string]: FramePatch }, removed?: Array<string> }"
+        type = "string | number | boolean | null | { value: unknown } | { array: Array<[number, FramePatch]>, from?: Array<[number, number, number]>, length?: number } | { object: { [key in string]: FramePatch }, removed?: Array<string> }"
     )]
     (),
 );
+
+/// The newtype name that marks a [`keyed`] collection to the encoder.
+const KEYED: &str = "\u{0}frame_delta::keyed";
+
+/// `#[serde(serialize_with)]` for a collection whose elements are objects that
+/// lead with a unique key (a sequence number, a shell id) and keep their order
+/// while elements leave from anywhere and arrive at the end: the event window,
+/// the shell record, the shells in flight. Patched by index, one arrival shifts
+/// every later element and a length change resends the whole collection; keyed,
+/// each element is matched to its previous self by that first field, the
+/// client copies the survivors and only what arrived or changed travels. Every
+/// other serializer sees the collection unwrapped.
+pub fn keyed<T: Serialize + ?Sized, S: Serializer>(
+    value: &T,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    serializer.serialize_newtype_struct(KEYED, value)
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Outcome {
@@ -256,6 +278,7 @@ impl FrameDelta {
             shadow: &mut self.shadow,
             ctx: &mut self.ctx,
             in_object: false,
+            keyed: false,
         });
         match outcome {
             Ok(Outcome::Unchanged) => Ok(false),
@@ -392,6 +415,8 @@ struct Diff<'a> {
     ctx: &'a mut Ctx,
     /// Inside an object a null value removes the key rather than writing null.
     in_object: bool,
+    /// The sequence about to be walked is a [`keyed`] collection.
+    keyed: bool,
 }
 
 impl Diff<'_> {
@@ -416,6 +441,179 @@ impl Diff<'_> {
             return self.set(Node::Null);
         }
         self.set(Node::Raw(serde_json::to_string(&value)?.into()))
+    }
+}
+
+/// Reads the key a [`keyed`] element leads with, the scalar value of its first
+/// field, and nothing else. `field` is set while probing that value.
+#[derive(Clone, Copy)]
+struct KeyProbe {
+    field: bool,
+}
+/// The first field's key, once seen.
+struct FirstField(Option<Option<Node>>);
+type NoKey = Impossible<Option<Node>, Error>;
+impl KeyProbe {
+    fn key(self, node: Node) -> Result<Option<Node>, Error> {
+        Ok(self.field.then_some(node))
+    }
+    fn no_key<T>(self) -> Result<T, Error> {
+        Err(Error::custom("no key"))
+    }
+}
+macro_rules! probe_integer {
+    ($($name:ident($ty:ty));* $(;)?) => { $(
+        fn $name(self, value: $ty) -> Result<Option<Node>, Error> { self.key(Node::Int(value.into())) }
+    )* };
+}
+impl Serializer for KeyProbe {
+    type Ok = Option<Node>;
+    type Error = Error;
+    type SerializeSeq = NoKey;
+    type SerializeTuple = NoKey;
+    type SerializeTupleStruct = NoKey;
+    type SerializeTupleVariant = NoKey;
+    type SerializeMap = FirstField;
+    type SerializeStruct = FirstField;
+    type SerializeStructVariant = NoKey;
+    probe_integer! {
+        serialize_i8(i8); serialize_i16(i16); serialize_i32(i32); serialize_i64(i64); serialize_i128(i128);
+        serialize_u8(u8); serialize_u16(u16); serialize_u32(u32); serialize_u64(u64);
+    }
+    fn serialize_u128(self, value: u128) -> Result<Option<Node>, Error> {
+        i128::try_from(value).map_or(Ok(None), |value| self.key(Node::Int(value)))
+    }
+    fn serialize_bool(self, value: bool) -> Result<Option<Node>, Error> {
+        self.key(Node::Bool(value))
+    }
+    fn serialize_f32(self, value: f32) -> Result<Option<Node>, Error> {
+        self.serialize_f64(value.into())
+    }
+    fn serialize_f64(self, value: f64) -> Result<Option<Node>, Error> {
+        if value.is_finite() {
+            self.key(Node::Float(value))
+        } else {
+            Ok(None)
+        }
+    }
+    fn serialize_char(self, value: char) -> Result<Option<Node>, Error> {
+        self.key(Node::Text(value.to_string().into()))
+    }
+    fn serialize_str(self, value: &str) -> Result<Option<Node>, Error> {
+        self.key(Node::Text(value.into()))
+    }
+    fn serialize_bytes(self, _value: &[u8]) -> Result<Option<Node>, Error> {
+        Ok(None)
+    }
+    fn serialize_none(self) -> Result<Option<Node>, Error> {
+        Ok(None)
+    }
+    fn serialize_some<T: Serialize + ?Sized>(self, value: &T) -> Result<Option<Node>, Error> {
+        value.serialize(self)
+    }
+    fn serialize_unit(self) -> Result<Option<Node>, Error> {
+        Ok(None)
+    }
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<Option<Node>, Error> {
+        Ok(None)
+    }
+    fn serialize_unit_variant(
+        self,
+        _name: &'static str,
+        _index: u32,
+        variant: &'static str,
+    ) -> Result<Option<Node>, Error> {
+        self.serialize_str(variant)
+    }
+    fn serialize_newtype_struct<T: Serialize + ?Sized>(
+        self,
+        _name: &'static str,
+        value: &T,
+    ) -> Result<Option<Node>, Error> {
+        value.serialize(self)
+    }
+    fn serialize_newtype_variant<T: Serialize + ?Sized>(
+        self,
+        _name: &'static str,
+        _index: u32,
+        _variant: &'static str,
+        _value: &T,
+    ) -> Result<Option<Node>, Error> {
+        Ok(None)
+    }
+    fn serialize_seq(self, _len: Option<usize>) -> Result<NoKey, Error> {
+        self.no_key()
+    }
+    fn serialize_tuple(self, _len: usize) -> Result<NoKey, Error> {
+        self.no_key()
+    }
+    fn serialize_tuple_struct(self, _name: &'static str, _len: usize) -> Result<NoKey, Error> {
+        self.no_key()
+    }
+    fn serialize_tuple_variant(
+        self,
+        _name: &'static str,
+        _index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<NoKey, Error> {
+        self.no_key()
+    }
+    /// The element: its first field holds the key. A nested object is not one.
+    fn serialize_map(self, _len: Option<usize>) -> Result<FirstField, Error> {
+        if self.field {
+            self.no_key()
+        } else {
+            Ok(FirstField(None))
+        }
+    }
+    fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<FirstField, Error> {
+        self.serialize_map(None)
+    }
+    fn serialize_struct_variant(
+        self,
+        _name: &'static str,
+        _index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<NoKey, Error> {
+        self.no_key()
+    }
+}
+impl FirstField {
+    fn take<T: Serialize + ?Sized>(&mut self, value: &T) {
+        if self.0.is_none() {
+            self.0 = Some(value.serialize(KeyProbe { field: true }).unwrap_or(None));
+        }
+    }
+}
+impl SerializeStruct for FirstField {
+    type Ok = Option<Node>;
+    type Error = Error;
+    fn serialize_field<T: Serialize + ?Sized>(
+        &mut self,
+        _key: &'static str,
+        value: &T,
+    ) -> Result<(), Error> {
+        self.take(value);
+        Ok(())
+    }
+    fn end(self) -> Result<Option<Node>, Error> {
+        Ok(self.0.flatten())
+    }
+}
+impl SerializeMap for FirstField {
+    type Ok = Option<Node>;
+    type Error = Error;
+    fn serialize_key<T: Serialize + ?Sized>(&mut self, _key: &T) -> Result<(), Error> {
+        Ok(())
+    }
+    fn serialize_value<T: Serialize + ?Sized>(&mut self, value: &T) -> Result<(), Error> {
+        self.take(value);
+        Ok(())
+    }
+    fn end(self) -> Result<Option<Node>, Error> {
+        Ok(self.0.flatten())
     }
 }
 
@@ -488,6 +686,7 @@ impl<'a> DiffObject<'a> {
             shadow: &mut entries[at].1,
             ctx: self.ctx,
             in_object,
+            keyed: false,
         })?;
         match outcome {
             Outcome::Unchanged => {
@@ -559,6 +758,29 @@ struct DiffSeq<'a> {
     replace: bool,
     changed: bool,
     first: bool,
+    keyed: Option<Keyed>,
+}
+
+/// A [`keyed`] collection's walk: the previous elements, claimed in order.
+struct Keyed {
+    previous: Vec<Node>,
+    /// Every element before this one is claimed or gone.
+    cursor: usize,
+    /// `[index, previous index, count]` for the elements claimed.
+    runs: Vec<[usize; 3]>,
+}
+
+/// The key a [`keyed`] element leads with, as the shadow holds it.
+fn key_of(node: &Node) -> Option<&Node> {
+    match node {
+        Node::Object(entries) => entries.first().map(|(_, value)| value).filter(|value| {
+            matches!(
+                value,
+                Node::Int(_) | Node::Float(_) | Node::Text(_) | Node::Bool(_)
+            )
+        }),
+        _ => None,
+    }
 }
 
 impl<'a> DiffSeq<'a> {
@@ -571,6 +793,15 @@ impl<'a> DiffSeq<'a> {
             Node::Array(items) => items.len(),
             _ => 0,
         };
+        // A keyed walk rebuilds the array from the elements it claims.
+        let keyed = diff.keyed.then(|| Keyed {
+            previous: match &mut *diff.shadow {
+                Node::Array(items) => std::mem::take(items),
+                _ => Vec::new(),
+            },
+            cursor: 0,
+            runs: Vec::new(),
+        });
         let mark = diff.ctx.mark();
         diff.ctx.pending.push_str("{\"array\":[");
         Self {
@@ -582,6 +813,7 @@ impl<'a> DiffSeq<'a> {
             replace,
             changed: false,
             first: true,
+            keyed,
         }
     }
     fn items(&mut self) -> Result<&mut Vec<Node>, Error> {
@@ -591,6 +823,9 @@ impl<'a> DiffSeq<'a> {
         }
     }
     fn element<T: Serialize + ?Sized>(&mut self, value: &T) -> Result<(), Error> {
+        if self.keyed.is_some() {
+            return self.keyed_element(value);
+        }
         let mark = self.ctx.mark();
         if !self.first {
             self.ctx.pending.push(',');
@@ -609,6 +844,7 @@ impl<'a> DiffSeq<'a> {
             shadow: &mut items[at],
             ctx: self.ctx,
             in_object: false,
+            keyed: false,
         })?;
         match outcome {
             Outcome::Changed => {
@@ -621,7 +857,107 @@ impl<'a> DiffSeq<'a> {
         self.index += 1;
         Ok(())
     }
+    /// Claim the previous element with this one's key, or the next unclaimed one
+    /// when none has it, and patch against it; with nothing left to claim the
+    /// element travels whole.
+    fn keyed_element<T: Serialize + ?Sized>(&mut self, value: &T) -> Result<(), Error> {
+        let Some(keyed) = self.keyed.as_mut() else {
+            return Err(Error::custom("Frame walk lost its keyed collection"));
+        };
+        let key = value.serialize(KeyProbe { field: false }).unwrap_or(None);
+        let claim = key
+            .as_ref()
+            .and_then(|key| {
+                (keyed.cursor..keyed.previous.len())
+                    .find(|&at| key_of(&keyed.previous[at]).is_some_and(|old| old.same(key)))
+            })
+            .or_else(|| (keyed.cursor < keyed.previous.len()).then_some(keyed.cursor));
+        let mut node = claim.map_or(Node::Null, |at| std::mem::take(&mut keyed.previous[at]));
+        if let Some(at) = claim {
+            keyed.cursor = at + 1;
+            match keyed.runs.last_mut() {
+                Some([index, from, count])
+                    if *index + *count == self.index && *from + *count == at =>
+                {
+                    *count += 1
+                }
+                _ => keyed.runs.push([self.index, at, 1]),
+            }
+        }
+        let mark = self.ctx.mark();
+        if !self.first {
+            self.ctx.pending.push(',');
+        }
+        self.ctx.pending.push('[');
+        push_index(&mut self.ctx.pending, self.index);
+        self.ctx.pending.push(',');
+        let outcome = value.serialize(Diff {
+            shadow: &mut node,
+            ctx: self.ctx,
+            in_object: false,
+            keyed: false,
+        })?;
+        if outcome == Outcome::Changed {
+            self.ctx.out.push(']');
+        } else if claim.is_none() {
+            // A new null element matches its empty shadow, but the client has no slot for it yet.
+            self.ctx.flush();
+            self.ctx.out.push_str("null]");
+        } else {
+            self.ctx.restore(mark);
+        }
+        if outcome == Outcome::Changed || claim.is_none() {
+            self.first = false;
+            self.changed = true;
+        }
+        self.items()?.push(node);
+        self.index += 1;
+        Ok(())
+    }
+    fn keyed_finish(self, keyed: Keyed) -> Result<Outcome, Error> {
+        let length = self.index;
+        let in_place =
+            length == keyed.previous.len() && (length == 0 || keyed.runs == [[0, 0, length]]);
+        if self.replace || (!in_place && keyed.runs.is_empty()) {
+            // Nothing survived: the array whole is shorter than its elements one by one.
+            self.ctx.restore(self.mark);
+            self.ctx.flush();
+            write_replacement(&mut self.ctx.out, self.shadow);
+            return Ok(Outcome::Changed);
+        }
+        if in_place {
+            if !self.changed {
+                self.ctx.restore(self.mark);
+                return Ok(Outcome::Unchanged);
+            }
+            self.ctx.out.push_str("]}");
+            return Ok(Outcome::Changed);
+        }
+        // Elements moved or went: the header travels even when no element changed.
+        self.ctx.flush();
+        self.ctx.out.push_str("],\"from\":[");
+        for (index, run) in keyed.runs.iter().enumerate() {
+            if index > 0 {
+                self.ctx.out.push(',');
+            }
+            self.ctx.out.push('[');
+            for (part, value) in run.iter().enumerate() {
+                if part > 0 {
+                    self.ctx.out.push(',');
+                }
+                push_index(&mut self.ctx.out, *value);
+            }
+            self.ctx.out.push(']');
+        }
+        self.ctx.out.push_str("],\"length\":");
+        push_index(&mut self.ctx.out, length);
+        self.ctx.out.push('}');
+        Ok(Outcome::Changed)
+    }
     fn finish(mut self) -> Result<Outcome, Error> {
+        if let Some(keyed) = self.keyed.take() {
+            return self.keyed_finish(keyed);
+        }
         let length_changed = self.replace || self.index != self.previous;
         if length_changed {
             let at = self.index;
@@ -741,10 +1077,13 @@ impl<'a> Serializer for Diff<'a> {
     }
     fn serialize_newtype_struct<T: Serialize + ?Sized>(
         self,
-        _name: &'static str,
+        name: &'static str,
         value: &T,
     ) -> Result<Outcome, Error> {
-        value.serialize(self)
+        value.serialize(Diff {
+            keyed: name == KEYED,
+            ..self
+        })
     }
     fn serialize_newtype_variant<T: Serialize + ?Sized>(
         self,
@@ -907,6 +1246,17 @@ pub fn apply(previous: &mut Value, patch: &Value) {
     match patch {
         Value::Object(map) if map.contains_key("value") => *previous = map["value"].clone(),
         Value::Object(map) if map.contains_key("array") => {
+            if let Some(runs) = map.get("from").and_then(Value::as_array) {
+                let old = std::mem::take(previous.as_array_mut().expect("array baseline"));
+                let length = map["length"].as_u64().expect("keyed length") as usize;
+                let mut items = vec![Value::Null; length];
+                for run in runs {
+                    let [at, from, count] =
+                        [0, 1, 2].map(|part| run[part].as_u64().expect("keyed run") as usize);
+                    items[at..at + count].clone_from_slice(&old[from..from + count]);
+                }
+                *previous = Value::Array(items);
+            }
             let items = previous.as_array_mut().expect("array baseline");
             for change in map["array"].as_array().expect("indexed patches") {
                 let index = change[0].as_u64().expect("patch index") as usize;
@@ -948,15 +1298,17 @@ mod tests {
     /// Drive the encoder from plain values so the shapes that matter (a field
     /// turning null, an array changing length, a key disappearing or coming
     /// back out of order, a leaf changing type) are covered without a battle.
-    fn roundtrip(frames: &[Value]) {
+    fn roundtrip<T: Serialize>(frames: &[T]) -> Vec<Option<Value>> {
         let mut delta = FrameDelta::default();
         let mut client: Option<Value> = None;
+        let mut patches = Vec::new();
         for frame in frames {
-            let mut expected = frame.clone();
+            let mut expected = serde_json::to_value(frame).expect("frame json");
             normalize(&mut expected);
             let changed = delta.encode(frame).expect("encode");
             let patch: Option<Value> =
                 changed.then(|| serde_json::from_str(delta.patch()).expect("patch json"));
+            patches.push(patch.clone());
             match (&mut client, patch) {
                 (None, Some(patch)) => {
                     let mut value = Value::Null;
@@ -967,7 +1319,7 @@ mod tests {
                 (Some(_), None) => {}
                 (None, None) => panic!("the first frame always travels"),
             }
-            assert_eq!(client.as_ref(), Some(&expected), "frame {frame}");
+            assert_eq!(client.as_ref(), Some(&expected), "frame {expected}");
             assert_eq!(delta.shadow_value(), expected, "shadow tracks the client");
             // Every prefix either reached the patch or was wound back.
             assert_eq!(
@@ -976,6 +1328,143 @@ mod tests {
                 "no prefix is left dangling"
             );
         }
+        patches
+    }
+
+    /// A frame with one keyed collection, as the event window and shell record travel.
+    #[derive(Serialize)]
+    struct Window<T> {
+        tick: u64,
+        #[serde(serialize_with = "keyed", bound(serialize = "T: Serialize"))]
+        events: T,
+    }
+    #[derive(Clone, Serialize)]
+    struct Event {
+        sequence: u64,
+        kind: String,
+        at: [f64; 2],
+    }
+    #[derive(Clone, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Record {
+        shell_id: i64,
+        impacts: Vec<u64>,
+        outcome: &'static str,
+    }
+    fn windows<T: Serialize + Clone>(frames: &[T]) -> Vec<Option<Value>> {
+        let frames: Vec<Window<T>> = frames
+            .iter()
+            .map(|events| Window {
+                tick: 1,
+                events: events.clone(),
+            })
+            .collect();
+        roundtrip(&frames)
+    }
+    fn events(sequences: std::ops::Range<u64>) -> Vec<Event> {
+        sequences
+            .map(|sequence| Event {
+                sequence,
+                kind: format!("hit {sequence}"),
+                at: [sequence as f64, 0.5],
+            })
+            .collect()
+    }
+    fn keyed_patch(patch: &Option<Value>) -> &Value {
+        &patch.as_ref().expect("a patch")["object"]["events"]
+    }
+
+    /// A sliding window sends what arrived, not every element shifted one place.
+    #[test]
+    fn a_sliding_keyed_window_sends_only_arrivals() {
+        let patches = windows(&[
+            events(1..6),
+            events(3..8),
+            events(3..8),
+            events(8..9),
+            vec![],
+            events(9..11),
+        ]);
+        let slid = keyed_patch(&patches[1]);
+        assert_eq!(slid["from"], json!([[0, 2, 3]]));
+        assert_eq!(slid["length"], json!(5));
+        assert_eq!(
+            slid["array"]
+                .as_array()
+                .map(|changes| changes.iter().map(|c| c[0].clone()).collect::<Vec<_>>()),
+            Some(vec![json!(3), json!(4)])
+        );
+        assert_eq!(slid["array"][0][1]["value"]["sequence"], json!(6));
+        assert!(patches[2].is_none(), "an unchanged window sends nothing");
+        // With no key left to claim, an arrival patches the next unclaimed element.
+        assert_eq!(keyed_patch(&patches[3])["from"], json!([[0, 0, 1]]));
+        // Nothing to copy: the whole array is shorter than its elements one by one.
+        assert_eq!(keyed_patch(&patches[4]), &json!({"value": []}));
+        assert_eq!(keyed_patch(&patches[5])["value"][1]["sequence"], json!(10));
+    }
+
+    /// Records leave from the middle, change in place and arrive at the end.
+    #[test]
+    fn a_keyed_record_patches_survivors_in_place_and_copies_the_rest() {
+        let record = |shell_id: i64, outcome: &'static str| Record {
+            shell_id,
+            impacts: vec![],
+            outcome,
+        };
+        let patches = windows(&[
+            vec![
+                record(1, "flying"),
+                record(2, "flying"),
+                record(3, "flying"),
+                record(4, "flying"),
+            ],
+            vec![
+                record(1, "flying"),
+                record(3, "stopped"),
+                record(4, "flying"),
+                record(5, "flying"),
+            ],
+            vec![
+                record(1, "flying"),
+                record(3, "stopped"),
+                record(4, "flying"),
+                record(5, "stopped"),
+            ],
+        ]);
+        assert_eq!(
+            keyed_patch(&patches[1]),
+            &json!({"array": [[1, {"object": {"outcome": "stopped"}}], [3, {"value": {"shellId": 5, "impacts": [], "outcome": "flying"}}]],
+                "from": [[0, 0, 1], [1, 2, 2]], "length": 4})
+        );
+        // Nothing moved: an ordinary element patch.
+        assert_eq!(
+            keyed_patch(&patches[2]),
+            &json!({"array": [[3, {"object": {"outcome": "stopped"}}]]})
+        );
+    }
+
+    /// Keys are only a guide: moved, repeated, missing and null elements, and a
+    /// collection that changes type, all arrive exactly as the frame has them.
+    #[test]
+    fn keyed_collections_survive_any_order_duplicates_nulls_and_type_changes() {
+        let e = |sequence: i64, v: i64| json!({"sequence": sequence, "v": v});
+        windows(&[
+            json!([e(1, 0), e(2, 0), e(3, 0)]),
+            json!([e(3, 0), e(1, 0), e(2, 0)]),
+            json!([e(3, 1), e(3, 2), e(9, 0), e(1, 0)]),
+            json!([null, 1, "text", [2, 3], {"nested": {"sequence": 1}}, e(1, 0), null]),
+            json!([e(1, 0), null, [2, 3], 1]),
+            json!({"not": "an array"}),
+            json!([e(1, 0)]),
+            json!(null),
+            json!([]),
+            json!([null]),
+            json!([null, null]),
+            json!([{"sequence": null, "v": 1}, {"sequence": 1.5, "v": 2}, {"sequence": true}, {"sequence": "a"}]),
+            json!([{"sequence": "a"}, {"sequence": true}, {"sequence": 1.5, "v": 3}]),
+            json!([{"sequence": 1.5, "v": 3}, e(4, 4), e(5, 5)]),
+            json!([e(5, 5)]),
+        ]);
     }
 
     /// An optional that turns null still has to reach the client as a removal:
