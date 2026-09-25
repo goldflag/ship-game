@@ -2,6 +2,7 @@ import { HalfFloatType, LinearFilter, NoBlending, NodeMaterial, PMREMGenerator, 
   type Texture, type WebGPURenderer } from 'three/webgpu';
 import { Fn, If, cos, float, mix, pmremTexture, pow, screenCoordinate, sin, uniform, vec3, vec4 } from 'three/tsl';
 import type { OceanSky } from '../../ocean/contracts';
+import { directPasses } from '../../DirectPasses';
 import type { EnvironmentPart, EnvironmentSources, SkyFrame, SkyQuality, SkyUniforms } from '../contracts';
 import { SKY_TIERS } from '../quality';
 
@@ -186,8 +187,7 @@ export class Environment implements EnvironmentPart {
       renderer.autoClear = false;
       // WebGPU's viewport runs top-down from row 0, the texture's first row.
       target.viewport.set(0, from, target.width, to - from);
-      renderer.setRenderTarget(target);
-      this.quad.render(renderer);
+      directPasses(renderer).draw(this.quad, target);
     } finally {
       renderer.setRenderTarget(previous, face, level);
       renderer.setMRT(mrt);
@@ -195,12 +195,13 @@ export class Environment implements EnvironmentPart {
     }
   }
 
-  /** Prefilter the bake into `into` (in place), or into a new target of the bake's size when null. */
+  /** Prefilter the bake into `into` (in place), or into a new target of the bake's size when null; the generator's passes are direct
+   * passes after the bake's. */
   private prefilter(into: RenderTarget | null): RenderTarget {
     const renderer = this.renderer, mrt = renderer.getMRT();
     try {
       renderer.setMRT(null);
-      return this.generator.fromEquirectangular(this.target.texture, into);
+      return directPasses(renderer).routed(() => this.generator.fromEquirectangular(this.target.texture, into));
     } finally {
       renderer.setMRT(mrt);
     }

@@ -9,6 +9,7 @@ import { createCelestial } from './celestial';
 import { createClouds } from './clouds';
 import { createWeather, type WeatherOptions } from './weather';
 import { createEnvironment } from './environment';
+import { directPasses } from '../DirectPasses';
 
 /** A camera that moves farther than this in one frame (m) or turns more (radians) has cut. */
 const CUT_DISTANCE = 250, CUT_TURN = .5;
@@ -99,9 +100,14 @@ export class Sky implements SkyApi {
     const strike = parts.weather.strike;
     uniforms.lightningIntensity.value = strike?.intensity ?? 0;
     if (strike) uniforms.lightningPosition.value.copy(strike.position);
-    parts.clouds.update(frame);
-    parts.environment.followCamera(camera);
-    parts.environment.update(frame);
+    // The clouds' kernels, the bake that reads them and the prefilter of the bake go to the device in one submit.
+    const passes = directPasses(this.gpu);
+    passes.begin();
+    try {
+      parts.clouds.update(frame);
+      parts.environment.followCamera(camera);
+      parts.environment.update(frame);
+    } finally { passes.end(); }
     state.chooseLight(parts.atmosphere.seaLevel, parts.weather.flash);
   }
 

@@ -51,6 +51,14 @@ and lighting are current, then renders. `update`:
 3. updates the wave field (spectrum rebuild if dirty, evolution, FFT, foam) and steps the wake;
 4. rebinds the environment texture if the sky rebuilt it, and moves floating objects.
 
+Its passes (the transform and foam, a quad per cascade layer; the wake's steps; the height probe and the
+copy that reads it back) are direct passes (`src/game/DirectPasses.ts`): three's own render objects,
+pipelines, bind groups and per-draw updates, encoded into one command encoder that `update` submits once,
+where three renders each quad as a scene with an encoder and a submit of its own (and one per texture for
+the fields' mipmaps, whose passes here join the same encoder). A wake step that repeats a render object in
+one frame submits the steps before it first. `ocean.passes.enabled = false` renders them through three for
+comparison; every render target is the same texel for texel.
+
 The surface draws inside the game's normal scene pass, first in the transparent queue, so it can
 read the opaque scene through three's viewport colour/depth copies. There is no second scene
 render, no separate reflection G-buffer and no water-depth pass. `ocean.postProcess(scenePass,

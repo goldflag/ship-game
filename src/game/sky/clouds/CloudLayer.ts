@@ -6,6 +6,7 @@ import { Discard, Fn, If, cameraFar, cameraNear, cameraViewMatrix, dot, float, i
 import type { AtmospherePart, CloudPart, SkyFrame, SkyPartContext, SkyQuality, SkyScene, SkyUniforms } from '../contracts';
 import { CLOUD_ORDER, fullScreenTriangle, screenCorner, viewDirection } from '../dome';
 import { SKY_TIERS } from '../quality';
+import { directPasses } from '../../DirectPasses';
 import { writeSceneTargets } from '../../TemporalAntialiasing';
 import { CIRRUS_TABLE, cirrusAmount, cirrusLight, cirrusTableDirection, createCirrus } from './cirrus';
 import { FARTHEST, createCloudField, createLayerUniforms, type CloudField, type LayerUniforms } from './field';
@@ -379,7 +380,7 @@ export class CloudLayer implements CloudPart {
       this.compiled = true;
     }
     if (!this.active || !due || converged) {
-      renderer.compute(this.tablesOnly);
+      directPasses(renderer).compute(this.tablesOnly);
       return;
     }
     this.sinceUpdate = 0;
@@ -405,7 +406,7 @@ export class CloudLayer implements CloudPart {
     this.updates++;
     if (this.held) this.heldUpdates++;
     const shadows = u.shadowStrength.value > 0 ? (this.shadowStale || frame.cut ? 2 : 1) : 0;
-    renderer.compute(this.submissions.get(this.marchKernels.get(tier.cloudLightSteps)!)![this.current][shadows]);
+    directPasses(renderer).compute(this.submissions.get(this.marchKernels.get(tier.cloudLightSteps)!)![this.current][shadows]);
     if (shadows === 2) this.shadowStale = false;
     // The reconstruction wrote the other history; everything downstream reads it from now on, in this view.
     this.current = 1 - this.current;

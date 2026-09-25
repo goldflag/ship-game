@@ -4,6 +4,7 @@ import { Fn, Loop, clamp, dot, exp, float, floor, fract, ivec2, max, min, mix, n
   vec2, vec3, vec4 } from 'three/tsl';
 import type { WakeFieldApi, WakeGeneratorOptions, WakeSampler } from '../contracts';
 import { dispersionPyramid, type KernelTap } from './kernel';
+import { directPasses } from '../../DirectPasses';
 import { perRender } from '../../renderUniforms';
 import { MAX_GENERATORS, WakeGenerators, type WakeEmission } from './generators';
 
@@ -229,6 +230,8 @@ export class WakeField implements WakeFieldApi {
 
   reset(): void {
     this.restart();
+    // Steps not yet submitted write these targets first.
+    directPasses(this.renderer).flush();
     const renderer = this.renderer, target = renderer.getRenderTarget(), alpha = renderer.getClearAlpha();
     renderer.getClearColor(this.savedClear);
     try {
@@ -257,11 +260,12 @@ export class WakeField implements WakeFieldApi {
     this.accumulator += dt;
     const steps = Math.min(Math.floor(this.accumulator / STEP), MAX_STEPS);
     if (steps === MAX_STEPS) this.accumulator = Math.min(this.accumulator, MAX_STEPS * STEP);
-    const target = renderer.getRenderTarget(), autoClear = renderer.autoClear;
+    const target = renderer.getRenderTarget(), autoClear = renderer.autoClear, passes = directPasses(renderer);
     renderer.autoClear = false;
+    passes.begin();
     try {
       for (let s = 1; s <= steps; s++) this.advance(renderer, Math.min((s * STEP - before) / dt, 1));
-    } finally { renderer.setRenderTarget(target); renderer.autoClear = autoClear; }
+    } finally { passes.end(); renderer.setRenderTarget(target); renderer.autoClear = autoClear; }
     this.accumulator -= steps * STEP;
     this.uniforms.fraction.value = Math.min(this.accumulator / STEP, 1);
   }
@@ -291,7 +295,8 @@ export class WakeField implements WakeFieldApi {
     });
     this.stateNode.value = this.state[this.current].texture;
     this.nextStateNode.value = this.state[1 - this.current].texture;
-    for (const { target, quad } of this.passes) { renderer.setRenderTarget(target()); quad.render(renderer); }
+    const passes = directPasses(renderer);
+    for (const { target, quad } of this.passes) passes.draw(quad, target());
     this.current = 1 - this.current;
     this.currentDisplay.value = this.display[this.current].texture;
     this.previousDisplay.value = this.display[1 - this.current].texture;

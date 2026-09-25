@@ -198,6 +198,8 @@ one every fourth frame, the last also taking the sea's half, then prefilters the
 its GGX importance sampling (512 samples per texel at every level, about 7 ms of GPU per refilter on the
 development machine, a spike every sweep): about 0.6 ms, for reflections nobody can tell apart. A change
 of sun or light, or a jump of the origin by 2 km, re-bakes and prefilters it whole at once.
+The clouds' kernels, the bake and the prefilter's passes go to the device as direct passes in one command
+encoder and one submit a frame (`src/game/DirectPasses.ts`; three dispatches or renders each with its own).
 `scene.environment` is the prefiltered texture (ships' image-based light) and the sea reflects it through
 `pmremTexture`, which reads it as it is. The far fog colour (`createFogSampler`) is the sky seen from the
 camera without discs, stars or clouds.
