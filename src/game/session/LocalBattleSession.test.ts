@@ -2,7 +2,6 @@ import { beforeAll, expect, test } from 'bun:test';
 import init, { PvePlanner, LocalRuntime } from '../../generated/naval-wasm/naval_wasm';
 import { PveDraft } from './PveDraft';
 import { LocalBattleSession } from './LocalBattleSession';
-import type { FrameUpdate } from './frameDelta';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
 let manifest: Uint8Array;
@@ -53,9 +52,9 @@ class TestWorker {
         }
         for (let n = message.ticks!; n > 0; n -= 6) this.runtime.step(Math.min(6, n));
       }
-      // The Rust codec encodes against the frame this runtime published last,
-      // exactly as local.worker.ts relays it.
-      const update = JSON.parse(this.runtime.snapshot_delta(this.detail)) as FrameUpdate;
+      // The Rust codec encodes against the frame this runtime published last;
+      // local.worker.ts relays its text unparsed.
+      const update = this.runtime.snapshot_delta(this.detail);
       // A fixed synthetic cost: 2 ms per tick and 1 ms per snapshot.
       const cost = message.type === 'advance' ? { ticks: message.ticks!, stepMs: message.ticks! * 2, snapshotMs: 1 } : undefined;
       this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', update, cost } });
