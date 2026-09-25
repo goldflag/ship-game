@@ -450,9 +450,13 @@ def deck_gear(D, kit):
     aid = 'ground-tackle'
     # Bow anchors housed in their hawse pipes, cables led to the windlasses; stern anchors.
     for s in (-1, 1):
-        a = V(s * 1.83, 4.87, -92.47)
-        kit.boxc(aid, col, 'anchor shank', a + Vector((0, s * .25, -.4)), (.35, .3, 1.5), 'black')
-        kit.boxc(aid, col, 'anchor crown', a + Vector((0, s * .3, -1.2)), (.9, .4, .35), 'black')
+        # Stockless anchor housed at the hawse outlet: shank up into the pipe, crown and flukes
+        # lying against the flared bow (reference 1.7 m long, 1.0 m high).
+        for zz, yy, size in ((-92.7, 5.05, (.9, .32, .3)), (-92.25, 4.55, (1.35, .5, .22))):
+            hb = hull_half(kit, zz, yy)
+            kit.boxc(aid, col, 'anchor', V(s * (hb + size[2] / 2 - .02), yy, zz), (size[0], size[2], size[1]), 'black')
+        hb = hull_half(kit, -92.25, 4.3)
+        kit.boxc(aid, col, 'anchor fluke', V(s * (hb + .08), 4.3, -91.9), (.5, .16, .45), 'black')
         kit.part('rod', aid, col, 'hawse pipe', V(s * 1.9, 6.4, -97.6), V(s * 1.45, 5.3, -92.8), .3, 'naval', vertices=14)
         for i in range(10):
             p = V(s * (1.45 - .03 * i), 5.28 - .02 * i + .02, -92.8 + i * 1.3)
@@ -481,17 +485,16 @@ def deck_gear(D, kit):
         kit.boxc('winches', col, 'winch bed', c, (2.1, .9, .3), 'edge')
         kit.part('rod', 'winches', col, 'winch drum', c + Vector((0, -.6, .48)), c + Vector((0, .6, .48)), .35, 'naval', vertices=14)
     kit.cylz('capstan', col, 'after capstan', V(.44, 3.1, 85.72), .45, .55, 'naval', 16)
-    # Ventilators: the large cowls and mushroom heads on the weather decks.
-    for x, y, z in [(-.01, 4.67, -64.53), (.81, 4.19, -36.47), (-2.45, 4.19, -38.08), (.18, 4.24, 55.33), (-2.91, 4.23, 53.73), (3.15, 4.24, 55.48)]:
-        c = V(x, y - .55, z)
-        floor = kit.below(c.x, c.y, c.z + .5, c.z)
-        kit.cylz('ventilators', col, 'ventilator trunk', Vector((c.x, c.y, floor)), .38, c.z - floor + .8, 'naval', 16)
-        kit.part('rod', 'ventilators', col, 'cowl', c + Vector((0, 0, .95)), c + Vector((.55, 0, 1.1)), .48, 'naval', r2=.62, vertices=16)
-    for x, y, z in [(1.71, 4.46, -61.97), (1.14, 4.21, -46.46), (-.62, 4.23, -37.39), (.18, 4.21, -46.11), (-.66, 4.23, -36.37), (1.91, 4.23, -38.21)]:
-        c = V(x, y - .45, z)
-        floor = kit.below(c.x, c.y, c.z + .5, c.z)
-        kit.cylz('ventilators', col, 'mushroom trunk', Vector((c.x, c.y, floor)), .18, c.z - floor + .7, 'naval', 12)
-        kit.cylz('ventilators', col, 'mushroom head', c + Vector((0, 0, .7)), .36, .18, 'naval', 12)
+    # Ventilators: the large mushroom heads (1.6 m across, 1.1 m tall) and the small ones (0.7 m) on the
+    # weather decks at the reference positions; the pair under No. 5 turret's overhang stay below its sole.
+    for x, y, z, r, h in [(-.01, 4.67, -64.53, .8, 1.11), (.81, 4.19, -36.47, .8, 1.11), (-2.45, 4.19, -38.08, .8, 1.11), (.18, 4.24, 55.33, .8, .96),
+                          (-2.91, 4.23, 53.73, .8, .96), (3.15, 4.24, 55.48, .8, .96), (1.71, 4.46, -61.97, .35, .92), (1.14, 4.21, -46.46, .35, .92),
+                          (-.62, 4.23, -37.39, .35, .92), (.18, 4.21, -46.11, .35, .92), (-.66, 4.23, -36.37, .35, .92), (1.91, 4.23, -38.21, .35, .92)]:
+        c = V(x, 0, z)
+        floor = kit.below(c.x, c.y, y + .5, y - .5)
+        top = floor + h
+        kit.cylz('ventilators', col, 'ventilator trunk', Vector((c.x, c.y, floor - .01)), r * .55, h - .2, 'naval', 16)
+        kit.cylz('ventilators', col, 'ventilator head', Vector((c.x, c.y, top - .22)), r, .22, 'naval', 16, r2=r * .8)
     # Paravanes stowed by No. 3 barbette, smoke floats at the stern, leadsman's platforms at the bow.
     for x, z in [(3.31, -36.22), (-2.88, -36.04)]:
         c = V(x, 4.0, z)
@@ -567,14 +570,62 @@ def underwater(D, kit):
         return [P(*p) for p in right + left]
     kit.loft(aid, col, 'rudder blade', [foil(-7.0, 92.3, 97.7, .26), foil(-3.05, 92.1, 98.2, .3)], 'antifouling', True, True, False)
     kit.part('rod', aid, col, 'rudder stock', V(0, -3.2, 93.3), V(0, -2.5, 93.3), .22, 'antifouling', vertices=10)
-    # Bilge keels along the turn of the bulge.
+    # Bilge keels along the turn of the bulge (reference 23.5 m forward to 39 m aft of the origin),
+    # plates standing out and down from the hull, in segments that follow the loft.
     for s in (-1, 1):
-        pts = [V(s * (9.3 + .002 * abs(z)), -6.05, z) for z in (-23.3, 38.8)]
-        kit.beam('bilge-keels', col, 'bilge keel', pts[0] + Vector((0, s * .35, -.28)), pts[1] + Vector((0, s * .35, -.28)), .06, .75, 'antifouling')
+        zs = [-23.3 + (38.8 + 23.3) * i / 8 for i in range(9)]
+        for z0, z1 in zip(zs, zs[1:]):
+            ends = []
+            for z in (z0, z1):
+                root = V(s * (hull_half(kit, z, -5.75) - .06), -5.75, z)
+                ends.append(root)
+            out = Vector((0, -s * .82, -.57))
+            mid = [e + out * .5 for e in ends]
+            kit.beam('bilge-keels', col, 'bilge keel', mid[0], mid[1], .05, 1.0, 'antifouling', tuple(out))
+
+
+def railings(D, kit):
+    """Guard rails along the weather-deck edge and the shelter-deck edge; the gun arcs stay clear
+    (Kit.in_arc), as the reference's collapsible rails do."""
+    col = kit.collections['Deck fittings']
+    for s in (-1, 1):
+        for z0, z1, shelter in ((-98.4, -25.6, False), (26.9, 102.6, False), (-19.6, 21.2, True)):
+            n = max(2, int(abs(z1 - z0) / 1.8))
+            pts = []
+            for i in range(n + 1):
+                z = z0 + (z1 - z0) * i / n
+                y = 6.16 if shelter else deck(kit, z)
+                x = hull_half(kit, z, 3.83 if shelter else y - .02) - .12
+                pts.append((V(s * x, y, z), y))
+            for (a, ya), (b, yb) in zip(pts, pts[1:]):
+                for h in (.5, 1.0):
+                    kit.wire('railings', col, a + Vector((0, 0, h)), b + Vector((0, 0, h)), .016, True)
+                kit.wire('railings', col, a, a + Vector((0, 0, 1.0)), .022, True)
+            kit.wire('railings', col, pts[-1][0], pts[-1][0] + Vector((0, 0, 1.0)), .022, True)
+
+
+def mast_bracing(D, kit):
+    """Lattice bracing of the mainmast's lower tripod, as the reference frames it."""
+    col = kit.collections['Sensors and masts']
+    aid = 'mainmast'
+    pole = lambda y: V(0, y, 42.07)
+    leg = lambda s, y: V(s * (3.2 - (y - 3.76) / (22.6 - 3.76) * 3.08), y, 45.0 - (y - 3.76) / (22.6 - 3.76) * 2.6)
+    levels = [4.4, 6.3, 8.2, 10.1, 12.0]
+    for s in (-1, 1):
+        for y0, y1 in zip(levels, levels[1:]):
+            kit.member(aid, col, pole(y0), leg(s, y1), .05, 'naval', 5)
+            kit.member(aid, col, leg(s, y0), pole(y1), .05, 'naval', 5)
+        for y in levels:
+            kit.member(aid, col, pole(y), leg(s, y), .05, 'naval', 5)
+    for y0, y1 in zip(levels, levels[1:]):
+        kit.member(aid, col, leg(-1, y0), leg(1, y1), .05, 'naval', 5)
+        kit.member(aid, col, leg(1, y0), leg(-1, y1), .05, 'naval', 5)
 
 
 def build(D, kit):
     towers(D, kit)
+    railings(D, kit)
+    mast_bracing(D, kit)
     torpedo_rooms(D, kit)
     torpedo_mounts(D, kit)
     foremast(D, kit)

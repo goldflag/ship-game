@@ -204,21 +204,20 @@ class Kit:
 
     # ------------------------------------------------------------ guns
     def barbette(self, mount):
-        """Measured barbettes: 6.0 m across on the weather deck; the superfiring pair stand on a
-        5.1 m trunk to the shelter level, then 6.0 m to the gunhouse sole."""
+        """Measured barbettes (armour model and plan cuts): 5.94 m across on the weather deck; the
+        superfiring pair stand on a 4.98 m trunk to 6.5 m, then 5.94 m to the gunhouse sole."""
         x, y, z = R(mount['position'])
         top = z
         floor = self.below(x, y, top - .05)
         col = self.collections['Main and secondary batteries']
         aid = mount['id']
         if top - floor > 2.0:
-            step = top - 1.35
-            self.cylz(aid, col, 'barbette trunk', (x, y, floor - .02), 2.55, step - floor + .04, 'naval', 64)
-            self.cylz(aid, col, 'barbette', (x, y, step), 3.0, top - step + .005, 'naval', 72)
-            self.cylz(aid, col, 'barbette step ring', (x, y, step - .06), 3.06, .08, 'edge', 72)
+            step = top - 1.06
+            self.cylz(aid, col, 'barbette trunk', (x, y, floor - .02), 2.49, step - floor + .04, 'naval', 64)
+            self.cylz(aid, col, 'barbette', (x, y, step), 2.97, top - step + .005, 'naval', 72)
         else:
-            self.cylz(aid, col, 'barbette', (x, y, floor - .02), 3.0, top - floor + .025, 'naval', 72)
-        self.cylz(aid, col, 'barbette coaming', (x, y, floor), 3.07, .12, 'edge', 72)
+            self.cylz(aid, col, 'barbette', (x, y, floor - .02), 2.97, top - floor + .025, 'naval', 72)
+        self.cylz(aid, col, 'barbette coaming', (x, y, floor), 3.03, .1, 'edge', 72)
 
     def gun_seat(self, mount):
         """A pedestal from the supporting deck to a light mount's datum when it stands above it."""
