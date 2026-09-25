@@ -41,7 +41,7 @@ let ok = await quiet('Simulation content and dev WASM', [process.execPath, 'run'
 const projects: [label: string, config: string, applies: boolean][] = [
   ['Typecheck src', 'tsconfig.json', true],
   ['Typecheck construction, browser and harness scripts', 'tsconfig.construction.json', changed.some(file =>
-    /^(scripts\/(construction|browser|diagnostics)|tools\/construction)\//.test(file) || /^scripts\/ships\/(overlay|sweep|floating)\.ts$/.test(file))],
+    /^(scripts\/(construction|browser|diagnostics)|tools\/construction)\//.test(file) || /^scripts\/ships\/(overlay|sweep\w*|floating)\.ts$/.test(file))],
   ['Typecheck model viewer', 'tsconfig.overlay.json', changed.some(file => /^(tools\/ship-overlay|scripts\/parts)\//.test(file))],
   ['Typecheck services', 'services/tsconfig.json', changed.some(file => file.startsWith('services/'))],
 ];
