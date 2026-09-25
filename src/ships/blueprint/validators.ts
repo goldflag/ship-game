@@ -26,6 +26,12 @@ export const id = (value: unknown, path: string): string => {
     fail(path, 'expected a stable lowercase kebab-case ID');
   return result;
 };
+/** A provenance source reference: an ID, or a catalog source that keeps a GameModels3D visual name's underscores. */
+export const sourceReference = (value: unknown, path: string): string => {
+  const result = text(value, path);
+  if (!/^[a-z][a-z0-9_-]{0,95}$/.test(result)) fail(path, 'expected a lowercase source reference');
+  return result;
+};
 export const vector = (value: unknown, path: string, min = -10000): Vec3 => {
   const v = list(value, path, 3);
   if (v.length !== 3) fail(path, 'expected three coordinates');

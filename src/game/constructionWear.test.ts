@@ -5,7 +5,7 @@ import { componentMaterial } from '../ships/componentMaterials';
 import { createConstructionFittingModel } from './constructionFittingModel';
 import { createConstructionHull } from './constructionModel';
 import { createConstructionPropellerSupports } from './constructionPropellerModel';
-import { applyConstructionWear, applyPremadeWear, isConstructionPaint, wearsPaint, WEAR_NONE } from './constructionWear';
+import { applyConstructionWear, applyPremadeWear, FOOT, isConstructionPaint, mountArmour, wearsPaint, WEAR_NONE } from './constructionWear';
 import { isPlatedPaint } from './ShipSurfaceDetail';
 
 const surface = (id: string, primitiveId: string, face: string, vertices: Vec3[], normal: Vec3, paint = 'naval-gray', panelId?: string): ConstructionSurface =>
@@ -150,7 +150,12 @@ test('premade wear: hull sides hang from the sheer, walls from their tops, funne
   const jacket = funnel('funnel-jacket', [3, 8, 4], [0, 16, 2]), base = funnel('funnel-base', [4, 4, 5], [0, 10, 2]);
   const cap = funnel('funnel-cap', [3, .5, 4], [0, 20.25, 2]), gallery = funnel('funnel-searchlight-gallery', [6, 1, 7], [0, 16, 2]);
   const rail = box([.1, 1, 6], [2.9, 8.5, -3], paint('x-authored-edge'));
-  const root = new THREE.Group(); root.add(hull, house, jacket, base, cap, gallery, rail); root.updateMatrixWorld(true);
+  // A turret: its barbette (the rest of the mount's assembly) and its gunhouse under the yaw joint; a coaming too low for grime.
+  const barbette = box([3, 2, 3], [0, 8, 6], paint('x-authored-naval')); barbette.userData.assemblyId = 'anton';
+  const yaw = new THREE.Group(); yaw.userData = { nodeId: 'anton.yaw', assemblyId: 'anton' }; yaw.position.set(0, 10, 6);
+  yaw.add(box([4, 2.5, 5], [0, 0, 0], paint('x-authored-naval')));
+  const coaming = box([2, .4, 2], [0, 7.2, -6], paint('x-authored-naval'));
+  const root = new THREE.Group(); root.add(hull, house, jacket, base, cap, gallery, rail, barbette, yaw, coaming); root.updateMatrixWorld(true);
   applyPremadeWear(root, .4);
 
   for (const w of wearAt(root, [3, 0, -10])) { expect(w[0]).toBe(.4); expect(w[1]).toBeCloseTo(8, 1); expect(w[2]).toBe(WEAR_NONE); expect(w[3]).toBeCloseTo(0, 5); }
@@ -158,20 +163,39 @@ test('premade wear: hull sides hang from the sheer, walls from their tops, funne
   for (const w of wearAt(root, [3, 6, 10])) expect(w[1]).toBeCloseTo(0, 1);
   for (const w of wearAt(root, [3, -3, 10])) expect(w[3]).toBeCloseTo(-3, 5);
   for (const w of wearAt(root, [3, 7, -10])) expect(w[0]).toBe(0);
-  // A deckhouse wall hangs from its own top and knows its height above the waterline.
+  // A deckhouse wall hangs from its own top, rises from its own foot and knows its height above the waterline.
   const foot = wearAt(root, [2, 8, 2]).filter(w => w[1] < WEAR_NONE);
   expect(foot.length).toBeGreaterThan(0);
-  for (const w of foot) { expect(w[1]).toBeCloseTo(4, 5); expect(w[3]).toBeCloseTo(8, 5); expect(w[2]).toBe(WEAR_NONE); }
+  for (const w of foot) { expect(w[1]).toBeCloseTo(4, 5); expect(w[3]).toBeCloseTo(8, 5); expect(w[2]).toBeCloseTo(FOOT, 5); }
+  for (const w of wearAt(root, [2, 12, 2]).filter(w => w[1] < WEAR_NONE)) expect(w[2]).toBeCloseTo(FOOT + 4, 5);
   // The jacket and its base soot from the cap's top; the gallery is not the funnel.
   expect(wearAt(root, [1.5, 20, 4]).length).toBeGreaterThan(0);
   for (const w of wearAt(root, [1.5, 20, 4])) expect(w[2]).toBeCloseTo(.5, 5);
   for (const w of wearAt(root, [2, 12, 4.5])) expect(w[2]).toBeCloseTo(8.5, 5);
-  for (const w of wearAt(root, [3, 16.5, 5.5])) expect(w[2]).toBe(WEAR_NONE);
+  // The gallery is a wall of its own, a metre above its foot: no soot.
+  for (const w of wearAt(root, [3, 16.5, 5.5]).filter(w => w[1] < WEAR_NONE)) expect(w[2]).toBeCloseTo(FOOT + 1, 5);
   // Fitting paint wears nothing.
   for (const w of wearAt(root, [2.95, 9, 0])) expect(w[0]).toBe(0);
+  // A mount's armour and a low coaming carry no foot grime; they still hang runoff from their tops.
+  for (const at of [[1.5, 7, 7.5], [2, 8.75, 8.5], [1, 7, -5]] as Vec3[]) {
+    const walls = wearAt(root, at).filter(w => w[1] < WEAR_NONE);
+    expect(walls.length).toBeGreaterThan(0);
+    for (const w of walls) expect(w[2]).toBe(WEAR_NONE);
+  }
 
   // No wear writes nothing, so the palette's zeros draw the model as before.
   const plain = new THREE.Group(), mesh = box([4, 4, 4], [0, 10, 0], paint('x-authored-naval')); plain.add(mesh);
   applyPremadeWear(plain, 0);
   expect(mesh.geometry.hasAttribute('shipWear')).toBe(false);
+});
+
+test('mount armour: a gunhouse under its yaw joint, its barbette, player-built guns and conning towers', () => {
+  const root = new THREE.Group(), mesh = (assemblyId?: string) => { const m = new THREE.Mesh(new THREE.BoxGeometry()); if (assemblyId) m.userData.assemblyId = assemblyId; return m; };
+  const yaw = new THREE.Group(); yaw.userData = { nodeId: 'bruno.yaw', assemblyId: 'bruno' };
+  const gunhouse = mesh(), barbette = mesh('bruno'), tower = mesh('superstructure-conning-tower'), house = mesh('superstructure-bridge');
+  const gun = mesh('main-alpha'); gun.userData.constructionEquipmentKind = 'gun';
+  yaw.add(gunhouse); root.add(yaw, barbette, tower, house, gun);
+  const armour = mountArmour(root);
+  expect([gunhouse, barbette, tower, gun].map(armour)).toEqual([true, true, true, true]);
+  expect(armour(house)).toBe(false);
 });

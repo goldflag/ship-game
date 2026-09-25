@@ -313,7 +313,7 @@ for sign in [-1,1]:
     fit.knee('After portal perforated knee',BX,sign*11.4,sign*13.4,top,2.0)
     fit.door('Hangar after bulkhead door',BX-.16,sign*3.2,bottom,.8,1.8)
     for yy in [6.0,8.6]:
-        rod('After bulkhead scuttle',(BX-.2,sign*yy,bottom+1.6),(BX-.14,sign*yy,bottom+1.6),.14,M['dark'],COL['Hangars'],vertices=12)
+        rod('After bulkhead scuttle',(BX-.2,sign*yy,bottom+1.6),(BX-.14,sign*yy,bottom+1.6),.14,M['glass'],COL['Hangars'],vertices=12)
     for xx in [BX-.2]:
         for zz in [bottom+.4,bottom+2.4,11.6,13.4]:box('After bulkhead stiffener',(xx,sign*1.5,zz),(.1,.1,.1),M['naval'],COL['Hangars']) if False else None
 for x in [-123.2,-112,-104]:
@@ -479,12 +479,12 @@ for id,deck_above in [('island-base','bridge-walkway'),('bridge-chartroom','navi
     for side in [-1,1]:
         for x in [35.6,37.6,40.1,43.0]:
             wall=support.along((x,-13.35,z),(0,side,0),10)
-            rod('Island recessed scuttle',(x,wall.y-side*.055,z),(x,wall.y+side*.035,z),.135,M['dark'],COL['Island'],vertices=16)
+            rod('Island recessed scuttle',(x,wall.y-side*.055,z),(x,wall.y+side*.035,z),.135,M['glass'],COL['Island'],vertices=16)
             fit.ring('Island scuttle frame',(x,wall.y+side*.035,z),.15,.024,'y','naval',16)
 support=SupportSurface([structure_meshes['air-control']])
 for side in [-1,1]:
     x=38.5;z=21.18;wall=support.along((x,-13.35,z),(0,side,0),10)
-    rod('Aft conning-room scuttle',(x,wall.y-side*.055,z),(x,wall.y+side*.035,z),.135,M['dark'],COL['Island'],vertices=16)
+    rod('Aft conning-room scuttle',(x,wall.y-side*.055,z),(x,wall.y+side*.035,z),.135,M['glass'],COL['Island'],vertices=16)
     fit.ring('Aft conning-room scuttle frame',(x,wall.y+side*.035,z),.15,.024,'y','naval',16)
 for side in [-1,1]:
     for id,below in [('bridge-walkway','island-base'),('navigation-wings','bridge-chartroom'),('compass-platform','navigation-bridge')]:
@@ -690,7 +690,7 @@ for sign in [-1,1]:
             disc=tuple(range(n,n+8));faces.append(tuple(reversed(disc)) if sign>0 else disc);mats.append(0)
             for i in range(8):
                 j=(i+1)%8;q=(n+8+i,n+8+j,n+16+j,n+16+i);faces.append(q if sign>0 else tuple(reversed(q)));mats.append(1)
-    o=mesh('Hull scuttles',verts,faces,M['dark'],COL['Hull']);o.data.materials.append(M['naval'])
+    o=mesh('Hull scuttles',verts,faces,M['glass'],COL['Hull']);o.data.materials.append(M['naval'])
     for f,mi in zip(o.data.polygons,mats):f.material_index=mi
 for sign in [-1,1]:
     for x in [112,119,-116,-122]:

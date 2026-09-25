@@ -41,8 +41,10 @@ paints rather than models are visible: `--shots side,top,front,stern` (orthograp
 the right) and one `--camera preset|az,el[,m]` or `--eye x,y,z --target x,y,z` shot with `--fov` or `--ortho`, in the
 same frame and camera conventions as `ship:overlay` and `ui:shot`. `--paint`, `--parts` and `--offset z|x,y,z` pick the
 paint scheme, the groups and a shift into your ship's frame; images land in `.build/references/<name>/renders/`. `ship:overlay`
-measures that fore-and-aft shift between a reference and your ship (Iowa: 2.287 m) and prints it in its `summary.json`;
-pass it as `--offset` to render the reference in your ship's frame.
+measures that shift between a reference and your ship, fore and aft (Iowa: 2.287 m) and up and down (Bismarck: 0.87 m),
+and prints it in its `summary.json` as `offsetFlag`; pass it as `--offset` to render the reference in your ship's frame.
+To see the reference and a built ship from the same cameras, use `ship:overlay <id> --textured` instead; for a Blender-recipe
+preset's hull lines, `ship:lines <id>` ([ship pipeline](ship-pipeline.md#blender-recipe-presets)).
 
 Parts are grouped coarsely from the source path (`hull`, `gun-main`, `director`, `torpedo`, `misc`, …) so a
 measurement can keep the hull and drop deck clutter with `--parts hull`.

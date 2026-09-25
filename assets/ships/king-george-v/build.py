@@ -727,7 +727,7 @@ for x in list(range(-102,-66,4))+list(range(62,102,4)):
   for z in [deckz(x)-1.05]:
    y=side*(sidewidth(x,z)+.018)
    rod('Hull scuttle rim',(x,y,z),(x,y+side*.045,z),.155,'edge',vertices=12)
-   rod('Hull scuttle glass',(x,y+side*.047,z),(x,y+side*.055,z),.108,'dark',vertices=12)
+   rod('Hull scuttle glass',(x,y+side*.047,z),(x,y+side*.055,z),.108,'glass',vertices=12)
 ASSEMBLY='bridge-access'
 # Ladders from the upper deck onto the raised 5.25-inch sponsons.
 for x,y,z in [(-3.25,10.6,DECK),(-3.25,-10.6,DECK),(-27.4,10.6,DECK)]:

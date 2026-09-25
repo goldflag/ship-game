@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { parseOverlayArgs, resolveShots } from './overlay';
+import { alignmentHint, parseOverlayArgs, resolveShots } from './overlay';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 
 const definition = {
@@ -43,4 +43,19 @@ test('a box adds three clipped views and a camera adds one pinned shot', () => {
   const camera = shots.at(-1) as { pin: { ortho?: number; eye: number[] } };
   expect(camera.pin.ortho).toBe(80);
   expect(camera.pin.eye[0]).toBeGreaterThan(200);
+});
+
+test('textured pairs, section cuts and the fore-aft-only alignment', () => {
+  const options = parseOverlayArgs(['hood', '--textured', '--sections', 'z=-40,y=6.5', '--align', 'fore-aft', '--paint', 'default']);
+  expect(options).toMatchObject({ id: 'hood', textured: true, align: 'fore-aft', paint: 'default', sections: [{ axis: 'z', value: -40 }, { axis: 'y', value: 6.5 }] });
+  expect(parseOverlayArgs(['--textured', 'hood']).id).toBe('hood');
+  expect(() => parseOverlayArgs(['hood', '--sections', 'keel'])).toThrow('axis=value');
+});
+
+test('the hint names a fitted vertical datum, or suggests fitting one when the side view disagrees', () => {
+  const shot = (iou: number) => ({ name: 'side', iou });
+  expect(alignmentHint({ offset: [0, 0.868, 1.97], fitted: true, shots: [shot(0.97)] }, { align: 'silhouette' })).toContain('0.87 m lower than ours');
+  expect(alignmentHint({ offset: [0, 0.01, 1.97], fitted: true, shots: [shot(0.97)] }, { align: 'silhouette' })).toBeUndefined();
+  expect(alignmentHint({ offset: [0, 0, 1.97], fitted: true, shots: [shot(0.89)] }, { align: 'fore-aft' })).toContain('vertical datum');
+  expect(alignmentHint({ offset: [0, 0, 1.97], fitted: false, shots: [shot(0.95)] }, { align: 'silhouette' })).toBeUndefined();
 });

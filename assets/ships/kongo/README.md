@@ -74,7 +74,7 @@ barbettes, 254 mm conning tower and the steering-gear box read from the referenc
   and 40.8 m aft of amidships while the starboard wall runs at 6.75 m. The loft carries the mean, the port wing is
   its own structure, and the starboard wall there stands about 1 m wide of the reference.
 - The casemate drums turn half inside their embrasures, as in the reference; the sweep reports those contacts with
-  the hull as reachable and they are accepted.
+  the hull as reachable, and `sweep-accepted.json` accepts them.
 - Windows and portholes come from the reference's painted textures, so painted vents and grilles read as dark
   panels too. The boats' topsides use the reference's light grey; the slung boats' varnished hulls use the fittings
   wood.

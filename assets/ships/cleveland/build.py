@@ -67,7 +67,7 @@ def deck_height(x):
     for (a,va),(b,vb) in zip(h['deckHeights'],h['deckHeights'][1:]):
         if a<=station<=b:return va+(vb-va)*(station-a)/(b-a)
     return h['deckHeights'][0][1]
-materials=dict(hullgray=naval,glass=material("Cleveland optics",(.025,.07,.09)),bronze=material("Cleveland brass",(.32,.23,.09)),naval=naval,roof=deck,edge=boot,dark=boot,canvas=material('Cleveland gun canvas',(.075,.065,.055)))
+materials=dict(hullgray=naval,glass=material("Cleveland glass",(.025,.07,.09)),bronze=material("Cleveland brass",(.32,.23,.09)),naval=naval,roof=deck,edge=boot,dark=boot,canvas=material('Cleveland gun canvas',(.075,.065,.055)))
 materials['antifouling']=red
 helpers=dict(mesh=mesh,cyl=cyl,rod=rod,box=box)
 for structure in D.get('structures',[]):

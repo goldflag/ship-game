@@ -100,7 +100,7 @@ export const TECH_TREE: readonly TechNation[] = [
         ['jp-kuma', 'Kuma', 'Light cruiser', 1920, 1500],
         ['jp-furutaka', 'Furutaka', 'Heavy cruiser', 1926, 1500],
         ['jp-myoko', 'Myōkō', 'Heavy cruiser', 1929, 1500],
-        ['jp-takao', 'Takao', 'Heavy cruiser', 1932, 1500],
+        ship('takao', 'Takao', 'Takao', 'Heavy cruiser', 1932, 1500),
         ship('mogami', 'Mogami', 'Mogami', 'Heavy cruiser', 1935, 0, true),
         ['jp-tone', 'Tone', 'Heavy cruiser', 1938, 2200],
         ['jp-agano', 'Agano', 'Light cruiser', 1942, 3000],

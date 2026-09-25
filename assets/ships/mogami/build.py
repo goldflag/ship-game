@@ -398,7 +398,7 @@ for sy in (-1,1):
  for x in range(-92,94,4):
   w=loft_breadth(H,x,3.3)
   if w>.5:
-   o=cyl('Hull porthole',(x,sy*(w+.004),3.3),.13,.018,'dark',vertices=12);o.rotation_euler.x=math.pi/2
+   o=cyl('Hull porthole',(x,sy*(w+.004),3.3),.13,.018,'glass',vertices=12);o.rotation_euler.x=math.pi/2
    rod('Porthole eyebrow',(x-.14,sy*(w+.026),3.49),(x+.14,sy*(w+.026),3.49),.018,'edge',vertices=6)
 # The bow badge follows the approved model; no unsupported cloth ensign added.
 x=100.28;z=7.50

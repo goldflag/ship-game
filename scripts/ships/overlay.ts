@@ -1,8 +1,10 @@
 /** `ship:overlay <id>`: our published GLB against a cached `ship:reference`, from the same camera.
  * Ours-only pixels are red, reference-only blue, shared grey; IoU per shot goes to summary.json.
- * A GameModels3D model is not centred on our midships, so the reference is shifted fore and aft:
- * matched on the waterline half-breadths, then refined on the side and top silhouettes. `--offset`
- * overrides that. Output: `.build/ships/<id>/overlay/`.
+ * A GameModels3D model is not centred on our midships, and its waterline datum can differ from ours, so the
+ * reference is shifted: matched fore and aft on the waterline half-breadths, then refined fore and aft and up
+ * and down on the side and top silhouettes. `--offset` overrides that. `--textured` renders the textured
+ * reference and our model from the same cameras as paired images; `--sections` cuts both by the same planes.
+ * Output: `.build/ships/<id>/overlay/`.
  * Diagnostic only: reference geometry is read here and never reaches `assets/` or `public/`. */
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -11,6 +13,7 @@ import { runBlender } from '../build/blender';
 import { readReferenceMeta, referenceDirectory, selectTriangles } from '../construction/reference';
 import { suggestedVehicles } from '../../tools/ship-overlay/reference';
 import { cameraPin, parseCameraPose, parseVec3, type CameraPose } from '../browser/cameraPoses';
+import { compareCuts, cut, drawSections, parseSections, type SectionSpec } from './sections';
 import type { ShipDefinition, Vec3 } from '../../src/ships/blueprint';
 
 const ROOT = resolve(import.meta.dir, '../..');
@@ -28,9 +31,12 @@ export interface OverlayOptions {
   camera?: { pose: CameraPose; fov?: number; ortho?: number };
   parts?: string[];
   offset?: Vec3;
-  align: 'silhouette' | 'waterline' | 'none';
+  align: 'silhouette' | 'fore-aft' | 'waterline' | 'none';
   px: number;
   fetch: boolean;
+  textured: boolean;
+  paint?: string;
+  sections: SectionSpec[];
 }
 
 const HELP = `bun run ship:overlay <ship-id> [options]
@@ -40,8 +46,14 @@ const HELP = `bun run ship:overlay <ship-id> [options]
   --camera <preset|az,el[,m]> | --eye x,y,z --target x,y,z   one extra shot with this camera
   --fov <deg> | --ortho <m>  lens for that shot (perspective by default)
   --parts a,b,…            reference groups or part keys to draw (as ship:slice)
-  --offset z|x,y,z         reference shift in metres instead of the waterline alignment
-  --align silhouette|waterline|none   waterline match, then silhouette refinement (default); waterline only; none
+  --offset z|x,y,z         reference shift in metres instead of the fitted alignment
+  --align silhouette|fore-aft|waterline|none   waterline match, then silhouette refinement fore and aft and up
+                           and down (default); the same without the vertical; waterline only; none
+  --textured               also render the textured reference and our model from each shot's camera under one
+                           light: <shot>-reference.png, -ours.png and -pair.png in overlay/textured/
+  --paint <id>             reference paint scheme for --textured (default: the source's default)
+  --sections z=-40,y=6.5,x=0   cut both models by these planes (stations, plans, profiles) into
+                           section-<axis><value>.png, reference blue and ours red on a metre grid
   --px <n>                 image width for full-length views (default 2400)
   --no-fetch               fail instead of running ship:reference for an uncached reference`;
 
@@ -53,9 +65,10 @@ export function parseOverlayArgs(argv: string[]): OverlayOptions {
     if (next === undefined || next.startsWith('--')) throw new Error(`${flag} needs a value.`);
     return next;
   };
-  const id = argv.find((a, i) => !a.startsWith('--') && !argv[i - 1]?.startsWith('--')) ?? argv[0];
+  const switches = new Set(['--no-fetch', '--textured', '--help']);
+  const id = argv.find((a, i) => !a.startsWith('--') && !(argv[i - 1]?.startsWith('--') && !switches.has(argv[i - 1]))) ?? argv[0];
   if (!id || id.startsWith('--')) throw new Error(HELP);
-  const known = new Set(['--reference', '--shots', '--box', '--camera', '--eye', '--target', '--fov', '--ortho', '--parts', '--offset', '--align', '--px', '--no-fetch', '--help']);
+  const known = new Set(['--reference', '--shots', '--box', '--camera', '--eye', '--target', '--fov', '--ortho', '--parts', '--offset', '--align', '--px', '--no-fetch', '--textured', '--paint', '--sections', '--help']);
   for (const a of argv) if (a.startsWith('--') && !known.has(a)) throw new Error(`Unknown flag ${a}.\n${HELP}`);
   const shots = (value('--shots') ?? 'side,top,front,bridge,aft').split(',').map(s => s.trim()).filter(Boolean);
   for (const s of shots) if (!(NAMED_SHOTS as readonly string[]).includes(s)) throw new Error(`Unknown shot "${s}". Shots: ${NAMED_SHOTS.join(', ')}.`);
@@ -76,11 +89,13 @@ export function parseOverlayArgs(argv: string[]): OverlayOptions {
   else if (cameraText) camera = { pose: parseCameraPose(cameraText), fov, ortho };
   else if (target || fov !== undefined || ortho !== undefined) throw new Error('--target, --fov and --ortho need --camera or --eye.');
   const align = value('--align') ?? 'silhouette';
-  if (align !== 'silhouette' && align !== 'waterline' && align !== 'none') throw new Error('--align takes silhouette, waterline or none.');
+  if (align !== 'silhouette' && align !== 'fore-aft' && align !== 'waterline' && align !== 'none') throw new Error('--align takes silhouette, fore-aft, waterline or none.');
+  const sections = value('--sections');
   const px = numbers('--px', [1])?.[0] ?? 2400;
   if (px < 256 || px > 6000) throw new Error('--px takes 256 to 6000.');
   return {
     id, reference: value('--reference'), shots, box, camera, align, px, fetch: !argv.includes('--no-fetch'),
+    textured: argv.includes('--textured'), paint: value('--paint'), sections: sections ? parseSections(sections) : [],
     parts: value('--parts')?.split(',').filter(Boolean),
     offset: offset ? (offset.length === 1 ? [0, 0, offset[0]] : offset) as Vec3 : undefined,
   };
@@ -144,7 +159,66 @@ export async function overlay(options: OverlayOptions, root = ROOT) {
   const run = await runBlender(join(root, 'scripts/ships/overlay.py'), {}, { cwd: root, args: [jobFile], log: join(out, 'blender.log') });
   const line = run.stdout.split('\n').find(l => l.startsWith('OVERLAY_SUMMARY '));
   if (!line) throw new Error('Overlay render produced no summary; see ' + join(out, 'blender.log'));
-  return { ship: options.id, reference, ...JSON.parse(line.slice('OVERLAY_SUMMARY '.length)) };
+  const summary = JSON.parse(line.slice('OVERLAY_SUMMARY '.length)) as OverlaySummary;
+  const offset = summary.offset;
+  const result: Record<string, unknown> = { ship: options.id, reference, ...summary, offsetFlag: '--offset ' + offset.join(','), hint: alignmentHint(summary, options) };
+  if (options.sections.length) result.sections = await sectionCuts(root, glb, reference, offset, options, out);
+  if (options.textured) {
+    const { renderReference } = await import('../construction/referenceRender');
+    const cameras = summary.shots.map(shot => ({ name: shot.name, ...shot.camera }));
+    const rendered = await renderReference(root, meta, { cameras, model: glb, offset, paint: options.paint, parts: options.parts, out: join(out, 'textured') });
+    result.textured = rendered.shots.map(shot => shot.file);
+  }
+  await writeFile(join(out, 'summary.json'), JSON.stringify(result, null, 2) + '\n');
+  return result;
+}
+
+interface OverlaySummary {
+  offset: Vec3;
+  fitted: boolean;
+  shots: { name: string; view: string; iou: number; camera: { eye: Vec3; target: Vec3; up: Vec3; ortho?: number; fov?: number; size: [number, number]; clip?: [number, number] } }[];
+}
+
+/** A word when the side silhouettes still disagree: usually a vertical datum the fit was not allowed to find. */
+export function alignmentHint(summary: Pick<OverlaySummary, 'offset' | 'fitted' | 'shots'>, options: Pick<OverlayOptions, 'align'>): string | undefined {
+  const side = summary.shots.find(s => s.name === 'side');
+  const [, dy, dz] = summary.offset;
+  if (summary.fitted && options.align === 'silhouette')
+    return Math.abs(dy) >= 0.05
+      ? `The reference is drawn ${Math.abs(dy).toFixed(2)} m ${dy > 0 ? 'lower' : 'higher'} than ours (a different waterline datum); ` +
+        `pass --offset ${summary.offset.join(',')} to ship:reference --render and other comparisons.`
+      : undefined;
+  if (side && side.iou < 0.93) return `Side IoU ${side.iou} is low. Run without --offset and with the default --align silhouette to fit the vertical datum as well (fore-and-aft shift now ${dz}).`;
+  return undefined;
+}
+
+/** `--sections`: the reference (shifted by the overlay offset) and our GLB cut by each plane. */
+async function sectionCuts(root: string, glb: string, reference: string, offset: Vec3, options: OverlayOptions, out: string) {
+  const { readReference } = await import('../construction/reference');
+  const { parseGlb } = await import('../construction/referenceFile');
+  const { meshView } = await import('../construction/slice');
+  const mesh = await readReference(root, reference);
+  const referenceView = meshView(mesh, options.parts);
+  const parts = parseGlb(await readFile(glb));
+  const positions = new Float32Array(parts.reduce((n, p) => n + p.positions.length, 0));
+  const index = new Uint32Array(parts.reduce((n, p) => n + p.index.length, 0));
+  let vertices = 0, at = 0;
+  for (const part of parts) {
+    positions.set(part.positions, vertices * 3);
+    for (const i of part.index) index[at++] = i + vertices;
+    vertices += part.positions.length / 3;
+  }
+  const ours = { positions, index, ranges: [{ first: 0, count: index.length / 3 }] };
+  const box = options.box && { min: options.box.slice(0, 3) as Vec3, max: options.box.slice(3) as Vec3 };
+  const rows = [];
+  for (const spec of options.sections) {
+    const a = cut(referenceView, spec, offset, box), b = cut(ours, spec, [0, 0, 0], box);
+    const drawing = drawSections(spec, a, b);
+    const file = join(out, `section-${spec.axis}${spec.value}.png`);
+    await writeFile(file, drawing.png);
+    rows.push({ plane: `${spec.axis}=${spec.value}`, file, right: drawing.right, up: drawing.up, pixelsPerMetre: drawing.pixelsPerMetre, segments: { reference: a.length, ours: b.length }, halfBreadth: compareCuts(spec, a, b) });
+  }
+  return rows;
 }
 
 if (import.meta.main) {

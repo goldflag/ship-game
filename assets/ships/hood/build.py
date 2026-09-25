@@ -602,7 +602,7 @@ mesh('CT director hood', vs, [tuple(range(n)), tuple(reversed(range(n, 2 * n)))]
 rod('30 ft rangefinder', (44.55, -5.1, 20.15), (44.55, 5.1, 20.15), .36, 'naval', vertices=20)
 for side in [-1, 1]:
     box('30 ft rangefinder end', (44.55, side * 4.95, 20.15), (.9, .5, .9), 'naval')
-    box('Rangefinder window', (44.55, side * 5.21, 20.15), (.35, .03, .3), 'dark')
+    box('Rangefinder window', (44.55, side * 5.21, 20.15), (.35, .03, .3), 'glass')
     rod('Rangefinder stay', (44.9, side * 1.5, 19.3), (44.7, side * 3.7, 19.95), .05, 'naval', vertices=6)
 face = lambda s_, d: (47.78 - 1.38 * s_ + .63 * d, 19.3 + 1.12 * s_ + .777 * d)
 (ax_, az_), (bx_, bz_) = face(.35, .015), face(.6, .015)
@@ -653,7 +653,7 @@ for side in [-1, 1]:
     rod('12 ft rangefinder', (34.35, side * 5.3, 15.72), (38.15, side * 5.3, 15.72), .15, 'naval', vertices=14)
     for dx in [-1.75, 1.75]:
         box('Rangefinder end hood', (36.25 + dx, side * 5.3, 15.72), (.4, .42, .4), 'naval')
-        box('Rangefinder end window', (36.25 + dx * 1.13, side * 5.3, 15.72), (.03, .22, .2), 'dark')
+        box('Rangefinder end window', (36.25 + dx * 1.13, side * 5.3, 15.72), (.03, .22, .2), 'glass')
     node = pivot(ASSEMBLY + '.yaw', (36.25, side * 5.3, 15.24)); attach_world(set(scene.objects) - before - {node}, node)
 
 # Mainmast (reference): lower mast to the top at 24.6 m, topmast doubled abaft it from 22.8 m to
@@ -978,7 +978,7 @@ for zr, z in SCUTTLES:
         y = side * (sidewidth(x, z) + .015)
         if abs(y) < .3: continue
         rod('Hull scuttle rim', (x, y, z), (x, y + side * .04, z), .15, 'edge', vertices=12)
-        rod('Hull scuttle glass', (x, y + side * .042, z), (x, y + side * .05, z), .105, 'dark', vertices=12)
+        rod('Hull scuttle glass', (x, y + side * .042, z), (x, y + side * .05, z), .105, 'glass', vertices=12)
 
 # ------------------------------------------------------------------ underwater fittings
 COL = collections['Underwater fittings']

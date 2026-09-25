@@ -458,7 +458,7 @@ for side in [-1,1]:
    if z>deckz(x)-.5:continue
    y=side*(loft_breadth(H,x,z)-.025)
    rod('Scuttle rim',(x,y,z),(x,y+side*.035,z),.13,'naval',vertices=16)
-   rod('Dark scuttle',(x,y+side*.04,z),(x,y+side*.045,z),.087,'dark',vertices=14)
+   rod('Scuttle glass',(x,y+side*.04,z),(x,y+side*.045,z),.087,'glass',vertices=14)
  for x in [-92,-64,-42,62,86]:
   ASSEMBLY='mooring-fittings';y=side*max(.6,width(x)-1.4);z=deckz(x)
   box('Bollard bed',(x,y,z+.1),(1.2,.7,.2),'roof')

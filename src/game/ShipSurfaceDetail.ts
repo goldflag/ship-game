@@ -1,8 +1,9 @@
 import * as THREE from 'three/webgpu';
 import {
   Fn, If, abs, attribute, cross, dFdx, dFdy, dot, exp, faceDirection, float, int, materialColor, materialRoughness, max, mix, mx_noise_float, normalGeometry, normalView,
-  positionGeometry, positionView, pow, select, smoothstep, texture, uniform, vec2, vec3, vec4,
+  positionGeometry, positionView, pow, select, smoothstep, texture, uniform, uniformArray, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
+import { FOOT } from './constructionWear';
 import type { Node } from 'three/webgpu';
 
 /** Physically scaled surface detail for ship paint and teak, evaluated in each mesh's own
@@ -12,8 +13,9 @@ import type { Node } from 'three/webgpu';
  * read through shared nodes:
  * - plating: 2 m strakes, 8 m butts with staggered offsets, welded seams and slight
  *   dishing between frames as a height gradient, plus a low-frequency roughness field;
- * - teak: 16 cm planks with staggered 5.12 m butts, caulking, grain and relief, stretched to
- *   each deck's declared plank size (`deckPlanks`).
+ * - teak: 16 cm planks with staggered 5.12 m butts, caulking laid unevenly, pitch smeared at the
+ *   butts, grain and relief, stretched to each deck's declared plank size (`deckPlanks`); each
+ *   board then weathers on its own (see `TEAK_WEATHER`), so no two stretches of deck repeat.
  * Relief is applied as a surface gradient (Mikkelsen) from the per-pixel derivatives of
  * the geometry and view positions, so it needs no tangents and holds for batched,
  * instanced and mirrored meshes alike. Mipmaps average the gradients towards zero, so
@@ -96,6 +98,17 @@ function noiseTable(cells: number, seed: number): (u: number, v: number) => numb
 const buttOffset = (row: number) => Math.round(hash(row, 3) * PLATE.butt / PLATE.frame) * PLATE.frame;
 /** Pitch caulking darkens the board colour by this fraction at full coverage. */
 const CAULK_DARKENING = .62;
+/** Where a teak plank's first butt falls along the tile, in tile metres: three quarters of a board further on each successive
+ * plank, with a little jitter. The tile draws its butts there and the deck finds each board's identity from it. */
+export const teakShift = (row: number) => ((row * 3) % 4) / 4 * TEAK.butt + (hash(row, 1) - .5) * .8;
+/** How a laid teak deck weathers board by board and over metres, as fractions of the stain. Most boards differ by a few
+ * percent in tone and silver a little, each its own amount; about one in sixteen has bleached further, and about one in
+ * twenty is a newer replacement, darker. Sun and scrubbing silver broad patches a few metres across, so a deck reads as laid
+ * wood rather than a repeating tile. Board-scale variation fades once a board is under a couple of pixels. */
+export const TEAK_WEATHER = {
+  tone: .06, boardSilver: .12, silvered: .06, silver: [.18, .32], silverLift: .03, replaced: .05, replacedTone: -.07,
+  patch: [7, 11], patchTone: .04, patchSilver: .3, rough: .1,
+} as const;
 /** Mean board colour without caulking over mean with it: the pattern's mean while caulking fades. */
 let teakAlbedoRatio = 1.03;
 const encode = (value: number, scale: number) => Math.max(0, Math.min(255, Math.round(127.5 + value / scale * 127.5)));
@@ -289,7 +302,7 @@ export function teakTexels(width: number = TEAK.width, length: number = TEAK.len
   const end = new Float32Array(planks * length), tone = new Float32Array(planks * length), phase = new Float32Array(planks * length), warp = new Float32Array(planks * length);
   for (let row = 0; row < planks; row++) {
     // Butts shift by three quarters of a board on each successive plank, with a little jitter.
-    const shift = ((row * 3) % 4) / 4 * butt + (hash(row, 1) - .5) * .8;
+    const shift = teakShift(row);
     for (let z = 0; z < length; z++) {
       const along = (z + .5) * sz, run = along + shift, board = Math.floor(run / butt), inBoard = run - board * butt, id = ((board % 4) + 4) % 4, k = row * length + z;
       end[k] = Math.min(inBoard, butt - inBoard);
@@ -310,14 +323,25 @@ export function teakTexels(width: number = TEAK.width, length: number = TEAK.len
   // The groove at the nearest seam is the deeper of the side and end grooves.
   const profile = (d: number) => d < 3 * groove ? Math.exp(-((d / groove) ** 2)) : 0;
   const sideGroove = edgeOf.map(profile), endGroove = end.map(profile);
-  const sideCaulk = edgeOf.map(edge => clamp01((caulk / 2 + sx / 2 - edge) / sx)), endCaulk = end.map(e => clamp01((caulk / 2 + sz / 2 - e) / sz));
+  // Caulking as laid by hand: each seam's width wanders by about a third along it, its pitch is darker in some stretches
+  // than others, and here and there it has weathered grey or come away; pitch smears a few centimetres onto the board ends.
+  const laid = new Float32Array(planks * length), pitch = new Float32Array(planks * length), smear = new Float32Array(planks * length);
+  for (let row = 0; row < planks; row++) for (let z = 0; z < length; z++) {
+    const along = (z + .5) * sz, k = row * length + z, wander = tileNoise((row + .5) / planks, along / tileAlong, 64, row + 31);
+    const quality = tileNoise((row + .5) / planks, along / tileAlong, 160, row + 37);
+    laid[k] = caulk / 2 * (.7 + .6 * wander);
+    pitch[k] = quality < .18 ? .45 + 2 * quality : .75 + .25 * smooth(clamp01((quality - .18) / .6));
+    const board = Math.floor((along + teakShift(row)) / butt);
+    smear[k] = .1 * hash(row, ((board % 4) + 4) % 4, 21) * Math.exp(-((Math.max(0, end[k] - caulk / 2) / .012) ** 2));
+  }
   let mean = 0, bare = 0;
   for (let z = 0; z < length; z++) for (let x = 0; x < width; x++) {
     const k = rowOf[x] * length + z, i = z * width + x;
     const grain = .6 * (sc[x] * cca[k] + cc[x] * sca[k]) + .4 * (sf[x] * cfa[k] + cf[x] * sfa[k]);
     // Pitch caulking with an antialiased edge at this texel's footprint.
-    const coverage = Math.max(sideCaulk[x], endCaulk[k]);
-    albedo[i] = 1 + tone[k] + .045 * grain; seams[i] = coverage;
+    const side = clamp01((laid[k] + sx / 2 - edgeOf[x]) / sx), ends = clamp01((caulk / 2 + sz / 2 - end[k]) / sz);
+    const coverage = Math.max(side, ends) * pitch[k];
+    albedo[i] = (1 + tone[k] + .045 * grain) * (1 - smear[k]); seams[i] = coverage;
     height[i] = -.0012 * Math.max(sideGroove[x], endGroove[k]) + .00003 * grain;
     mean += albedo[i] * (1 - CAULK_DARKENING * coverage); bare += albedo[i];
   }
@@ -378,6 +402,10 @@ export function runoffStreaks(u: Node<'float'>, v: Node<'float'>): Node<'vec4'> 
 
 /** Relief strength, for review. */
 export const surfaceRelief = uniform(1);
+/** Each teak board's own weathering and the broad patches (`TEAK_WEATHER`), for review: 0 draws the tile's planks alone. */
+export const teakWeathering = uniform(1);
+/** The teak tile's butt offsets, per plank of its sixteen, for finding a board's identity in the shader. */
+const teakShifts = uniformArray(Array.from({ length: Math.round(TEAK.across / TEAK.plank) }, (_, row) => teakShift(row)), 'float');
 /** Paint wear and the plating finish, for review and frame-cost measurement: 0 draws neither (each ship's plain paint and the
  * plain plating relief), 1 as designed. */
 export const surfaceWear = uniform(1);
@@ -386,7 +414,6 @@ export const wearOverride = uniform(-1);
 /** Plating as welded and painted (seams, relief, each plate's shade), for review: 0 draws the plain plating relief
  * instead, 1 as designed. */
 export const plateFinish = uniform(1);
-
 /** Worn paint, per unit of wear amount where a pair gives [at none, added per unit]. Tints are linear colour
  * multipliers at full coverage. */
 const WEAR = {
@@ -401,6 +428,14 @@ const WEAR = {
   sootReach: [1, 3], sootDarkness: [.5, .45], soot: [.09, .085, .08],
 } as const;
 
+/** Washes of grime down a wall from its top edge, where scuppers and drains empty: in each `pitch` metres along an edge, a
+ * `share` of the cells carry one, `width` across (widening by `spread` per metre it runs) and running `reach` metres, short
+ * of the waterline, darkening the paint towards `tint` by `strength`, with a faint grain along the run. */
+const WASH = { pitch: 8, share: .4, width: [.25, .75], spread: .04, reach: [4, 14], strength: [.45, .8], most: .7, tint: [.62, .56, .44] } as const;
+/** Grime where a wall meets the deck: a band about `reach` metres tall whose height wanders by ±`wander` along the wall,
+ * its share [at none, added per unit of wear], at most `most`, and its tint. */
+const FOOT_GRIME = { reach: .22, wander: .55, share: [.25, 1.4], most: .8, tint: [.5, .43, .34] } as const;
+
 /** Paint as applied, on every ship however fresh; pairs give [fresh, added per unit of wear]. */
 const APPLIED = {
   /** Peak tone swing across plates, roller strips and marks, and cloudiness. */
@@ -412,15 +447,16 @@ const APPLIED = {
   /** Runoff from strake seams: its share of a top edge's, how many times shorter its streaks run and how much closer
    * set, and how much wetter a seam runs than its wear (a preset's seams draw the next preset's density of streaks). */
   seamRunoff: 1.2, seamRun: 2.5, seamSpacing: 3, seamWetter: 1.75,
-  /** Seams leak unevenly: the least a seam carries of the full runoff. */
-  leakMin: .7,
+  /** Seams leak unevenly, and most hardly at all: a seam carries its random share of the full runoff raised to this power,
+   * so about one in six leaks noticeably and the rest keep only their grime line. */
+  leakPower: 3,
   /** Grime gathered in a soft band below each strake seam: its darkness per unit of wear and its reach in metres. */
   band: .25, bandReach: .25,
 } as const;
 
 type Nodes = { plateNormal: Node<'vec3'>; paintColor: Node<'vec3'>; paintRoughness: Node<'float'>; plainRoughness: Node<'float'>; teak: THREE.DataTexture };
 let nodes: Nodes | undefined;
-type TeakNodes = { teakNormal: Node<'vec3'>; teakRoughness: Node<'float'>; teakPattern: Node<'float'> };
+type TeakNodes = { teakNormal: Node<'vec3'>; teakRoughness: Node<'float'>; teakPattern: Node<'vec3'> };
 /** Planked teak per plank size; a fleet has a handful. */
 const teakNodes = new Map<string, TeakNodes>();
 
@@ -512,13 +548,33 @@ function shipSurfaceNodes(): Nodes {
           const fringe = (h: Node<'float'>, hx: Node<'float'>, hy: Node<'float'>) => streaks(stretched(h.add(leak.mul(STREAK.along))).mul(APPLIED.seamSpacing), v)
             .grad(vec2(hx.mul(along), dx.y.mul(down)), vec2(hy.mul(along), dy.y.mul(down)));
           const runoff = mix(fringe(q.x, dx.x, dy.x), fringe(q.z, dx.z, dy.z), beam);
-          const share = leak.mul(1 - APPLIED.leakMin).add(APPLIED.leakMin);
+          const share = leak.pow(APPLIED.leakPower);
           clear.mulAssign(dot(runoff, weights(amount.mul(APPLIED.seamWetter).min(1))).mul(share).mul(APPLIED.seamRunoff).min(1).oneMinus());
           // Grime gathers in a soft band just below the seam.
           clear.mulAssign(exp(seamDrop.div(-APPLIED.bandReach)).mul(amount.mul(APPLIED.band)).mul(share).oneMinus());
         });
+        // Washes from the top edge, each in its own cell along it (the edge's height tells walls apart).
+        const along = mix(q.x, q.z, beam), wash = float(0).toVar(), foot = float(0).toVar();
+        If(vertical.and(drop.lessThan(WASH.reach[1] + 2)), () => {
+          const cell = along.div(WASH.pitch).floor(), seed = cell.add(q.y.add(drop).div(2.5).floor().mul(31.7));
+          const h = (k: number) => seed.add(k).mul(12.9898).sin().mul(43758.5453).fract();
+          const centre = cell.add(h(1).mul(.6).add(.2)).mul(WASH.pitch);
+          const x = along.sub(centre).div(h(2).mul(WASH.width[1] - WASH.width[0]).add(WASH.width[0]).mul(drop.mul(WASH.spread).add(1)));
+          const run = drop.add(tide.max(0).mul(.9)).min(h(4).mul(WASH.reach[1] - WASH.reach[0]).add(WASH.reach[0])).mul(h(1).mul(.4).add(.6)).mul(amount.div(.4).clamp(.6, 1.3));
+          const fade = float(1).sub(smoothstep(run.mul(.55), run, drop)).mul(smoothstep(0, .25, drop).mul(.4).add(.6));
+          const grain = mx_noise_float(vec3(along.mul(9), drop.mul(.35), h(3).mul(50))).mul(.35).add(.75);
+          const strength = h(4).mul(WASH.strength[1] - WASH.strength[0]).add(WASH.strength[0]).mul(amount.div(.4).clamp(.5, 1.6));
+          wash.assign(h(0).lessThan(WASH.share).select(exp(x.mul(x).negate()).mul(fade).mul(grain).mul(strength).min(WASH.most), float(0)));
+        });
+        If(vertical.and(worn.z.greaterThan(FOOT - 1)), () => {
+          const reach = mx_noise_float(vec3(along.div(1.3), q.y.div(3), 5.1)).mul(FOOT_GRIME.wander).add(1).mul(FOOT_GRIME.reach);
+          foot.assign(exp(worn.z.sub(FOOT).div(reach).negate()).mul(amount.mul(FOOT_GRIME.share[1]).add(FOOT_GRIME.share[0])).min(FOOT_GRIME.most));
+        });
         const cover = clear.oneMinus().mul(smoothstep(.62, .4, abs(m.y))).mul(amount.mul(WEAR.streak[1]).add(WEAR.streak[0]));
         color.mulAssign(mix(vec3(1), mix(vec3(...WEAR.grime), vec3(...WEAR.rust), smoothstep(.2, 1, amount)), cover));
+        const steep = smoothstep(.62, .4, abs(m.y));
+        color.mulAssign(mix(vec3(1), vec3(...WASH.tint), wash.mul(steep)));
+        color.mulAssign(mix(vec3(1), vec3(...FOOT_GRIME.tint), foot.mul(steep)));
         // Grime and rust dull the paint a little.
         rough.mulAssign(cover.mul(.2).add(1));
         If(abs(tide).lessThan(2), () => {
@@ -566,10 +622,38 @@ function planked(planks: DeckPlanks): TeakNodes {
   const seamFade = mix(float(1), float(.35), smoothstep(.012, .06, footprint));
   // Renormalised so the mean stays the stain at every fade.
   const caulk = t.y.mul(CAULK_DARKENING * seam).mul(seamFade), mean = seamFade.mul(seam * (1 - teakAlbedoRatio)).add(teakAlbedoRatio);
-  const teakPattern = mix(float(1), t.x.mul(2).mul(caulk.oneMinus()).div(mean), up);
+  const pattern = t.x.mul(2).mul(caulk.oneMinus()).div(mean);
+  // Each board's own weathering, from its identity on the whole deck: the plank it lies in and its board along that plank,
+  // found where the tile draws them (`teakShift`), so tone changes only at seams and never repeats with the tile.
+  const W = TEAK_WEATHER;
+  // Tone multiplier (x), silvering (y) and how far the board is a replacement (z); none with weathering off.
+  const weather = Fn(() => {
+    const result = vec3(1, 0, 0).toVar();
+    If(teakWeathering.greaterThan(0), () => {
+      const row = p.x.div(planks.width).floor(), tileRow = row.sub(row.div(16).floor().mul(16)).toInt();
+      const shift = teakShifts.element(tileRow) as unknown as Node<'float'>, board = p.z.div(along).add(shift).div(TEAK.butt).floor();
+      const boardHash = (k: number) => row.mul(12.9898).add(board.mul(78.233)).add(k * 37.719).sin().mul(43758.5453).fract();
+      const h1 = boardHash(0), h2 = boardHash(1), h3 = boardHash(2);
+      // Boards narrower than a couple of pixels would flicker; their variation gives way to the broad patches.
+      const boardFade = float(1).sub(smoothstep(planks.width * .15, planks.width * .6, footprint)).mul(teakWeathering);
+      const patch = mx_noise_float(vec3(p.x.div(W.patch[0]), p.z.div(W.patch[1]), 3.7)).mul(teakWeathering);
+      const silvered = h2.lessThan(W.silvered).select(mix(float(W.silver[0]), float(W.silver[1]), h3), float(0));
+      const replaced = h2.greaterThan(1 - W.replaced).select(float(1), float(0));
+      const silver = silvered.add(h3.mul(W.boardSilver)).mul(boardFade).add(patch.max(0).mul(W.patchSilver));
+      const tone = h1.sub(.5).mul(2 * W.tone).add(replaced.mul(W.replacedTone)).add(silvered.mul(W.silverLift)).mul(boardFade).add(patch.mul(W.patchTone)).add(1);
+      result.assign(vec3(tone, silver, replaced.mul(boardFade)));
+    });
+    return result;
+  })();
+  const tone = weather.x, silver = weather.y, replaced = weather.z;
+  // Silvering pulls the deck's final colour (stain and finish colour together) towards its own grey.
+  const tint = vertexColor().rgb.max(1e-3), weathered = pattern.mul(tone);
+  // Weathered teak greys warm, not blue.
+  const grey = vec3(dot(tint.mul(weathered), vec3(.2126, .7152, .0722))).mul(vec3(1.03, 1, .93)).div(tint);
+  const teakPattern = mix(vec3(1), mix(vec3(weathered), grey, silver), up);
   // The tile's height gradients are per metre of the tile; stretched, they are shallower.
   const teakGradient = vec3(t.z.mul(2).sub(1).div(across), 0, t.w.mul(2).sub(1).div(along)).mul(TEAK.gradientScale).mul(up);
-  const teakRoughness = plainRoughness.mul(t.y.mul(.1).add(t.x.sub(.5).mul(-.12)).mul(up).add(1));
+  const teakRoughness = plainRoughness.mul(t.y.mul(.1).add(t.x.sub(.5).mul(-.12)).add(silver.mul(W.rough)).sub(replaced.mul(W.rough * .5)).mul(up).add(1));
   const made = { teakNormal: perturbed(teakGradient), teakRoughness, teakPattern };
   teakNodes.set(key, made);
   return made;
