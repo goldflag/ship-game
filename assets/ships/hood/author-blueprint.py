@@ -384,7 +384,8 @@ b['mountClearance'] = dict(version=1, marginM=.03,
 b['damageControl'] = dict(version=1, teams=4, setupSeconds=8, repairPoints=240, roomFuelSeconds=140, mountFuelSeconds=50, suppressionPerSecond=.065,
     portablePumpM3PerSecond=.09, repairHpPerSecond=.5, repairCeiling=.6, patchM2PerSecond=.012, maxPatchM2=.3, flashProtection=.85,
     basis='Shared provisional battleship crew/fuel/repair calibration; not historical manning, flash trials or damage-control performance.')
-b['rig'] = dict(version=1, ensigns=[dict(id='national-ensign', design='white-ensign', position=[0, 10.2, 128.6], width=4.2, staffHeight=5.9)],
+# At sea the ensign flies from the peak of the mainmast's ensign gaff.
+b['rig'] = dict(version=1, ensigns=[dict(id='national-ensign', design='white-ensign', position=[0, 29.4, 38.3], width=4.2, staffHeight=0)],
                 radars=[dict(id='radar-279', nodeId='radar-279.yaw', rpm=4), dict(id='radar-284', nodeId='dct-foretop.yaw', rpm=2, sweepDeg=50)])
 b['localDamage'] = dict(version=1, regions=[], basis='Replaced by author-local-damage.ts.')
 

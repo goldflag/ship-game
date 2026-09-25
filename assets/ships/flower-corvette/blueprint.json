@@ -16545,11 +16545,11 @@
         "design": "white-ensign",
         "position": [
           0,
-          7,
-          28.242
+          17.3,
+          10.2
         ],
         "width": 1.5,
-        "staffHeight": 2.8
+        "staffHeight": 0
       }
     ],
     "radars": []
