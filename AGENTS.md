@@ -50,7 +50,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 
 | Command | Use |
 | --- | --- |
-| `bun run bootstrap` | First thing in a fresh worktree: install, simulation content and dev WASM, `.env.local` |
+| `bun run bootstrap` | First thing in a fresh worktree: install, simulation content and dev WASM, `.env.local`. Seconds when another worktree already built the same crate sources (shared WASM cache) |
 | `bun run check` | While iterating: incremental typecheck plus only the tests your diff affects. `--all` for every test |
 | `bun run test` | Every TypeScript test, quiet. `bun test <file>` runs one file with full output |
 | `bun run ship:browser:check -- --only <name>` | One editor browser check; `--list` shows them |
