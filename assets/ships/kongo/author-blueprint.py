@@ -504,7 +504,8 @@ b['underwaterProtection'] = dict(version=1, basis='Estimated anti-torpedo bulge 
                                              size=[3.4, 7.6, 108], damageReduction=.4, breachReduction=.4) for side, sign in [('port', -1), ('starboard', 1)]])
 
 # ---------------------------------------------------------------- rig
-b['rig'] = dict(version=1, ensigns=[dict(id='national-ensign', design='ijn', position=[0, round(deck_y(rz(109.2)) + 5.6, 3), rz(109.2)], width=4.0, staffHeight=5.6)],
+# At sea the ensign flies from the peak of the mainmast gaff.
+b['rig'] = dict(version=1, ensigns=[dict(id='national-ensign', design='ijn', position=[0, 38.4, 4.5], width=4.0, staffHeight=0)],
                 radars=[dict(id='main-director', nodeId='main-director.yaw', rpm=2, sweepDeg=55, phaseDeg=40),
                         dict(id='after-director', nodeId='after-director.yaw', rpm=2, sweepDeg=55, phaseDeg=160)])
 b['damageControl'] = dict(version=1, teams=4, setupSeconds=8, repairPoints=320, roomFuelSeconds=180, mountFuelSeconds=80, suppressionPerSecond=.1,

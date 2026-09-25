@@ -65483,11 +65483,11 @@
         "design": "us-48",
         "position": [
           0,
-          8.736,
-          122.895
+          31.2,
+          11.2
         ],
         "width": 3.6,
-        "staffHeight": 4.3
+        "staffHeight": 0
       }
     ],
     "radars": [

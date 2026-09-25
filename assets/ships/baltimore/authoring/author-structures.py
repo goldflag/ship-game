@@ -240,8 +240,8 @@ b['mountClearance'] = {
         'aft-deckhouse-tail', 'aft-platform', 'aft-5in-deckhouse', 'after-5in-pedestal-port', 'after-5in-pedestal-starboard']],
     'neighbors': [['main-1', 'main-2'], ['main-2', 'secondary-51'], ['main-3', 'secondary-56']],
 }
-# The ensign staff stands on the stern 40 mm sponson's after rim.
-b['rig']['ensigns'][0]['position'] = [0, 10.9, 103.3]
+# At sea the ensign flies from the mainmast topmast, above the SK aerial.
+b['rig']['ensigns'][0].update(position=[0, 35.4, 21.45], staffHeight=0)
 b['structures'] = S
 
 
