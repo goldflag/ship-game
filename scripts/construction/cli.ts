@@ -142,8 +142,8 @@ try {
     print({
       id,
       registered: true,
-      // The smoke test checks every registered Blender-recipe preset's funnel count.
-      ...(recipe ? await legacy.addFunnelCount(root, id) : {}),
+      // The smoke test requires a funnel mouth on every registered surface preset: say now if there is none.
+      ...(recipe ? await legacy.funnelReport(root, id) : {}),
       next: 'Run bun run ship:hydrostatics and bun run multiplayer:content, then bun run build; registration does not certify visual acceptance.',
     });
   } else {
