@@ -154,7 +154,7 @@ def build():
  for side in (-1,1):
   for z in (27.65,30.1):
    for xx in (-3.1,-1.9):
-    rod('Operations room scuttle',(xx,side*3.34,z),(xx,side*3.40,z),.115,dark,SUPER,vertices=12)
+    rod('Operations room scuttle',(xx,side*3.34,z),(xx,side*3.40,z),.115,glass,SUPER,vertices=12)
   # A rear-facing ladder has transverse rungs; both rails clear the curved
   # aft wall. Each stand-off is seated by an actual forward surface ray.
   ladder_support=SupportSurface([o for o in SUPER.objects if o.get('nodeId') in ('bridge-trunk.surface','operations-tower.surface') or o.name.startswith(('First navigation bridge lower wall','Navigation roof'))])
@@ -272,7 +272,7 @@ def build():
   cyl('4.5 m rangefinder cupola',(x,y,18.62),.8,.36,naval,SUPER,16)
   rod('4.5 m rangefinder optical tube',(-5.85,side*7.55,17.85),(-.93,side*7.55,17.85),.21,naval,SUPER,vertices=12)
   for xx in (-5.66,-1.12):box('4.5 m rangefinder end hood',(xx,side*7.55,17.9),(.42,.5,.56),naval,SUPER)
-  box('4.5 m rangefinder window',(x,side*9.04,17.95),(.8,.04,.22),dark,SUPER)
+  box('4.5 m rangefinder window',(x,side*9.04,17.95),(.8,.04,.22),glass,SUPER)
  # Aft annex: a raised block behind the tower carries the after high-angle
  # directors. The after pair stands on a cross platform cantilevered from the
  # annex with nothing beneath its wings: the 12.7 cm No. 4 mounts train and
