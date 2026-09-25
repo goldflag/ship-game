@@ -69,8 +69,8 @@ where that wall stands within 35 cm of the reference's and faces the view, once 
 Mounts sit at the reference's hardpoint datums: the Model E twins are the catalog's `type3-203-furutaka-twin` and
 `-rf` (built against Furutaka's `jgm146`/`jgm147`, the same meshes as this reference's `jgm025`/`jgm024`), the 12.7 cm
 twins `type89-127-a1-twin` (the reference's `jgs009`), the 25 mm triples `type96-25-triple` (`jga173`), the twins
-`type96-25-mogami-2` and the singles `type96-25-kongo-single`. No. 3 turret rests at 25° elevation so its barrels,
-trained aft, clear the bridge face. The two after triples stand on the deck 5 cm above the reference's shallow wells.
+`type96-25-mogami-2` and the singles `type96-25-kongo-single`. No. 3 turret rests trained aft at 7° elevation: at
+the horizontal its muzzles meet the bridge-base face (the reference's touch it), and 7° lifts them over its top edge. The two after triples stand on the deck 5 cm above the reference's shallow wells.
 Every mount carries a `mountClearance` envelope (barrels with recoil and a carriage box) against the blocks it can reach
 and against neighbouring mounts whose working circles overlap. The torpedo mounts train on the upper deck inside the
 shelter block, which the recipe draws with its three rounded openings a side; their tubes are authored at zero train,

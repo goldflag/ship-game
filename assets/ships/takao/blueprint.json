@@ -43709,7 +43709,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
-      "initialElevationDeg": 25
+      "initialElevationDeg": 7
     },
     {
       "id": "main-4",

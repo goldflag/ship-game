@@ -137,9 +137,9 @@ for id, name, y, z, bearing, rangefinder in MAIN:
     b['mounts'].append(dict(id=id, name=name + ' 20.3 cm', partId='type3-203-furutaka-twin-rf' if rangefinder else 'type3-203-furutaka-twin',
                             battery='main', position=[0, y, rz(z)], bearingDeg=bearing, rangefinder=rangefinder,
                             magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN))
-# No. 3 turret stows trained aft with its muzzles 0.7 m short of the bridge front at the horizontal;
-# it rests elevated so the barrels clear the bridge face (game rest pose, not a documented stowage).
-b['mounts'][2]['initialElevationDeg'] = 25
+# No. 3 turret stows trained aft, its muzzles at the bridge-base face at the horizontal (the reference's
+# barrels touch it); it rests a few degrees up so they clear the face's top edge (game rest pose).
+b['mounts'][2]['initialElevationDeg'] = 7
 # Four open twin 12.7 cm Type 89 on the shelter-deck sponsons; bearing is the centre of the beam arc.
 HA = [('ha-1', -7.501, 6.324, -10.045, -90), ('ha-2', 7.502, 6.324, -10.045, 90), ('ha-3', -7.443, 6.324, 10.868, -90), ('ha-4', 7.443, 6.324, 10.868, 90)]
 for id, x, y, z, bearing in HA:

@@ -47212,7 +47212,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
-      "initialElevationDeg": 25,
+      "initialElevationDeg": 7,
       "weapon": {
         "id": "type3-203-furutaka-twin",
         "name": "20.3 cm/50 Type 3 Model E twin",
@@ -249526,5 +249526,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "8fe10eab964a39ff68d528fbe74d56f638b01dd7f279a5dd883c01baf9be70be"
+  "contentHash": "481614b465d897c204dacc000e91e5b7d7b213cfa7780fbcf4df55c82dde8b54"
 }
