@@ -56,9 +56,8 @@ for s in D['structures']:
     for face in ob.data.polygons:
         if face.normal.z > .8:
             face.material_index = 1
-    if 'exhaust' in s or s.get('surface'):
-        for face in ob.data.polygons:
-            face.use_smooth = abs(face.normal.z) < .5
+    for face in ob.data.polygons:
+        face.use_smooth = 'exhaust' in s and abs(face.normal.z) < .5
     shells.append(ob)
 support = SupportSurface([hull, *shells])
 kit.support = support

@@ -4,7 +4,7 @@ The editable blueprint is the versioned asset. This recipe records how it was ma
 rebuilds everything except the measured hull stations and superstructure blocks, which it
 keeps from the current blueprint unless fresh measurement files are passed:
 
-  python3 assets/ships/takao/author-blueprint.py [--loft loft.json] [--structures superstructure.json]
+  python3 assets/ships/takao/author-blueprint.py [--loft loft.json] [--structures a.json,b.json]
 
 The measurement files are produced in ignored .build/takao/ from the cached
 `bun run ship:reference pjsc708` view (ARP Takao's default configuration, the Takao-class
@@ -182,9 +182,9 @@ for id, x, z, rest, side in TORPEDO:
 
 # ---------------------------------------------------------------- superstructure
 if opts.structures:
-    measured = json.loads(Path(opts.structures).read_text())
+    measured = [s for path in opts.structures.split(',') for s in json.loads(Path(path).read_text())['structures']]
     structures = []
-    for s in measured['structures']:
+    for s in measured:
         entry = dict(id=s['id'], name=s.get('name') or f"{'Deckhouse' if s['height'] >= .6 else 'Platform'} {s['baseY']:.1f}-{s['baseY'] + s['height']:.1f} m",
                      footprint=s['footprint'], baseY=s['baseY'], height=s['height'], material='naval')
         if s.get('surface'):
@@ -192,6 +192,25 @@ if opts.structures:
         if s.get('exhaust'):
             entry['exhaust'] = s['exhaust']
         structures.append(entry)
+    # Names by region; the top block of each funnel carries its exhaust (the smoke's mouth).
+    NAMES = {'bridge-base': 'Bridge base', 'bridge': 'Bridge tier', 'forward-funnel': 'Forward funnel', 'after-funnel': 'After funnel',
+             'midships': 'Midships deckhouse', 'aft': 'After deckhouse'}
+    for s in structures:
+        prefix = s['id'].rsplit('-', 1)[0]
+        if prefix in NAMES:
+            s['name'] = f"{NAMES[prefix]} {s['baseY']:.1f}-{s['baseY'] + s['height']:.1f} m"
+    for prefix in ['forward-funnel', 'after-funnel']:
+        tops = [s for s in structures if s['id'].startswith(prefix + '-')]
+        top = max(tops, key=lambda s: s['baseY'] + s['height'])
+        if top.get('surface'):
+            vs = top['surface']['vertices']
+            y1 = max(v[1] for v in vs)
+            ring = [v for v in vs if abs(v[1] - y1) < 1e-6]
+        else:
+            y1 = top['baseY'] + top['height']
+            ring = [[x, y1, z] for x, z in top['footprint']]
+        xs, zs = [v[0] for v in ring], [v[2] for v in ring]
+        top['exhaust'] = dict(position=[0, round(y1, 3), round((min(zs) + max(zs)) / 2, 3)], width=round(max(xs) - min(xs), 3), length=round(max(zs) - min(zs), 3))
 else:
     structures = previous['structures']
 b['structures'] = structures
