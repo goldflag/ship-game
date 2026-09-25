@@ -29,6 +29,10 @@
   `src/game/session/frameDelta.test.ts` gate the frame shapes.
 - After a Rust change the client needs `bun run multiplayer:prepare:dev` (warm: a few seconds); `bun run check`
   does this and then runs every TypeScript test, because they run the simulation as WASM.
+- `scripts/multiplayer/build-wasm.ts` keys each module by the crate sources, the files they include, the profile,
+  RUSTFLAGS and wasm-bindgen, and shares it through the main checkout's `.build/wasm-cache/`: a worktree whose
+  crates match one already built (a fresh one from master, or after merging master) restores the module instead
+  of compiling. `NAVAL_WASM_CACHE=0` always compiles. Native `cargo test` builds are still per worktree.
 - The simulation stays renderer-free and deterministic: seeded randomness only, no wall-clock time.
 - Performance work uses the native profiling harness and equality gate in
   [docs/sim-performance-plan.md](../docs/sim-performance-plan.md); prove behaviour-neutral changes by equality,

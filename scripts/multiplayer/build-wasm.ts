@@ -2,11 +2,14 @@
  * profile. A/B variants go elsewhere so they neither replace the game's module nor evict the shared cargo cache:
  *   bun scripts/multiplayer/build-wasm.ts --out-dir .build/wasm-simd --rustflags '-C target-feature=+simd128'
  * Extra RUSTFLAGS build in their own `.build/wasm-target/<hash>` unless `--target-dir` names one. Each output directory
- * records what it holds in `build.json`, so replacing a release or hand-made module is announced, never silent. */
+ * records what it holds in `build.json`, so replacing a release or hand-made module is announced, never silent. A module
+ * another worktree built from the same sources is restored from the shared cache (wasm-cache.ts) instead of compiled;
+ * NAVAL_WASM_CACHE=0 always compiles. */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { rustTool } from './toolchain';
+import { restoreWasm, storeWasm, wasmCacheDir, wasmSourceKey } from './wasm-cache';
 
 const root = resolve(import.meta.dir, '../..'), PUBLISHED = 'src/generated/naval-wasm';
 const usage = 'Usage: build-wasm.ts [--dev] [--out-dir <dir>] [--rustflags <flags>] [--target-dir <dir>]';
@@ -22,7 +25,7 @@ const profile = options.dev ? 'wasm-dev' : 'release', rustflags = options.rustfl
 const outDir = resolve(root, options['out-dir'] ?? PUBLISHED), published = outDir === resolve(root, PUBLISHED);
 const targetDir = resolve(root, options['target-dir'] ?? (rustflags ? `.build/wasm-target/${sha256(rustflags).slice(0, 12)}` : process.env.CARGO_TARGET_DIR ?? 'target'));
 const wasm = `${targetDir}/wasm32-unknown-unknown/${profile}/naval_wasm.wasm`, shown = (path: string) => path.replace(`${root}/`, '');
-interface Stamp { profile: string; rustflags: string; wasmSha256: string }
+interface Stamp { profile: string; rustflags: string; wasmSha256: string; sourceKey?: string }
 const describe = (stamp: Pick<Stamp, 'profile' | 'rustflags'>) => `${stamp.profile === 'release' ? 'release' : 'dev'} WASM${stamp.rustflags ? ` (RUSTFLAGS ${stamp.rustflags})` : ''}`;
 const label = describe({ profile, rustflags });
 
@@ -37,28 +40,41 @@ if (stamp && existsSync(moduleFile)) {
   } else if (stamp.profile !== profile || stamp.rustflags !== rustflags) console.log(`Replacing the ${describe(stamp)} in ${shown(outDir)} with the ${label}${restore}.`);
 }
 
-// Cargo decides what is stale; its first `Compiling` line is announced, since a rebuild can take minutes.
+// The shared cache first: the same sources, profile, flags and wasm-bindgen always produce the same bindings.
+const BINDINGS = ['naval_wasm.js', 'naval_wasm_bg.wasm', 'naval_wasm.d.ts', 'naval_wasm_bg.wasm.d.ts'];
+const bindgenTool = rustTool('wasm-bindgen'), cache = wasmCacheDir(root);
+const sourceKey = process.env.NAVAL_WASM_CACHE === '0' ? undefined
+  : wasmSourceKey(root, { profile, rustflags, bindgen: Bun.spawnSync([bindgenTool, '--version']).stdout.toString().trim() });
+const current = stamp?.sourceKey === sourceKey && existsSync(moduleFile) && stamp?.wasmSha256 === sha256(readFileSync(moduleFile));
+const restored = !!sourceKey && !current && restoreWasm(cache, sourceKey, outDir, BINDINGS);
+if (restored) console.log(`Restored the ${label} from the shared cache (${shown(cache)}): another worktree built these sources.`);
+
+// Otherwise cargo decides what is stale; its first `Compiling` line is announced, since a rebuild can take minutes.
 const env: Record<string, string | undefined> = { ...process.env, ...(rustflags ? { RUSTFLAGS: [process.env.RUSTFLAGS, rustflags].filter(Boolean).join(' ') } : {}) };
 if (process.stderr.isTTY) Object.assign(env, { CARGO_TERM_COLOR: 'always', CARGO_TERM_PROGRESS_WHEN: 'always', CARGO_TERM_PROGRESS_WIDTH: String(process.stderr.columns || 100) });
 const started = performance.now(), firstBuild = !existsSync(wasm), decoder = new TextDecoder();
-const cargo = Bun.spawn([rustTool('cargo'), 'build', '-p', 'naval-wasm', '--target', 'wasm32-unknown-unknown', '--profile', profile, '--locked', '--target-dir', targetDir], {
-  cwd: root, env, stdout: 'inherit', stderr: 'pipe',
-});
-let rebuilding = false, recent = '';
-for await (const chunk of cargo.stderr) {
-  if (!rebuilding) {
-    recent = (recent + decoder.decode(chunk, { stream: true })).replace(/\x1b\[[\d;]*m/g, '').slice(-2000);
-    const crate = recent.match(/Compiling (\S+)/)?.[1];
-    if (crate) {
-      rebuilding = true;
-      console.log(firstBuild ? `Building ${label} for the first time in ${shown(targetDir)}; this can take minutes.` : `Rebuilding ${label}: sources changed since the last build (cargo is compiling ${crate}); this can take minutes.`);
+let rebuilding = false;
+if (!current && !restored) {
+  const cargo = Bun.spawn([rustTool('cargo'), 'build', '-p', 'naval-wasm', '--target', 'wasm32-unknown-unknown', '--profile', profile, '--locked', '--target-dir', targetDir], {
+    cwd: root, env, stdout: 'inherit', stderr: 'pipe',
+  });
+  let recent = '';
+  for await (const chunk of cargo.stderr) {
+    if (!rebuilding) {
+      recent = (recent + decoder.decode(chunk, { stream: true })).replace(/\x1b\[[\d;]*m/g, '').slice(-2000);
+      const crate = recent.match(/Compiling (\S+)/)?.[1];
+      if (crate) {
+        rebuilding = true;
+        console.log(firstBuild ? `Building ${label} for the first time in ${shown(targetDir)}; this can take minutes.` : `Rebuilding ${label}: sources changed since the last build (cargo is compiling ${crate}); this can take minutes.`);
+      }
     }
+    process.stderr.write(chunk);
   }
-  process.stderr.write(chunk);
+  if (await cargo.exited) throw new Error('Failed: cargo build');
+  const bindgen = Bun.spawn([bindgenTool, '--target', 'web', '--out-dir', outDir, wasm], { cwd: root, stdout: 'inherit', stderr: 'inherit' });
+  if (await bindgen.exited) throw new Error('Failed: wasm-bindgen');
+  if (sourceKey) storeWasm(cache, sourceKey, outDir, BINDINGS);
 }
-if (await cargo.exited) throw new Error('Failed: cargo build');
-const bindgen = Bun.spawn([rustTool('wasm-bindgen'), '--target', 'web', '--out-dir', outDir, wasm], { cwd: root, stdout: 'inherit', stderr: 'inherit' });
-if (await bindgen.exited) throw new Error('Failed: wasm-bindgen');
 // Embed the exact local content/build identity; never adopt the server's version
 // as our own, which would silently accept a stale browser deployment.
 const { default: init, simulation_build, protocol_version, construction_shape_library } = await import(resolve(outDir, 'naval_wasm.js'));
@@ -70,5 +86,5 @@ if (published) {
   const rulesVersion = (await Bun.file(resolve(root, 'assets/gameplay/battle-rules.v1.json')).json()).version;
   await Bun.write(resolve(root, 'src/generated/naval-version.json'), JSON.stringify({ protocol: protocol_version(), simulationBuild: simulation_build(), manifestHash: sha256(manifest), rulesVersion }));
 }
-await Bun.write(stampFile, `${JSON.stringify({ profile, rustflags, targetDir: shown(targetDir), wasmSha256: sha256(bytes) }, null, 2)}\n`);
+await Bun.write(stampFile, `${JSON.stringify({ profile, rustflags, targetDir: shown(targetDir), wasmSha256: sha256(bytes), sourceKey }, null, 2)}\n`);
 if (rebuilding || !published) console.log(`${rebuilding && !firstBuild ? 'Rebuilt' : 'Built'} ${label} in ${((performance.now() - started) / 1000).toFixed(0)} s: ${shown(outDir)}`);

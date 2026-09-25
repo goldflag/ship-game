@@ -21,8 +21,8 @@ const SCANNERS: [test: string, scans: RegExp, what: string][] = [
   ['scripts/tests/tracked-evidence.test.ts', /^assets\//, 'tracked assets'],
   ['src/game/comparison/waterProIsolation.test.ts', /^src\/.*\.tsx?$/, 'imports across src'],
 ];
-/** Shared roots reach every test; so does the simulation, which the client tests run as WASM. */
-const SHARED = /^(package\.json|bun\.lock|tsconfig.*\.json|vite\.config\.ts|scripts\/tests\/run\.ts|Cargo\.(toml|lock)|crates\/)/;
+/** Shared roots reach every test; so does the simulation, which the client tests run as WASM (its docs don't). */
+const SHARED = /^(package\.json|bun\.lock|tsconfig.*\.json|vite\.config\.ts|scripts\/tests\/run\.ts|Cargo\.(toml|lock)|crates\/(?!.*\.md$))/;
 
 export const testFiles = (root: string) => {
   const glob = new Bun.Glob('**/*.{test,spec}.{js,jsx,ts,tsx,mjs,mts,cjs,cts}');
