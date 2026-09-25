@@ -10,8 +10,8 @@
  *   curl -s 'localhost:<port>/run?scene=muzzle&out=.build/effects/try1'   render against the current source
  *   curl -s localhost:<port>/reload   load the page afresh and wait for its battle
  *   curl -s localhost:<port>/stop     cancel queued runs, close the browser and exit
- * Vite reloads the page after a source edit, and the next /run waits for the new battle. `--no-hmr` keeps the page and
- * its battle through edits until /reload. The server exits after `--idle` minutes without a request (default 60). */
+ * The page and its battle stay through source edits until /reload. `--hmr` lets Vite reload the page after each edit
+ * instead, and the next /run waits for the new battle. The server exits after `--idle` minutes without a request (default 60). */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -21,7 +21,7 @@ const { values } = parseArgs({ options: {
   scene: { type: 'string', default: 'muzzle,hit,magazine,fire,funnel' }, out: { type: 'string', default: '.build/effects/review' },
   battle: { type: 'string', default: 'bismarck;;bismarck:static' }, range: { type: 'string', default: '1500' }, bearing: { type: 'string', default: '90' },
   viewport: { type: 'string', default: '1280x720' }, columns: { type: 'string', default: '3' }, serve: { type: 'string' }, list: { type: 'boolean', default: false },
-  param: { type: 'string', multiple: true, default: [] }, 'sea-time': { type: 'string', default: '60' }, 'no-hmr': { type: 'boolean', default: false },
+  param: { type: 'string', multiple: true, default: [] }, 'sea-time': { type: 'string', default: '60' }, hmr: { type: 'boolean', default: false }, 'no-hmr': { type: 'boolean', default: false },
   idle: { type: 'string', default: '60' }, url: { type: 'string' }, 'allow-gpu-errors': { type: 'boolean', default: false },
 } });
 
@@ -85,7 +85,7 @@ if (values.list) {
 }
 
 // Several reviews may share one desktop; an occluded window must not have its frame loop throttled.
-await withHarness({ params, viewport: { width, height }, hmr: !values['no-hmr'], deadline: values.serve ? Infinity : 1800,
+await withHarness({ params, viewport: { width, height }, hmr: values.hmr && !values['no-hmr'], deadline: values.serve ? Infinity : 1800,
   url: values.url?.replace(/\/$/, ''), allowGpuErrors: values['allow-gpu-errors'],
   args: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'] }, async harness => {
   const columns = Number(values.columns);

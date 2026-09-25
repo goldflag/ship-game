@@ -101,7 +101,7 @@ try {
     const port = Number(option('--port') ?? 0);
     if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Port must be 0–65535.');
     const { authoringServer, serverUrl } = await browserTools();
-    const server = await authoringServer(root, port, true);
+    const server = await authoringServer(root, port, 'live');
     print({ url: serverUrl(server) + '/tools/construction/editor.html?ship=' + id, source: sourcePath(root, id), ready: true });
     for (const signal of ['SIGINT', 'SIGTERM'] as const)
       process.on(signal, async () => {
