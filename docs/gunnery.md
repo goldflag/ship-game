@@ -21,7 +21,7 @@ seconds per battle second (`crates/naval-sim/src/mobility.rs`, mirrored in `src/
 | 4. Gun control | `crates/naval-sim/src/gunnery.rs` `operate_cadenced` | Every 6 ticks (`SURFACE_CONTROL_TICKS`, 10 Hz); reload and recoil every tick | Hands every surface mount the player's aim; fires the selected group |
 | 5. Laying | `crates/naval-sim/src/weapons.rs` `update_mount_control_at` | Each control update | Solves the lead, lays train and elevation in the rolled hull frame, sets the mount status |
 | 6. Hull attitude | `crates/naval-sim/src/stability.rs` `update_stability`, `environment.rs` `SeaState::response` | Every tick | Roll and pitch from the righting arms plus the wave arm |
-| 7. Frames | `ShipView.updateMotion` / `updateArticulation` (`src/game/ShipView.ts`) | Every render frame | Interpolates pose, train and elevation between the last two frames by `interpolationAlpha` |
+| 7. Frames | `ShipView.updateMotion` / `updateArticulation` (`src/game/ShipRenderView.ts`) | Every render frame | Interpolates pose, train and elevation between the last two frames by `interpolationAlpha` |
 | 8. Preview | `src/game/gunAim.ts` `gunAimPoints` | Every render frame | Traces each selected gun's current barrels forward to the aim range, or to where the round meets the sea |
 | 9. Circles | `src/game/GunAimIndicators.ts` | Every render frame | Projects, smooths (80 ms), groups and labels the preview points |
 

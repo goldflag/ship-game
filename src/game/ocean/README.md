@@ -460,7 +460,9 @@ in `.build/ocean-wake/`. `/scripts/diagnostics/ocean-review.html` renders fixed 
 for side-by-side review (`bun scripts/browser/ocean-review.ts --tag <name>` saves them to
 `.build/ocean-review/<name>/`; `far`, `farGale`, `farStorm` and `farHigh` are the chase camera zoomed out to its
 1.4 km limit, where a lattice shows first; `--param wind=<m/s>` sets the wind of scenes without their own,
-`--param realism=off` the replaced library's look, `--param hullsea=off` the sea without the hull coupling); keep a
-baseline tag to compare a change against. Its placed hulls ride the combat sea as the authority poses them, on a fixed
+`--param realism=off` the replaced library's look, `--param hullsea=off` the sea without the hull coupling);
+`--baseline origin/master` renders and times the same scenes on a worktree of that commit, alternating the two, and
+reports both side by side (see the [ocean guide](../../../docs/ocean-configuration.md#reviewing-the-ocean-in-the-real-game)).
+Neither script's page reloads when source changes mid-run, and their page-error lists carry no favicon 404. Its placed hulls ride the combat sea as the authority poses them, on a fixed
 battle seed; `oceanReview.hullSeaProbe()` flattens the drawn waves and reads heights back around the player's hull,
 which must equal combat's `seaHeight` within the full reach (0.1 mm on High at 30 m/s) and 0 past the fade.

@@ -49,8 +49,9 @@ export interface HarnessOptions {
   deadlines?: Partial<Record<HarnessStage, number>>;
   /** Chromium without vsync or its frame-rate limit, so frames run past the display refresh; `measureFrameCost` needs it. */
   uncapped?: boolean;
-  /** `false` drops Vite's hot updates and full reloads: a source edit no longer restarts the page (and a battle mid-ramp).
-   * `harness.reload()` picks edits up. */
+  /** Off by default: the harness's own server pushes no hot updates or full reloads, and the page drops any a reused dev server
+   * (`url`) sends, so a source edit during a run cannot restart the page (and a battle mid-ramp). `harness.reload()` picks
+   * edits up. `true` restores Vite's hot updates, for a live session that should follow the source. */
   hmr?: boolean;
   /** Keep WebGPU errors out of `errors` (they stay in `gpuErrors`), for a GPU bug already known red. */
   allowGpuErrors?: boolean;
@@ -100,7 +101,7 @@ export async function launchHarness(options: HarnessOptions = {}): Promise<Harne
     await within(server.close(), 10, 'close').catch(() => note('the dev server did not close in 10 s; the process exit ends it'));
   })();
   try {
-    if (!options.url) server = await within(authoringServer(ROOT, 0, true), deadlines.server, stage);
+    if (!options.url) server = await within(authoringServer(ROOT, 0, options.hmr ? 'live' : true), deadlines.server, stage);
     const url = options.url ?? serverUrl(server!);
     if (server) note(`dev server at ${url}`);
     stage = 'browser';
@@ -126,7 +127,9 @@ export async function launchHarness(options: HarnessOptions = {}): Promise<Harne
       if (gpuErrors.length < 3) note(`WebGPU error: ${text.slice(0, 400)}`);
       gpuErrors.push(text); if (!options.allowGpuErrors) errors.push(`WebGPU: ${text}`);
     });
-    if (options.hmr === false) await dropHotUpdates(page);
+    // Our own server sends no file-change updates, but still the dependency optimizer's reload a cold first load may need;
+    // a reused dev server sends both, so its page drops them.
+    if (!options.hmr && options.url) await dropHotUpdates(page);
     const query = new URLSearchParams(Object.entries(params).map(([key, value]) => [key, String(value)]));
     const pageUrl = `${url}${options.page ?? HARNESS_PAGE}?${query}`;
     stage = 'page';

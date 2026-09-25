@@ -281,7 +281,7 @@ def build():
  wrap=[side_point(x,5.25,1,.02) for x in range(-104,-131,-2)]
  wrap=wrap+[Vector((-L/2+.35,0,5.25))]+[Vector((p.x,-p.y,p.z)) for p in reversed(wrap)]
  tube('Quarterdeck rubbing strake',wrap,.09,hullgray,HULL,4)
- risers.emit('Hull side fitting',edge,HULL);scuttles.emit('Hull scuttle',dark,HULL)
+ risers.emit('Hull side fitting',edge,HULL);scuttles.emit('Hull scuttle',glass,HULL)
 
  # Aft recess under the overhanging deck edge: inclined knees carry the overhang.
  knees=Batch()

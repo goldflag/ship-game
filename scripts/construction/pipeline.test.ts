@@ -42,7 +42,8 @@ beforeEach(async () => {
   await put('assets/ships/test/blueprint.json', JSON.stringify(source));
   await put('public/models/components/catalogs/' + catalogJson.revision + '/catalog.json', JSON.stringify(catalogJson));
   await put('package.json', '{"dependencies":{"three":"0.185.0"}}');
-  for (const path of ['src/game/constructionModel.ts', 'src/game/ShipView.ts', 'tools/construction/export.ts', 'tools/construction/presentation.ts', 'tools/construction/pose.ts']) await put(path, 'export const value = 1;');
+  for (const path of ['src/game/constructionModel.ts', 'src/game/ShipRenderView.ts', 'tools/construction/presentation.ts', 'tools/construction/pose.ts']) await put(path, 'export const value = 1;');
+  await put('tools/construction/export.ts', "export { value } from '../../src/game/constructionModel';");
 });
 afterEach(async () => { (globalThis as any).window = realWindow; globalThis.fetch = realFetch; await rm(root, { recursive: true, force: true }); });
 

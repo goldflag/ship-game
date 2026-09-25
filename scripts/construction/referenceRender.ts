@@ -22,6 +22,8 @@ export interface RenderShot {
   fov?: number;
   ortho?: number;
   size: [number, number];
+  /** Near and far clip distances; a clipped box view keeps only its slab. */
+  clip?: [number, number];
 }
 export interface RenderOptions {
   shots?: string[];
@@ -34,6 +36,11 @@ export interface RenderOptions {
   parts?: string[];
   size?: [number, number];
   out?: string;
+  /** Exact cameras (for example `ship:overlay`'s), used instead of `shots` and `camera`. */
+  cameras?: RenderShot[];
+  /** A GLB (ours) drawn with the same light and cameras as the reference: each shot writes `<name>-reference.png`,
+   * `<name>-ours.png` and `<name>-pair.png`, the two side by side (square views) or stacked (wide views). */
+  model?: string;
 }
 interface Bucket {
   texture?: string;
@@ -130,13 +137,14 @@ export function texturedParts(pack: ReferencePack, root: import('../../tools/shi
 }
 
 /** Fetch what is missing, lay out the scene for Blender and render every shot. Returns the written images. */
-export async function renderReference(rootDir: string, meta: ReferenceMeta, options: RenderOptions = {}): Promise<{ directory: string; paint: string; shots: { name: string; file: string }[]; textures: number; triangles: number }> {
+export interface RenderedShot { name: string; file: string; reference?: string; ours?: string }
+export async function renderReference(rootDir: string, meta: ReferenceMeta, options: RenderOptions = {}): Promise<{ directory: string; paint: string; shots: RenderedShot[]; textures: number; triangles: number }> {
   if (meta.kind !== 'gamemodels3d' || !meta.vehicle || !meta.hull) throw new Error('A textured render needs a GameModels3D reference; a local GLB or OBJ has no source textures.');
   const { loadReference, loadTexture, packDataRoot } = await import('../../tools/ship-overlay/download');
   const { assembleReference, paintMaterials, geometryGroups } = await import('../../tools/ship-overlay/reference');
   const { runBlender } = await import('../build/blender');
   const pack = await loadReference(rootDir, meta.vehicle);
-  const shots = renderShots(meta, options);
+  const shots = options.cameras ?? renderShots(meta, options);
   if (!shots.length) throw new Error('No shots: pass --shots side,top,front,stern and/or --camera, --eye/--target.');
   const parts = assembleReference(pack.scheme, meta.hull, meta.components ?? []);
   const selection = { paint: options.paint, parts: options.parts, offset: options.offset, metresPerUnit: meta.frame.metresPerUnit };
@@ -167,11 +175,13 @@ export async function renderReference(rootDir: string, meta: ReferenceMeta, opti
     at += positions.length + uv.length + index.length;
   }
   await writeFile(join(scratch, 'scene.bin'), Buffer.concat(blobs));
-  const manifest = { scene: join(scratch, 'scene.bin'), buckets: layout, shots, directory };
+  const manifest = { scene: join(scratch, 'scene.bin'), buckets: layout, shots, directory, ...(options.model ? { model: resolve(options.model) } : {}) };
   await writeFile(join(scratch, 'scene.json'), JSON.stringify(manifest));
   await runBlender(join(import.meta.dir, 'blender/reference_render.py'), {}, { args: [join(scratch, 'scene.json')], log: join(scratch, 'blender.log') });
   return {
     directory, paint: options.paint ?? 'default', textures: layout.filter((bucket) => bucket.texture).length, triangles: layout.reduce((sum, bucket) => sum + bucket.triangles, 0),
-    shots: shots.map((shot) => ({ name: shot.name, file: join(directory, shot.name + '.png') })),
+    shots: shots.map((shot) => (options.model
+      ? { name: shot.name, file: join(directory, shot.name + '-pair.png'), reference: join(directory, shot.name + '-reference.png'), ours: join(directory, shot.name + '-ours.png') }
+      : { name: shot.name, file: join(directory, shot.name + '.png') })),
   };
 }

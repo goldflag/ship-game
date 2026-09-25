@@ -50,8 +50,11 @@
 - `hydrostatic_table` names the hull and attitude that broke a limit and prints each hull's worst roll arm;
   `NAVAL_SHIPS=<id>[,<id>] bun run rust:test -- hydrostatic_table` checks only those hulls (under a second).
 - A cold `cargo test --release -p naval-sim` builds every test binary with thin LTO and one codegen unit, so
-  it takes minutes (one session measured about eleven): run it in the background, or iterate with
-  `bun run rust:test`, which uses the `test-fast` profile.
+  it takes minutes (one session measured about eleven; CI 31): iterate with `bun run rust:test` (the
+  `test-fast` profile). `bun run multiplayer:check` and CI test on the `ci-test` profile, release optimisation
+  without LTO, so a whole-workspace run links in a fraction of the time with the same results.
+- `terrain_soak` is `#[ignore]`d and runs nightly (`.github/workflows/soak.yml`); after a navigation or bot change
+  run it with `bun run rust:test -- terrain_soak -- --ignored`.
 
 ## Script a battle without writing a test
 

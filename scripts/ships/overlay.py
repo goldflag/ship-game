@@ -2,8 +2,8 @@
 
 Run by scripts/ships/overlay.ts in background Blender with one argument: a JSON job file.
 Both models are drawn in the runtime frame (+X starboard, +Y up, -Z bow, waterline Y=0);
-the reference is shifted fore and aft by the job's offset, or by one measured from the
-waterlines and refined on the side and top silhouettes. Each shot renders ours and the
+the reference is shifted by the job's offset, or by one measured from the waterlines and
+refined on the side and top silhouettes (fore and aft, and up and down on the side view). Each shot renders ours and the
 reference alone with the same camera and transparent film, then composites: ours only red,
 reference only blue, both in the reference's own shading.
 """
@@ -185,6 +185,9 @@ def ortho(view, box, px, margin):
     camera.matrix_world = Matrix(((r.x, u.x, -f.x, 0), (r.y, u.y, -f.y, 0), (r.z, u.z, -f.z, 0), (0, 0, 0, 1)))
     camera.location = to_b(eye_rt)
     camera_data.clip_start = .001; camera_data.clip_end = depth + .02
+    global last_camera
+    last_camera = dict(eye=eye_rt.tolist(), target=(eye_rt + look).tolist(), up=up.tolist(), ortho=width,
+                       size=[px_w, px_h], clip=[.001, depth + .02])
     return px_w, px_h, width, height
 
 
@@ -208,44 +211,67 @@ def aim(eye_rt, target_rt):
     camera.rotation_euler = (target - eye).to_track_quat('-Z', 'Y').to_euler()
 
 
-def refine(offset):
+def overlap(a, b, reach_x, reach_y):
+    """Intersection of mask a with mask b moved by every (dy, dx) pixel shift within reach, by FFT
+    cross-correlation: inter[dy + reach_y, dx + reach_x] = sum a[p] * b[p - (dy, dx)]. The masks are
+    rendered with at least `reach` of empty margin, so the circular shift equals the linear one."""
+    fa = np.fft.rfft2(a.astype(np.float32))
+    fb = np.fft.rfft2(b.astype(np.float32))
+    c = np.fft.irfft2(fa * np.conj(fb), s=a.shape)
+    rows = np.arange(-reach_y, reach_y + 1) % a.shape[0]
+    cols = np.arange(-reach_x, reach_x + 1) % a.shape[1]
+    return np.rint(c[np.ix_(rows, cols)])
+
+
+def peak(values, k):
+    """Sub-step position of a maximum from the parabola through it and its neighbours."""
+    if 0 < k < len(values) - 1:
+        l, c, r = values[k - 1], values[k], values[k + 1]
+        if l - 2 * c + r < 0: return .5 * (l - r) / (l - 2 * c + r)
+    return 0.0
+
+
+def refine(offset, vertical):
     """Slide the reference's side and top silhouettes along ours (±4 m at about 4 cm a pixel) to the
     greatest combined overlap. Both views put the bow to the right, so a fore-and-aft shift is a
-    horizontal image shift. The waterline match alone left Iowa 0.4 m short of the best fit."""
-    reach = 4.0
-    counts = None
+    horizontal image shift; with `vertical` the side view also slides up and down (±3 m), which finds
+    a reference whose waterline datum differs from ours (Bismarck's sits 0.85 m low). The waterline
+    match alone left Iowa 0.4 m short of the best fit."""
+    reach, reach_up = 4.0, 3.0 if vertical else 0.0
+    px_w = min(6000, int(math.ceil((np.ptp(both[:, 2]) + 2 * reach) / .04)))
+    inter = union_parts = None
     for view in ('side', 'top'):
-        px_w = min(6000, int(math.ceil((np.ptp(both[:, 2]) + 2 * reach) / .04)))
         _, _, width, _ = ortho(view, [None] * 6, px_w, reach)
         a = render('align', 'ours', job['out'] + '/align-ours.png')[:, :, 3] > .5
         b = render('align', 'reference', job['out'] + '/align-reference.png')[:, :, 3] > .5
         metres = width / px_w
         steps = int(reach / metres)
-        view_counts = []
-        for s in range(-steps, steps + 1):
-            moved = np.zeros_like(b)
-            if s >= 0: moved[:, s:] = b[:, :b.shape[1] - s]
-            else: moved[:, :s] = b[:, -s:]
-            view_counts.append(((a & moved).sum(), (a | moved).sum()))
-        view_counts = np.array(view_counts, np.float64)
-        counts = view_counts if counts is None else counts + view_counts
+        rows = int(reach_up / metres) if view == 'side' else 0
+        counts = overlap(a, b, steps, rows)
+        if view == 'top':
+            counts = counts[:1]
+        area = float(a.sum() + b.sum())
+        inter = counts if inter is None else inter + counts
+        union_parts = area if union_parts is None else union_parts + area
+        side_rows = rows if view == 'side' else side_rows
     for side in ('ours', 'reference'): os.remove(job['out'] + f'/align-{side}.png')
-    iou = counts[:, 0] / np.maximum(counts[:, 1], 1)
-    k = int(np.argmax(iou))
-    fraction = 0.0
-    if 0 < k < len(iou) - 1:
-        l, c, r = iou[k - 1], iou[k], iou[k + 1]
-        if l - 2 * c + r < 0: fraction = .5 * (l - r) / (l - 2 * c + r)
+    iou = inter / np.maximum(union_parts - inter, 1)
+    ky, kx = np.unravel_index(int(np.argmax(iou)), iou.shape)
+    fx = peak(iou[ky], kx)
+    fy = peak(iou[:, kx], ky)
     # Image right is runtime -Z, so moving the reference right by s pixels is a shift of -s * metres.
-    return [offset[0], offset[1], offset[2] - (k - steps + fraction) * metres]
+    # Rows count up from the bottom of the image, which is runtime +Y.
+    dz = -(kx - steps + fx) * metres
+    dy = (ky - side_rows + fy) * metres if vertical else 0.0
+    return [offset[0], offset[1] + dy, offset[2] + dz]
 
 
-if job['offset'] is None and job['align'] == 'silhouette':
-    start = offset[2]
-    offset = refine(offset)
-    shift = offset[2] - start
-    ref_obj.location = (0, -shift, 0)
-    ref_rt = ref_rt + [0, 0, shift]
+if job['offset'] is None and job['align'] in ('silhouette', 'fore-aft'):
+    start = list(offset)
+    offset = refine(offset, job['align'] == 'silhouette')
+    shift_y, shift_z = offset[1] - start[1], offset[2] - start[2]
+    ref_obj.location = (0, -shift_z, shift_y)
+    ref_rt = ref_rt + [0, shift_y, shift_z]
     both = np.concatenate([ours_rt, ref_rt])
 
 summary = []
@@ -261,6 +287,10 @@ for shot in job['shots']:
         camera_data.clip_start = .05; camera_data.clip_end = 5000
         aim(np.array(pin['eye'], np.float64), np.array(pin['target'], np.float64))
         width = height = 0.0
+        # The same camera as reference_render.py describes it: a vertical field of view.
+        fov = pin.get('fov', 40)
+        lens = {'ortho': pin['ortho']} if pin.get('ortho') else {'fov': math.degrees(2 * math.atan(math.tan(math.radians(fov) / 2) * px_h / px_w))}
+        last_camera = dict(eye=list(pin['eye']), target=list(pin['target']), up=[0, 1, 0], size=[px_w, px_h], **lens)
     else:
         px_w, px_h, width, height = ortho(shot['view'], shot['box'], shot['px'], shot.get('margin', 2.0))
     base = job['out'] + '/' + shot['name']
@@ -280,9 +310,10 @@ for shot in job['shots']:
                         widthM=round(width, 2), heightM=round(height, 2), pixels=[px_w, px_h],
                         iou=round(float((ma & mb).sum()) / max(union, 1), 4),
                         oursOnly=round(float((ma & ~mb).sum()) / max(union, 1), 4),
-                        referenceOnly=round(float((mb & ~ma).sum()) / max(union, 1), 4)))
+                        referenceOnly=round(float((mb & ~ma).sum()) / max(union, 1), 4),
+                        camera=last_camera))
 
-result = dict(offset=[round(v, 4) for v in offset],
+result = dict(offset=[round(v, 4) for v in offset], fitted=job['offset'] is None and job['align'] != 'none',
               waterline=dict(ours=ours_span and [round(v, 3) for v in ours_span], reference=ref_span and [round(v, 3) for v in ref_span]),
               shots=summary)
 open(job['out'] + '/summary.json', 'w').write(json.dumps(result, indent=2) + '\n')

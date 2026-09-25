@@ -1,10 +1,31 @@
 import { expect, test } from 'bun:test';
-import { formationSpawns, resolveBattleFleet, validateBattleSetup, validateSpawns, type BattleSetup } from './battle';
-import { OCEAN_MAPS, customTerrainOffset, placedMapTerrain } from '../maps/catalog';
-import { OPEN_SEA, terrainLandWithin } from '../maps/heightfield';
-import { installMapTerrain } from '../maps/testing';
-import { shipPreset } from '../ships/presets';
-import { CombatSimulation } from './combat';
+import { OCEAN_MAPS, customTerrainOffset, placedMapTerrain } from '../../maps/catalog';
+import { OPEN_SEA, terrainLandWithin } from '../../maps/heightfield';
+import { installMapTerrain } from '../../maps/testing';
+import { shipPresets } from '../../ships/presets';
+import { BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, formationSpawns, validateBattleSetup, validateSpawns } from './battleSetup';
+
+test('fleet validation rejects empty enemies, unavailable presets and overfull teams', () => {
+  const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], spawnDistance: BATTLE_SPAWN_DISTANCE };
+  const ids = Object.keys(shipPresets);
+  expect(() => validateBattleSetup(setup, ids, OPEN_SEA)).not.toThrow();
+  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(29).fill('bismarck'), enemies: Array(30).fill('yamato') }, ids, OPEN_SEA)).not.toThrow();
+  expect(() => validateBattleSetup({ ...setup, enemies: [] }, ids, OPEN_SEA)).toThrow('at least one enemy');
+  expect(() => validateBattleSetup({ ...setup, playerShipId: 'missing' }, ids, OPEN_SEA)).toThrow('unavailable');
+  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(30).fill('bismarck') }, ids, OPEN_SEA)).toThrow('up to 30');
+  expect(() => validateBattleSetup({ ...setup, enemies: Array(31).fill('bismarck') }, ids, OPEN_SEA)).toThrow('up to 30');
+});
+
+test('spawn distance accepts its limits and rejects invalid values', () => {
+  const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], spawnDistance: BATTLE_SPAWN_DISTANCE };
+  const ids = Object.keys(shipPresets);
+  for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, 7500, MAX_BATTLE_SPAWN_DISTANCE]) {
+    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids, OPEN_SEA)).not.toThrow();
+  }
+  for (const spawnDistance of [NaN, Infinity, -Infinity, 0, -1000, MIN_BATTLE_SPAWN_DISTANCE - 1, MAX_BATTLE_SPAWN_DISTANCE + 1]) {
+    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids, OPEN_SEA)).toThrow('spawn distance');
+  }
+});
 
 test('every formation clears the real coasts at minimum and maximum distance with up to twelve ships a side', async () => {
   // Each chart keeps the lane between the default spawn lines clear of land; thirty abreast can reach a coast.
@@ -17,18 +38,6 @@ test('every formation clears the real coasts at minimum and maximum distance wit
       expect(positions.enemy.every(p => p.z <= -distance)).toBe(true);
     }
   }
-});
-
-test('custom positions and headings reach every actor and survive reset without sharing mutable setup state', () => {
-  const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: ['bismarck'], enemies: ['bismarck'], spawnDistance: 5000,
-    spawns: { friendly: [{ x: 1000, z: 500, heading: Math.PI / 2 }, { x: -650, z: 1000, heading: 0 }], enemy: [{ x: 1500, z: -3000, heading: Math.PI }] } };
-  validateBattleSetup(setup, ['bismarck'], OPEN_SEA);
-  const sim = new CombatSimulation(shipPreset('bismarck'), resolveBattleFleet(setup, shipPreset));
-  expect(sim.actors.map(a => [a.motion.x, a.motion.z, a.motion.heading])).toEqual([[1000, 500, Math.PI / 2], [-650, 1000, 0], [1500, -3000, Math.PI]]);
-  setup.spawns!.friendly[0].x = 9000;
-  sim.ship.x = 8000; sim.reset();
-  expect(sim.ship.x).toBe(1000);
-  expect(sim.ship.heading).toBe(Math.PI / 2);
 });
 
 test('placement rejects overlapping ships, malformed positions, out of bounds and land', async () => {
@@ -47,7 +56,6 @@ test('placement rejects overlapping ships, malformed positions, out of bounds an
   expect(field.height(9400, -19200)).toBeGreaterThan(200);
   positions.enemy = [{ x: 9400, z: -19200 - 2500, heading: 0 }];
   expect(() => validateSpawns(positions, 1, 1, terrain)).toThrow('land');
-  expect(() => new CombatSimulation(shipPreset('bismarck'), { friendlyBots: [], enemies: [shipPreset('bismarck')], spawns: positions, mapId: 'iron-bottom-sound', spawnDistance: 5000 })).toThrow('land');
 });
 
 test('a spawn is legal exactly when no land sample lies within 300 m', async () => {

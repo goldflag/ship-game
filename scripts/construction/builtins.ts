@@ -13,7 +13,7 @@ export const FLAGS: Record<string, FlagSpec> = {
   import: { values: ['--expect'], positionals: 1 },
   export: { positionals: 1 },
   render: { values: ['--view', '--part', '--out', '--pose'], switches: ['--isolate', '--published', '--quick'] },
-  trial: { values: ['--seconds', '--out'], switches: ['--published'] },
+  trial: { values: ['--vs', '--seconds', '--out'], defaults: { '--vs': 'origin/master' }, switches: ['--published', '--json', '--live'] },
   register: {},
   compile: { switches: ['--force'] },
   build: { switches: ['--force'] },
@@ -39,7 +39,11 @@ export const BUILTIN_SUMMARIES = {
   export: '<output.json> — exact source backup',
   render:
     '[--view profile|plan|bow|stern|quarter] [--part id] [--isolate] [--out directory] [--published] [--pose poses.json] [--quick]; quick skips the articulation sweep',
-  trial: '[--seconds 10] — real local native/WASM combat and reset',
+  trial:
+    '[--vs [git-ref]] [--published] [--json] — native maneuvering trial of any preset (Blender-recipe or construction) as a table: ' +
+    'top speed, hard-turn speed and rate, time to turn 90°, turning circle, crash stop. --vs (default origin/master) compares with ' +
+    'the definition published at that ref and exits 1 when a handling-gate row is more than 10% worse. ' +
+    '--live [--seconds 10] [--out dir] instead runs real local native/WASM combat on a construction ship and resets it',
   register: '— add an already built construction or Blender-recipe ship to src/ships/presets.ts (and a Blender-recipe ship\'s funnel count to the smoke test)',
   compile: 'native definition; also available through ship:compile',
   build: 'GLB, native definition, thumbnail and fixed review views',

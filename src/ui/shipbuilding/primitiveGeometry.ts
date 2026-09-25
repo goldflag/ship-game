@@ -7,10 +7,15 @@ import { cornerVertices, VERTEX_FACES } from '../../ships/constructionVertex';
 import type { ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from '../../game/constructionShading';
-import { customHullFaces, customHullPoints, customHullPrimitive, makeHull } from '../../ships/customHullModel';
+import { customHullFaces, customHullPoints, customHullPrimitive } from '../../ships/customHullModel';
+import { defaultCustomHull } from '../../ships/customHullStarter';
+import { primitiveGeometry as shapeGeometry, primitiveRotation } from '../../game/constructionShapeGeometry';
 
-export { primitiveGeometry, primitiveRotation } from '../../game/constructionShapeGeometry';
-import { primitiveGeometry, primitiveRotation } from '../../game/constructionShapeGeometry';
+export { primitiveRotation };
+/** The shared shape geometry; a custom hull without sections (a palette slot or a new block) draws the default starter hull. */
+export function primitiveGeometry(...[kind, size, corners, customHull, ...rest]: Parameters<typeof shapeGeometry>): THREE.BufferGeometry {
+  return shapeGeometry(kind, size, corners, customHull ?? (kind === 'custom-hull' ? defaultCustomHull() : undefined), ...rest);
+}
 export type { BuilderPlacement } from './builderScene';
 import type { BuilderPlacement } from './builderScene';
 
