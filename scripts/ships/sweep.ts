@@ -192,7 +192,9 @@ if (seats.length) {
 }
 if (!all.length && !seats.length) console.log('No contacts: every swept mount clears the ship and its neighbours.');
 await Bun.write(join(stage, 'sweep-report.json'), JSON.stringify({
-  model, interlock, rows: all.map(({ key: _, ...r }) => r), seats,
+  model, interlock,
+  // Reachable rows first, then by mount, the order the report had before accepted lists and seats.
+  rows: [...all].sort((x, y) => Number(y.reachable > 0) - Number(x.reachable > 0) || byMount(x, y)).map(({ key: _, ...r }) => r), seats,
   stale: stale.map(e => ({ mount: e.mount, against: e.against, reason: e.reason })),
 }, null, 1));
 console.log(`\n${clashes.length ? `${clashes.length} reachable contact group(s)` : 'No reachable contacts'}`
