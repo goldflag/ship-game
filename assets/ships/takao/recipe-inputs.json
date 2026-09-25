@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-heavy-cruiser-guns/type3_203_e_rail_twin.py",
+    "assets/parts/gun_bloomers.py",
+    "assets/ships/takao/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}

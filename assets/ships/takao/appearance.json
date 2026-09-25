@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "id": "takao-starter-v1",
+  "basis": "Scaffold placeholder: one grey for hull and upperworks, dark painted-steel decks and a red-oxide bottom. Replace with the approved paint scheme (docs/ship-appearance.md); swatches are the recipe's linear-RGB material colors.",
+  "wear": "in-commission",
+  "materials": {
+    "naval": { "paint": "takao-hull-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "takao-hull-grey", "finish": "painted-steel" },
+    "antifouling": { "paint": "takao-red-oxide", "finish": "underwater-coating" },
+    "deck": { "paint": "takao-deck-grey", "finish": "painted-deck" },
+    "roof": { "paint": "takao-deck-grey", "finish": "painted-deck" },
+    "edge": { "paint": "takao-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "takao-mid-fittings", "finish": "painted-steel" }
+  }
+}
