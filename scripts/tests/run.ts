@@ -152,7 +152,8 @@ export async function runTestFiles(files: string[], concurrency: number, options
   if (fresh.length) console.log(`\nNew failures, not in ${LEDGER}${master && 'source' in master ? ' or failing on master CI' : ''}:\n${list(fresh)}`);
   if (master && 'unavailable' in master) console.log(`(Master CI not consulted: ${master.unavailable}. bun run master:red lists what master fails.)`);
   if (fixed.length) console.log(`\nNo longer failing; remove from ${LEDGER}:\n${list(fixed)}`);
-  console.log(`\n${files.length} test files: ${fresh.length} new failures, ${red.length} known (${LEDGER})${onMaster.length ? `, ${onMaster.length} failing on master CI` : ''}; ${((performance.now() - start) / 1000).toFixed(0)} s (${concurrency} workers)`);
+  const alsoOnMaster = onMaster.length ? `, ${onMaster.length} failing on master CI` : '';
+  console.log(`\n${files.length} test files: ${fresh.length} new failures, ${red.length} known (${LEDGER})${alsoOnMaster}; ${((performance.now() - start) / 1000).toFixed(0)} s (${concurrency} workers)`);
   return fresh.length ? 1 : 0;
 }
 
