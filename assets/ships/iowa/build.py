@@ -252,6 +252,10 @@ for m in D['mounts']:
 # installations, all executed in this recipe scope (see details.py).
 for part in ['forward','tower','midships','aft','house','hull','aa']:
     exec((Path(__file__).parent/(part+'.py')).read_text(),globals())
+# Seat wall fittings on their plating while they are still separate objects.
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(scene)
 # Consolidate static fittings within their exact assembly/joint frame. This
 # keeps the editable source small without welding independent moving parts.
 bpy.context.view_layer.update()

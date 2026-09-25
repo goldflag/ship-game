@@ -842,6 +842,9 @@ for kind in ['armor','modules','compartments','obstructions']:
 create_flagstaffs(D)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration']
 scene['historicalAccuracy']='Qualified reconstruction; see reports/discrepancies.md'
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(scene)
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
 from surface import apply_appearance
 apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))

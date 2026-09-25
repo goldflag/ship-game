@@ -91,6 +91,8 @@ A premade ship built as a Blender recipe (Bismarck, Yamato, Iowa, King George V,
 | `recipe-inputs.json` | Every shared recipe file the build reads, as `assets/` paths only, and the [catalog entries](ship-build-reference.md#shared-recipe-inputs) it reads under `records` |
 | `README.md` | The approved brief, the build route and accepted approximations |
 
+**Wall fittings.** Every recipe calls `seat_wall_fittings(scene)` (`scripts/ships/blender_wall_fittings.py`) before its appearance step, while scuttles, doors, windows and louvred vents are still named objects. It turns each scuttle square to the plating actually behind it (a flared or tumbled-home hull is not a vertical wall) and presses every wall fitting to a real standoff: 5 cm for a scuttle with its eyebrow, 7 cm for a door with its dogs, 4 cm for a window frame, 9 cm for a louvred vent. Place fittings roughly and name them (`… scuttle rim`, `… door leaf`, `… vent louvre`); free-standing ventilators, roof fittings and anything over 3 m are left alone. A recipe that merges objects early (Iowa) calls it before merging.
+
 After the first successful build, `bun run ship:register my-ship` checks the published outputs, adds the ship's line to `src/ships/presets.ts` and reports its funnel mouths.
 
 **Measuring.** Trace deck and deckhouse outlines with `ship:slice <ref> --plan <y> --sym --parts hull,misc,other`, and see the windows, doors and markings a GameModels3D reference paints into its textures with `ship:reference <ref> --render` ([reference workflow](reference-workflow.md)).

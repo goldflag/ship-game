@@ -526,6 +526,9 @@ for launcher in D.get('torpedoLaunchers',[]):
  put(rod('Torpedo optical sight',(1.9,0,1.80),(2.38,0,1.80),.052,'edge'))
  put(rod('Training drive column',(0,0,.20),(0,0,.88),.13,'edge'))
  put(box('Training gear housing',(0,0,.70),(.65,.50,.35)))
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(scene)
 sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
 from surface import apply_appearance
 apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))

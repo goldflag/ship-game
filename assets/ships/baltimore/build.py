@@ -627,6 +627,9 @@ scene['historicalConfiguration']=D['configuration']
 scene['accuracyStatus']='Under review: see the source and discrepancy registers'
 from blender_rig import create_flagstaffs
 create_flagstaffs(D)
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(scene)
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
 from surface import apply_appearance
 apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))

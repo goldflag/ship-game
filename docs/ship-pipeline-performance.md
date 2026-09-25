@@ -101,6 +101,7 @@ bun run build
 bun test scripts/ships
 /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python scripts/ships/primitives.test.py
 /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python scripts/ships/batching.test.py
+/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python scripts/ships/wall_fittings.test.py
 ```
 
 Use a different `SHIP_TIMINGS_DIR` for each run. Its fleet summary records hardware,
