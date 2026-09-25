@@ -6,7 +6,9 @@ blender --background --python articulation_sweep.py -- --model <source.blend|mod
 
 Every mount's moving assembly (the descendants of `<mount>.yaw`) is posed through its installed traverse,
 elevation from depression to maximum and the full recoil stroke, and triangle-intersected against the
-fixed ship and every other mount at rest. Mounts whose reach overlaps are then posed independently
+fixed ship and every other mount at rest. Each contact records whether the moving part only trains (the rotating
+base) or also elevates, and each mount lists the fixed meshes it stands on (`seats`), so sweep.ts can count a
+rotating base touching its own support apart from real clashes. Mounts whose reach overlaps are then posed independently
 against each other on a coarser grid. A mount's own fixed parts (its `assemblyId`: barbette, roller race,
 tub) are its intended bearing interfaces and are skipped. Joints are posed in world space about the
 up axis, each barrel's horizontal axis through its trunnion and back along the barrel, so the retained
@@ -156,6 +158,8 @@ class Mount:
             local, _, world = cache[name]
             reach = max(reach, float(np.max(np.linalg.norm((local @ world.T)[:, :3] - o[:3], axis=1))))
         self.reach = reach + self.recoil + .3
+        base = [cache[name] for name, barrel, _ in self.moving if barrel is None]
+        self.base_bottom = min((float(np.min((local @ world.T)[:, 2])) for local, _, world in base), default=self.origin.z)
 
     def pose(self, train, elevation, recoil):
         y = about(self.origin, UP, -math.radians(train))
@@ -216,6 +220,28 @@ def near(o, origin, reach):
     return (q - origin).length <= reach
 
 
+def supports(fixed, owner, mt):
+    """Fixed meshes the mount stands on: those met by vertical rays at the pivot and on rings of 0.5 and 1 m,
+    dropped from 0.25 m above the pivot or the foot of its rotating base (its parts that train but do not elevate),
+    whichever is higher, to 0.3 m below the lower of the two. A rotating base touching one of them is seated."""
+    found, down = set(), Vector((0, 0, -1))
+    top, bottom = max(mt.origin.z, mt.base_bottom) + .25, min(mt.origin.z, mt.base_bottom) - .3
+    origin = Vector((mt.origin.x, mt.origin.y, top))
+    depth = top - bottom
+    for radius, count in ((0, 1), (.5, 8), (1, 8)):
+        for k in range(count):
+            a = k * math.tau / count
+            start = origin + Vector((radius * math.cos(a), radius * math.sin(a), 0))
+            left = depth
+            while left > 0:
+                hit, _, index, distance = fixed.ray_cast(start, down, left)
+                if hit is None:
+                    break
+                found.add(owner[index])
+                start, left = hit + down * 1e-4, left - distance - 1e-4
+    return sorted(found)
+
+
 # Other mounts stand at the simulation's rest pose: neutral train at `initialElevationDeg` (the modelled pose
 # otherwise), as the interlock replay in sweep.ts assumes.
 at_rest = {}
@@ -242,8 +268,11 @@ for mt in mounts:
                     poses = clashes.setdefault(key, [])
                     if not poses or poses[-1] != [t, e, r]:
                         poses.append([t, e, r])
-    rows = [{'moving': a, 'fixed': b, 'fixedAssembly': bpy.data.objects[b].get('assemblyId'), 'poses': p} for (a, b), p in clashes.items()]
-    report['mounts'].append({'id': mt.id, 'samples': samples, 'train': mt.train, 'elevation': mt.elevation, 'clashes': rows})
+    joint = {n: 'train' if barrel is None else 'elevation' for n, barrel, _ in mt.moving}
+    rows = [{'moving': a, 'joint': joint[a], 'fixed': b, 'fixedAssembly': bpy.data.objects[b].get('assemblyId'), 'poses': p}
+            for (a, b), p in clashes.items()]
+    report['mounts'].append({'id': mt.id, 'samples': samples, 'train': mt.train, 'elevation': mt.elevation,
+                             'seats': supports(fixed, fixed_owner, mt) if clashes else [], 'clashes': rows})
     print(f'SWEEP {mt.id}: {samples} poses, {len(rows)} clashing part pairs, {time.perf_counter() - T0:.1f} s', flush=True)
 
 if '--no-neighbours' not in argv:
