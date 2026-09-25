@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { FleetBatch } from './FleetBatch';
+import { flagTextureRows } from './TextureRowUploads';
 
 /** Opaque aircraft parts share submission while retaining one pose per part.
  * Geometry stays in its authored local coordinates, including moving joints. */
@@ -10,6 +11,9 @@ export class AircraftPartsBatch {
   private readonly matrix = new THREE.Matrix4();
   private capacity = 64;
   private previousCount = 0;
+  /** Lowest and highest instance whose pose was written since the last publication: only their rows of the pose texture upload. */
+  private firstWritten = Infinity;
+  private lastWritten = -1;
 
   constructor(readonly sources: readonly THREE.Mesh[], name: string) {
     const vertices = sources.reduce((n, s) => n + s.geometry.attributes.position.count, 0);
@@ -31,12 +35,19 @@ export class AircraftPartsBatch {
       while (plane >= this.capacity) this.capacity *= 2;
       this.mesh.setInstanceCount(this.capacity * this.sources.length);
     }
-    while (this.instances.length <= plane) this.instances.push(this.geometryIds.map(id => this.mesh.addInstance(id)));
+    // A new instance's pose starts as the identity, written into the texture too.
+    while (this.instances.length <= plane) this.instances.push(this.geometryIds.map(id => this.written(this.mesh.addInstance(id))));
     const instances = this.instances[plane];
     for (let i = 0; i < this.sources.length; i++) {
       this.mesh.setVisibleAt(instances[i], true);
-      this.mesh.setMatrixAt(instances[i], this.matrix.multiplyMatrices(world, this.sources[i].matrixWorld));
+      this.mesh.setMatrixAt(this.written(instances[i]), this.matrix.multiplyMatrices(world, this.sources[i].matrixWorld));
     }
+  }
+
+  private written(instance: number): number {
+    if (instance < this.firstWritten) this.firstWritten = instance;
+    if (instance > this.lastWritten) this.lastWritten = instance;
+    return instance;
   }
 
   publish(count: number): void {
@@ -44,6 +55,12 @@ export class AircraftPartsBatch {
       for (const instance of this.instances[plane]) this.mesh.setVisibleAt(instance, false);
     this.previousCount = count;
     this.mesh.visible = count > 0; this.mesh.invalidateDrawList();
+    if (this.lastWritten >= this.firstWritten) {
+      // Four texels a pose, in rows of a width that is a multiple of four.
+      const texture = (this.mesh as unknown as { _matricesTexture: THREE.DataTexture })._matricesTexture, width = texture.image.width;
+      flagTextureRows(texture, Math.floor(this.firstWritten * 4 / width), Math.floor(this.lastWritten * 4 / width) + 1);
+      this.firstWritten = Infinity; this.lastWritten = -1;
+    }
   }
 
   /** Compile dormant parts in the actual capture and final render targets. */

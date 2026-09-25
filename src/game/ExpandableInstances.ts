@@ -14,7 +14,8 @@ export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE
     // live draw count from Three's fixed shader matrix capacity.
     Object.assign(geometry, { isInstancedBufferGeometry: true, instanceCount: 0 });
     this.frustumCulled = false;
-    this.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    // Static usage (three's default): `publish` flags each page's live range once. Dynamic usage would send it again on every
+    // render call that draws the page, and the whole array once the first call had consumed the range.
     this.instanceMatrix.array.fill(0);
   }
   /** The mesh that draws instance `index` at slot `index % pageSize`: this one, or an overflow page made on demand. */
@@ -26,7 +27,7 @@ export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE
       for (const [name, attr] of Object.entries(geometry.attributes)) if ((attr as THREE.InstancedBufferAttribute).isInstancedBufferAttribute)
         geometry.setAttribute(name, new THREE.InstancedBufferAttribute(new Float32Array(this.pageSize * attr.itemSize), attr.itemSize));
       const mesh = new THREE.InstancedMesh(geometry, this.material, this.pageSize);
-      mesh.frustumCulled = false; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.instanceMatrix.array.fill(0);
+      mesh.frustumCulled = false; mesh.instanceMatrix.array.fill(0);
       mesh.name = `${this.name} page ${this.overflow.length + 1}`;
       if (this.instanceMatrix instanceof THREE.StorageInstancedBufferAttribute) prepareInstanceUploads(mesh);
       this.overflow.push(mesh); this.add(mesh);

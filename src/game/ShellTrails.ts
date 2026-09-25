@@ -48,7 +48,7 @@ export class ShellTrails {
   constructor() {
     const geometry = new THREE.PlaneGeometry(1, 1);
     for (const name of ['tailOpacity', 'headOpacity', 'tailWidth', 'headWidth']) geometry.setAttribute(name,
-      new THREE.InstancedBufferAttribute(new Float32Array(CAPACITY), 1).setUsage(THREE.DynamicDrawUsage));
+      new THREE.InstancedBufferAttribute(new Float32Array(CAPACITY), 1));
     const material = new TrailMaterial({ color: '#e2ddd0', transparent: true,
       // The sea postprocess needs depth from visible trail pixels, as for tips.
       depthWrite: true, alphaTest: .008, side: THREE.DoubleSide });

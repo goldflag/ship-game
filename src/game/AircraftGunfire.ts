@@ -87,13 +87,13 @@ export class AircraftGunfire {
   }
   private batch(name: string, map: THREE.DataTexture, color: string, intensity: number) {
     const geometry = new THREE.PlaneGeometry(1, 1);
-    geometry.setAttribute('tracerOpacity', new THREE.InstancedBufferAttribute(new Float32Array(CAPACITY), 1).setUsage(THREE.DynamicDrawUsage));
+    geometry.setAttribute('tracerOpacity', new THREE.InstancedBufferAttribute(new Float32Array(CAPACITY), 1));
     const material = new THREE.MeshBasicNodeMaterial({ map, color: new THREE.Color(color).multiplyScalar(intensity),
       transparent: true, blending: THREE.AdditiveBlending, depthWrite: true, alphaTest: .02, side: THREE.DoubleSide });
     material.opacityNode = attribute('tracerOpacity', 'float'); material.forceSinglePass = true;
     const mesh = new ExpandableInstances(geometry, material, CAPACITY);
     mesh.name = name; mesh.frustumCulled = false;
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.instanceMatrix.array.fill(0);
+    mesh.instanceMatrix.array.fill(0);
     return mesh;
   }
   private prepare(event: CombatEvent): TracerBurst {

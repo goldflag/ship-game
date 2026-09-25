@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import type { EffectLighting } from './EffectLighting';
 import { smokeRibbonMaterial } from './SmokeSpriteMaterial';
+import { effectUsage } from './InstanceUploads';
 
 /** One released smoke sample along a plume, oldest first when handed to `SmokeRibbons.strip`. */
 export interface RibbonPoint {
@@ -39,12 +40,14 @@ export class SmokeRibbons {
   constructor(lighting: EffectLighting, readonly capacity = 32768) {
     const geometry = new THREE.BufferGeometry();
     this.attributes = Object.fromEntries(Object.entries(FLOATS).map(([name, size]) => {
-      const attribute = new THREE.BufferAttribute(new Float32Array(capacity * size), size).setUsage(THREE.DynamicDrawUsage);
+      // Static usage: each `end` flags the live range once. Dynamic usage would send the whole arrays (2.4 MB) again on every
+      // further render call that draws the trails in a frame.
+      const attribute = new THREE.BufferAttribute(new Float32Array(capacity * size), size).setUsage(effectUsage());
       geometry.setAttribute(name, attribute);
       return [name, attribute];
     })) as Record<keyof typeof FLOATS, THREE.BufferAttribute>;
     const IndexArray = capacity * 2 > 65535 ? Uint32Array : Uint16Array;
-    this.index = new THREE.BufferAttribute(new IndexArray(capacity * 3), 1).setUsage(THREE.DynamicDrawUsage);
+    this.index = new THREE.BufferAttribute(new IndexArray(capacity * 3), 1).setUsage(effectUsage());
     geometry.setIndex(this.index);
     geometry.setDrawRange(0, 0);
     this.mesh = new THREE.Mesh(geometry, smokeRibbonMaterial(lighting));
@@ -126,7 +129,7 @@ export class SmokeRibbons {
     if (!this.indices) return;
     for (const attribute of [...Object.values(this.attributes), this.index]) {
       const used = attribute === this.index ? this.indices : this.vertices * attribute.itemSize;
-      attribute.clearUpdateRanges(); attribute.addUpdateRange(0, used); attribute.needsUpdate = true;
+      attribute.usage = effectUsage(); attribute.clearUpdateRanges(); attribute.addUpdateRange(0, used); attribute.needsUpdate = true;
     }
   }
 

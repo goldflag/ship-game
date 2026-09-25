@@ -213,7 +213,8 @@ export class EffectParticlePool {
     const geometry = new THREE.InstancedBufferGeometry();
     geometry.index = plane.index; geometry.attributes = plane.attributes;
     geometry.instanceCount = 0;
-    this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1).setUsage(THREE.DynamicDrawUsage);
+    // Static usage (the default) for every per-particle buffer: `publish` flags the live range once a frame.
+    this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1);
     geometry.setAttribute('effectOpacity', this.alpha);
     const material = volumeMaterial ?? new THREE.MeshBasicNodeMaterial({ map, transparent: true, depthWrite: false,
       side: THREE.DoubleSide, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending });
@@ -221,21 +222,20 @@ export class EffectParticlePool {
     // The map already contributes its alpha through materialColor.
     material.opacityNode = attribute('effectOpacity', 'float');
     if (volumeMaterial) {
-      this.sphere = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
-      this.volume = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
-      this.tint = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
+      this.sphere = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
+      this.volume = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
+      this.tint = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
       // Pack shape and lifetime together to stay within WebGPU's
       // eight vertex-buffer limit for the volume's instanced plane.
-      this.progress = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
+      this.progress = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
       geometry.setAttribute('effectSphere', this.sphere);
       geometry.setAttribute('effectVolume', this.volume);
       geometry.setAttribute('effectTint', this.tint);
       geometry.setAttribute('effectProgress', this.progress);
     }
     this.mesh = new THREE.InstancedMesh(geometry, material, capacity);
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     // Allocate before first compilation, including when all particles are inactive.
-    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 3).fill(1), 3).setUsage(THREE.DynamicDrawUsage);
+    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 3).fill(1), 3);
     // Three r185 sizes the matrix shader buffer from mesh.count at compilation.
     // Keep shader capacity fixed; geometry.instanceCount controls the live draw.
     this.mesh.instanceMatrix.array.fill(0);

@@ -1,5 +1,13 @@
 import * as THREE from 'three/webgpu';
 
+/** How effects publish what they rewrite each frame. Three r185 re-sends an attribute marked `DynamicDrawUsage` whole, or its live
+ * ranges, on every render call that draws it, changed or not; static usage sends it once per `needsUpdate`, only the ranges flagged.
+ * With `versioned` off the effects that moved to static usage return to dynamic, and the uploads trimmed to what changed (water sheet
+ * colours, shifted wake quads, aircraft part rows) send what they sent before, so the two can be compared in one live battle. */
+export const effectUploads = { versioned: true };
+/** The usage an effect's per-frame attributes take under `effectUploads`. */
+export const effectUsage = (): THREE.Usage => effectUploads.versioned ? THREE.StaticDrawUsage : THREE.DynamicDrawUsage;
+
 /** Prepare CPU-authored effect instances before their first native WebGPU draw.
  * Callers publish changes through needsUpdate and live attribute ranges. Storage
  * matrices and versioned attributes share one upload across all render passes.

@@ -136,7 +136,6 @@ export class CombatEffects {
     this.depthChargeBodies.name = 'Depth charge bodies';
     this.torpedoBodies.name = 'Torpedo bodies';
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.depthChargeBodies]) {
-      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.frustumCulled = false; mesh.instanceMatrix.array.fill(0); this.root.add(mesh);
       // Each instance moves on its own; temporal AA cannot follow it from the mesh.
       rejectTemporalHistory(mesh);
