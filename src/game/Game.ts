@@ -80,8 +80,7 @@ import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, loadShipPresets } from '../ships/presets';
 import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
 import { createConstructionModel } from './constructionModel';
-import { applyPremadeWear, modelPortholes } from './constructionWear';
-import { registerPortholes, releasePortholes } from './portholeWeeps';
+import { applyPremadeWear } from './constructionWear';
 import { wearAmount } from '../ships/constructionPaints';
 import type { TrialAction } from './session/localConstruction';
 import { InputController } from './InputController';
@@ -1073,8 +1072,6 @@ export class Game {
     }
     // A premade ship weathers as a player-built one does, by the wear its appearance names; a design measured its own.
     if (!revision) applyPremadeWear(model, wearAmount(model.userData.appearanceWear));
-    // Its portholes weep; found before the palette repaints their panes.
-    registerPortholes(model, modelPortholes(model));
     this.palette.apply(model);
     this.occlusion.adopt(model);
     batchShipModel(model);
@@ -1092,7 +1089,7 @@ export class Game {
     for (const [key, model] of this.hulls) {
       if (this.hulls.size <= Game.HULL_CACHE) break;
       if (afloat.has(model)) continue;
-      this.hulls.delete(key); evicted.push(model); releasePortholes(model);
+      this.hulls.delete(key); evicted.push(model);
     }
     return evicted;
   }
@@ -2116,7 +2113,6 @@ export class Game {
       material.dispose();
     });
     textures.forEach(texture => texture.dispose());
-    this.hulls.forEach(model => releasePortholes(model));
     this.hulls.clear();
     this.renderer.dispose();
     this.renderer.domElement.remove();

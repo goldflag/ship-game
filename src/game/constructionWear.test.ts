@@ -5,7 +5,7 @@ import { componentMaterial } from '../ships/componentMaterials';
 import { createConstructionFittingModel } from './constructionFittingModel';
 import { createConstructionHull } from './constructionModel';
 import { createConstructionPropellerSupports } from './constructionPropellerModel';
-import { applyConstructionWear, applyPremadeWear, FOOT, isConstructionPaint, modelPortholes, mountArmour, wearsPaint, WEAR_NONE } from './constructionWear';
+import { applyConstructionWear, applyPremadeWear, FOOT, isConstructionPaint, mountArmour, wearsPaint, WEAR_NONE } from './constructionWear';
 import { isPlatedPaint } from './ShipSurfaceDetail';
 
 const surface = (id: string, primitiveId: string, face: string, vertices: Vec3[], normal: Vec3, paint = 'naval-gray', panelId?: string): ConstructionSurface =>
@@ -198,25 +198,4 @@ test('mount armour: a gunhouse under its yaw joint, its barbette, player-built g
   const armour = mountArmour(root);
   expect([gunhouse, barbette, tower, gun].map(armour)).toEqual([true, true, true, true]);
   expect(armour(house)).toBe(false);
-});
-
-test('portholes are the level pane discs set in walls, in the ship frame', () => {
-  const glass = new THREE.MeshStandardMaterial(); glass.name = 'Bismarck glass';
-  const paint = new THREE.MeshStandardMaterial(); paint.name = 'Bismarck naval';
-  // A scuttle's pane: a thin disc 30 cm across facing starboard at (8, 5, -20), under a node turned to face aft.
-  const pane = (radius: number, at: Vec3, axis: 'x' | 'y') => {
-    const geometry = new THREE.CylinderGeometry(radius, radius, .01, 12);
-    if (axis === 'x') geometry.rotateZ(Math.PI / 2);
-    const mesh = new THREE.Mesh(geometry, glass); mesh.position.set(...at); return mesh;
-  };
-  const root = new THREE.Group(), node = new THREE.Group(); node.rotation.y = Math.PI; node.position.set(0, 0, -40);
-  node.add(pane(.15, [-8, 5, -20], 'x'));
-  // Not portholes: a skylight facing up, a 2 m window, and a painted disc.
-  root.add(node, pane(.15, [0, 9, 0], 'y'), pane(1, [8, 6, 10], 'x'), new THREE.Mesh(new THREE.CylinderGeometry(.15, .15, .01, 12).rotateZ(Math.PI / 2), paint));
-  const found = modelPortholes(root);
-  expect(found.length).toBe(6);
-  const [x, y, z, r, nx, nz] = found;
-  expect([x, y, z]).toEqual([expect.closeTo(8, 3), expect.closeTo(5, 3), expect.closeTo(-20, 3)]);
-  expect(r).toBeCloseTo(.15, 2);
-  expect(Math.abs(nx)).toBeCloseTo(1, 3); expect(nz).toBeCloseTo(0, 3);
 });
