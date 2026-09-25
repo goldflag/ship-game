@@ -1,6 +1,7 @@
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, Vec3 } from './blueprint';
 import { HULL_PRESETS, type HullPresetChoice } from './constructionHullPresets';
-import { makeHull, customHullPrimitive } from './customHullModel';
+import { customHullPrimitive } from './customHullModel';
+import { makeHull } from './customHullStarter';
 import { isRetiredDeckFitting } from './constructionEquipment';
 
 export type ConstructionStarter = 'patrol' | 'catamaran' | HullPresetChoice;

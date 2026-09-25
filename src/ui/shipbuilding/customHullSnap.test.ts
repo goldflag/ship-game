@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import {
   hullExtent,
-  makeHull,
   sectionMetres,
 } from "../../ships/customHullModel";
+import { makeHull } from "../../ships/customHullStarter";
 import {
   DEFAULT_HULL_SNAP,
   heightTargets,

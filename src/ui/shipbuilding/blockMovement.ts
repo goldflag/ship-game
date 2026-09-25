@@ -1,7 +1,8 @@
 import init, { ConstructionOverlap } from '../../generated/naval-wasm/naval_wasm';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
 import type { BuilderPlacement } from './builderScene';
-import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
+import { customHullPrimitive } from '../../ships/customHullModel';
+import { makeHull } from '../../ships/customHullStarter';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { placementBalcony } from '../../ships/constructionBalcony';
 

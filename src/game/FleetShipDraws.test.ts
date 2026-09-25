@@ -208,7 +208,7 @@ test('deferred and bounded poses draw every batch, original surface, scar and fl
   };
   // A shell scar on a turret face: a mount's surface is a deferred pose on a joint.
   const scar = (index: number) => { sequence++; fleets.forEach(views => {
-    const view = views[index], mount = view.definition.mounts[0], yaw = (view as unknown as { bindings: { yaw: THREE.Object3D }[] }).bindings[0].yaw;
+    const view = views[index], mount = view.definition.mounts[0], yaw = (view as unknown as { joints: { mounts: { yaw: THREE.Object3D }[] } }).joints.mounts[0].yaw;
     view.root.updateMatrixWorld(true);
     let receiver: THREE.Mesh | undefined;
     yaw.traverse(o => { if (!receiver && o instanceof THREE.Mesh && o.geometry.index && o.geometry.index.count > 300) receiver = o; });

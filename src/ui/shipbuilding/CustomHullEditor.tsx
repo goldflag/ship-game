@@ -9,8 +9,6 @@ import {
   hullExtent,
   invalidReason,
   lockSymmetry,
-  makeHull,
-  presets,
   removeHullPointPair,
   toggleHullCrease,
   sectionAt,
@@ -20,6 +18,7 @@ import {
   worldPoint,
   type Hull,
 } from "../../ships/customHullModel";
+import { makeHull, presets } from "../../ships/customHullStarter";
 import { editHullPaintBands, hullPaintBands, hullPaintHeightRange } from "../../ships/hullPaintBands";
 import { HullPaintControls } from "./HullPaintControls";
 import { MAX_HULL_POINTS, MAX_HULL_SECTIONS, MIN_HULL_SECTIONS } from "../../ships/customHullTopology";

@@ -1139,6 +1139,13 @@ everywhere, and dev and release WASM builds agree. Authoring commands keep the f
 native compiler. Compiler source changes only invalidate an asset when its
 consumed output changes. Model and presentation recipes follow transitive value
 imports, ignoring comments and erased TypeScript types. Missing imports fail closed.
+The recipes start only from the code their outputs run (`MODEL_RECIPE` and
+`PRESENTATION_RECIPE` in `scripts/construction/fingerprints.ts`): the export
+(`tools/construction/export.ts`) builds its own model and poses it with
+`src/game/shipJoints.ts`, and review images draw through `ShipRenderView`. Keep
+`ShipView`'s aiming and muzzle checks, the sight and the editor's starter hulls
+(`customHullStarter.ts`) out of those imports, or every edit to them stales the
+construction presets again; `fingerprints.test.ts` guards this.
 
 Published preset identity hashes the canonical compiled definition and actual
 exported GLB payload, excluding only the scene/root identity tags to avoid a
