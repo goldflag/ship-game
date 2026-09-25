@@ -65,16 +65,28 @@ export function deriveHullPreset(hull: Pick<Hull, 'length' | 'beam' | 'sections'
   return { length: hull.length, beam: hull.beam, depth, customHull };
 }
 
-if (import.meta.main) {
+/** The chooser's ship hulls as published: src/ships/constructionHullPresets.generated.json. */
+export async function hullPresetsJson(dir = root): Promise<string> {
   const entries = await Promise.all(PRESET_SHIPS.map(async id => {
-    const { hull } = JSON.parse(await readFile(resolve(root, 'assets/ships', id, 'blueprint.json'), 'utf8'));
+    const { hull } = JSON.parse(await readFile(resolve(dir, 'assets/ships', id, 'blueprint.json'), 'utf8'));
     const shape = deriveHullPreset(hull, PRESET_OPTIONS[id]);
     // Compact section rows avoid shipping whole ship blueprints to the browser.
     return `  ${JSON.stringify(id)}: ${JSON.stringify(shape).replace('"stations":[', '"stations":[\n    ').replaceAll('},{"id":', '},\n    {"id":').replace(/\]\}\}$/, '\n  ]}}')}`;
   }));
-  const path = resolve(root, 'src/ships/constructionHullPresets.generated.json');
-  const data = '{\n' + entries.join(',\n') + '\n}\n';
+  return '{\n' + entries.join(',\n') + '\n}\n';
+}
+export const HULL_PRESETS_FILE = 'src/ships/constructionHullPresets.generated.json';
+
+/** Rewrites the published hull presets from the source blueprints; true when they changed. */
+export async function writeHullPresets(dir = root): Promise<boolean> {
+  const path = resolve(dir, HULL_PRESETS_FILE), data = await hullPresetsJson(dir);
+  if (await readFile(path, 'utf8') === data) return false;
+  await writeFile(path, data);
+  return true;
+}
+
+if (import.meta.main) {
   if (process.argv.includes('--check')) {
-    if (await readFile(path, 'utf8') !== data) throw new Error('Hull presets are stale. Run bun scripts/construction/hull-presets.ts');
-  } else await writeFile(path, data);
+    if (await readFile(resolve(root, HULL_PRESETS_FILE), 'utf8') !== await hullPresetsJson()) throw new Error('Hull presets are stale. Run bun scripts/construction/hull-presets.ts');
+  } else await writeHullPresets();
 }
