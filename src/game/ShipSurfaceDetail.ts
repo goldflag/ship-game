@@ -3,6 +3,8 @@ import {
   Fn, If, abs, attribute, cross, dFdx, dFdy, dot, exp, faceDirection, float, int, materialColor, materialRoughness, max, mix, mx_noise_float, normalGeometry, normalView,
   positionGeometry, positionView, pow, select, smoothstep, texture, uniform, vec2, vec3, vec4,
 } from 'three/tsl';
+import { FOOT } from './constructionWear';
+import { portholeWeep, wornAmount } from './portholeWeeps';
 import type { Node } from 'three/webgpu';
 
 /** Physically scaled surface detail for ship paint and teak, evaluated in each mesh's own
@@ -386,7 +388,6 @@ export const wearOverride = uniform(-1);
 /** Plating as welded and painted (seams, relief, each plate's shade), for review: 0 draws the plain plating relief
  * instead, 1 as designed. */
 export const plateFinish = uniform(1);
-
 /** Worn paint, per unit of wear amount where a pair gives [at none, added per unit]. Tints are linear colour
  * multipliers at full coverage. */
 const WEAR = {
@@ -399,7 +400,18 @@ const WEAR = {
   tide: [.6, .58, .42], stain: .9,
   /** Soot reach below a funnel's top in metres, its darkness and colour. */
   sootReach: [1, 3], sootDarkness: [.5, .45], soot: [.09, .085, .08],
+  /** Rust weeping from portholes (portholeWeeps): its tint, and its share per unit of wear over that at in commission (0.4),
+   * the scale held within [0.5, 1.5]. */
+  weep: [.36, .32, .28], weepShare: .8,
 } as const;
+
+/** Washes of grime down a wall from its top edge, where scuppers and drains empty: in each `pitch` metres along an edge, a
+ * `share` of the cells carry one, `width` across (widening by `spread` per metre it runs) and running `reach` metres, short
+ * of the waterline, darkening the paint towards `tint` by `strength`, with a faint grain along the run. */
+const WASH = { pitch: 8, share: .4, width: [.25, .75], spread: .04, reach: [4, 14], strength: [.45, .8], most: .7, tint: [.62, .56, .44] } as const;
+/** Grime where a wall meets the deck: a band about `reach` metres tall whose height wanders by ±`wander` along the wall,
+ * its share [at none, added per unit of wear], at most `most`, and its tint. */
+const FOOT_GRIME = { reach: .22, wander: .55, share: [.25, 1.4], most: .8, tint: [.5, .43, .34] } as const;
 
 /** Paint as applied, on every ship however fresh; pairs give [fresh, added per unit of wear]. */
 const APPLIED = {
@@ -412,8 +424,9 @@ const APPLIED = {
   /** Runoff from strake seams: its share of a top edge's, how many times shorter its streaks run and how much closer
    * set, and how much wetter a seam runs than its wear (a preset's seams draw the next preset's density of streaks). */
   seamRunoff: 1.2, seamRun: 2.5, seamSpacing: 3, seamWetter: 1.75,
-  /** Seams leak unevenly: the least a seam carries of the full runoff. */
-  leakMin: .7,
+  /** Seams leak unevenly, and most hardly at all: a seam carries its random share of the full runoff raised to this power,
+   * so about one in six leaks noticeably and the rest keep only their grime line. */
+  leakPower: 3,
   /** Grime gathered in a soft band below each strake seam: its darkness per unit of wear and its reach in metres. */
   band: .25, bandReach: .25,
 } as const;
@@ -476,7 +489,7 @@ function shipSurfaceNodes(): Nodes {
     If(worn.x.mul(surfaceWear).greaterThan(1e-4), () => {
       // Fresh nodes throughout: one shared with the other outputs would be declared inside this branch.
       const q = positionGeometry, m = normalGeometry.normalize(), m4 = pow(abs(m), vec3(4)), tri = m4.div(m4.x.add(m4.y).add(m4.z));
-      const amount = select(wearOverride.greaterThanEqual(0), wearOverride, worn.x).mul(surfaceWear).toVar();
+      const amount = select(wearOverride.greaterThanEqual(0), wearOverride, wornAmount(worn.x)).mul(surfaceWear).toVar();
       const plated = attribute<'vec4'>('shipSurface', 'vec4').z.mul(plateFinish).toVar();
       // Paint as applied, fresh or worn: each plate's own shade and roller strips, and the lines of its seams.
       const applied = finish(q.zy.div(PLATE.tile)).zw.mul(tri.x).add(finish(q.xy.div(PLATE.tile)).zw.mul(tri.z))
@@ -512,13 +525,35 @@ function shipSurfaceNodes(): Nodes {
           const fringe = (h: Node<'float'>, hx: Node<'float'>, hy: Node<'float'>) => streaks(stretched(h.add(leak.mul(STREAK.along))).mul(APPLIED.seamSpacing), v)
             .grad(vec2(hx.mul(along), dx.y.mul(down)), vec2(hy.mul(along), dy.y.mul(down)));
           const runoff = mix(fringe(q.x, dx.x, dy.x), fringe(q.z, dx.z, dy.z), beam);
-          const share = leak.mul(1 - APPLIED.leakMin).add(APPLIED.leakMin);
+          const share = leak.pow(APPLIED.leakPower);
           clear.mulAssign(dot(runoff, weights(amount.mul(APPLIED.seamWetter).min(1))).mul(share).mul(APPLIED.seamRunoff).min(1).oneMinus());
           // Grime gathers in a soft band just below the seam.
           clear.mulAssign(exp(seamDrop.div(-APPLIED.bandReach)).mul(amount.mul(APPLIED.band)).mul(share).oneMinus());
         });
+        // Washes from the top edge, each in its own cell along it (the edge's height tells walls apart).
+        const along = mix(q.x, q.z, beam), wash = float(0).toVar(), weep = float(0).toVar(), foot = float(0).toVar();
+        If(vertical.and(drop.lessThan(WASH.reach[1] + 2)), () => {
+          const cell = along.div(WASH.pitch).floor(), seed = cell.add(q.y.add(drop).div(2.5).floor().mul(31.7));
+          const h = (k: number) => seed.add(k).mul(12.9898).sin().mul(43758.5453).fract();
+          const centre = cell.add(h(1).mul(.6).add(.2)).mul(WASH.pitch);
+          const x = along.sub(centre).div(h(2).mul(WASH.width[1] - WASH.width[0]).add(WASH.width[0]).mul(drop.mul(WASH.spread).add(1)));
+          const run = drop.add(tide.max(0).mul(.9)).min(h(4).mul(WASH.reach[1] - WASH.reach[0]).add(WASH.reach[0])).mul(h(1).mul(.4).add(.6)).mul(amount.div(.4).clamp(.6, 1.3));
+          const fade = float(1).sub(smoothstep(run.mul(.55), run, drop)).mul(smoothstep(0, .25, drop).mul(.4).add(.6));
+          const grain = mx_noise_float(vec3(along.mul(9), drop.mul(.35), h(3).mul(50))).mul(.35).add(.75);
+          const strength = h(4).mul(WASH.strength[1] - WASH.strength[0]).add(WASH.strength[0]).mul(amount.div(.4).clamp(.5, 1.6));
+          wash.assign(h(0).lessThan(WASH.share).select(exp(x.mul(x).negate()).mul(fade).mul(grain).mul(strength).min(WASH.most), float(0)));
+        });
+        If(vertical, () => { portholeWeep(q, worn.x, weep); });
+        If(vertical.and(worn.z.greaterThan(FOOT - 1)), () => {
+          const reach = mx_noise_float(vec3(along.div(1.3), q.y.div(3), 5.1)).mul(FOOT_GRIME.wander).add(1).mul(FOOT_GRIME.reach);
+          foot.assign(exp(worn.z.sub(FOOT).div(reach).negate()).mul(amount.mul(FOOT_GRIME.share[1]).add(FOOT_GRIME.share[0])).min(FOOT_GRIME.most));
+        });
         const cover = clear.oneMinus().mul(smoothstep(.62, .4, abs(m.y))).mul(amount.mul(WEAR.streak[1]).add(WEAR.streak[0]));
         color.mulAssign(mix(vec3(1), mix(vec3(...WEAR.grime), vec3(...WEAR.rust), smoothstep(.2, 1, amount)), cover));
+        const steep = smoothstep(.62, .4, abs(m.y));
+        color.mulAssign(mix(vec3(1), vec3(...WASH.tint), wash.mul(steep)));
+        color.mulAssign(mix(vec3(1), vec3(...WEAR.weep), weep.mul(steep).mul(amount.div(.4).clamp(.5, 1.5).mul(WEAR.weepShare)).min(.9)));
+        color.mulAssign(mix(vec3(1), vec3(...FOOT_GRIME.tint), foot.mul(steep)));
         // Grime and rust dull the paint a little.
         rough.mulAssign(cover.mul(.2).add(1));
         If(abs(tide).lessThan(2), () => {

@@ -6,10 +6,13 @@ import { constructionWearAmount } from '../ships/constructionPaints';
 /** Weathering measured once per ship model, for the ship paint shader (ShipSurfaceDetail) to draw: while a player-built
  * ship is assembled (`applyConstructionWear`) and when a premade ship's published model loads (`applyPremadeWear`). The
  * `shipWear` vertex attribute holds, in metres of the ship frame:
- * - x the ship's wear amount on painted steel; 0 on glass, timber, metals and fixed component finishes;
+ * - x the ship's wear amount on painted steel; 0 on glass, timber, metals and fixed component finishes. Once a game hull
+ *   template has a porthole table (portholeWeeps), its still paint adds twice the table's number (`wornAmount` reads the amount);
  * - y how far below the top edge of its vertical surface a vertex sits, where runoff streaks start: the deck
  *   edge (sheer) on a hull's sides, a block face's own top, else the top of a fitting's connected wall;
- * - z how far below the top of its funnel;
+ * - z how far below the top of its funnel; on any other wall, `FOOT` plus its height above the wall's foot, where grime
+ *   gathers (not on a turret's gunhouse or barbette, whose lower edges overhang or stand in the mount, nor on a wall lower than
+ *   `FOOT_WALL`, such as a lip or a coaming);
  * - w height above the rest waterline: on a player-built ship's hull plating, on every painted surface of a premade one.
  * `WEAR_NONE` marks a quantity that does not apply: decks and roofs carry no runoff, only funnels soot, only
  * the hull stains. Each is linear across a triangle, so interpolation stays exact on hull triangles over a
@@ -121,9 +124,14 @@ function weld(p: Float64Array): Int32Array {
   return canon;
 }
 
-type Measured = { index?: Uint32Array; extra: Int32Array; drop: Float32Array };
-/** Drop below the top of each connected vertical wall, per vertex. A vertex shared by different walls, or by a
- * wall and a roof, is split so each keeps its own value; `extra` names the source of each appended vertex. */
+type Measured = { index?: Uint32Array; extra: Int32Array; drop: Float32Array; rise: Float32Array };
+/** Offset of a wall's height above its foot in `shipWear.z`, clear of a funnel's drop (under `WEAR_NONE`). */
+export const FOOT = 100;
+/** Walls lower than this carry no foot grime. */
+const FOOT_WALL = .6;
+/** Drop below the top of each connected vertical wall, and rise above its foot (−1 where it has none), per vertex. A vertex
+ * shared by different walls, or by a wall and a roof, is split so each keeps its own values; `extra` names the source of each
+ * appended vertex. */
 function wallDrops(geometry: THREE.BufferGeometry, p: Float64Array): Measured {
   const count = p.length / 3, index = geometry.index, triangles = Math.floor((index ? index.count : count) / 3);
   // Corner k's vertex, read once: attribute accessors and closures cost more than the measurement on large models.
@@ -159,11 +167,11 @@ function wallDrops(geometry: THREE.BufferGeometry, p: Float64Array): Measured {
       }
     }
   }
-  const top = new Float64Array(triangles).fill(-Infinity), wallOf = new Int32Array(triangles);
+  const top = new Float64Array(triangles).fill(-Infinity), bottom = new Float64Array(triangles).fill(Infinity), wallOf = new Int32Array(triangles);
   for (let t = 0; t < triangles; t++) {
     if (!vertical[t]) { wallOf[t] = triangles; continue; }
     const r = wallOf[t] = find(t);
-    for (let k = 0; k < 3; k++) { const y = p[3 * corners[3 * t + k] + 1]; if (y > top[r]) top[r] = y; }
+    for (let k = 0; k < 3; k++) { const y = p[3 * corners[3 * t + k] + 1]; if (y > top[r]) top[r] = y; if (y < bottom[r]) bottom[r] = y; }
   }
   // Assign each corner its wall (`triangles` stands for no wall), splitting vertices claimed by two.
   const owner = new Int32Array(count).fill(-1), extra: number[] = [], extraOwner: number[] = [];
@@ -185,7 +193,11 @@ function wallDrops(geometry: THREE.BufferGeometry, p: Float64Array): Measured {
   const dropOf = (v: number, wall: number) => wall < 0 || wall === triangles ? WEAR_NONE : top[wall] - p[3 * v + 1];
   for (let v = 0; v < count; v++) drop[v] = dropOf(v, owner[v]);
   for (let i = 0; i < extra.length; i++) drop[count + i] = dropOf(extra[i], extraOwner[i]);
-  return { index: index && extra.length ? corners : undefined, extra: Int32Array.from(extra), drop };
+  const rise = new Float32Array(count + extra.length);
+  const riseOf = (v: number, wall: number) => wall < 0 || wall === triangles || top[wall] - bottom[wall] < FOOT_WALL ? -1 : p[3 * v + 1] - bottom[wall];
+  for (let v = 0; v < count; v++) rise[v] = riseOf(v, owner[v]);
+  for (let i = 0; i < extra.length; i++) rise[count + i] = riseOf(extra[i], extraOwner[i]);
+  return { index: index && extra.length ? corners : undefined, extra: Int32Array.from(extra), drop, rise };
 }
 
 /** Append copies of `extra` source vertices to an attribute, stored values unchanged (normalized ones too). */
@@ -210,15 +222,15 @@ function headingFree(matrix: THREE.Matrix4): string {
 }
 
 type Variants = Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>;
-/** Wear one mesh that is not measured hull plating: runoff from the tops of its connected walls, soot below `funnel`, and,
- * given a `waterline`, every vertex's height above it. A geometry shared by several meshes gets its own copy only where their
- * wear differs, as a scaled, raised or funnel-mounted instance. */
-function wearWalls(mesh: THREE.Mesh, m: THREE.Matrix4, paint: number, funnel: number | undefined, derived: Variants, waterline?: number): void {
+/** Wear one mesh that is not measured hull plating: runoff from the tops of its connected walls, soot below `funnel`, grime at
+ * its walls' feet unless `foot` is false, and, given a `waterline`, every vertex's height above it. A geometry shared by several
+ * meshes gets its own copy only where their wear differs, as a scaled, raised or funnel-mounted instance. */
+function wearWalls(mesh: THREE.Mesh, m: THREE.Matrix4, paint: number, funnel: number | undefined, derived: Variants, foot: boolean, waterline?: number): void {
   const shared = mesh.geometry, count = shared.getAttribute('position').count;
   // Unpainted, or one geometry drawn at many poses: at most the paint mottles.
   const plain = !paint || (mesh as THREE.InstancedMesh).isInstancedMesh;
   const top = plain ? undefined : funnel, tide = plain ? undefined : waterline, height = m.elements[13];
-  const key = plain ? `${paint}` : `${paint}|${headingFree(m)}|${top === undefined ? '' : (top - height).toFixed(3)}|${tide === undefined ? '' : (height - tide).toFixed(3)}`;
+  const key = plain ? `${paint}` : `${paint}|${headingFree(m)}|${top === undefined ? '' : (top - height).toFixed(3)}|${tide === undefined ? '' : (height - tide).toFixed(3)}|${foot}`;
   let variants = derived.get(shared);
   if (!variants) derived.set(shared, variants = new Map());
   const done = variants.get(key);
@@ -234,7 +246,7 @@ function wearWalls(mesh: THREE.Mesh, m: THREE.Matrix4, paint: number, funnel: nu
   for (let v = 0; v < total; v++) {
     const y = p ? p[3 * (v < count ? v : measured!.extra[v - count]) + 1] : 0;
     wear[4 * v] = paint; wear[4 * v + 1] = measured ? measured.drop[v] : WEAR_NONE;
-    wear[4 * v + 2] = top === undefined ? WEAR_NONE : top - y;
+    wear[4 * v + 2] = top !== undefined ? top - y : foot && measured && measured.rise[v] >= 0 ? FOOT + measured.rise[v] : WEAR_NONE;
     wear[4 * v + 3] = tide === undefined ? WEAR_NONE : y - tide;
   }
   geometry.setAttribute('shipWear', new THREE.BufferAttribute(wear, 4));
@@ -252,7 +264,7 @@ function shipMeshes(root: THREE.Object3D) {
 /** Write `shipWear` on every mesh of an assembled construction model (see the module header). */
 export function applyConstructionWear(group: THREE.Object3D, source: ConstructionSource, result: ConstructionResult): void {
   const amount = constructionWearAmount(source), waterline = result.loading?.waterlineY ?? 0;
-  const { meshes, shipMatrix } = shipMeshes(group);
+  const { meshes, shipMatrix } = shipMeshes(group), armour = mountArmour(group);
   // Funnel tops, per installation.
   const funnels = new Map<string, number>();
   for (const mesh of meshes) if (mesh.userData.constructionEquipmentKind === 'funnel') {
@@ -281,7 +293,7 @@ export function applyConstructionWear(group: THREE.Object3D, source: Constructio
       shared.setAttribute('shipWear', new THREE.BufferAttribute(wear, 4));
       continue;
     }
-    wearWalls(mesh, m, paint, mesh.userData.constructionEquipmentKind === 'funnel' ? funnels.get(String(mesh.userData.sourceId)) : undefined, derived);
+    wearWalls(mesh, m, paint, mesh.userData.constructionEquipmentKind === 'funnel' ? funnels.get(String(mesh.userData.sourceId)) : undefined, derived, !armour(mesh));
   }
 }
 
@@ -360,6 +372,7 @@ export function applyPremadeWear(root: THREE.Object3D, amount: number, waterline
   if (!(amount > 0)) return;
   root.updateMatrixWorld(true);
   const { meshes, shipMatrix } = shipMeshes(root), funnels = premadeFunnels(meshes, shipMatrix);
+  const armour = mountArmour(root);
   const hulls = new Map(meshes.filter(isPremadeHull).map(mesh => [mesh, shipPositions(mesh.geometry, shipMatrix(mesh))]));
   const sheer = premadeSheer([...hulls].map(([mesh, p]) => ({ p, index: mesh.geometry.index })));
   const derived: Variants = new Map();
@@ -374,6 +387,66 @@ export function applyPremadeWear(root: THREE.Object3D, amount: number, waterline
       mesh.geometry.setAttribute('shipWear', new THREE.BufferAttribute(wear, 4));
       continue;
     }
-    wearWalls(mesh, shipMatrix(mesh), paint, funnels.get(mesh), derived, waterline);
+    wearWalls(mesh, shipMatrix(mesh), paint, funnels.get(mesh), derived, !armour(mesh), waterline);
   }
+}
+
+/** A model's portholes and small windows, for their weeps (portholeWeeps), before the palette repaints it: [x, y, z, radius,
+ * normal x, normal z] each, in the ship frame of `root`. A porthole is a pane (glass, a dark tint, or the catalog's glass role)
+ * set in a wall: a welded cluster of pane faces 12 cm to 1.2 m tall, about as wide as it is tall and thin along its largest
+ * face's normal, which is near level. */
+export function modelPortholes(root: THREE.Object3D): number[] {
+  root.updateMatrixWorld(true);
+  const { meshes, shipMatrix } = shipMeshes(root), out: number[] = [];
+  for (const mesh of meshes) {
+    const material = mesh.material;
+    if (Array.isArray(material) || (mesh as THREE.InstancedMesh).isInstancedMesh) continue;
+    if (!/glass|glazing|dark/i.test(material.name) && material.userData.componentMaterialRole !== 'glass') continue;
+    const geometry = mesh.geometry, p = shipPositions(geometry, shipMatrix(mesh)), count = p.length / 3, canon = weld(p), index = geometry.index;
+    const triangles = Math.floor((index ? index.count : count) / 3), corner = (k: number) => canon[index ? index.getX(k) : k];
+    const parent = Int32Array.from({ length: count }, (_, i) => i);
+    const find = (v: number) => { while (parent[v] !== v) v = parent[v] = parent[parent[v]]; return v; };
+    for (let t = 0; t < triangles; t++) { const a = find(corner(3 * t)); parent[find(corner(3 * t + 1))] = a; parent[find(corner(3 * t + 2))] = a; }
+    type Cluster = { min: number[]; max: number[]; area: number; n: number[]; verts: number[] };
+    const clusters = new Map<number, Cluster>();
+    for (let t = 0; t < triangles; t++) {
+      const a = 3 * corner(3 * t), b = 3 * corner(3 * t + 1), c = 3 * corner(3 * t + 2), root = find(a / 3);
+      let cluster = clusters.get(root);
+      if (!cluster) clusters.set(root, cluster = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity], area: 0, n: [0, 1, 0], verts: [] });
+      for (const v of [a, b, c]) { for (let d = 0; d < 3; d++) { cluster.min[d] = Math.min(cluster.min[d], p[v + d]); cluster.max[d] = Math.max(cluster.max[d], p[v + d]); } cluster.verts.push(v); }
+      const ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
+      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, area = Math.hypot(nx, ny, nz);
+      if (area > cluster.area) { cluster.area = area; cluster.n = [nx / area, ny / area, nz / area]; }
+    }
+    for (const cluster of clusters.values()) {
+      const tall = cluster.max[1] - cluster.min[1], [nx, ny, nz] = cluster.n, level = Math.hypot(nx, nz);
+      if (tall < .12 || tall > 1.2 || Math.abs(ny) > .4 || level < 1e-3) continue;
+      const hx = nx / level, hz = nz / level;
+      let wideMin = Infinity, wideMax = -Infinity, deepMin = Infinity, deepMax = -Infinity;
+      for (const v of cluster.verts) {
+        const across = -hz * p[v] + hx * p[v + 2], deep = hx * p[v] + hz * p[v + 2];
+        wideMin = Math.min(wideMin, across); wideMax = Math.max(wideMax, across); deepMin = Math.min(deepMin, deep); deepMax = Math.max(deepMax, deep);
+      }
+      const wide = wideMax - wideMin, deep = deepMax - deepMin;
+      if (wide < .6 * tall || wide > 1.6 * tall || deep > .5 * tall) continue;
+      out.push((cluster.min[0] + cluster.max[0]) / 2, (cluster.min[1] + cluster.max[1]) / 2, (cluster.min[2] + cluster.max[2]) / 2, tall / 2, hx, hz);
+    }
+  }
+  return out;
+}
+
+/** Whether a mesh belongs to a trained mount (its gunhouse under the `<mount>.yaw` joint, or its barbette, the rest of the mount's
+ * assembly; any part of a player-built gun), or to a conning tower: armour cast or rolled in a few large plates, not welded
+ * strakes. The palette leaves it unplated and its walls carry no foot grime. */
+export function mountArmour(root: THREE.Object3D): (mesh: THREE.Object3D) => boolean {
+  const mounts = new Set<string>();
+  root.traverse(node => { const id = node.userData.nodeId; if (typeof id === 'string' && id.endsWith('.yaw')) mounts.add(id.slice(0, -'.yaw'.length)); });
+  return mesh => {
+    for (let node: THREE.Object3D | null = mesh; node && node !== root; node = node.parent) {
+      const id = node.userData.nodeId;
+      if (typeof id === 'string' && id.endsWith('.yaw') || node.userData.constructionEquipmentKind === 'gun') return true;
+    }
+    const assembly = inherited(mesh, 'assemblyId');
+    return typeof assembly === 'string' && (mounts.has(assembly) || /(^|-)conning(-|$)/.test(assembly));
+  };
 }

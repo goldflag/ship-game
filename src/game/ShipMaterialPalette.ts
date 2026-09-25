@@ -1,11 +1,12 @@
 import * as THREE from 'three/webgpu';
 import { attribute, materialColor, materialEmissive, materialMetalness, materialRoughness, vec4 } from 'three/tsl';
 import { applyShipSurfaceDetail, deckPlanks, isPlatedPaint, isPlateSized, setShipSurfaceDetail, shipSurfaceMode } from './ShipSurfaceDetail';
+import { mountArmour } from './constructionWear';
 
 /** The `shipSurface` vertex attribute. `apply` below is its only writer; every channel is taken:
  * - `x`: the source paint's roughness, or glass's for glazing (`GLAZING`). Read here and by ShipSurfaceDetail (plate roughness).
  * - `y`: the source paint's metalness; none for glazing. Read here.
- * - `z`: plated paint, 1 or 0 (`isPlatedPaint` and `isPlateSized`, with surface detail on). Read by ShipSurfaceDetail
+ * - `z`: plated paint, 1 or 0 (`isPlatedPaint` and `isPlateSized`, not a mount's armour, with surface detail on). Read by ShipSurfaceDetail
  *   for plating relief, plate roughness and the construction finish's seams and plate shades.
  * - `w`: the hull's rest wet-band height in metres (`wetBandHeight`). Read by HullWetBand.
  * A new per-vertex value needs its own attribute, as `shipWear` (written by constructionWear) did. */
@@ -114,7 +115,7 @@ export class ShipMaterialPalette {
     if (this.options.surfaceDetail) root.updateMatrixWorld(true);
     const size = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
     const band = wetBandHeight(Math.max(size.x, size.z) || 0);
-    const derived = new Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>();
+    const derived = new Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>(), armour = mountArmour(root);
     const retiredGeometry = new Set<THREE.BufferGeometry>(), retiredMaterials = new Set<THREE.Material>();
     root.traverse(object => {
       if (!(object instanceof THREE.Mesh) || Array.isArray(object.material)) return;
@@ -138,8 +139,9 @@ export class ShipMaterialPalette {
         this.weather(shared);
         shared.name = 'Shared naval paint'; this.materials.set(key, shared);
       }
-      // Plated paint is a per-vertex class: materials that share one palette entry keep their own.
-      const plated = this.options.surfaceDetail && isPlatedPaint(material) && isPlateSized(object) ? 1 : 0;
+      // Plated paint is a per-vertex class: materials that share one palette entry keep their own. Turret armour is a few
+      // large plates, not welded strakes (`mountArmour`).
+      const plated = this.options.surfaceDetail && isPlatedPaint(material) && isPlateSized(object) && !armour(object) ? 1 : 0;
       const finish = finishOf(material), source = object.geometry, colorKey = [...finish.color.toArray(), finish.roughness, finish.metalness, plated].join(',');
       let colors = derived.get(source);
       if (!colors) derived.set(source, colors = new Map());
