@@ -24,7 +24,7 @@ scenes and runtime models are build outputs.
   four 9 m cutters and a 9 m boat slung under each davit). No radar.
 - **Paint:** the reference's only paint, no camouflage: blue-grey hull and upperworks, grey steel roofs and casemate
   ledge, natural wood weather decks, a linoleum aircraft deck, black funnel caps and mast heads, red-oxide bottom to
-  the waterline with no boot topping, the gold chrysanthemum on the stem. The fleet's IJN ensign flies at the stern.
+  the waterline with no boot topping, the gold chrysanthemum on the stem. The fleet's IJN ensign flies from the mainmast gaff, as at sea.
 - **Reference policy:** GameModels3D only. The catapult stays empty as the reference shows it. Armour zones and
   thicknesses come from the reference's armour model; other gameplay values are provisional game calibration.
 

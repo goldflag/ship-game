@@ -20,6 +20,7 @@ const SCANNERS: [test: string, scans: RegExp, what: string][] = [
   ['scripts/tests/line-width.test.ts', /^(src\/.*\.(tsx?|css)|scripts\/.*\.tsx?|scripts\/tests\/line-width-allowlist\.json)$/, 'source line widths'],
   ['scripts/tests/tracked-evidence.test.ts', /^assets\//, 'tracked assets'],
   ['src/game/comparison/waterProIsolation.test.ts', /^src\/.*\.tsx?$/, 'imports across src'],
+  ['scripts/construction/hull-presets.test.ts', /^assets\/ships\/[^/]+\/blueprint\.json$/, 'the hull presets\' source blueprints'],
 ];
 /** Shared roots reach every test; so does the simulation, which the client tests run as WASM (its docs don't). */
 const SHARED = /^(package\.json|bun\.lock|tsconfig.*\.json|vite\.config\.ts|scripts\/tests\/run\.ts|Cargo\.(toml|lock)|crates\/(?!.*\.md$))/;

@@ -79,10 +79,24 @@ pub struct BattleFrame<'a, A, W, S, T, D, R, E, C, X> {
     pub tick: u64,
     pub actors: A,
     pub wings: W,
+    // Shells and torpedoes land and launch every tick, and the event window
+    // slides: keyed, so survivors are not resent (see `frame_delta::keyed`).
+    #[serde(
+        serialize_with = "crate::frame_delta::keyed",
+        bound(serialize = "S: Serialize")
+    )]
     pub shells: S,
+    #[serde(
+        serialize_with = "crate::frame_delta::keyed",
+        bound(serialize = "T: Serialize")
+    )]
     pub torpedoes: T,
     pub depth_charges: D,
     pub releases: R,
+    #[serde(
+        serialize_with = "crate::frame_delta::keyed",
+        bound(serialize = "E: Serialize")
+    )]
     pub events: E,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(optional)]

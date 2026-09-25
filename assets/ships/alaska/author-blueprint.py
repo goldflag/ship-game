@@ -554,7 +554,8 @@ b['underwaterProtection'] = dict(version=1, basis='Estimated side-protection sys
                                              size=[5, 8, round(CIT_AFT - CIT_FWD - 4, 3)], damageReduction=.35, breachReduction=.35) for side, sign in [('port', -1), ('starboard', 1)]])
 
 # ---------------------------------------------------------------- rig
-b['rig'] = dict(version=1, ensigns=[dict(id='national-ensign', design='us-48', position=[0, round(deck_y(rz(120.9)) + 4.3, 3), rz(120.9)], width=3.6, staffHeight=4.3)],
+# At sea the ensign flies from the after pole, under its crosstree and clear of the platform.
+b['rig'] = dict(version=1, ensigns=[dict(id='national-ensign', design='us-48', position=[0, 31.2, 11.2], width=3.6, staffHeight=0)],
                 radars=[dict(id='radar-sk', nodeId='radar-sk.yaw', rpm=6, phaseDeg=0), dict(id='radar-sg-forward', nodeId='radar-sg-forward.yaw', rpm=15, phaseDeg=47),
                         dict(id='radar-sg-after', nodeId='radar-sg-after.yaw', rpm=15, phaseDeg=133),
                         dict(id='mk38-forward', nodeId='mk38-forward.yaw', rpm=2, sweepDeg=55, phaseDeg=94), dict(id='mk38-after', nodeId='mk38-after.yaw', rpm=2, sweepDeg=55, phaseDeg=141),

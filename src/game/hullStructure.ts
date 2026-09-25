@@ -93,6 +93,52 @@ export function structuralHits(from:Vec3,to:Vec3,def:ShipDefinition) {
   }).sort((a,b)=>a.t-b.t || a.surface.id.localeCompare(b.surface.id) || a.triangle-b.triangle);
 }
 
+/** Each triangle's corners and `segmentPlate` unit normal, in that order, twelve numbers a triangle. */
+const planes=new WeakMap<StructuralSurface,Float64Array>();
+function trianglePlanes(surface:StructuralSurface):Float64Array {
+  let data=planes.get(surface);if(data)return data;
+  data=new Float64Array(surface.triangles.length*12);
+  surface.triangles.forEach((ids,i)=>{
+    const [a,b,c]=ids.map(j=>surface.vertices[j]),o=i*12;
+    const u0=b[0]-a[0],u1=b[1]-a[1],u2=b[2]-a[2],v0=c[0]-a[0],v1=c[1]-a[1],v2=c[2]-a[2];
+    const n0=u1*v2-u2*v1,n1=u2*v0-u0*v2,n2=u0*v1-u1*v0,s=1/(Math.hypot(n0,n1,n2)||1);
+    data!.set([...a,...b,...c,n0*s,n1*s,n2*s],o);
+  });
+  planes.set(surface,data);return data;
+}
+
+/** `structuralHits(from,to,def)[0]`, the only hit the sight reads, without building the others: the same
+ * box tests and `segmentPlate` arithmetic in the same order, with each triangle's normal computed once. */
+export function firstStructuralHit(from:Vec3,to:Vec3,def:ShipDefinition):{t:number;point:Vec3;surface:StructuralSurface;triangle:number}|undefined {
+  const f0=from[0],f1=from[1],f2=from[2],d0=to[0]-f0,d1=to[1]-f1,d2=to[2]-f2;
+  let best:{t:number;point:Vec3;surface:StructuralSurface;triangle:number}|undefined;
+  for(const surface of structuralSurfaces(def)){
+    if(!segmentBox(from,to,surface))continue;
+    const p=trianglePlanes(surface);
+    for(const chunk of surface.chunks){
+      if(!segmentBox(from,to,chunk))continue;
+      for(let i=chunk.first;i<chunk.end;i++){
+        const o=i*12,n0=p[o+9],n1=p[o+10],n2=p[o+11];
+        const denominator=0+n0*d0+n1*d1+n2*d2;
+        if(Math.abs(denominator)<1e-10)continue;
+        const t=(0+n0*(p[o]-f0)+n1*(p[o+1]-f1)+n2*(p[o+2]-f2))/denominator;
+        if(t< -1e-9||t>1+1e-9)continue;
+        const clamped=Math.max(0,Math.min(1,t)),x=f0+d0*clamped,y=f1+d1*clamped,z=f2+d2*clamped;
+        let inside=true;
+        for(let k=0;k<3;k++){
+          const v=o+k*3,w=o+(k+1)%3*3,e0=p[w]-p[v],e1=p[w+1]-p[v+1],e2=p[w+2]-p[v+2],w0=x-p[v],w1=y-p[v+1],w2=z-p[v+2];
+          if(0+(e1*w2-e2*w1)*n0+(e2*w0-e0*w2)*n1+(e0*w1-e1*w0)*n2< -1e-7){inside=false;break;}
+        }
+        if(!inside)continue;
+        // The sort's comparator; a stable sort keeps the earliest of equals first.
+        if(best&&!((clamped-best.t||surface.id.localeCompare(best.surface.id)||i-best.triangle)<0))continue;
+        best={t:clamped,point:[x,y,z],surface,triangle:i};
+      }
+    }
+  }
+  return best;
+}
+
 /** The sea cannot occupy the intact hull interior, regardless of its armor layout. */
 export function insideHull(point:Vec3,def:ShipDefinition):boolean {
   if(!def.structuralPlating)return def.armor.some(a=>!a.plate&&contains(a,point));

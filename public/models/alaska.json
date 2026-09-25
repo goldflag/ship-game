@@ -94554,11 +94554,11 @@
         "design": "us-48",
         "position": [
           0,
-          8.736,
-          122.895
+          31.2,
+          11.2
         ],
         "width": 3.6,
-        "staffHeight": 4.3
+        "staffHeight": 0
       }
     ],
     "radars": [
@@ -97065,5 +97065,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "cb76d06ebf6112994af5c8950211702c43266a8a0538da97278094034da29def"
+  "contentHash": "ebbcfdfd2d661a3ef6b3d800dd653904d0685e43251a361b1280cb829bdc8b7e"
 }

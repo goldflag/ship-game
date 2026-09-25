@@ -162,6 +162,9 @@ pub struct VesselScore {
 #[serde(rename_all = "camelCase")]
 pub struct Records {
     pub scores: BTreeMap<String, VesselScore>,
+    // Hundreds of records that gain or lose one entry most ticks: keyed by shell,
+    // so the survivors are not resent (see `frame_delta::keyed`).
+    #[serde(serialize_with = "crate::frame_delta::keyed")]
     pub shell_history: Vec<ShellHistory>,
     #[serde(skip)]
     pub after_action: AfterAction,

@@ -1,4 +1,4 @@
-import { structuralHits, structuralSurfaces } from './hullStructure';
+import { firstStructuralHit, structuralSurfaces } from './hullStructure';
 import { plateHit, segmentPlate } from './armorPlates';
 import { segmentIntersectsBox } from './obstruction';
 import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
@@ -70,9 +70,9 @@ export function sightAim(origin: Vec3, direction: Vec3, target?: AimTarget | Aim
         : volume.plate.mountId ? null : segmentPlate(from, to, volume.plate.vertices);
       if (hit && (!nearest || hit.t < nearest.t)) nearest = { t: hit.t, point: hit.point, pose: candidate.pose };
     }
-    if (candidate.definition) for (const hit of structuralHits(from, to, candidate.definition)) {
-      if (!nearest || hit.t < nearest.t) nearest = { t: hit.t, point: hit.point, pose: candidate.pose };
-    }
+    // Only the first structural hit can be nearer: the rest are sorted behind it.
+    const hit = candidate.definition && firstStructuralHit(from, to, candidate.definition);
+    if (hit && (!nearest || hit.t < nearest.t)) nearest = { t: hit.t, point: hit.point, pose: candidate.pose };
   }
   if (nearest) return localToWorld(nearest.point, nearest.pose);
   return [end[0], .5, end[2]];

@@ -16,7 +16,7 @@ from `assets/parts/`. Generated Blender scenes and runtime models are build outp
   40 mm Bofors, thirty-four 20 mm Oerlikons, two Mk 38 and two Mk 37 directors, fourteen Mk 57 and six Mk 51 AA directors,
   SK and two SG radars, two catapults and two boat/aircraft cranes.
 - **Paint:** the reference's no-camouflage scheme: haze-grey hull and upperworks, deck-blue painted steel decks and roofs,
-  red-oxide bottom; no boot topping or hull number. A US national ensign is added at the stern as on the fleet's other US ships.
+  red-oxide bottom; no boot topping or hull number. A US national ensign flies from the after pole, as at sea.
 - **Reference policy:** GameModels3D only. The catapults stay empty as the reference shows them. Armour zones and
   thicknesses come from the reference's armour model; other gameplay values are provisional game calibration.
 

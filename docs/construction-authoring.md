@@ -52,9 +52,10 @@ historical ships. Their blueprint sections are sampled to at most 16 stations,
 at least 4% of the hull length apart, with nine outline controls. Short end
 transitions are simplified instead of crowding the controls. Bismarck and King
 George V use broader end caps to remove needle tips; very thin end caps extend
-downward to remain editable. Regenerate the shared data after
-changing a source hull with `bun scripts/construction/hull-presets.ts` (or use `--check`
-to verify freshness). Saved designs retain their own versioned sections and are
+downward to remain editable. `bun run ship:build <id>` of a source ship rewrites the shared
+data and rebuilds the construction presets (Valiant, Resolute) whose model inputs include it;
+commit all three with the ship. By hand: `bun scripts/construction/hull-presets.ts` (`--check`
+verifies freshness). Saved designs retain their own versioned sections and are
 not changed by a template update. The brief/reference approvals in the ship
 pipeline still apply when authoring a new historical vessel.
 
