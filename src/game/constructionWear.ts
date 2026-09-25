@@ -6,8 +6,7 @@ import { constructionWearAmount } from '../ships/constructionPaints';
 /** Weathering measured once per ship model, for the ship paint shader (ShipSurfaceDetail) to draw: while a player-built
  * ship is assembled (`applyConstructionWear`) and when a premade ship's published model loads (`applyPremadeWear`). The
  * `shipWear` vertex attribute holds, in metres of the ship frame:
- * - x the ship's wear amount on painted steel; 0 on glass, timber, metals and fixed component finishes. Once a game hull
- *   template has a porthole table (portholeWeeps), its still paint adds twice the table's number (`wornAmount` reads the amount);
+ * - x the ship's wear amount on painted steel; 0 on glass, timber, metals and fixed component finishes;
  * - y how far below the top edge of its vertical surface a vertex sits, where runoff streaks start: the deck
  *   edge (sheer) on a hull's sides, a block face's own top, else the top of a fitting's connected wall;
  * - z how far below the top of its funnel; on any other wall, `FOOT` plus its height above the wall's foot, where grime
@@ -389,50 +388,6 @@ export function applyPremadeWear(root: THREE.Object3D, amount: number, waterline
     }
     wearWalls(mesh, shipMatrix(mesh), paint, funnels.get(mesh), derived, !armour(mesh), waterline);
   }
-}
-
-/** A model's portholes and small windows, for their weeps (portholeWeeps), before the palette repaints it: [x, y, z, radius,
- * normal x, normal z] each, in the ship frame of `root`. A porthole is a pane (glass, a dark tint, or the catalog's glass role)
- * set in a wall: a welded cluster of pane faces 12 cm to 1.2 m tall, about as wide as it is tall and thin along its largest
- * face's normal, which is near level. */
-export function modelPortholes(root: THREE.Object3D): number[] {
-  root.updateMatrixWorld(true);
-  const { meshes, shipMatrix } = shipMeshes(root), out: number[] = [];
-  for (const mesh of meshes) {
-    const material = mesh.material;
-    if (Array.isArray(material) || (mesh as THREE.InstancedMesh).isInstancedMesh) continue;
-    if (!/glass|glazing|dark/i.test(material.name) && material.userData.componentMaterialRole !== 'glass') continue;
-    const geometry = mesh.geometry, p = shipPositions(geometry, shipMatrix(mesh)), count = p.length / 3, canon = weld(p), index = geometry.index;
-    const triangles = Math.floor((index ? index.count : count) / 3), corner = (k: number) => canon[index ? index.getX(k) : k];
-    const parent = Int32Array.from({ length: count }, (_, i) => i);
-    const find = (v: number) => { while (parent[v] !== v) v = parent[v] = parent[parent[v]]; return v; };
-    for (let t = 0; t < triangles; t++) { const a = find(corner(3 * t)); parent[find(corner(3 * t + 1))] = a; parent[find(corner(3 * t + 2))] = a; }
-    type Cluster = { min: number[]; max: number[]; area: number; n: number[]; verts: number[] };
-    const clusters = new Map<number, Cluster>();
-    for (let t = 0; t < triangles; t++) {
-      const a = 3 * corner(3 * t), b = 3 * corner(3 * t + 1), c = 3 * corner(3 * t + 2), root = find(a / 3);
-      let cluster = clusters.get(root);
-      if (!cluster) clusters.set(root, cluster = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity], area: 0, n: [0, 1, 0], verts: [] });
-      for (const v of [a, b, c]) { for (let d = 0; d < 3; d++) { cluster.min[d] = Math.min(cluster.min[d], p[v + d]); cluster.max[d] = Math.max(cluster.max[d], p[v + d]); } cluster.verts.push(v); }
-      const ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
-      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, area = Math.hypot(nx, ny, nz);
-      if (area > cluster.area) { cluster.area = area; cluster.n = [nx / area, ny / area, nz / area]; }
-    }
-    for (const cluster of clusters.values()) {
-      const tall = cluster.max[1] - cluster.min[1], [nx, ny, nz] = cluster.n, level = Math.hypot(nx, nz);
-      if (tall < .12 || tall > 1.2 || Math.abs(ny) > .4 || level < 1e-3) continue;
-      const hx = nx / level, hz = nz / level;
-      let wideMin = Infinity, wideMax = -Infinity, deepMin = Infinity, deepMax = -Infinity;
-      for (const v of cluster.verts) {
-        const across = -hz * p[v] + hx * p[v + 2], deep = hx * p[v] + hz * p[v + 2];
-        wideMin = Math.min(wideMin, across); wideMax = Math.max(wideMax, across); deepMin = Math.min(deepMin, deep); deepMax = Math.max(deepMax, deep);
-      }
-      const wide = wideMax - wideMin, deep = deepMax - deepMin;
-      if (wide < .6 * tall || wide > 1.6 * tall || deep > .5 * tall) continue;
-      out.push((cluster.min[0] + cluster.max[0]) / 2, (cluster.min[1] + cluster.max[1]) / 2, (cluster.min[2] + cluster.max[2]) / 2, tall / 2, hx, hz);
-    }
-  }
-  return out;
 }
 
 /** Whether a mesh belongs to a trained mount (its gunhouse under the `<mount>.yaw` joint, or its barbette, the rest of the mount's
