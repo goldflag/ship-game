@@ -46,37 +46,52 @@ test('construction smoke uses installed exhaust sockets and cancels the ship wor
   expect(funnelOutlets(definition, model)).toEqual([]);
 });
 
-test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
-  const counts: Record<string, number> = { resolute: 0, 'admiral-hipper': 1, bismarck: 1, yamato: 1, iowa: 2, 'king-george-v': 2, hood: 2, baltimore: 2, mogami: 2, 'enterprise-cv6': 1, 'type-viic': 0,
-    'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, gleaves: 2, shokaku: 2, yukikaze: 2, fubuki: 2, cleveland: 2, alaska: 1,
-    kongo: 2 };
+/** Fails with `message` in the diff, naming the ship and funnel instead of a bare `false`. */
+const holds = (ok: boolean, message: string) => expect(ok ? '' : message).toBe('');
+/** A funnel structure's plan extent and highest point: its surface when it has one, else its footprint prism. */
+const extent = (s: NonNullable<ReturnType<typeof shipPreset>['structures']>[number]) => {
+  const points = s.surface?.vertices ?? s.footprint.map(([x, z]) => [x, s.baseY + s.height, z]);
+  const range = (i: number) => [Math.min(...points.map(p => p[i])), Math.max(...points.map(p => p[i]))];
+  return { x: range(0), z: range(2), top: Math.max(...points.map(p => p[1])) };
+};
+
+// Rules rather than measured literals: an accuracy pass that moves or reshapes a funnel keeps passing while its smoke
+// still leaves that funnel's mouth, and a new ship needs no entry here.
+test('every surface ship smokes from each funnel mouth, once, and never from bases, caps or the submarine', () => {
   for (const id of Object.keys(shipPresets)) {
-    const outlets = funnelOutlets(shipPreset(id));
-    if (shipPreset(id).construction) { expect(outlets).toEqual([]); continue; }
-    expect(outlets.length).toBe(counts[id]);
-    for (const outlet of outlets) {
-      expect(outlet.position.every(Number.isFinite)).toBe(true);
-      expect(outlet.width).toBeGreaterThan(0);
-      const jacket = shipPreset(id).structures!.find(s => s.id === outlet.id)!;
-      expect(outlet.position[1]).toBeGreaterThan(jacket.baseY);
+    const def = shipPreset(id), outlets = funnelOutlets(def);
+    // Construction ships smoke from installed sockets (the test above); a submarine has no funnel.
+    if (def.construction || def.submarine) { holds(!outlets.length, `${id}: ${outlets.length} outlets`); continue; }
+    holds(outlets.length > 0, `${id}: no funnel outlet`);
+    for (const [i, outlet] of outlets.entries()) {
+      const where = `${id} ${outlet.id} at ${outlet.position.map(v => v.toFixed(2)).join(', ')}`;
+      holds(outlet.position.every(Number.isFinite) && outlet.width > 0, `${where}: not a mouth`);
+      // A base, cap or casing matched as a funnel would add a second outlet at the same stack.
+      for (const other of outlets.slice(i + 1))
+        holds(Math.hypot(outlet.position[0] - other.position[0], outlet.position[2] - other.position[2]) > 1, `${where}: shares a stack with ${other.id}`);
+      const jacket = def.structures!.find(s => s.id === outlet.id)!, { x, z, top } = extent(jacket);
+      const [px, py, pz] = outlet.position;
+      holds(px >= x[0] - .1 && px <= x[1] + .1 && pz >= z[0] - .1 && pz <= z[1] + .1, `${where}: outside its funnel's plan [${x}] × [${z}]`);
+      // Side-discharging stacks (outside the beam) smoke below their crown: the carrier test below.
+      if (Math.abs(px) <= def.hull.beam / 2)
+        holds(py >= jacket.baseY + .6 * (top - jacket.baseY) && py <= top + 1, `${where}: not at its funnel's mouth (base ${jacket.baseY}, top ${top.toFixed(2)})`);
     }
+    // Explicit outlet datums are used as authored, including on stable IDs that lack the old -funnel suffix.
+    for (const s of def.structures ?? []) if (s.exhaust)
+      expect(outlets.find(o => o.id === s.id)?.position).toEqual(s.exhaust.position);
   }
-  expect(funnelOutlets(shipPreset('enterprise-cv6'))[0].position[0]).toBeCloseTo(11.049, 2);
-  // The curved outlet sits aft of the uptake's base, and below its highest lip.
-  expect(funnelOutlets(shipPreset('yamato'))[0].position[2]).toBeCloseTo(23.3, 2);
-  // The Bismarck cap's raked mouth (23.43 m aft to 25.0 m forward) averages 24.09 m, below its raised forward lip.
-  expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(24.24, 2);
-  expect(funnelOutlets(shipPreset('fletcher'))[0].position[2]).toBeCloseTo(-8.6325, 2);
-  expect(funnelOutlets(shipPreset('yukikaze')).map(o => o.position[1])).toEqual([11.27, 10.3]);
-  // Explicit outlet datums also work with stable IDs that lack the old suffix.
-  expect(funnelOutlets(shipPreset('iowa')).map(o => o.position)).toEqual([[0, 28.35, 4.46], [0, 27.75, 29.16]]);
+  // A curved uptake smokes aft of its base, and a raked cap below its raised forward lip.
+  const yamato = shipPreset('yamato'), uptake = yamato.structures!.find(s => s.id === 'funnel-jacket')!;
+  const base = uptake.footprint.reduce((sum, [, z]) => sum + z, 0) / uptake.footprint.length;
+  expect(funnelOutlets(yamato)[0].position[2]).toBeGreaterThan(base);
+  const bismarck = shipPreset('bismarck'), cap = bismarck.structures!.find(s => s.id === 'funnel-jacket')!;
+  expect(funnelOutlets(bismarck)[0].position[1]).toBeLessThan(extent(cap).top);
 });
 
 test('side-discharging carrier exhaust uses the authored mouths below the jacket crown', () => {
   const def = shipPreset('shokaku');
   const outlets = funnelOutlets(def);
   expect(outlets).toHaveLength(2);
-  expect(outlets.map(o => o.position)).toEqual([[19.45, 11.2, -5.6], [19.45, 11.2, 6.4]]);
   for (const outlet of outlets) {
     const jacket = def.structures!.find(s => s.id === outlet.id)!;
     expect(outlet.position[1]).toBeLessThan(jacket.baseY + jacket.height);

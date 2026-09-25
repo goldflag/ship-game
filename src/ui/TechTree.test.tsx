@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { emptyProfile, openProfile, type ProgressProfile } from '../progression/rules';
 import type { ProgressSnapshot } from '../progression/store';
-import { nodePlace, techNation, type NationId } from '../progression/techTree';
+import { nodePlace, TECH_TREE, techNation, type NationId } from '../progression/techTree';
 import { describeResearch, research, TechTree } from './TechTree';
 
 const noop = () => {};
@@ -114,7 +114,8 @@ describe('the tech tree', () => {
   test('the account-free harness owns every modelled ship', () => {
     const html = render(snapshot(openProfile()), 'japan');
     const states = [...nodes(html).values()].map((node) => node.state);
-    expect(states.filter((state) => state === 'owned')).toHaveLength(6);
+    const modelled = TECH_TREE.find((nation) => nation.id === 'japan')!.lines.flatMap((line) => line.nodes).filter((node) => node.presetId);
+    expect(states.filter((state) => state === 'owned')).toHaveLength(modelled.length);
     expect(states.every((state) => state === 'owned' || state === 'placeholder')).toBe(true);
   });
 });
