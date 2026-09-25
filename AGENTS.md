@@ -53,6 +53,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | `bun run bootstrap` | First thing in a fresh worktree: install, simulation content and dev WASM, `.env.local` |
 | `bun run check` | While iterating: incremental typecheck plus only the tests your diff affects. `--all` for every test |
 | `bun run test` | Every TypeScript test, quiet. `bun test <file>` runs one file with full output |
+| `bun run master:red` | What master's latest completed CI run fails, TypeScript and cargo tests, with the run's link |
 | `bun run ship:browser:check -- --only <name>` | One editor browser check; `--list` shows them |
 | `bun run ui:shot -- --state port\|editor\|battle` | A screenshot of the real game, no account needed |
 | `bun run film -- <name>` | Film a staged battle shot by shot (`scripts/film/films/`); `--stills` to review camera work. See [films](docs/film.md) |
@@ -73,7 +74,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 
 ## Validation and integration
 
-- `bun run test` and `bun run ship:browser:check` report only failures that are not in their [known-red ledgers](docs/browser-verification.md#known-red-tests-and-checks); do not re-prove a listed failure against master.
+- `bun run test` and `bun run ship:browser:check` report only failures that are not in their [known-red ledgers](docs/browser-verification.md#known-red-tests-and-checks); do not re-prove a listed failure against master. `bun run check` and `bun run test` also skip failures that master's latest CI run has; for a cargo test, `bun run master:red` lists what master's CI fails (a few seconds).
 - Iterate with `bun run check`; run relevant simulation tests and `bun run build` once before the PR. Model changes also require `ship:build`, fixed review views and articulation in-game. Rebuild affected assets after shared recipe changes; follow the pipeline's validation matrix.
 - Start independent tasks from current remote master in separate worktrees. Only one integrator may mutate the main checkout; check for already-integrated patches before replaying commits.
 - In a linked worktree, read [its git traps](docs/integration-workflow.md#in-a-worktree) first: `git switch -c <branch> origin/master`, never `git checkout master`, three-dot diffs, `git push -u origin HEAD`.

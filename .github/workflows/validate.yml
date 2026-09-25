@@ -61,10 +61,14 @@ jobs:
           bun run accounts:migrate
           bun run accounts:check
       - run: bun run multiplayer:check
+      # The TypeScript tests run even when multiplayer:check fails: `bun run check` and `bun run master:red` read this
+      # run's failures as master's baseline, and a skipped step would leave them unknown.
       # The native construction compiler the authoring and construction tests run, built here rather than inside a test's timeout.
       - name: Build the native construction compiler
+        if: ${{ !cancelled() }}
         run: cargo build --locked --profile wasm-dev -p naval-sim --example compile_construction
       - run: bun run test
+        if: ${{ !cancelled() }}
       - run: bun run build
       - name: Exercise the release server over HTTP and WebSockets
         run: |
