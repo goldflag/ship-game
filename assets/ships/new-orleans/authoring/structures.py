@@ -353,6 +353,22 @@ def ring_points(poly, n):
     return np.stack([np.interp(t, s, closed[:, 0]), np.interp(t, s, closed[:, 1])], 1)
 
 
+def project_ring(prev, poly):
+    """Resample an outline where the points of the neighbouring level's ring fall on it (nearest points, kept in
+    order round the ring), so corresponding points follow the wall instead of sliding round with its perimeter."""
+    line = shapely.LineString(np.array(poly.exterior.coords))
+    L = line.length
+    s = np.asarray(shapely.line_locate_point(line, shapely.points(prev)), dtype=float)
+    out = [s[0]]
+    for v in s[1:]:
+        v = v + L * np.round((out[-1] - v) / L)
+        out.append(max(v, out[-1] + .005))  # never two points on one spot
+    out = np.array(out)
+    if out[-1] - out[0] > L * .999:
+        out = out[0] + (out - out[0]) * (L * .999 / (out[-1] - out[0]))
+    return np.array([line.interpolate(v % L).coords[0] for v in out])
+
+
 def triangulate(ring):
     poly = Polygon(ring)
     if not poly.is_valid:
@@ -371,78 +387,125 @@ def rz(z):
     return round(float(z) + SHIFT, 3)
 
 
+def apart(a, c):
+    """How far outline a strays from outline c: the 90th percentile of its points' distances, every 5 cm."""
+    pts = shapely.points(np.array([a.exterior.interpolate(t).coords[0] for t in np.arange(0, a.exterior.length, .05)]))
+    return float(np.percentile(shapely.distance(pts, c.exterior), 90))
+
+
 structures = []
-for run in runs:
-    y0 = run.levels[0][0] - STEP / 2
-    y1 = run.levels[-1][0] + STEP / 2
-    ym, mbox, mid = run.levels[len(run.levels) // 2]
+todo = [list(run.levels) for run in runs]
+while todo:
+    levels = todo.pop(0)
+    y0 = levels[0][0] - STEP / 2
+    y1 = levels[-1][0] + STEP / 2
+    ym, mbox, mid = levels[len(levels) // 2]
     area = mid.sum() * CELL * CELL
     if area < MIN_AREA or (y1 - y0) * area < float(opts.get('min_volume', .3)):
         continue
     # A run one level deep is a plane grazing a plate; real platforms come from the horizontal faces below.
-    if len(run.levels) < 2:
+    if len(levels) < 2:
         continue
     per = perimeter(mid)
     spread = 0
-    for _, bx, sub in run.levels:
+    for _, bx, sub in levels:
         u = union_box(mbox, bx)
         spread = max(spread, (place(mid, mbox, u) ^ place(sub, bx, u)).sum() * CELL * CELL / per)
-    entry = dict(baseY=round(y0, 3), height=round(y1 - y0, 3), levels=len(run.levels))
-    if spread <= PRISM_TOL or len(run.levels) < 3:
+    entry = dict(baseY=round(y0, 3), height=round(y1 - y0, 3), levels=len(levels))
+    if spread <= PRISM_TOL or len(levels) < 3:
         poly = mask_polygon(mid, mbox)
         if poly is None or poly.area < MIN_AREA * .5:
             continue
         entry['footprint'] = [[round(x, 3), rz(z)] for x, z in list(poly.exterior.coords)[:-1]]
         entry['kind'] = 'prism'
     else:
-        polys = [mask_polygon(sub, bx) for _, bx, sub in run.levels]
+        polys = [mask_polygon(sub, bx) for _, bx, sub in levels]
         if any(p is None for p in polys):
             continue
-        n = int(np.clip(round(max(p.length for p in polys) / .3), 16, 128))
-        sampled = [ring_points(p, n) for p in polys]
-        for k in range(1, len(sampled)):
-            prev, cur = sampled[k - 1], sampled[k]
-            best = min(range(n), key=lambda sh: float(((np.roll(cur, -sh, axis=0) - prev) ** 2).sum()))
-            sampled[k] = np.roll(cur, -best, axis=0)
-        ys = [lv[0] for lv in run.levels]
-        keep, i = [0], 0
-        while i < len(polys) - 1:
-            j = len(polys) - 1
-            while j > i + 1:
-                ok = True
-                for k in range(i + 1, j):
-                    t = (ys[k] - ys[i]) / (ys[j] - ys[i])
-                    guess = sampled[i] * (1 - t) + sampled[j] * t
-                    if np.hypot(*(guess - sampled[k]).T).max() > float(opts.get('loft_tol', .09)):
-                        ok = False
-                        break
-                if ok:
-                    break
-                j -= 1
-            keep.append(j)
-            i = j
-        loops = [(y0 if k == 0 else y1 if k == len(polys) - 1 else ys[k], sampled[k]) for k in keep]
-        m = len(loops)
-        verts = [[round(float(x), 3), round(yk, 3), rz(z)] for yk, pts in loops for x, z in pts]
-        tris = []
-        for a in range(m - 1):
-            for i in range(n):
-                p, q = a * n + i, a * n + (i + 1) % n
-                r, s = (a + 1) * n + (i + 1) % n, (a + 1) * n + i
-                tris += [[p, q, r], [p, r, s]]
-        bottom = triangulate(loops[0][1])
-        top = triangulate(loops[-1][1])
-        if bottom is None or top is None or len(verts) > 2048:
-            poly = polys[len(polys) // 2]
-            entry['footprint'] = [[round(x, 3), rz(z)] for x, z in list(poly.exterior.coords)[:-1]]
+        # Where the outline jumps between two neighbouring levels (a deckhouse stepping in above its lower tier) the
+        # run is two blocks: split it there and treat each part on its own; a part one level deep joins the part below.
+        jumps = [k + 1 for k in range(len(polys) - 1) if max(apart(polys[k], polys[k + 1]), apart(polys[k + 1], polys[k])) > float(opts.get('split', .15))]
+        if jumps:
+            parts, start = [], 0
+            for k in jumps + [len(levels)]:
+                if k - start < 2 and parts:
+                    parts[-1] = parts[-1] + levels[start:k]
+                elif k > start:
+                    parts.append(levels[start:k])
+                start = k
+            if len(parts) > 1:
+                todo[:0] = parts
+                continue
+        # A block is a prism when nearly all its levels (PRISM_SHARE of its height) keep nine tenths of their outline
+        # within PRISM_H of the middle level's, both ways: a loft of near-identical rings, or of rings that differ only
+        # by a small feature that comes and goes (a locker, a ladder, a fillet, a lip at the top), only crumples the
+        # shading.
+        middle = len(polys) // 2
+
+        offsets = [max(apart(p, polys[middle]), apart(polys[middle], p)) for p in polys]
+        alike = [v < float(opts.get('prism_h', .15)) for v in offsets]
+        bx0, bz0, bx1, bz1 = polys[middle].bounds
+        print(f'tapered run {y0:.2f}-{y1:.2f} m at x {bx0:.1f}..{bx1:.1f}, z {bz0 + SHIFT:.1f}..{bz1 + SHIFT:.1f}: '
+              f'{sum(alike)}/{len(polys)} levels like the middle one'
+              + ('' if sum(alike) >= .85 * len(polys) else ' (' + ' '.join(f'{v:.2f}' for v in offsets) + ')'), file=sys.stderr)
+        if sum(alike) >= float(opts.get('prism_share', .85)) * len(polys):
+            entry['footprint'] = [[round(x, 3), rz(z)] for x, z in list(polys[middle].exterior.coords)[:-1]]
             entry['kind'] = 'prism'
         else:
-            tris += [[c, b, a] for a, b, c in bottom]
-            tris += [[(m - 1) * n + a, (m - 1) * n + b, (m - 1) * n + c] for a, b, c in top]
-            widest = max(polys, key=lambda p: p.area)
-            entry['footprint'] = [[round(x, 3), rz(z)] for x, z in list(widest.exterior.coords)[:-1]]
-            entry['surface'] = dict(vertices=verts, triangles=tris)
-            entry['kind'] = 'loft'
+            # Rings: the middle level sampled evenly, each level above and below resampled where its neighbour's points
+            # fall on it, so a feature that comes and goes between levels does not drag the correspondence round the ring.
+            n = int(np.clip(round(max(p.length for p in polys) / .3), 16, 128))
+            sampled = [None] * len(polys)
+            sampled[middle] = ring_points(polys[middle], n)
+            for k in range(middle + 1, len(polys)):
+                sampled[k] = project_ring(sampled[k - 1], polys[k])
+            for k in range(middle - 1, -1, -1):
+                sampled[k] = project_ring(sampled[k + 1], polys[k])
+            ys = [lv[0] for lv in levels]
+            # Keep only the levels the shape needs: a level goes when the straight blend of the kept levels either side of it
+            # stays within LOFT_TOL of its outline both ways (shape distance, not vertex to vertex, so the arc-length
+            # sampling sliding along a ring does not keep every level and crumple the shading).
+            edges = [shapely.LineString(np.vstack([p, p[:1]])) for p in sampled]
+            keep, i = [0], 0
+            while i < len(polys) - 1:
+                j = len(polys) - 1
+                while j > i + 1:
+                    ok = True
+                    for k in range(i + 1, j):
+                        t = (ys[k] - ys[i]) / (ys[j] - ys[i])
+                        guess = sampled[i] * (1 - t) + sampled[j] * t
+                        there = shapely.distance(shapely.points(guess), edges[k]).max()
+                        back = shapely.distance(shapely.points(sampled[k]), shapely.LineString(np.vstack([guess, guess[:1]]))).max()
+                        if max(there, back) > float(opts.get('loft_tol', .15)):
+                            ok = False
+                            break
+                    if ok:
+                        break
+                    j -= 1
+                keep.append(j)
+                i = j
+            loops = [(y0 if k == 0 else y1 if k == len(polys) - 1 else ys[k], sampled[k]) for k in keep]
+            m = len(loops)
+            verts = [[round(float(x), 3), round(yk, 3), rz(z)] for yk, pts in loops for x, z in pts]
+            tris = []
+            for a in range(m - 1):
+                for i in range(n):
+                    p, q = a * n + i, a * n + (i + 1) % n
+                    r, s = (a + 1) * n + (i + 1) % n, (a + 1) * n + i
+                    tris += [[p, q, r], [p, r, s]]
+            bottom = triangulate(loops[0][1])
+            top = triangulate(loops[-1][1])
+            if bottom is None or top is None or len(verts) > 2048:
+                poly = polys[len(polys) // 2]
+                entry['footprint'] = [[round(x, 3), rz(z)] for x, z in list(poly.exterior.coords)[:-1]]
+                entry['kind'] = 'prism'
+            else:
+                tris += [[c, b, a] for a, b, c in bottom]
+                tris += [[(m - 1) * n + a, (m - 1) * n + b, (m - 1) * n + c] for a, b, c in top]
+                widest = max(polys, key=lambda p: p.area)
+                entry['footprint'] = [[round(x, 3), rz(z)] for x, z in list(widest.exterior.coords)[:-1]]
+                entry['surface'] = dict(vertices=verts, triangles=tris)
+                entry['kind'] = 'loft'
     if len(entry['footprint']) > 256:
         poly = Polygon(entry['footprint']).simplify(.12)
         entry['footprint'] = [[round(x, 3), round(z, 3)] for x, z in list(poly.exterior.coords)[:-1]]

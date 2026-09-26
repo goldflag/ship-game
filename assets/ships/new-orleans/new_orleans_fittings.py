@@ -11,6 +11,7 @@ import bmesh
 from mathutils import Vector
 
 from new_orleans_kit import P, R, ZS
+from new_orleans_lockers import LOCKERS
 from new_orleans_walls import FLOORS, WALLS
 import new_orleans_underwater
 
@@ -452,7 +453,9 @@ def aircraft_crane(D, kit):
     kit.boxc(aid, col, 'house window', V(bx + 1.31, 13.9, bz - .3), (.04, 1.2, .4), 'glass')
     taper(kit, aid, col, 'king post', (bx, 14.9, bz), (bx, 20.66, bz), .3, .22)
     kit.cylz(aid, col, 'post cap', V(bx, 20.55, bz), .3, .2, 'edge', 12)
-    heel = V(-7.7, 13.6, 33.4)
+    # Jib on the reference's line (am113 plan cuts: centre -6.78, 32.8 at 15 m and -2.15, 26.1 at 23 m), its heel
+    # pinned at the front of the machinery house.
+    heel = V(-7.62, 13.6, 34.0)
     tip = V(-2.28, 22.8, 26.31)
     kit.lattice(aid, col, heel, tip, .9, .9, 16, .07, .04)
     kit.part('rod', aid, col, 'jib head sheave', tip + Vector((0, -.25, 0)), tip + Vector((0, .25, 0)), .2, 'edge', vertices=12)
@@ -526,8 +529,9 @@ def boats(D, kit):
         ring = [(1.4 * math.cos(math.tau * i / 20), .72 * math.sin(math.tau * i / 20)) for i in range(20)]
         for i, (a, b) in enumerate(ring):
             p, q = ring[(i + 1) % 20]
-            kit.member(aid, col, c + Vector((a, 0, b)), c + Vector((p, 0, q)), .13, 'canvas', 8)
-        kit.boxc(aid, col, 'grating', c, (2.4, .04, .9), 'wood')
+            # painted grey with a dark grating, as the reference's texture shows them
+            kit.member(aid, col, c + Vector((a, 0, b)), c + Vector((p, 0, q)), .13, 'naval', 8)
+        kit.boxc(aid, col, 'grating', c, (2.4, .04, .9), 'edge')
         kit.boxc(aid, col, 'rack', c - Vector((0, -s * .15, .75)), (2.6, .1, .08), 'edge')
 
 
@@ -636,13 +640,7 @@ def deck_gear(D, kit):
                     kit.boxc(aid, col, 'paravane cradle', V(s * x, 8.6, z + dz), (.14, .5, .12), 'edge')
                     for dx in (-.22, .22):
                         kit.part('rod', aid, col, 'rack post', V(s * x + dx, deck_y, z + dz), V(s * x + dx * .5, 8.62, z + dz), .04, 'naval', vertices=6)
-    # Ready-use lockers (am028/029/030/224) by the guns.
-    LOCKERS = [(-1.68, 8.86, -84.35, 1.38, .8, .62), (1.68, 8.86, -84.35, 1.38, .8, .62), (-3.32, 12.66, -31.35, .88, 1.07, 1.0), (-2.22, 9.45, -30.78, 1.05, 1.29, 1.2),
-               (2.1, 9.45, -30.94, 1.05, 1.29, 1.2), (3.32, 12.65, -31.35, .88, 1.07, 1.0), (1.53, 9.45, -31.93, 1.05, 1.29, 1.2), (-1.64, 9.45, -31.78, 1.05, 1.29, 1.2),
-               (.97, 10.07, -7.65, 1.38, .8, .62), (-3.62, 17.95, -29.02, .98, .84, .56), (-4.79, 4.18, 13.03, 1.67, 1.23, .78), (4.79, 4.18, 13.11, 1.67, 1.23, .78),
-               (-1.63, 4.01, 13.02, 1.38, .8, .62), (-3.02, 6.62, 12.25, 1.38, .8, .62), (-3.6, 4.07, 51.3, 1.38, .8, .62), (3.02, 6.62, 12.25, 1.38, .8, .62),
-               (-6.82, 10.14, 31.57, .62, .8, 1.38), (0.0, 10.14, 49.44, 1.38, .8, .62), (3.6, 4.07, 51.3, 1.38, .8, .62), (-1.96, 10.07, 2.74, .62, .8, 1.38),
-               (1.96, 10.07, 2.74, .62, .8, 1.38), (1.63, 4.01, 13.02, 1.38, .8, .62), (2.43, 4.46, 79.12, 1.51, .8, 1.18), (-2.47, 4.46, 79.14, 1.51, .8, 1.18)]
+    # Ready-use lockers by the guns (new_orleans_lockers.py).
     for x, y, z, sx, sy, sz in LOCKERS:
         foot = seat(kit, x, y - sy / 2, z, .6)
         y = foot + sy / 2

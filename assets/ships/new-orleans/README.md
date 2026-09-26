@@ -1,12 +1,18 @@
-# New Orleans
+# USS New Orleans
 
-Scaffolded starter · replace with the approved vessel, year and fit
+New Orleans · 1944 exterior after the GameModels3D pasc107 B_Hull fit (hull asc014_new_orlean_1944) · reference design
+waterline
 
-Open `/?ship=new-orleans` or select this ship in port or Custom battle once it is registered.
+Open `/?ship=new-orleans` or select this ship in port or Custom battle.
 
-This is a legacy Blender-recipe preset (like Alaska, Hood and Yamato), by explicit request, rather than a
-construction ship. `blueprint.json` (written by `author-blueprint.py`) and `build.py` are the durable inputs;
-reusable guns come from `assets/parts/`. Generated Blender scenes and runtime models are build outputs.
+This is a legacy Blender-recipe preset (like Takao, Alaska, Hood and Mogami), by explicit request, rather than a
+construction ship. `blueprint.json` (written by `author-blueprint.py`), `build.py`, `new_orleans_kit.py` (shared
+vocabulary: materials, primitives, barbettes, gun seats, merged rails and wires), `new_orleans_fittings.py` (masts,
+directors, radars, funnel tops, aviation, boats, searchlights, bulwarks, deck gear and rails),
+`new_orleans_underwater.py` (screws, shafts, bossings and brackets, rudder, skeg, bilge keels, propeller guards),
+`new_orleans_walls.py` (the traced bulwarks, splinter screens and gun tubs) and `new_orleans_windows.py` with its table
+(bridge glazing) are the durable inputs; the guns come from `assets/parts/`. `authoring/` keeps the measurement scripts
+and their outputs. Generated Blender scenes and runtime models are build outputs.
 
 ## Approved brief
 
@@ -26,19 +32,97 @@ reusable guns come from `assets/parts/`. Generated Blender scenes and runtime mo
 
 ## Model and simulation basis
 
-TODO once measured: how the hull stations and deckhouse prisms were sampled and at what waterline; where the mounts
-and armour come from; which fittings are simplified original constructions. Machinery, magazines, flood spaces,
-stability and damage-control values are game estimates unless the brief says otherwise.
+The hull is an original authored-stations loft of 125 stations (`authoring/lines.json`), measured by
+`authoring/measure-lines.ts`: the shared `ship:lines` walk over the `pasc107-b` cache with a deck finder of its own
+(the reference's deck plating spans the centreline and stops short of the shell round the anchor pipes), the
+forecastle break at the measured step of the side plating (reference z 5.02), walks started below the propeller guards
+and eleven levels up to the flared forecastle's deck edge. The frame is centred on the length (reference z + 0.611 m).
+At the reference's y = 0 design waterline it is 179.78 m overall and 176.0 m on the waterline, 18.48 m in beam
+(18.41 m on the waterline), 7.07 m to the keel and 13,217 t. The forecastle deck falls from 9.15 m at the stem to
+6.23 m amidships and 5.97 m at the break; the main deck abaft it stands at 3.6 m, rising to 4.3 m at the stern. The
+skeg, bilge keels, four screws on their shafts and
+brackets, the balanced rudder and the propeller guards are original constructions at the reference's positions.
+
+Superstructure blocks come from plan traces of the reference every 5 cm (`authoring/plans.ts`, the shared
+`ship:slice --plan --sym` trace) carried up level by level by `authoring/structures.py`: a block continues while its
+outline moves little, ends at a roof, platform or overhang and splits where it comes apart; it is a prism, or where
+its walls taper a straight loft through the few levels its shape needs. Cells are kept only under a surface of the
+reference (so the deck inside a tub or an open bridge does not come back solid), the main barbettes and every open
+gun's working circle are cut out, and small lintels are carried to the block they rest on. The funnels are raked
+extrusions of one measured section with sooted caps. Bulwarks, splinter screens and gun tubs, which the block trace
+drops as too thin, are traced as polylines by `authoring/walls.py` and drawn as 6 cm plating; where one crosses a
+light or secondary gun's working circle (the catalog part's swept rests, shield and platform, measured on the built
+model by `authoring/mount_envelope.py` into `authoring/mount-envelopes.json`) it bulges round the gun onto a small
+sponson floor. The bridge's windows and portholes were read off orthographic renders of the reference's painted
+textures (`authoring/windows.py`); `new_orleans_windows.py` glazes each on this model's own wall where that wall
+stands within 35 cm of the reference's and faces the view.
+
+Mounts stand at the reference's hardpoint datums, each foot on the deck the reference stands it on: the catalog's
+`us-8in55-ca32-triple`, `us-5in25-mk19-single`, `us-40mm-bofors-mk2-quad`, `us-20mm-oerlikon-mk24-hsienyang` (the
+twin Mk 20 mounts) and `us-20mm-oerlikon-mk4`. Every mount carries a `mountClearance` installation envelope (barrels
+with the recoil stroke) against the blocks it can reach and against the bulwarks and tubs within its reach (6 cm
+thin structures along the traced walls, which the recipe does not draw twice), and neighbouring mounts whose working
+circles overlap are interlocked. Firing obstructions are fore-and-aft strips of the deckhouses, the stowed boats and
+catapults, the forecastle ahead of No. 1 turret (which its barrels would otherwise meet at full depression) and the
+quarterdeck boat winch. The Mk 31, Mk 28 and Mk 51 directors stand at the reference's director datums; SK, both SG and
+SM aerials and the four large directors turn, and the ensign flies from the mainmast gaff.
+
+Masts and yards, directors, radars, searchlights, the aircraft crane, catapults, boats and davits, ground tackle,
+bollards, fairleads, vents, hatches, lockers, rafts, rails and the underwater gear are simplified original
+constructions at the reference's positions and sizes.
+
+Machinery (four firerooms under the funnels, two engine rooms in four spaces, four shafts), magazines, flood spaces,
+stability (GM 7% of beam) and damage-control values are game estimates; the visual reference does not establish
+internal plans. The 127 mm belt over the machinery and 32 mm side forward of it (y -1.86 to 1.57 m), the 57 mm decks,
+the forward magazines' 83 mm crown, 102 mm magazine sides and 76 mm ends, 89 mm citadel bulkheads, the 40 mm citadel
+bottom, 127 mm barbettes, the conning tower (127 mm sides, 76 mm roof) and the 51 to 63 mm steering-gear box read
+their zones and thicknesses from the reference's armour model and are fitted to the authored loft; hull and
+superstructure plating are 25 and 13 mm.
+
+The paint is the reference's plain scheme sampled through its own UVs: one haze grey over hull, upperworks and
+turrets, deck blue over the timber weather decks and steel roofs, a black boot-topping from 0.24 to 0.76 m and a
+fouled olive-brown bottom, black funnel caps (`appearance.json`).
 
 ## Accepted approximations
 
-- TODO.
+- Displacement at the reference waterline (13,217 t, 7.07 m keel draft) is the reference's loading, heavier than the
+  class's published full load; the stated mass equals the loft's displacement. The beam (18.48 m) is the
+  reference's.
+- Superstructure blocks are measured prisms and straight lofts: small overhangs step and curved faces are faceted.
+  Only the bridge's windows and portholes are glazed; doors, scuttles on the hull and other painted texture detail are
+  not modelled, and openings whose wall here stands away from the reference's are left out.
+- The catalog Oerlikon, Bofors and 5-inch parts sweep wider than the reference's own guns, so traced screens and tubs
+  bulge round them: up to 0.39 m at the bridge wings' single Oerlikons and 0.33 m on the after control platform, on
+  small sponson floors. The forecastle capstans stand 0.44 m high (caps at 7.72 m) under No. 1 turret's overhang, and
+  the chains run from them to the hawse pipes without a windlass.
+- The light guns' carriages are not interlocked against blocks, only their barrels; the installation profile keeps
+  them clear where the sweep found contacts.
+- Masts, yards, radars, directors, the crane and the catapults are simplified; the catapults are empty, as in the
+  reference, and no aircraft are carried. The reference shows no torpedo tubes or depth-charge gear, so none are
+  fitted.
+- Handling (32.7 kn), stability, mass distribution, flooding compartmentation and weapon values are shared game
+  calibration, not historical measurements. Model fidelity and export checks do not certify historical accuracy.
+
+New Orleans takes the placeholder's place in the United States cruiser line of the research tree.
 
 ```sh
-python3 assets/ships/new-orleans/author-blueprint.py
+# Re-measure only when the reference or a measurement script changes (needs the pasc107-b cache and a venv with
+# numpy, scipy, shapely, scikit-image and Pillow):
+bun assets/ships/new-orleans/authoring/measure-lines.ts
+bun assets/ships/new-orleans/authoring/plans.ts .build/new-orleans/plans.json 3.675 34 0.05 --box -12,0,-92,12,45,92
+python assets/ships/new-orleans/authoring/structures.py .build/new-orleans/plans.json assets/ships/new-orleans/authoring/lines.json .build/new-orleans/structures.json
+python assets/ships/new-orleans/authoring/walls.py .build/new-orleans/structures.json > assets/ships/new-orleans/new_orleans_walls.py
+python assets/ships/new-orleans/authoring/windows.py > assets/ships/new-orleans/new_orleans_windows_data.py
+
+python3 assets/ships/new-orleans/author-blueprint.py   # add --structures .build/new-orleans/structures.json after re-measuring
+bun -e "import { writeLocalDamage } from './assets/ships/author-local-damage.ts'; await writeLocalDamage(['new-orleans'])"
+bun assets/ships/author-flood-spaces.ts new-orleans && bun assets/ships/author-stability.ts new-orleans && bun assets/ships/author-damage-control.ts new-orleans
 bun run ship:build new-orleans
 bun run ship:review new-orleans
 bun run ship:check new-orleans
 ```
 
-Reference downloads, measurements and comparison captures stay in ignored `.build/`.
+`mount-envelopes.json` is re-measured from a built model with
+`blender -b assets/ships/new-orleans/generated/source.blend --python assets/ships/new-orleans/authoring/mount_envelope.py`
+when a gun part changes. Keep the current fixed views in `generated/review/`. Reference downloads, measurements and
+comparison captures stay in ignored `.build/`.

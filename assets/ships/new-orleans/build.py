@@ -80,7 +80,7 @@ for s in D['structures']:
         if funnel and face.center.z > rim - 1.0:
             # The funnel tops are sooted black for about a metre under the rim, as the reference paints them.
             face.material_index = 2
-        elif face.normal.z > .8 and not funnel:
+        elif face.normal.z > .97 and not funnel:
             face.material_index = 1
     # Traced outlines and lofted tiers turn in many small steps: shade them smooth and keep corners over 30 degrees.
     ob.data.shade_smooth()

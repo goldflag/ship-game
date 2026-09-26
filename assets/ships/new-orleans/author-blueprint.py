@@ -27,6 +27,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE))
+from new_orleans_lockers import LOCKERS  # noqa: E402
 from new_orleans_walls import WALLS  # noqa: E402
 LINES = json.loads((HERE / 'authoring/lines.json').read_text())
 ZS = LINES['zShift']     # runtime z = reference z + ZS
@@ -241,7 +242,15 @@ for id, name, z_ref, rake, y_ref, y0, y1 in FUNNELS:
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is cut into
-# fore-and-aft strips of at most 3 m so a stepped deckhouse is not boxed at its widest.
+# fore-and-aft strips of at most 3 m, and each strip boxes only the runs across the ship that lie inside the outline
+# all along the strip, so a stepped deckhouse is not boxed at its widest and a gun standing in a notch of a block
+# (its working circle cut out) is not boxed in.
+def inside_runs(poly, z):
+    xs = sorted(ax + (bx - ax) * (z - az) / (bz - az) for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1])
+                if min(az, bz) <= z < max(az, bz))
+    return [(xs[i], xs[i + 1]) for i in range(0, len(xs) - 1, 2)]
+
+
 for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
@@ -252,15 +261,16 @@ for s in structures:
     for k in range(n):
         z0 = min(zs) + (max(zs) - min(zs)) * k / n
         z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
-        pts = [p[0] for p in poly if z0 <= p[1] <= z1]
-        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
-            for zc in (z0, z1):
-                if (az - zc) * (bz - zc) < 0:
-                    pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
-        if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
+        if z1 - z0 < .6:
             continue
-        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
-                                      size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+        runs = None
+        for j in range(9):
+            here = inside_runs(poly, z0 + .1 + (z1 - z0 - .2) * j / 8)
+            runs = here if runs is None else [(max(a, c), min(e, f)) for a, e in runs for c, f in here if min(e, f) - max(a, c) > 0]
+        for r, (x0, x1) in enumerate(run for run in runs if run[1] - run[0] >= .6):
+            b['obstructions'].append(dict(id=f"{s['id']}-{k}" + (f'-{r + 1}' if r else ''),
+                                          center=[round((x0 + x1) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
+                                          size=[round(x1 - x0 - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
 
 # Stowed boats and the catapults: barrels stop at them and cannot fire through them (reference bounds).
 STOWED = [('whaleboat', (6.8, 8.8), (6.01, 7.77), (7.37, 15.31)), ('catapult', (5.16, 8.98), (9.53, 11.56), (6.83, 28.32))]
@@ -352,20 +362,35 @@ for i, w in enumerate(WALLS):
                                    height=round(w['top'] - w['base'], 3), material='naval'))
             WALL_IDS.append((min(near), sid))
 
+# Ready-use lockers within a gun's reach (new_orleans_lockers.py, reference frame) are firing obstructions: barrels
+# stop at them. The recipe seats each on the deck under it, up to a few centimetres off the reference's height, so each
+# box stands 0.25 m taller than its locker.
+for k, (x, y, z, sx, sy, sz) in enumerate(LOCKERS):
+    if any(math.hypot(m['position'][0] - x, m['position'][2] - rz(z)) < guns[m['partId']]['muzzleForward'] + 1.0
+           and abs(m['position'][1] - (y - sy / 2)) < 3 for m in b['mounts']):
+        b['obstructions'].append(dict(id=f'locker-{k + 1}', center=[x, round(y + .125, 3), rz(z)], size=[sx, round(sy + .25, 3), sz]))
+
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: barrels (with the full recoil stroke) and rotating carriages may not enter the blocks they
 # can reach, and neighbouring mounts whose working circles overlap may not cross. Game clearance, not verified
 # historical stops. Carriages in the yaw frame (x across, y up, z aft), measured on the catalog parts.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
-BODIES = {'us-8in55-ca32-triple': dict(center=[0, 1.58, 1.69], size=[8.7, 3.16, 9.35]),
+# The CA-32 gunhouse box stops at 2.8 m, under the superfiring turret's barrels at rest over No. 1's roof, and at the
+# gunhouse's 7 m breadth, clear of the 20 mm twins beside No. 3; the rangefinder hoods standing out 4.34 m from the
+# centreline at the back are two capsules each on the training frame.
+BODIES = {'us-8in55-ca32-triple': dict(center=[0, 1.4, 1.69], size=[7.0, 2.8, 9.35]),
           'us-5in25-mk19-single': dict(center=[0, 1.0, .35], size=[2.9, 1.66, 3.1]),
           'us-40mm-bofors-mk2-quad': dict(center=[0, .95, .3], size=[3.0, 1.9, 2.4]),
           'us-20mm-oerlikon-mk24-hsienyang': dict(center=[0, .95, .25], size=[1.6, 1.9, 1.4]),
           'us-20mm-oerlikon-mk4': dict(center=[0, .9, .25], size=[.8, 1.8, 1.2])}
+FITTINGS = {'us-8in55-ca32-triple': [dict(joint='yaw', a=[s * 2.95, 2.25, z], b=[s * 4.0, 2.25, z], radiusM=.42) for s in (-1, 1) for z in (4.95, 5.65)]}
 clear_mounts, reach = [], {}
 for m in b['mounts']:
     w = catalog[m['partId']]
-    clear_mounts.append(dict(mountId=m['id'], barrelRadiusM=round(max(w['barrelBaseRadius'] * .85, .05), 3), body=BODIES[m['partId']]))
+    entry = dict(mountId=m['id'], barrelRadiusM=round(max(w['barrelBaseRadius'] * .85, .05), 3), body=BODIES[m['partId']])
+    if m['partId'] in FITTINGS:
+        entry['fittings'] = FITTINGS[m['partId']]
+    clear_mounts.append(entry)
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.0, m['position'][1] + w['pivotHeight'])
 pairs = []
 ids = [m['id'] for m in b['mounts']]
@@ -396,6 +421,55 @@ nearby = [sid for _, sid in sorted(nearby)[:128]]
 b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for every mount (8-inch, 5-inch, 40 mm and 20 mm) against the measured superstructure blocks they can reach, including the full recoil stroke, and between neighbouring mounts whose working circles overlap. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
                            neighbors=neighbors)
+
+
+# A light gun whose barrel would rest on the tub wall or screen in front of it (the catalog parts' trunnions stand
+# lower against the reference's walls than its own guns do) rests elevated just enough to clear it, as the interlocks
+# test it: the barrel from 0.65 m behind the trunnion (and the recoil stroke) to the muzzle, 2 cm to spare.
+def rest_blocked(m, elev):
+    w = catalog[m['partId']]
+    x, y, z = m['position']
+    h, e = math.radians(m['bearingDeg']), math.radians(elev)
+    fwd, side = (math.sin(h), -math.cos(h)), (math.cos(h), math.sin(h))
+    r = max(w['barrelBaseRadius'] * .85, .05) + .03 + .02
+    listed = [st for st in structures if st['id'] in set(nearby)]
+    for i in range(w['barrelCount']):
+        off = (i - (w['barrelCount'] - 1) / 2) * w['barrelSpacing']
+
+        def at(f):
+            along = f - w['trunnionForward']
+            fx = w['trunnionForward'] + along * math.cos(e)
+            return (x + fwd[0] * fx + side[0] * off, y + w['pivotHeight'] + along * math.sin(e), z + fwd[1] * fx + side[1] * off)
+        a, c = at(w['trunnionForward'] - .65 - (w.get('recoilM') or 0)), at(w['muzzleForward'] + .05)
+        for k in range(41):
+            p = [a[j] + (c[j] - a[j]) * k / 40 for j in range(3)]
+            for o in b['obstructions']:
+                if all(abs(p[j] - o['center'][j]) <= o['size'][j] / 2 + r for j in range(3)):
+                    return True
+            for st in listed:
+                if not st['baseY'] - r <= p[1] <= st['baseY'] + st['height'] + r:
+                    continue
+                poly = st['footprint']
+                edges = list(zip(poly, poly[1:] + poly[:1]))
+                inside = False
+                for (ax, az), (bx, bz) in edges:
+                    if (az > p[2]) != (bz > p[2]) and p[0] < ax + (bx - ax) * (p[2] - az) / (bz - az):
+                        inside = not inside
+                if inside or min(seg_dist((p[0], p[2]), q, s) for q, s in edges) < r:
+                    return True
+    return False
+
+
+for m in b['mounts']:
+    if m['battery'] == 'main' or not rest_blocked(m, 1):
+        continue
+    for elev in range(5, 46, 5):
+        if not rest_blocked(m, elev):
+            m['initialElevationDeg'] = elev
+            print(f"{m['id']} rests at {elev} degrees, clear of the wall in front of it")
+            break
+    else:
+        print(f"warning: {m['id']} is blocked at rest at every elevation up to 45 degrees")
 
 
 # ---------------------------------------------------------------- rooms, machinery, directors
