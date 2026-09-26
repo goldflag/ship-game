@@ -27,9 +27,9 @@ def build(D, kit):
     air = kit.cols['Boats and aviation']
     structures = [s for s in D['structures'] if s['id'] != 'funnel']
     after_director(kit, masts)
-    # The 4.5 m rangefinders (jf009) are enclosed houses 2.26 m across on short pedestals, their tubes fore and aft.
+    # The 4.5 m rangefinders (jf009) are enclosed houses 2.26 m across and 1.18 m high, their tubes fore and aft.
     for id, ref, bearing in [('rf-after-port', (-3.859, 20.682, 38.808), -90), ('rf-after-starboard', (3.869, 20.684, 38.792), 90)]:
-        kit.rangefinder_house(id, ref, 4.9, bearing, masts, radius=1.13, pedestal=.45, height=.8, tube=.42, arm=(.42, .46))
+        kit.rangefinder_house(id, ref, 4.9, bearing, masts, radius=1.13, height=1.18, tube=.59, arm=(.5, .6))
     periscopes(kit, masts)
     tower_glazing(kit, sup)
     tower_gear(kit, masts)

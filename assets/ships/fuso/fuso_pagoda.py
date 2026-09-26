@@ -30,14 +30,14 @@ def build(D, kit):
     type22_radars(kit, masts)
     for id, ref in [('rf-bridge-port', (-1.21, 25.862, -31.438)), ('rf-bridge-starboard', (1.26, 25.86, -31.432))]:
         kit.rangefinder(id, ref, 1.5, 0, masts)
-    # The 3.5 m rangefinders (jf016) are enclosed: a round house 1.96 m across with the tube's arms through its sides
-    # out to 3.76 m, 1.42 m high over all with its sighting dome.
+    # The 3.5 m rangefinders (jf016) are enclosed: a round house 2.0 m across and 1.2 m high with the tube's arms
+    # through its sides out to 3.76 m, 1.42 m high over all with its sighting dome.
     for id, ref in [('rf-secondary-port', (-4.488, 23.049, -28.212)), ('rf-secondary-starboard', (4.512, 23.045, -28.227)),
                     ('rf-upper-port', (-3.879, 30.876, -27.454)), ('rf-upper-starboard', (3.869, 30.875, -27.543))]:
-        kit.rangefinder_house(id, ref, 3.76, 0, masts, radius=.98, height=1.17, tube=.6)
+        kit.rangefinder_house(id, ref, 3.76, 0, masts, radius=1.0, height=1.2, tube=.64, arm=(.53, .5))
     # The Type 91 directors (jd008) stand in wells 0.8 m deep in their platforms (reference 22.14-23.89 m).
     for id, rx in [('ha-director-port', -5.182), ('ha-director-starboard', 5.199)]:
-        type91_director(kit, id, (rx, 22.94, -21.4), masts)
+        type91_director(kit, id, (rx, 22.94, -21.4), masts, facing=180)
     bridge_gear(kit, masts)
     rear_legs(kit, sup)
     signal_yards(kit, sup)
@@ -139,7 +139,7 @@ def type91_director(kit, id, ref, col, facing=0.0, well=.8):
     # The hood is open over the director's sights: a dark opening in the roof, reaching the face.
     moving.append(kit.beam(id, col, 'roof opening', Vector((x, y, base + 1.755)) - f * .15, Vector((x, y, base + 1.755)) + f * .9, .7, .012, 'dark'))
     c = Vector((x, y, base + 1.28))
-    moving.append(kit.beam(id, col, 'sighting opening', c + f * 1.17, c + f * 1.2, 1.1, .34, 'dark'))
+    moving.append(kit.beam(id, col, 'sighting opening', c + f * 1.17, c + f * 1.2, 1.3, .5, 'dark'))
     for s in (-1, 1):
         port = c + f * .95 + side * s * .72 + Vector((0, 0, -.25))
         moving.append(kit.beam(id, col, 'rangefinder port', port, port + f * .02, .28, .16, 'dark'))
