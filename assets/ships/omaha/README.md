@@ -77,9 +77,10 @@ measurements and comparison captures stay in ignored `.build/`.
   outboard from stowed-forward only (`traverseLimitsDeg`): the forward pair in the hull-side pockets to 31
   degrees, where the inboard tube's after end reaches the pocket's back wall, launching between 15 and 31 degrees
   (a provisional game window: the pocket is too short for every tube's run to clear its forward wall at those
-  angles); the after pair 0-150 degrees. `ship:sweep` does not pose launchers, so their clearance was checked by posing them in the built
-  scene at 1-degree steps. The upper deck's edge is unrailed between the superstructures, as the reference shows
-  it, and the mainmast's shrouds come down on chain plates forward of the after mounts' swing.
+  angles); the after pair 0-150 degrees. `ship:sweep` does not pose launchers, so their clearance was checked by
+  posing them in the built scene at 1-degree steps. The upper deck's edge is unrailed between the
+  superstructures, as the reference shows it, and the mainmast's shrouds come down on chain plates forward of the
+  after mounts' swing.
 - **Upper forward 6-inch singles:** at +20 degrees with full recoil their breech dips about 9 cm into the deck
   they stand on (`sweep-accepted.json`); the reference shows no breech well. The forward shelter between them
   ends 0.8 m forward of the reference's so their breeches, trained right aft, pass clear.
@@ -91,8 +92,12 @@ measurements and comparison captures stay in ignored `.build/`.
   strips that follow this model's facets.
 - **Paint:** linear-RGB interpretations of the reference's hull texture, not measured paint; its rust streaks are
   left to the runtime long-deployment wear. Boats have ship-grey hulls under white canopies.
-- **Fittings:** boats, davits, cranes, catapults, searchlights, ladders and rigging are simplified original
-  shapes; no aircraft is carried. The masts' tops, lookout stations, yards and trusses are at the reference
-  heights; small deck boxes, lockers and fire-fighting gear are mostly left out.
+- **Fittings:** boats, davits, cranes, catapults, searchlights, anchors, ladders and rigging are simplified
+  original shapes; no aircraft is carried. The masts' tops, lookout stations, yards and trusses are at the
+  reference heights, though the mainmast stands about 0.15 m forward of the reference's and its ladder runs up
+  its after face; No. 1 funnel's wires to the foremast, the running lights and small deck boxes, lockers, reels
+  and fire-fighting gear are mostly left out.
+- **Stern:** the loft closes the stern with a vertical end below the deck edge, so at the waterline it stands
+  about 0.6 m aft of the reference's rounded counter.
 - **Guns:** the four gun parts are original recipes registered for recipe use (`guns.json`, `library.json`);
   they are not in the Shipbuilder construction catalog.
