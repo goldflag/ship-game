@@ -4,6 +4,7 @@ the gun arcs and from under turning gunhouses (Kit.in_arc)."""
 import math
 from mathutils import Vector
 from nagato_kit import ZC
+from nagato_tiers import TIERS
 
 
 def rail3(kit, assembly, col, pts, height=1.0, spacing=1.5):
@@ -148,6 +149,7 @@ def deck_edges(kit, D):
 
 def build(kit, D):
     col = kit.collections['Superstructure']
-    structures = [s for s in D['structures'] if not s['id'].startswith(('funnel-', 'forecastle-'))]
+    # Open tiers carry the reference's own bulwarks instead (nagato_tiers).
+    structures = [s for s in D['structures'] if not s['id'].startswith(('funnel-', 'forecastle-')) and s['id'] not in TIERS]
     roof_rails(kit, col, D['structures'], lambda x, y, z: y > 8.0, 1.0, .08, .35, only={s['id'] for s in structures})
     deck_edges(kit, D)

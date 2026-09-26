@@ -11,9 +11,9 @@ ownership, merged rails and wires, boats, searchlights, rangefinders, glazing), 
 roofs, posts and the main director), `nagato_masts.py` (pagoda topmast and yards, rangefinders, directors, lights,
 the tripod mainmast and aircraft crane jib, the funnel cap), `nagato_boats.py` (boats, boat cranes, davits, the
 catapult), `nagato_hull.py` (deck gear, ground tackle, screws, rudders, bilge keels, the chrysanthemum) and
-`nagato_rails.py`, plus two measured datum tables: `nagato_gear.py` (deck-gear positions and sizes) and
-`nagato_windows.py` (windows and portholes). Reusable guns come from `assets/parts/`. Generated Blender scenes and
-runtime models are build outputs.
+`nagato_rails.py`, plus three measured datum tables: `nagato_gear.py` (deck-gear positions and sizes),
+`nagato_windows.py` (windows and portholes) and `nagato_tiers.py` (the open tiers of the pagoda and the mainmast).
+Reusable guns come from `assets/parts/`. Generated Blender scenes and runtime models are build outputs.
 
 ## Approved brief
 
@@ -25,7 +25,7 @@ runtime models are build outputs.
   eighteen 14 cm/50 3rd Year Type casemates, four twin 12.7 cm/40 Type 89 high-angle mounts, 25 mm Type 96 in ten
   triple, twelve twin and twenty-four single mounts besides the four on the turret roofs, the pagoda foremast with its
   Type 94 director, 10 m, 4.5 m and 1.5 m rangefinders, two Type 91 high-angle directors, the tripod mainmast with the
-  aircraft crane, a catapult (empty, as the reference stows it), six searchlights, two boat cranes and eight boats. The
+  aircraft crane, a catapult (empty, as the reference stows it), six searchlights, two boat cranes and nine boats. The
   `AB_Radars` component the brief names does not exist on this vehicle; no radar is fitted.
 - **Paint:** the reference's source (`default`) paint, as Kongō has: one blue-grey over hull and upperworks, grey steel
   roofs and casemate shelf, natural wood weather decks, a linoleum aircraft deck, a black funnel band and mast heads,
@@ -56,6 +56,18 @@ those regions were re-cut with gaps up to 0.8 m bridged and the bridged area kep
 1.6 m above it (a room behind windows, not open legs or railed platforms). Short vertical gaps up to 1.6 m between
 stacked prisms are closed. The working circles of the open light mounts (25 mm and 12.7 cm) are cut out of every prism
 beside or round them above their soles. The funnel is a stack of measured stadiums with its exhaust on the top one.
+Three pieces the plan cuts cannot see because they are single plates were cut as sections instead: the compass
+bridge's windscreen (a prism at 19.05-20.45 m, section y=19.7), and two decks with their bulwarks, the deck under the
+compass bridge at 17.9 m and the deck abaft the pagoda at 17.4 m where the two pagoda 25 mm singles stand (sections
+y=17.6, 18.2 and 18.7, deck heights from vertical probes).
+
+Where a pagoda or mainmast prism stands for legs, the central tube, fins and bulwarks with open space between them
+(under half of its footprint solid in the reference's own sections: 35 prisms), the model draws what those sections
+show instead of the solid block: the reference is cut every 0.1 m through the prism (`ship:slice pjsb010 --section
+y=...`), runs of similar cuts are drawn from their middle cut as columns and 6 cm walls, and the decks and ceilings that
+vertical probes (`--probe x,z`) cross within its height become 8 cm plates; the two decks above are drawn the same way.
+The blueprint keeps the measured prisms as the combat volumes. The mainmast's tripod legs are struts, black from
+27.6 m as the reference paints them.
 
 Mounts sit at the reference's HP_ datums (`bun run ship:hardpoints pjsb010`): the 41 cm turrets are the catalog's
 `type3-410-nagato-twin` (Nos. 1 and 4), `-rf` (No. 2) and `-rf-aft` (No. 3), each built against this reference's own
@@ -63,21 +75,26 @@ gun visual; the 12.7 cm twins `type89-127-a1-twin` (built against `jgs009`, this
 `type96-25-triple` (`jga173`), twins `type96-25-mogami-2` and singles `type96-25-kongo-single`. The 14 cm casemate is a
 new part, `type3-140-nagato-casemate` (assets/parts/ijn-140-nagato/), measured from the reference's `jgs053` drum
 casemate: the catalog's `type3-140-3year-single` is Kuma's open-backed shield deck mount and does not match. The main
-barbettes are the measured 5.87 m drums. Nos. 2 and 3 turrets rest at 8° elevation: level, their barrels pass through
-the lower turret's rear-roof arch and davit, as the reference's own turrets would. Every hull-mounted gun but the
-casemates carries a `mountClearance` envelope (barrels with recoil, gunhouse or carriage box, the turrets' roof arch,
-davit and rangefinder housings as capsules) against the prisms it can reach and its overlapping neighbours.
+barbettes are the measured 5.87 m drums. Nos. 2 and 3 turrets rest at 8° elevation, their barrels astride the lower
+turret's rear-roof arch and davit. Every hull-mounted gun but the casemates carries a `mountClearance` envelope (barrels
+with recoil, gunhouse or carriage box, and for the turrets their tapered faces and after ends and the rangefinder end
+hoods and sight hood as capsules, measured on the catalog turrets) against the prisms it can reach and its overlapping
+neighbours; with it all four turrets train together from rest to either beam.
 
 Fittings follow reference datums and the part bounds of the reference's deck gear: vents, bitts, fairleads, winches,
 capstans, hatches, reels, lockers, lamps, life buoys, paravanes and accommodation ladders; bower, stern and sheet
 anchors with cables from the hawse pipes to the forecastle capstan; the Type 94 director (which trains for the rig),
 the 10 m, 4.5 m and 1.5 m rangefinders, the Type 91 directors, machine-gun control sights, periscopes, six searchlights
 and their controls; the pagoda topmast with two signal yards; the tripod mainmast with its topmast, top yard, gaff,
-signal blocks and the aircraft crane jib; the funnel's black band, rim, domed grating, steam pipes and ladder; the 17 m
-and 11 m motor boats, 12 m launches, the 9 m cutter, the 6 m dinghy, the two jib boat cranes with their slung cutters,
-davits and the stowed boom; the catapult on its turntable and the aircraft trolleys; four three-bladed screws on shafts
-with brackets, the twin rudders and bilge keels. Windows and portholes were located on orthographic renders of the
-reference's painted textures and seated on this model's own walls where they stand within 0.4 m of the reference's.
+signal blocks and the aircraft crane jib; the funnel's black band, rim, domed grating, steam pipes and ladder; the two
+17 m and one 11 m motor boats, two 12 m launches, the 9 m cutter, the 6 m dinghy, the two jib boat cranes with their
+slung cutters, davits and the stowed boom; the catapult on its turntable and the aircraft trolleys; four three-bladed
+screws with broad blades, each on a shaft with its hull bossing, bearing housing and A-bracket (plan cuts at the shaft
+heights), the twin rudders with rounded corners hung on their stocks clear of the hull (profile cut x = 2.3) and bilge
+keels. Windows and portholes were located on orthographic
+renders of the reference's painted textures and seated on this model's own walls where they stand within 0.4 m of the
+reference's; the compass bridge's windscreen carries its band of 0.6 m panes every 0.74 m, 0.93 m tall on its face
+and 1.2 m on its sides, measured on the same renders.
 
 Machinery (four boiler rooms under the funnel, four turbine rooms between the funnel and No. 3 turret, four shafts),
 magazines, flood spaces, stability and damage-control values are game estimates; the visual reference does not
@@ -89,9 +106,10 @@ model for this vehicle.
 
 ## Accepted approximations
 
-- Superstructure tiers are measured prisms: sloped faces step, tapered legs of the pagoda and mainmast are stepped or
-  drawn as straight members, and small overhangs, open galleries and the pagoda's open framework are approximated; a
-  few measured platforms stand on added posts.
+- Superstructure tiers are measured prisms: sloped faces step, and the pagoda's and mainmast's inclined legs are
+  stepped columns of their open tiers or straight struts. The open tiers are drawn from one cut per run of similar
+  cuts, so walls and legs step at run boundaries; their gameplay volumes stay solid prisms. The two control drums
+  abreast the funnel stand on columns; the flying catwalks abaft the pagoda top are not modelled.
 - The casemate shelf beside the forecastle block is flat at its outer edge (3.72 m) where the reference's rises
   gently to the wall foot (4.0 m); the lower casemates stand on pedestals over it.
 - The 14 cm casemate drums turn half inside their wall recesses, as the reference's do; `sweep-accepted.json` accepts
@@ -99,8 +117,13 @@ model for this vehicle.
 - A blueprint holds at most 64 mounts: the twelve 25 mm singles of the forecastle-head and quarterdeck groups are fixed
   fittings drawn with the same catalog recipe at their rest bearings. The two small davits abreast No. 1 turret are
   left out (they stand in its barrels' depressed sweep).
-- Casemate arcs, the mainmast singles' arcs and depression, and some casemate stops are game estimates set by the
-  sweep; the reference shows no mechanical stops.
+- Nos. 2 and 3 turrets' barrels pass through the lower turret's rear-roof arch and davit when laid below about 8°
+  within about 15° of the centreline, or posed apart from it, as the reference's own turrets would; the arch and davit
+  are left out of the motion envelope because the simulation stalls a superfiring pair training together over them
+  (`sweep-accepted.json`). A sweep ignoring those two meshes finds no other contact between the turrets.
+- Casemate arcs, the arcs of the mainmast singles and of the two singles abaft the pagoda, the mainmast singles'
+  depression, some casemate stops and No. 1 turret's stop at the stowed dinghy are game estimates set by the sweep; the
+  reference shows no mechanical stops.
 - Windows and portholes come from the reference's painted textures, so painted vents and a few girder holes read as
   glazing; rigging, halyards and aerials are omitted.
 - The boats' hulls use a light grey; boat and crane details, the catapult and the mast yards are simplified.

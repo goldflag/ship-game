@@ -125,10 +125,72 @@ STRUCTURE_EDITS = {
     'platform-065': None,             # one level of the sloped catwalk abaft the pagoda top, clear of every modelled wall
     'platform-075': None,             # ladder landings on the pagoda's after legs, which stand 3 m clear of the
     'platform-076': None,             # stepped prisms that model those legs
+    'deckhouse-070': None,            # the lip under the 20.6 m platform's nose, closed down over the bridge windows
 }
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures
               if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
+# Structures the plan cuts cannot see. The compass bridge's windscreen is a single glazed plate round the roofed bridge
+# between its deck and the 20.5 m platform (`ship:slice pjsb010 --section y=19.7`), open to the pagoda trunk aft:
+# closed across the after ends of its arms.
+STRUCTURE_ADDITIONS = [
+    dict(id='compass-bridge', name='Compass bridge 19.05-20.45 m', baseY=19.05, height=1.4,
+         footprint=[[-2.195, -40.090], [-3.235, -36.830], [-3.235, -35.550], [-4.600, -34.260], [-4.600, -33.140], [4.600, -33.140], [4.600, -34.260], [3.235, -35.550], [3.235, -36.830], [2.195, -40.090]]),
+    # The deck abaft the pagoda at 17.4 m where the two 25 mm singles (HP_JGA) stand, with its bulwark and the rounded
+    # ends outboard (sections y=17.6 and probes: plate 17.39-17.47 m, carried 2 cm up so its top is not coplanar with
+    # the pagoda tier it meets); the level grouping folded it into the pagoda's narrower tiers.
+    dict(id='platform-pagoda-aft', name='Pagoda after platform 17.40-17.49 m', baseY=17.4, height=.09,
+         footprint=[[-6.410, -26.550], [-6.425, -26.490], [-7.500, -26.490], [-7.710, -26.210], [-7.710, -25.940], [-7.500, -25.670], [-6.630, -25.670], [-6.650, -25.590], [-6.550, -25.190], [-6.290, -24.940], [-5.960, -24.800], [5.880, -24.800], [6.210, -24.940], [6.470, -25.190], [6.560, -25.590], [6.541, -25.670], [7.500, -25.670], [7.710, -25.940], [7.710, -26.210], [7.500, -26.490], [6.344, -26.490], [6.330, -26.550], [6.200, -27.000], [-6.290, -27.000]]),
+    # The deck under the compass bridge at 17.9 m inside the wall that rises to the windscreen, open aft (section
+    # y=18.6, probes); the plan cuts saw only its thin wall.
+    dict(id='deck-pagoda-lower-bridge', name='Pagoda deck 17.80-17.885 m', baseY=17.8, height=.085,
+         footprint=[[-2.240, -40.090], [-2.550, -39.130], [-3.280, -36.830], [-3.280, -35.550], [-4.240, -34.640], [-4.640, -34.260], [-4.640, -29.130], [-5.590, -28.070], [-6.170, -27.430], [-6.280, -27.070], [-6.330, -26.870], [6.250, -26.870], [6.200, -27.070], [6.090, -27.430], [5.130, -28.490], [4.560, -29.130], [4.560, -34.260], [4.160, -34.640], [3.190, -35.550], [3.190, -36.830], [2.460, -39.130], [2.150, -40.090]]),
+]
+structures = [s for s in structures if s['id'] not in {a['id'] for a in STRUCTURE_ADDITIONS}] + STRUCTURE_ADDITIONS
 structures = [{k: v for k, v in s.items() if k in ('id', 'name', 'footprint', 'baseY', 'height', 'material', 'exhaust', 'surface')} for s in structures]
+
+
+def ear_clips(points):
+    """The runtime's footprint triangulation (src/game/hullStructure.ts cap): False where it finds no ear."""
+    def cross(a, b, c):
+        return (points[b][0] - points[a][0]) * (points[c][1] - points[a][1]) - (points[b][1] - points[a][1]) * (points[c][0] - points[a][0])
+    n = len(points)
+    ids = list(range(n))
+    if sum(points[i][0] * points[(i + 1) % n][1] - points[i][1] * points[(i + 1) % n][0] for i in range(n)) < 0:
+        ids.reverse()
+    while len(ids) > 2:
+        for i in range(len(ids)):
+            a, b, c = ids[i - 1], ids[i], ids[(i + 1) % len(ids)]
+            if abs(cross(a, b, c)) < 1e-9 or not (cross(a, b, c) < 0 or any(
+                    q not in (a, b, c) and cross(a, b, q) >= -1e-9 and cross(b, c, q) >= -1e-9 and cross(c, a, q) >= -1e-9 for q in ids)):
+                ids.pop(i)
+                break
+        else:
+            return False
+    return True
+
+
+# A traced outline's runs of millimetre steps can leave the runtime triangulation no ear: drop points within 1 cm of
+# the last kept one and points within 2 mm of the line through their neighbours.
+for s in structures:
+    if s.get('surface') or ear_clips(s['footprint']):
+        continue
+    pts = []
+    for q in s['footprint']:
+        if not pts or math.hypot(q[0] - pts[-1][0], q[1] - pts[-1][1]) >= .01:
+            pts.append(q)
+    changed = True
+    while changed and len(pts) > 3:
+        changed = False
+        for i in range(len(pts)):
+            pa, pb, pc = pts[i - 1], pts[i], pts[(i + 1) % len(pts)]
+            base = math.hypot(pc[0] - pa[0], pc[1] - pa[1])
+            if base < 1e-9 or abs((pb[0] - pa[0]) * (pc[1] - pa[1]) - (pb[1] - pa[1]) * (pc[0] - pa[0])) / base < .002:
+                pts.pop(i)
+                changed = True
+                break
+    if not ear_clips(pts):
+        raise SystemExit(f"{s['id']}: footprint cannot be triangulated")
+    s['footprint'] = pts
 for s in structures:
     s.setdefault('material', 'naval')
 b['structures'] = structures
@@ -158,13 +220,15 @@ MAIN = [('main-1', 'No. 1 turret', 'type3-410-nagato-twin', (7.452, -63.715), 0,
         ('main-2', 'No. 2 turret', 'type3-410-nagato-twin-rf', (10.722, -49.296), 0, True),
         ('main-3', 'No. 3 turret', 'type3-410-nagato-twin-rf-aft', (8.199, 48.326), 180, True),
         ('main-4', 'No. 4 turret', 'type3-410-nagato-twin', (4.793, 63.18), 180, False)]
-# The superfiring pair rest at 8 degrees: level, their barrels would pass through the lower turret's rear-roof arch
-# and davit (4.6-4.8 m over its sole), as they would on the reference's own turrets.
+# The superfiring pair rest at 8 degrees, their barrels astride the lower turret's rear-roof arch and davit (1.6 m
+# across, to 4.76 m over its sole); laid lower within about 10 degrees of the centreline they pass through them, as
+# the reference's own turrets would (the arch and davit are left out of the envelope below: see the README).
+REST_ELEVATION = {'main-2': 8, 'main-3': 8}
 for id, name, part, (y, z), bearing, rangefinder in MAIN:
     mount = dict(id=id, name=name + ' 41 cm', partId=part, battery='main', position=[0, y, rz(z)], bearingDeg=bearing,
                  rangefinder=rangefinder, magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN)
-    if id in ('main-2', 'main-3'):
-        mount['initialElevationDeg'] = 8
+    if id in REST_ELEVATION:
+        mount['initialElevationDeg'] = REST_ELEVATION[id]
     b['mounts'].append(mount)
 # Eighteen 14 cm casemates (HP_JGS, jgs053): the forward lower row on the casemate shelf, the upper row on the
 # forecastle deck and the after pair each side on the upper deck. bearingDeg is the arc centre; the reference
@@ -205,8 +269,10 @@ SINGLES = [(-10.446, 6.492, -46.744, -45), (10.523, 6.491, -46.738, 45), (-11.43
            (-5.743, 17.484, -28.125, -90), (5.744, 17.484, -28.125, 90), (-1.155, 20.249, 19.643, -119), (1.128, 20.246, 19.751, 109),
            (-12.466, 3.705, 45.527, -135), (12.644, 3.675, 43.749, 135), (-12.090, 3.759, 49.410, -135), (12.173, 3.747, 48.509, 135)]
 # The two singles inside the mainmast tripod work only abaft and outboard of its legs, over the searchlight-control
-# sights, never depressed (game stops, not historical ones).
-SINGLE_STOPS = {7: dict(bearingDeg=-110, traverseDeg=40, elevationMinDeg=0), 8: dict(bearingDeg=110, traverseDeg=40, elevationMinDeg=0)}
+# sights, never depressed; the two on the deck abaft the pagoda work outboard, clear of the wall under the compass
+# bridge forward and their deck's bulwark aft (game stops, not historical ones).
+SINGLE_STOPS = {5: dict(traverseDeg=50), 6: dict(traverseDeg=50),
+                7: dict(bearingDeg=-110, traverseDeg=40, elevationMinDeg=0), 8: dict(bearingDeg=110, traverseDeg=40, elevationMinDeg=0)}
 for group, part, rows, label in [('aa3', 'type96-25-triple', TRIPLES, 'triple'), ('aa2', 'type96-25-mogami-2', TWINS, 'twin'),
                                  ('aa1', 'type96-25-kongo-single', SINGLES, 'single')]:
     for i, (x, y, z, bearing) in enumerate(rows, 1):
@@ -243,6 +309,9 @@ for s in structures:
             continue
         b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
                                       size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+# The 6 m dinghy stowed on the forecastle deck abreast the bridge (the reference's part bounds, with its chocks, oars
+# and gripes to 8.0 m) lies in No. 1 turret's depressed arc trained well aft: its barrels stop at it.
+b['obstructions'].append(dict(id='dinghy-stowage', center=[-7.083, 7.26, rz(-53.203)], size=[2.2, 1.52, 6.3]))
 
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes for every hull-mounted gun except the casemates (whose drums turn half inside their wall
@@ -250,9 +319,8 @@ for s in structures:
 # reach, and neighbouring mounts whose working circles overlap may not cross (Takao's scheme). Game clearance, not
 # verified historical stops.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
-# Rotating bodies in the yaw frame (x across, y up, z aft): each 41 cm gunhouse from its sole over the roof arch,
-# rails and davit (3.9 m) or the rangefinder housing (4.3 m), the rear plate 7.1 m (No. 3: 7.8 m) behind the axis and
-# the face 5.2 m ahead; the open mounts' carriages, seats and magazines behind their trunnions.
+# Rotating bodies in the yaw frame (x across, y up, z aft): the 41 cm gunhouses below; the open mounts' carriages,
+# seats and magazines behind their trunnions.
 BODIES = {'type89-127-a1-twin': dict(center=[0, 1.2, .35], size=[2.9, 2.4, 2.6]),
           'type96-25-triple': dict(center=[0, .95, .3], size=[2.0, 1.9, 1.7]),
           'type96-25-mogami-2': dict(center=[0, .95, .25], size=[1.7, 1.9, 1.6]),
@@ -264,16 +332,31 @@ for m in b['mounts']:
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(max(w['barrelBaseRadius'] * .8, .05), 3))
     if m['battery'] == 'main':
-        # Gunhouse and roof rails to 4.05 m; the plain turrets' rear-roof arch (to 4.61 m, 4.4-6.4 m abaft the axis,
-        # 2.3 m across) and davit (4.76 m), and the rangefinder turrets' housing across the rear roof, as capsules.
-        rear = 7.8 if m['partId'].endswith('rf-aft') else 7.1
-        entry['body'] = dict(center=[0, 2.025, round((rear - 5.2) / 2, 3)], size=[10.4, 4.05, round(rear + 5.2, 3)])
-        if m['rangefinder']:
-            back, top = (5.05, 4.55) if m['partId'].endswith('rf-aft') else (4.4, 4.1)
-            entry['fittings'] = [dict(joint='yaw', a=[-5.3, top, back], b=[5.3, top, back], radiusM=.85)]
+        # Gunhouses measured on the catalog turrets: a box over the full-width middle and capsules for the tapered
+        # face and after end, so the corners the real houses cut away do not meet their neighbours. The plain turrets
+        # (the lower of each superfiring pair): the middle 10.2 m across to 3.72 m from 3.05 m ahead of the axis to
+        # 4.0 m abaft it, the face (8.2 m across, to 3.62 m, to 5.6 m ahead) and after end (8.1 m across, to 3.87 m,
+        # to 7.27 m abaft); their rear-roof arch and davit are left out (see the README). No. 2: the middle 10.4 m
+        # across to 4.05 m and 5.0 m abaft, the face (8.2 m across, to 2.7 m) and after end (8.1 m across, to 4.0 m,
+        # to 7.1 m abaft); No. 3: 11.2 m across to 4.18 m and 7.8 m abaft, and its face (9.5 m across). Both carry
+        # their rangefinder end hoods (4.8-6.0 m out, to 4.56 m, No. 3 to 5.05 m) and roof sight hood.
+        if not m['rangefinder']:
+            entry['body'] = dict(center=[0, 1.86, .475], size=[10.2, 3.72, 7.05])
+            entry['fittings'] = [dict(joint='yaw', a=[-2.3, 1.81, -4.31], b=[2.3, 1.81, -4.31], radiusM=1.81),
+                                 dict(joint='yaw', a=[-2.43, 2.24, 5.64], b=[2.43, 2.24, 5.64], radiusM=1.63)]
         else:
-            entry['fittings'] = [dict(joint='yaw', a=[-.65, 4.1, 5.4], b=[.65, 4.1, 5.4], radiusM=.62),
-                                 dict(joint='yaw', a=[0, 3.3, 4.71], b=[0, 4.62, 4.71], radiusM=.3)]
+            aft = m['partId'].endswith('rf-aft')
+            if aft:
+                entry['body'] = dict(center=[0, 2.09, 2.425], size=[11.2, 4.18, 10.75])
+                entry['fittings'] = [dict(joint='yaw', a=[-3.4, 1.35, -4.3], b=[3.4, 1.35, -4.3], radiusM=1.3)]
+            else:
+                entry['body'] = dict(center=[0, 2.025, .975], size=[10.4, 4.05, 8.05])
+                entry['fittings'] = [dict(joint='yaw', a=[-2.8, 1.35, -4.3], b=[2.8, 1.35, -4.3], radiusM=1.3)]
+                entry['fittings'] += [dict(joint='yaw', a=[-3.0, y, 6.05], b=[3.0, y, 6.05], radiusM=1.06) for y in (1.0, 3.0)]
+            hy, h0, h1 = (4.29, 3.13, 5.71) if aft else (3.8, 2.48, 5.06)
+            cy, cz = (5.02, 6.08) if aft else (4.79, 5.43)
+            entry['fittings'] += [dict(joint='yaw', a=[s * 5.38, hy, h0], b=[s * 5.38, hy, h1], radiusM=.76) for s in (-1, 1)]
+            entry['fittings'].append(dict(joint='yaw', a=[-.7, cy, cz], b=[0, cy, cz], radiusM=.6 if aft else .55))
     else:
         entry['body'] = BODIES[m['partId']]
     clear_mounts.append(entry)

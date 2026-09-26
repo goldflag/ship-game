@@ -23,6 +23,21 @@ def roof(s):
     return 'roof'
 
 
+def tier(kit, s, rows, col):
+    """An open pagoda tier drawn from its measured cuts (nagato_tiers.TIERS) in place of the solid prism: the legs and
+    central tube as columns, bulwarks, windscreens and fins as thin walls, and its decks as plates."""
+    obs = []
+    top = roof(s)
+    for y0, y1, pieces in rows:
+        for p in pieces:
+            if p[0] == 'c':
+                _, x, z, r = p
+                obs.append(kit.cylz(s['id'], col, 'column', (-z, -x, y0), r, y1 - y0, 'naval', 16))
+            else:
+                obs.append(kit.prism(s['id'], col, 'tier', [(-z, -x) for x, z in p[1]], y0, y1, 'naval', top_material=top))
+    return obs
+
+
 def mount_seat(kit, mount, col):
     """A pedestal from the supporting deck to a secondary or light mount's datum when it stands above it."""
     x, y, z = R(mount['position'])

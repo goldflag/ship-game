@@ -25,6 +25,7 @@ from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from nagato_kit import Kit, P, R, ZC, FIXED_SINGLES
 import nagato_fittings
+from nagato_tiers import TIERS
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -54,6 +55,10 @@ for face in hull.data.polygons:
 shells = []
 FUNNEL_TOP = max((s['baseY'] + s['height'] for s in D['structures'] if s['id'].startswith('funnel-')), default=0)
 for s in D['structures']:
+    if s['id'] in TIERS:
+        # The pagoda's open tiers: what the reference's own cuts show there instead of the solid prism.
+        shells.extend(nagato_fittings.tier(kit, s, TIERS[s['id']], collections['Superstructure']))
+        continue
     ob = authored_structure(s, kit.mesh, materials, collections['Superstructure'])
     ob.data.materials.append(materials[nagato_fittings.roof(s)])
     ob.data.materials.append(materials['black'])

@@ -231,69 +231,90 @@ def ground_tackle(kit, D):
 
 def underwater(kit, D):
     col = kit.collections['Underwater fittings']
-    # Four three-bladed screws (HP datums of cm001/cm032), turning outward, on shafts run forward into the hull.
+    # Four three-bladed screws (HP datums of cm001/cm032), turning outward, each at the end of its shaft line as the
+    # reference's plan cuts at the shaft heights (y = -4.94 and -6.83) show it: a streamlined bossing where the shaft
+    # leaves the hull (r 0.45, about 4 m), the bare shaft, and a bearing housing (r 0.47, about 2.7 m) ahead of the hub
+    # held by an A-bracket, all in the bottom paint.
     for side, kind in [(-1, 'screw-port'), (1, 'screw-starboard')]:
         for x, y, z, sx, sy, sz, foot in rows(kind):
             A = f'screw-{"port" if side < 0 else "starboard"}-{"outer" if abs(x) > 7 else "inner"}'
             hub = Vector(P(x, y, z))
             r = max(sx, sy) / 2
-            kit.part('rod', A, col, 'hub', tuple(hub + Vector((sz * .35, 0, 0))), tuple(hub - Vector((sz * .45, 0, 0))), .42, 'bronze', vertices=16, r2=.2)
+            kit.part('rod', A, col, 'hub', tuple(hub + Vector((sz * .35, 0, 0))), tuple(hub - Vector((sz * .45, 0, 0))), .45, 'bronze', vertices=16, r2=.2)
             for k in range(3):
                 a = math.tau * k / 3 + (0 if side > 0 else math.pi / 3)
                 n = Vector((0, math.cos(a), math.sin(a)))
-                t = Vector((0, -math.sin(a), math.cos(a))) * side
+                tv = Vector((0, -math.sin(a), math.cos(a))) * side
                 pts = []
-                for u in (0.0, .35, .7, 1.0):
-                    rr = .24 + (r - .24) * u
-                    chord = .95 * math.sin(math.pi * (.25 + .6 * u)) + .2
-                    pts.append((hub + n * rr + t * chord * .5 + Vector((chord * .18, 0, 0)), hub + n * rr - t * chord * .5 - Vector((chord * .18, 0, 0))))
-                vv = [tuple(p) for pair in pts for p in pair]
-                ff = [(2 * i, 2 * i + 2, 2 * i + 3, 2 * i + 1) for i in range(3)]
-                ob = kit.mesh(A + '.blade', vv, ff, 'bronze', col, True)
-                kit.tag(ob, A)
-                ob2 = kit.mesh(A + '.blade back', vv, [tuple(reversed(f)) for f in ff], 'bronze', col, True)
-                kit.tag(ob2, A)
-            # Shaft forward until it is well inside the loft, with an A-bracket near the screw.
+                # Broad, rounded blades: chord against radius from the root to the tip.
+                for u, chord in ((0.0, 1.0), (.25, 1.45), (.5, 1.6), (.75, 1.4), (.92, 1.0), (1.0, .3)):
+                    rr = .3 + (r - .3) * u
+                    pts.append((hub + n * rr + tv * chord * .5 + Vector((chord * .16, 0, 0)), hub + n * rr - tv * chord * .5 - Vector((chord * .16, 0, 0))))
+                vv = [tuple(q) for pair in pts for q in pair]
+                ff = [(2 * i, 2 * i + 2, 2 * i + 3, 2 * i + 1) for i in range(len(pts) - 1)]
+                kit.tag(kit.mesh(A + '.blade', vv, ff, 'bronze', col, True), A)
+                kit.tag(kit.mesh(A + '.blade back', vv, [tuple(reversed(f)) for f in ff], 'bronze', col, True), A)
+            # Shaft line from the hub forward, rising 0.25 m, until it is well inside the loft.
             zin = z
             while zin > z - 40 and loft_half_breadth(D, zin, y) < abs(x) + .5:
                 zin -= .5
-            a = Vector(P(x, y, z))
-            b = Vector(P(x, y + .25, zin - 1.0))
-            kit.part('rod', A, col, 'shaft', tuple(a), tuple(b), .26, 'edge', vertices=12)
-            kit.part('rod', A, col, 'shaft boss', tuple(a.lerp(b, .08)), tuple(a.lerp(b, .15)), .38, 'antifouling', vertices=14)
-            br = a.lerp(b, .11)
-            for dx, up in ((-1.2, 1), (1.6, 1)):
-                target_y = y + 2.6
-                tz = z - sz * .45 - 3.0
-                hb = loft_half_breadth(D, tz, target_y)
-                top = Vector(P(math.copysign(max(.5, min(hb - .3, abs(x) + dx)), x), target_y, tz))
-                kit.beam(A, col, 'shaft bracket', tuple(br), tuple(top), .12, .5, 'antifouling')
-    # Twin rudders abaft the inner screws (x = +/-2.3 profile cuts: leading edge 88.2, trailing edge 94.6).
+            zout = z
+            while zout > zin and loft_half_breadth(D, zout, y) < abs(x):
+                zout -= .1
+
+            def at(zz):
+                f = (z - zz) / max(1e-6, z - (zin - 1.0))
+                return Vector(P(x, y + .25 * f, zz))
+            kit.part('rod', A, col, 'shaft', tuple(at(z)), tuple(at(zin - 1.0)), .25, 'antifouling', vertices=12)
+            # Bossing: from inside the hull to 2.5 m clear of it, pointed aft.
+            kit.part('rod', A, col, 'bossing', tuple(at(zout - 1.5)), tuple(at(zout + 1.7)), .45, 'antifouling', vertices=16)
+            kit.part('rod', A, col, 'bossing taper', tuple(at(zout + 1.7)), tuple(at(zout + 2.6)), .45, 'antifouling', vertices=16, r2=.25)
+            # Bearing housing ahead of the hub, tapered forward.
+            h0, h1 = z - sz * .35 - .05, z - sz * .35 - 2.75
+            kit.part('rod', A, col, 'housing', tuple(at(h0)), tuple(at(h1 + .6)), .47, 'antifouling', vertices=16)
+            kit.part('rod', A, col, 'housing taper', tuple(at(h1 + .6)), tuple(at(h1)), .47, 'antifouling', vertices=16, r2=.25)
+            # A-bracket: an inboard and an outboard leg from the housing up into the hull, in the housing's plane.
+            zc = (h0 + h1) / 2
+            foot_ = at(zc)
+            for dx, dy in ((-1.3, 2.2), (1.0, 2.6)):
+                lx, ly = x + side * dx, y + dy
+                while ly < y + 6 and loft_half_breadth(D, zc, ly) < abs(lx) + .2:
+                    ly += .1
+                kit.beam(A, col, 'bracket leg', tuple(foot_), P(lx, ly + .3, zc), .8, .16, 'antifouling')
+    # Twin rudders abaft the inner screws, measured on the x = +/-2.3 profile cut: leading edge 88.0, trailing edge
+    # 94.85, top 4.85-4.65 m below the waterline clear of the hull, foot 9.25-9.42 m, the corners rounded; each hangs
+    # on a stock with its head under the hull at z 90.5.
+    TOP = [(88.0, -6.2), (88.6, -5.2), (89.4, -4.85), (94.4, -4.65), (94.85, -5.1)]
+    FOOT = [(88.0, -7.7), (88.9, -9.25), (93.6, -9.42), (94.5, -8.95), (94.85, -7.9)]
+
+    def edge(line, zz):
+        for (z0, y0), (z1, y1) in zip(line, line[1:]):
+            if z0 <= zz <= z1:
+                return y0 + (y1 - y0) * (zz - z0) / max(1e-9, z1 - z0)
+        return line[-1][1]
     for s in (-1, 1):
         A = f'rudder-{"port" if s < 0 else "starboard"}'
         x = s * 2.3
-        prof = []
-        for u in [0, .05, .15, .3, .5, .7, .85, 1]:
-            zz = 88.2 + (94.6 - 88.2) * u
-            half = .3 * math.sin(math.pi * min(1, u * 1.4 + .08)) * (1 - .55 * u) + .02
-            prof.append((zz, half))
-        top_y = [loft_keel(D, zz) + .9 for zz, _ in prof]
-        bot = [-9.05 + .5 * max(0, u - .75) / .25 for u in [0, .05, .15, .3, .5, .7, .85, 1]]
+        us = [0, .02, .06, .12, .2, .3, .45, .6, .75, .87, .95, .99, 1]
         vv = []
-        for (zz, half), ty, by_ in zip(prof, top_y, bot):
-            for yy in (by_, ty):
-                for t in (-1, 1):
-                    vv.append(P(x + t * half, yy, zz))
-        n = len(prof)
+        for u in us:
+            zz = 88.0 + (94.85 - 88.0) * u
+            half = .28 * (1.4845 * math.sqrt(u) - .63 * u - 1.758 * u * u + 1.4215 * u ** 3 - .5075 * u ** 4) / .6 + .015
+            for yy in (edge(FOOT, zz), edge(TOP, zz)):
+                for tt in (-1, 1):
+                    vv.append(P(x + tt * half, yy, zz))
+        n = len(us)
         ff = []
         for i in range(n - 1):
             a, b = 4 * i, 4 * (i + 1)
             ff += [(a, b, b + 2, a + 2), (a + 1, a + 3, b + 3, b + 1), (a, a + 1, b + 1, b), (a + 2, b + 2, b + 3, a + 3)]
         ff += [(0, 2, 3, 1), (4 * (n - 1), 4 * (n - 1) + 1, 4 * (n - 1) + 3, 4 * (n - 1) + 2)]
-        ob = kit.mesh(A + '.blade', vv, ff, 'antifouling', col, True)
-        kit.tag(ob, A)
-        stock = Vector(P(x, top_y[2], 88.2 + (94.6 - 88.2) * .22))
-        kit.part('rod', A, col, 'stock', tuple(stock - Vector((0, 0, .2))), tuple(stock + Vector((0, 0, 1.2))), .22, 'antifouling', vertices=12)
+        ob = kit.tag(kit.mesh(A + '.blade', vv, ff, 'antifouling', col, True), A)
+        ob.data.set_sharp_from_angle(angle=math.radians(35))
+        keel = loft_keel(D, 90.5)
+        top = edge(TOP, 90.5)
+        kit.part('rod', A, col, 'stock', P(x, top - .2, 90.5), P(x, max(keel, top) + 1.0, 90.5), .24, 'antifouling', vertices=12)
+        kit.part('rod', A, col, 'stock head', P(x, top + .55, 90.5), P(x, top + .75, 90.5), .42, 'antifouling', vertices=14)
     # Bilge keels at the turn of the bilge over the middle body.
     for s in (-1, 1):
         A = 'bilge-keel-' + ('port' if s < 0 else 'starboard')

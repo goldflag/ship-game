@@ -117,10 +117,14 @@ def mainmast(kit):
     rod(kit, A, col, 'pole', (0, 30.9, 17.72), (0, 33.2, 17.75), .34, 'naval', 14, .32)
     rod(kit, A, col, 'topmast', (0, 33.2, 17.75), (0, 45.2, 18.14), .30, 'black', 12, .12)
     kit.cylz(A, col, 'truck', P(0, 45.2, 18.14), .16, .1, 'black', 10)
-    # Tripod legs: box struts from the after control deck up to the crosstree, splayed to each side.
+    # Tripod legs: box struts from the after control deck up to the crosstree, splayed to each side, black from
+    # 27.6 m as the reference paints them.
     for s in (-1, 1):
-        kit.beam(A, col, 'tripod leg', P(s * 2.35, 16.85, 19.55), P(s * .55, 30.95, 17.2), .75, .8, 'naval')
-        kit.beam(A, col, 'tripod leg head', P(s * .95, 27.6, 17.65), P(s * .55, 30.95, 17.2), .72, .76, 'black')
+        foot, head = (s * 2.35, 16.85, 19.55), (s * .55, 30.95, 17.2)
+        t = (27.6 - foot[1]) / (head[1] - foot[1])
+        joint = tuple(a + (b - a) * t for a, b in zip(foot, head))
+        kit.beam(A, col, 'tripod leg', P(*foot), P(*joint), .75, .8, 'naval')
+        kit.beam(A, col, 'tripod leg head', P(*joint), P(*head), .75, .8, 'black')
     # Crosstree platform rails and the top yard with its braces.
     for y0, half in [(39.5, 2.6)]:
         rod(kit, A, col, 'top yard', (-half, y0, 18.02), (half, y0, 18.02), .07, 'black', 8)
