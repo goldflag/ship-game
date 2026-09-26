@@ -1,9 +1,9 @@
 """Fusō pagoda foremast region: reference z -40 to -17, above the forecastle deck.
 
 The measured prisms give the tiers and platforms; this module adds what the reference shows on them: the
-main director on the top platform with the 10 m rangefinder and the radar grid above it, the Type 22 radars,
-the 3.5 m and 1.5 m rangefinders, the Type 91 high-angle directors, searchlights, binoculars and lamps, the
-signal yards and the pole on top, the bridge glazing the reference paints in three bands, rails round exposed
+main director on the top platform with the 10 m rangefinder tower and the radar mattress on its face, the Type 22
+radars, the 3.5 m and 1.5 m rangefinders, the Type 91 high-angle directors, searchlights, binoculars and lamps, the
+signal yards, the forestay aerial, the bridge glazing the reference paints in three bands, rails round exposed
 roofs and knees under overhangs. Datums are reference-frame measurements converted by `P`.
 """
 import math
@@ -37,6 +37,7 @@ def build(D, kit):
     bridge_gear(kit, masts)
     rear_legs(kit, sup)
     signal_yards(kit, sup)
+    forestay(kit, masts)
     glazing(kit, sup)
     kit.roof_rails('pagoda-rails', sup, structures, zone)
     kit.overhang_knees('pagoda-knees', sup, structures, zone)
@@ -65,37 +66,40 @@ def main_director(kit, col):
 
 
 def rangefinder_10m(kit, col):
-    """10 m rangefinder on its column (reference HP_JF_7) and the radar grid carried above it."""
+    """10 m rangefinder (reference HP_JF_7) through the tower on the top platform, and the radar mattress on the
+    tower's forward face. Reference sections: the tower 2.1 m wide over z -28.4 to -25.9 from 40.8 to 44.5 m with a
+    short post on its roof, the tube's arms out to 5.5 m either side at 41.7 m, the mattress 5.1 m wide from 42.2 to
+    44.4 m at z -28.5."""
     A = 'rangefinder-10m'
     x, y, z = 0.044, 40.835, -26.923
     kit.cylz(A, col, 'turntable', P(x, y, z), 1.35, .16, 'edge', 32)
-    kit.part('box', A, col, 'housing', P(x, y + .95, z - .05), (2.5, 2.3, 1.62), 'naval')
-    kit.part('box', A, col, 'housing roof', P(x, y + 1.84, z - .05), (2.62, 2.42, .08), 'roof')
+    kit.part('box', A, col, 'housing', P(x, y + 1.88, z - .05), (2.5, 2.2, 3.48), 'naval')
+    kit.part('box', A, col, 'housing roof', P(x, y + 3.66, z - .05), (2.62, 2.32, .08), 'roof')
+    kit.part('rod', A, col, 'roof post', P(x, y + 3.68, z + .02), P(x, 44.95, z + .02), .07, 'naval', vertices=8)
     # Tube across the ship with armoured end hoods and objectives facing forward.
-    ty = y + 1.2
+    ty = y + .92
     kit.part('rod', A, col, 'tube', P(x - 5.0, ty, z - .2), P(x + 5.0, ty, z - .2), .3, 'naval', vertices=18)
     for s in (-1, 1):
         hx, hy, hz = P(x + s * 5.05, ty, z - .2)
         kit.part('box', A, col, 'end hood', (hx, hy, hz), (1.05, .72, .78), 'naval')
         kit.part('box', A, col, 'objective', (hx + .53, hy, hz + .05), (.03, .5, .34), 'glass')
         kit.part('rod', A, col, 'tube collar', P(x + s * 1.3, ty, z - .2), P(x + s * 1.45, ty, z - .2), .36, 'naval', vertices=18)
-    # Radar grid: a flat framed mattress 5.2 m wide and 2.6 m high above the housing, braced to it.
-    gz = z + .35
-    y0, y1, half = y + 1.9, y + 4.05, 2.6
+    # Radar mattress: a dark panel in a frame on the tower's forward face, braced back to it.
+    face = z - .05 - 1.25
+    gz = -28.5
+    y0, y1, half = 42.21, 44.40, 2.54
+    kit.part('box', A, col, 'mattress', P(x, (y0 + y1) / 2, gz), (.08, 2 * half, y1 - y0), 'edge')
     corners = [P(x - half, y0, gz), P(x + half, y0, gz), P(x + half, y1, gz), P(x - half, y1, gz)]
     kit.polyline(A, col, corners + corners[:1], .05, 'naval', 6)
     for i in range(1, 9):
         xx = x - half + 2 * half * i / 9
-        kit.member(A, col, P(xx, y0, gz), P(xx, y1, gz), .025, 'naval', 4)
+        kit.member(A, col, P(xx, y0, gz - .05), P(xx, y1, gz - .05), .025, 'naval', 4)
     for j in range(1, 5):
         yy = y0 + (y1 - y0) * j / 5
-        kit.member(A, col, P(x - half, yy, gz), P(x + half, yy, gz), .025, 'naval', 4)
+        kit.member(A, col, P(x - half, yy, gz - .05), P(x + half, yy, gz - .05), .025, 'naval', 4)
     for s in (-1, 1):
-        kit.member(A, col, P(x + s * .9, y + 1.84, z - .05), P(x + s * 1.6, y0, gz), .05, 'naval', 6)
-        kit.member(A, col, P(x + s * .9, y + 1.84, z - .05), P(x + s * .4, y0, gz), .05, 'naval', 6)
-    # Pole above the grid with a short signal yard.
-    kit.part('rod', A, col, 'pole', P(x, y0, gz + .15), P(x, y1 + 4.3, gz + .15), .07, 'naval', vertices=8, r2=.045)
-    kit.part('rod', A, col, 'pole yard', P(x - 1.4, y1 + 3.2, gz + .15), P(x + 1.4, y1 + 3.2, gz + .15), .035, 'naval', vertices=6)
+        for yy in (y0 + .25, y1 - .25):
+            kit.member(A, col, P(x + s * 1.9, yy, gz), P(x + s * .9, yy, face + .1), .05, 'naval', 6)
 
 
 def type22_radars(kit, col):
@@ -156,6 +160,21 @@ def bridge_gear(kit, col):
             kit.part('box', A, col, 'lens', (x + max(.1, l * .4) + .01, y, base + h * .6), (.02, max(.14, w * .6), h * .4), 'glass')
         elif kind == 'flag locker':
             kit.part('box', A, col, 'locker', (x, y, base + h / 2), (l, w, h), 'naval')
+
+
+def forestay(kit, col):
+    """The aerial the reference's orthographic side render traces from the pagoda's upper tier (37.0 m at z -33.1)
+    down to an insulator 4.5 m over the forecastle at z -84.5, with its lead to the deck, and the bridle from the
+    lower bridge tier (16.2 m at z -38.5) joining it at 26.6 m over z -54.1."""
+    A = 'aerials-forward'
+    # The forestay ends in an insulator laid along it (drawn with the wires); the down-lead leaves its lower end.
+    kit.wire(A, col, P(0, 37.04, -33.1), P(0, 12.0, -83.4), .015, check=False)
+    kit.wire(A, col, P(0, 16.2, -38.5), P(0, 26.58, -54.12), .015, check=False)
+    kit.wire(A, col, P(0, 12.2, -83.0), P(0, 11.45, -84.5), .05, check=False, sides=6)
+    x, y, _ = P(0, 0, -84.3)
+    floor = kit.floor(x, y, 9.0)
+    if floor is not None:
+        kit.wire(A, col, P(0, 11.55, -84.3), (x, y, floor - .02), .012, check=False)
 
 
 def signal_yards(kit, col):

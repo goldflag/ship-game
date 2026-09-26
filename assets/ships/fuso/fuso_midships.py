@@ -119,13 +119,30 @@ def boats(kit, col):
         turn = Matrix.Translation((cx, cy, 0)) @ Matrix.Rotation(math.radians(24.5 * s), 4, 'Z') @ Matrix.Translation((-cx, -cy, 0))
         for ob in [o for o in bpy.data.objects if o.get('assemblyId') == id and o.parent is None]:
             ob.matrix_world = turn @ ob.matrix_world
-    for id, (x, z), keel in [('launch-port-forward', (-7.19, 2.42), 6.93), ('launch-starboard-forward', (7.26, 2.44), 6.98),
-                             ('launch-port-after', (-5.89, 31.0), 7.02), ('launch-starboard-after', (6.49, 31.7), 6.95)]:
-        kit.covered_launch(id, (x, z), 11.9, 2.9, keel, col, chocks=(.2, .4, .62, .84), hood='wood')
-    for id, (x, z) in [('motor-boat-port', (-7.43, 24.6)), ('motor-boat-starboard', (7.40, 22.5))]:
+    # The 12 m motor launches are open boats with thwarts and an engine casing, canted bow inboard as the reference's
+    # top view and part bounds show: the forward pair 20 and 10 degrees, the after pair 5.5 and 4.
+    for id, (x, z), keel, cant in [('launch-port-forward', (-7.19, 2.42), 6.93, 20), ('launch-starboard-forward', (7.26, 2.44), 6.98, 10),
+                                   ('launch-port-after', (-5.89, 31.0), 7.02, 5.5), ('launch-starboard-after', (6.49, 31.7), 6.95, 4)]:
+        kit.open_launch(id, (x, z), 11.9, 2.9, keel, col, chocks=(.2, .4, .62, .84))
+        cant_boat(kit, id, (x, z), cant * (1 if x > 0 else -1))
+    for id, (x, z), cant in [('motor-boat-port', (-7.43, 24.6), 0), ('motor-boat-starboard', (7.40, 22.5), 6)]:
         # Seated low with a 0.95 m wheelhouse and no mast, so No. 4 turret's gunhouse turns over them (its sole is at
-        # 10.1 m; the reference's boats stand 0.8 m higher, into the gunhouse's sweep).
+        # 10.1 m; the reference's boats stand 0.8 m higher, into the gunhouse's sweep). The starboard boat lies 6
+        # degrees bow inboard.
         kit.motor_boat(id, (x, z), 15.2, 3.4, 6.78, col, chocks=(.25, .43, .62, .82), wheelhouse=.95, mast=False)
+        if cant:
+            cant_boat(kit, id, (x, z), cant)
+
+
+def cant_boat(kit, id, ref_center, degrees):
+    """Turn a stowed boat's parts about the vertical through its centre; positive turns the bow to port."""
+    import bpy
+    kit.build_wires()
+    bpy.context.view_layer.update()
+    cx, cy, _ = P(ref_center[0], 0, ref_center[1])
+    turn = Matrix.Translation((cx, cy, 0)) @ Matrix.Rotation(math.radians(degrees), 4, 'Z') @ Matrix.Translation((-cx, -cy, 0))
+    for ob in [o for o in bpy.data.objects if o.get('assemblyId') == id and o.parent is None]:
+        ob.matrix_world = turn @ ob.matrix_world
 
 
 def davits(kit, col):

@@ -2,9 +2,10 @@
 installation and the stern.
 
 Owns the after director (which trains), the 4.5 m rangefinders, periscopes, searchlight controls and lamps on the
-tower, the mainmast (lower mast, topmast, yard, gaff and stays) over the lookout top, the catapult on its
-turntable, the stowed aircraft crane on the port quarter's sponson, the linoleum aircraft deck's brass strips and
-trolley rails, and rails round the tower's roofs. Datums are reference-frame measurements converted by `P`.
+tower, the mainmast (lower mast, topmast, pole, yard, gaff and stays) over the lookout top with the aerials it
+carries to the funnel, the pagoda and the stern staff, the catapult on its turntable, the stowed aircraft crane on
+the port quarter's sponson, the linoleum aircraft deck's brass strips and trolley rails, and rails round the
+tower's roofs. Datums are reference-frame measurements converted by `P`.
 """
 import math
 from mathutils import Vector
@@ -88,15 +89,19 @@ def tower_gear(kit, col):
 
 
 def mainmast(kit, col):
-    """Pole mainmast measured on the orthographic side render: a lower mast 0.5 m across from the tower's mast
-    house to 40 m, a topmast to the flagpole datum at 50.2 m, the yard at 47.7 m, the gaff to the ensign datum and
-    stays to the tower."""
+    """Pole mainmast measured on the orthographic side render and the reference's centreline section: a lower mast
+    0.5 m across from the tower's mast house to 40 m, a topmast to its trucks at 51.1 m and a pole to 55.1 m, the
+    yard at 47.7 m, the gaff to the ensign datum, stays to the tower, and the aerials."""
     A = 'mainmast'
     foot = P(0, 25.9, 40.4)
     head = P(0, 40.3, 40.4)
     kit.part('rod', A, col, 'lower mast', foot, head, .26, 'black', vertices=16, r2=.2)
     kit.part('rod', A, col, 'mast band', P(0, 38.2, 40.4), P(0, 38.5, 40.4), .25, 'black', vertices=16)
-    kit.part('rod', A, col, 'topmast', P(0, 38.2, 40.85), P(-.108, 50.25, 41.06), .12, 'black', vertices=10, r2=.06)
+    # The topmast runs on to its trucks at 51.06 and 51.26 m, with the reference's thin pole above them to 55.06 m.
+    kit.part('rod', A, col, 'topmast', P(0, 38.2, 40.85), P(-.115, 51.1, 41.073), .12, 'black', vertices=10, r2=.055)
+    for ty in (51.06, 51.26):
+        kit.cylz(A, col, 'truck', P(-.115, ty, 41.073), .215, .1, 'black', 12)
+    kit.part('rod', A, col, 'pole', P(-.115, 51.1, 41.073), P(-.115, 55.06, 41.073), .04, 'black', vertices=6, r2=.025)
     kit.part('rod', A, col, 'topmast heel', P(0, 38.2, 40.4), P(0, 38.2, 40.85), .12, 'black', vertices=10)
     kit.part('rod', A, col, 'cap', P(0, 40.2, 40.4), P(0, 40.2, 40.85), .14, 'black', vertices=10)
     kit.part('rod', A, col, 'yard', P(-3.9, 47.72, 40.97), P(3.9, 47.72, 40.97), .06, 'black', vertices=8, r2=.04)
@@ -109,6 +114,20 @@ def mainmast(kit, col):
         kit.wire(A, col, P(-.08 * s, 49.5, 41.0), P(s * 3.9, 47.72, 40.97), .012, check=False)
     kit.wire(A, col, P(0, 39.55, 46.25), P(0, 46.0, 41.0), .014, check=False)
     kit.wire(A, col, P(0, 38.0, 45.6), P(0, 24.6, 48.9), .014, check=False)
+    # Aerials the reference's orthographic side render traces: from the lower mast at 36.45 m forward over the
+    # funnel, sagging to 35.5 m, to the pagoda's top platform; a vee from the same point down to the funnel's after
+    # rim and from its forward rim up to the pagoda's upper tier; and the backstay from the trucks to the stern staff.
+    mast = P(0, 36.45, 40.4)
+    kit.polyline(A, col, [mast, P(0, 35.86, 29.1), P(0, 35.5, 21.4), P(0, 35.68, 12.4), P(0, 36.67, -1.1), P(0, 37.85, -10.1),
+                          P(0, 39.29, -17.8), P(0, 40.55, -25.0)], .015, 'edge', 3)
+    kit.wire(A, col, mast, P(0, 23.8, 12.75), .015, check=False)
+    kit.wire(A, col, P(0, 23.8, 6.6), P(0, 28.6, -24.8), .015, check=False)
+    kit.wire(A, col, P(-.115, 51.2, 41.073), P(0, 6.9, 104.8), .015, check=False)
+    # Ensign staff on the stern (reference centreline section: 3.98 to 8.87 m at z 104.8).
+    x, y, _ = P(0, 0, 104.85)
+    floor = kit.floor(x, y, 5.0)
+    base = 3.98 if floor is None else floor
+    kit.part('rod', A, col, 'stern staff', P(0, base - .02, 104.85), P(0, 8.87, 104.75), .05, 'naval', vertices=8, r2=.035)
 
 
 def catapult(kit, col):

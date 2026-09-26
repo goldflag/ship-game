@@ -243,9 +243,11 @@ def crest_and_staffs(kit, col):
         p = centre + normal * .07 + (across * math.cos(ang) + up * math.sin(ang)) * .33
         petal = kit.part('box', 'chrysanthemum', col, 'petal', tuple(p), (.06, .12, .12), 'gold')
         petal.rotation_euler = normal.to_track_quat('X', 'Z').to_euler()
-    x, y, z = P(0, 7.5, -106.2)
-    kit.part('rod', 'jackstaff', col, 'staff', (x, y, z), (x, y, z + 7.2), .05, 'naval', vertices=8)
+    # Jackstaff on the stem head (reference centreline section: 7.40 to 11.94 m at z -106.89, its truck to 12.28 m).
+    x, y, z = P(0, 7.4, -106.89)
+    kit.part('rod', 'jackstaff', col, 'staff', (x, y, z), (x, y, z + 4.8), .05, 'naval', vertices=8)
     kit.cylz('jackstaff', col, 'step', (x, y, z - .02), .14, .3, 'naval', 12)
+    kit.cylz('jackstaff', col, 'truck', (x, y, z + 4.78), .08, .1, 'naval', 10)
 
 
 def portholes(kit, col):

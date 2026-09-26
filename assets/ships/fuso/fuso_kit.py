@@ -375,33 +375,23 @@ class Kit:
             self.part('rod', id, col, 'mast', (st(.47)[0], y, g + wheelhouse), (st(.47)[0], y, g + 2.0), .04, 'naval', vertices=6)
             self.part('rod', id, col, 'ensign staff', (st(.01)[0], y, g), (st(.01)[0], y, g + 1.7), .03, 'naval', vertices=6)
 
-    def covered_launch(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.19, .39, .63, .85), hood='canvas'):
-        """12 m motor launch under a canvas hood (or a varnished cabin top) with a row of windows each side."""
+    def open_launch(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.2, .4, .62, .84)):
+        """12 m motor launch as the reference shows it from above: an open hull with a wood floor, four thwarts and a
+        grey engine casing amidships."""
         col = col or self.cols['Boats and aviation']
         x, y, _ = P(ref_center[0], 0, ref_center[1])
-        hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, 1.42, 'naval', 'wood', 1, .72, .35, (.4, .05))
+        well = .75
+        hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, 1.42, 'naval', 'wood', 1, .72, .35, (.4, .05), well)
         self.tag(hull, id)
         self.gunwale_band(id, col, st, y, 'naval', .05)
-        self.cradles(id, col, st, y, chocks, 1.0)
-        # Canvas hood: a round-topped tunnel between the stern sheets and the fore deck.
-        rings = []
-        m = 12
-        for i in range(m + 1):
-            t = .11 + (.89 - .11) * i / m
+        for t in (.2, .3, .66, .76):
             px, w, k, g = st(t)
-            end = 1 - .55 * max(0, abs(i - m / 2) / (m / 2) - .75) / .25
-            wc, hc = (w - .14) * (end ** .5), 1.05 * end
-            prof = [(-1, 0), (-1, .62), (-.82, .9), (-.42, 1), (.42, 1), (.82, .9), (1, .62), (1, 0)]
-            rings.append([(px, y + a * wc, g - .02 + b * hc) for a, b in prof])
-        k = len(rings[0])
-        vv = [p for r in rings for p in r]
-        ff = [(i * k + j + 1, i * k + j, (i + 1) * k + j, (i + 1) * k + j + 1) for i in range(m) for j in range(k - 1)]
-        ff += [tuple(range(k)), tuple(reversed(range(m * k, m * k + k)))]
-        self.tag(self.mesh(id + '.hood', vv, ff, hood, col, True), id)
-        for s in (-1, 1):
-            for i in range(6):
-                px, w, k_, g = st(.2 + i * .115)
-                self.part('box', id, col, 'hood window', (px, y + s * (w - .13), g + .6), (.42, .03, .2), 'glass')
+            self.part('box', id, col, 'thwart', (px, y, g - .3), (.22, 2 * (w - .07), .05), 'wood')
+        a, b = st(.42), st(.56)
+        floor = max(a[2] + .05, a[3] - well)
+        self.part('box', id, col, 'engine casing', ((a[0] + b[0]) / 2, y, floor + .38), (abs(b[0] - a[0]), 1.3, .8), 'naval')
+        self.part('box', id, col, 'engine casing top', ((a[0] + b[0]) / 2, y, floor + .8), (abs(b[0] - a[0]) + .06, 1.36, .05), 'roof')
+        self.cradles(id, col, st, y, chocks, 1.0)
 
     def open_boat(self, id, ref_center, length, beam, keel_y, depth, col=None, bow=1, outer='white', inner='wood',
                   chocks=(.22, .5, .78), band='naval'):
