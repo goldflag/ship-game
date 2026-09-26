@@ -389,24 +389,45 @@ def underwater(D, kit):
             kit.part('rod', aid, col, 'bearing', p + Vector((.5, 0, 0)), p + Vector((-.5, 0, 0)), .38, 'antifouling', vertices=12)
             kit.member(aid, col, p, V(x * .6, y + 2.3, 81.5), .14, 'antifouling', 8)
             kit.member(aid, col, p, V(x * 1.15, y + 2.1, 81.5), .14, 'antifouling', 8)
-    # Twin balanced rudders behind the inner screws (reference x 1.88, z 85.9 to 92.7, 0.6 m thick).
+    # Twin balanced rudders behind the inner screws (reference x 1.88, z 85.9 to 92.7, 0.6 m thick, foot at 9.0 m):
+    # foil sections lofted between a flat foot and a flat head whose corners round off (1 m at the foot, 0.5 m at the
+    # head), hung a hand's breadth under the hull on the stock.
     for s in (-1, 1):
         aid = f'rudder-{"port" if s < 0 else "starboard"}'
-        n = 12
-        foil = []
-        for i in range(n + 1):
-            t = i / n
-            half = .3 * 2.6 * math.sqrt(max(0, t)) * (1 - t) ** 1.1
-            foil.append((85.9 + 6.8 * t, half))
-        ring = [(s * 1.88 + w, zz) for zz, w in foil] + [(s * 1.88 - w, zz) for zz, w in reversed(foil[1:-1])]
-        pts = [P(x, 0, zz)[:2] for x, zz in ring]
-        top = 0.0
+        n, z0, z1, foot, radius, crown = 12, 85.9, 92.7, -9.0, 1.0, .5
+        tops = []
+        for zz in (z0, 88.0, 90.0, z1):
+            try:
+                tops.append(kit.support.below(*P(s * 1.88, 0, zz)[:2], 2.0))
+            except ValueError:
+                pass
+        top = max(tops) if tops else -3.3
+        head = (min(tops) if tops else -3.3) - .3
+        heights = [foot + d for d in (0, .03, .1, .2, .33, .5, .7, radius)]
+        heights += [head - d for d in (crown, .3, .17, .08, .02, 0)]
+        verts, faces = [], []
+        for y in heights:
+            d = y - foot
+            inset = radius - math.sqrt(max(0.0, radius * radius - (radius - d) ** 2)) if d < radius else 0.0
+            e = head - y
+            if e < crown:
+                inset = max(inset, crown - math.sqrt(max(0.0, crown * crown - (crown - e) ** 2)))
+            a, c = z0 + inset, z1 - inset
+            foil = [(a + (c - a) * i / n, .78 * math.sqrt(i / n) * (1 - i / n) ** 1.1) for i in range(n + 1)]
+            ring = [(s * 1.88 + w, zz) for zz, w in foil] + [(s * 1.88 - w, zz) for zz, w in reversed(foil[1:-1])]
+            verts += [P(x, y, zz) for x, zz in ring]
+        m = 2 * n
+        for k in range(len(heights) - 1):
+            for i in range(m):
+                a0, a1 = k * m + i, k * m + (i + 1) % m
+                faces.append((a0, a1, a1 + m, a0 + m))
+        faces += [tuple(reversed(range(m))), tuple(range((len(heights) - 1) * m, len(heights) * m))]
+        recalc(kit.tag(kit.mesh(aid + '.blade', verts, faces, 'antifouling', col), aid))
         try:
-            top = kit.support.below(*P(s * 1.88, 0, 88.0)[:2], 2.0)
+            hull = kit.support.below(*P(s * 1.88, 0, 87.6)[:2], 2.0)
         except ValueError:
-            top = -3.3
-        kit.prism(aid, col, 'blade', pts, -9.0, top + .15, 'antifouling')
-        kit.part('rod', aid, col, 'stock', V(s * 1.88, top - .2, 87.6), V(s * 1.88, top + .6, 87.6), .24, 'antifouling', vertices=12)
+            hull = top
+        kit.part('rod', aid, col, 'stock', V(s * 1.88, head - .4, 87.6), V(s * 1.88, hull + .5, 87.6), .24, 'antifouling', vertices=12)
 
 
 # ---------------------------------------------------------------- rails
@@ -456,11 +477,16 @@ def glazing(D, kit):
             starts = [(Vector(P(s * 30, y, across)), Vector((0, s, 0)), Vector(P(s * wall, y, across))) for s in (1, -1)]
         for origin, direction, expected in starts:
             hit, normal, _, dist = tree.ray_cast(origin, direction, 80)
-            # Our wall must face the view and stand within 0.5 m of the reference's.
-            if hit is None or normal.dot(-direction) < .82 or (hit - expected).length > .5:
+            # Our wall must face the view within 39 degrees and stand within 0.5 m of the reference's.
+            if hit is None:
                 continue
-            # Runtime frame for Kit.windows: x starboard, z toward the stern, outward normal in x and z.
-            rows.append((kind, round(-hit.y, 3), round(hit.z, 3), round(-hit.x, 3), w, h, round(-normal.y, 3), round(-normal.x, 3)))
+            facing = normal.dot(-direction)
+            if facing < .78 or (hit - expected).length > .5:
+                continue
+            # Runtime frame for Kit.windows: x starboard, z toward the stern, outward normal in x and z. The view saw
+            # an oblique wall's panes foreshortened.
+            span = round(w / facing, 3) if kind == 'window' else w
+            rows.append((kind, round(-hit.y, 3), round(hit.z, 3), round(-hit.x, 3), span, h, round(-normal.y, 3), round(-normal.x, 3)))
     kit.windows('bridge-glazing', col, rows)
 
 

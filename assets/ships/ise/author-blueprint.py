@@ -638,12 +638,23 @@ def inside_barbette(s):
 
 
 structures = [s for s in structures if not inside_barbette(s)]
-# Measured pieces the column raster splits below its 0.3 m2 component floor, added from single plan cuts
-# (reference x0, x1, z0, z1, base, top): the after tower's cantilevered control platform (plan at 18.5 m).
-EXTRA = [('after-control-platform', 'After tower control platform', (-1.4, 1.4, 44.6, 48.69, 17.72, 19.37))]
+# Measured pieces the column raster cannot see, added from single plan cuts (reference outline (x, z), base, top):
+# the after tower's cantilevered control platform (under the raster's 0.3 m2 component floor, plan at 18.5 m), and
+# the pagoda's three glazed fronts, whose walls are thinner than the plan cuts' 0.3 m feature floor and enclose no
+# solid, so the raster leaves them open between their floor and roof: the lower bridge's wedge (18.65-21.42 m,
+# walls from the front at z -36.45 to the tower legs), the upper bridge's pointed room (29.89-32.31 m) and the small
+# compass room over it (32.43-34.76 m). Outlines are the outer walls of `ship:slice pjsb526 --plan <y> --min-thickness
+# 0.02 --close 0.25` at 19.4, 20.0, 30.4, 31.9 and 33.5 m; heights run from the floor under each to the roof over it.
+EXTRA = [('after-control-platform', 'After tower control platform',
+          [(-1.4, 44.6), (1.4, 44.6), (1.4, 48.69), (-1.4, 48.69)], 17.72, 19.37),
+         ('lower-bridge', 'Lower bridge', [(-2.06, -36.45), (2.06, -36.45), (4.08, -30.5), (-4.08, -30.5)], 18.65, 21.42),
+         ('upper-bridge', 'Upper bridge', [(-0.94, -35.45), (0.94, -35.45), (2.88, -32.75), (2.2, -32.5), (-2.2, -32.5),
+                                           (-2.88, -32.75)], 29.89, 32.31),
+         ('compass-room', 'Compass room', [(-1.38, -35.5), (1.38, -35.5), (1.5, -35.2), (1.5, -33.85), (-1.5, -33.85),
+                                           (-1.5, -35.2)], 32.43, 34.76)]
 structures = [s for s in structures if s['id'] not in {e[0] for e in EXTRA}]
-for sid, name, (x0, x1, z0, z1, y0, y1) in EXTRA:
-    structures.append(dict(id=sid, name=name, footprint=[[x0, rz(z0)], [x1, rz(z0)], [x1, rz(z1)], [x0, rz(z1)]], baseY=y0,
+for sid, name, outline_ref, y0, y1 in EXTRA:
+    structures.append(dict(id=sid, name=name, footprint=[[x, rz(z)] for x, z in outline_ref], baseY=y0,
                            height=round(y1 - y0, 3), material='naval'))
 
 

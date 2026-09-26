@@ -93287,6 +93287,45 @@
       ]
     },
     {
+      "id": "lower-bridge-0",
+      "center": [
+        0,
+        20.035,
+        -33.733
+      ],
+      "size": [
+        5.74,
+        2.77,
+        2.775
+      ]
+    },
+    {
+      "id": "lower-bridge-1",
+      "center": [
+        0,
+        20.035,
+        -30.758
+      ],
+      "size": [
+        7.76,
+        2.77,
+        2.775
+      ]
+    },
+    {
+      "id": "upper-bridge-0",
+      "center": [
+        0,
+        31.1,
+        -32.746
+      ],
+      "size": [
+        5.36,
+        2.42,
+        2.75
+      ]
+    },
+    {
       "id": "cutter-pagoda-port",
       "center": [
         -8.65,
@@ -123189,6 +123228,97 @@
       "baseY": 17.72,
       "height": 1.65,
       "material": "naval"
+    },
+    {
+      "id": "lower-bridge",
+      "name": "Lower bridge",
+      "footprint": [
+        [
+          -2.06,
+          -35.2208
+        ],
+        [
+          2.06,
+          -35.2208
+        ],
+        [
+          4.08,
+          -29.2708
+        ],
+        [
+          -4.08,
+          -29.2708
+        ]
+      ],
+      "baseY": 18.65,
+      "height": 2.77,
+      "material": "naval"
+    },
+    {
+      "id": "upper-bridge",
+      "name": "Upper bridge",
+      "footprint": [
+        [
+          -0.94,
+          -34.2208
+        ],
+        [
+          0.94,
+          -34.2208
+        ],
+        [
+          2.88,
+          -31.5208
+        ],
+        [
+          2.2,
+          -31.2708
+        ],
+        [
+          -2.2,
+          -31.2708
+        ],
+        [
+          -2.88,
+          -31.5208
+        ]
+      ],
+      "baseY": 29.89,
+      "height": 2.42,
+      "material": "naval"
+    },
+    {
+      "id": "compass-room",
+      "name": "Compass room",
+      "footprint": [
+        [
+          -1.38,
+          -34.2708
+        ],
+        [
+          1.38,
+          -34.2708
+        ],
+        [
+          1.5,
+          -33.9708
+        ],
+        [
+          1.5,
+          -32.6208
+        ],
+        [
+          -1.5,
+          -32.6208
+        ],
+        [
+          -1.5,
+          -33.9708
+        ]
+      ],
+      "baseY": 32.43,
+      "height": 2.33,
+      "material": "naval"
     }
   ],
   "viewpoints": {
@@ -126302,5 +126432,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "13de128359518d650c5def4bdb961029ee445a4f11d0c77cfb2c35e2e90f0668"
+  "contentHash": "55e07409da4ced568fa75ee883e84a85ce1b5b378d058aa9a53a16082973c6b7"
 }

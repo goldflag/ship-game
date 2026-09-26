@@ -84,9 +84,11 @@ for name, view, eye, target in VIEWS:
         else:
             # Looking inboard (-x) from starboard with up +y, image right is -z (the bow).
             rows.append(['side', kind, round(target[2] - a, 3), round(y, 3), round(w, 3), round(h, 3)])
-# The depth of the wall each opening is painted on, from the plan cuts (measure-plan.ts): the foremost wall a front
-# window's vertical line meets at its height, or the outermost wall a side window's meets.
-levels = json.loads((ROOT / '.build/ise/plan-cuts.json').read_text())['ship']
+# The depth of the wall each opening is painted on, from the towers' thin-wall plan cuts (measure-plan.ts --thin; the
+# glazed fronts are thin shells): the foremost wall a front window's vertical line meets, or the outermost wall a side
+# window's meets, in the cuts through the opening's height and 15 cm over and under it (a band of real openings
+# leaves only mullions in the cuts through it, so the sill and head find the wall).
+levels = json.loads((ROOT / '.build/ise/thin-cuts.json').read_text())['levels']
 
 
 def crossings(ring, along, value):
@@ -102,11 +104,10 @@ def crossings(ring, along, value):
 kept = []
 for row in rows:
     view, kind, across, y, w, h = row
-    level = min(levels, key=lambda lv: abs(lv['y'] - y))
-    hits = [v for p in level['polygons'] for v in crossings(p['ring'], 0 if view == 'front' else 1, across)]
-    if not hits:
-        continue
-    kept.append(row + [round(min(hits) if view == 'front' else max(hits), 3)])
+    hits = [v for level in levels if abs(level['y'] - y) <= h / 2 + .15
+            for p in level['polygons'] for v in crossings(p['ring'], 0 if view == 'front' else 1, across)]
+    if hits:
+        kept.append(row + [round(min(hits) if view == 'front' else max(hits), 3)])
 rows = kept
 # Front views see both sides of the centreline; side views are the starboard side, mirrored to port by the recipe.
 text = ',\n'.join('    ' + json.dumps(r) for r in rows)
