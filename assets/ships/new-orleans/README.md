@@ -56,14 +56,15 @@ under a platform, so `authoring/enclosures.py` drops the slabs that came back ov
 the pilothouse, the open navigating bridge round the director tower's base, the midships 20 mm tub round its tower,
 and the director platform abaft the tower, where vertical lines through the reference find only the deck and the
 platform above), carries the pilothouse, the tower base and the tub's tower down to their decks, and lists the
-bulwarks those slabs' outlines had hidden from the wall trace; `author-blueprint.py` and `authoring/walls.py` both
-apply it. Two more measured blocks are corrected in `author-blueprint.py`: the open navigating bridge's deck
-(bridge-010) runs unbroken to the pilothouse top instead of a sawtoothed U that let the sea show through, and the after
-deckhouse (after-superstructure-079) keeps three of its twelve plan levels (6.2, 8.775 and 9.7 m), whose trace noise and
-small steps had crumpled its sides. The funnels are raked extrusions of one measured section with
-sooted caps; the forward funnel's cowl covers the forward part of its mouth and rises to 22.47 m at its after face, arched
-across, as the reference's does.
-Bulwarks, splinter screens and gun tubs, which the block trace
+bulwarks those slabs' outlines had hidden from the wall trace; `author-blueprint.py` applies it and
+`authoring/walls.py` adds its bulwarks to the traced ones. `author-blueprint.py` corrects four more measured blocks:
+the open navigating bridge's deck (bridge-010) runs unbroken to the pilothouse top instead of a sawtoothed U that let
+the sea show through; the after deckhouse (after-superstructure-079) keeps three of its twelve plan levels (6.2, 8.775
+and 9.7 m), whose trace noise and small steps had crumpled its sides; the director tower (bridge-030) is one prism of
+its 21.475 m level instead of a six-level loft over a repeated foot; and the two tiers under the Mk 28 house stop at
+its front instead of running over the open deck round the mainmast's foot. The funnels are raked extrusions of one
+measured section with sooted caps; the forward funnel's cowl covers the forward part of its mouth and rises to 22.47 m
+at its after face, arched across, as the reference's does. Bulwarks, splinter screens and gun tubs, which the block trace
 drops as too thin, are traced as polylines by `authoring/walls.py` and drawn as 6 cm plating; where one crosses a
 light or secondary gun's working circle (the catalog part's swept rests, shield and platform, measured on the built
 model by `authoring/mount_envelope.py` into `authoring/mount-envelopes.json`) it bulges round the gun onto a small
@@ -80,9 +81,9 @@ recipe does not draw twice), and neighbouring mounts whose working circles overl
 are fore-and-aft strips of the deckhouses (each boxing only the runs that lie inside the outline all along the strip),
 the stowed boats and catapults, the ready-use lockers by the guns, the four posts under the midships 20 mm platform,
 the forecastle ahead of No. 1 turret (which its barrels would otherwise meet at full depression) and the quarterdeck
-boat winch. Nos. 1 and 3 turrets train to ±132°
-and ±128° at the horizontal and ±141° to ±150° once elevated; the forward 20 mm twins and the after control
-platform's single Oerlikons rest elevated 10° and 5°, over the tub wall ahead of them. The Mk 31, Mk 28 and Mk 51
+boat winch. Nos. 1 and 3 turrets train to ±132° and ±128° at the horizontal and ±141° to ±150° once elevated; the
+forward 20 mm twins and the after control platform's single Oerlikons rest elevated 10° and 5°, over the tub wall
+ahead of them. The Mk 31, Mk 28 and Mk 51
 directors stand at the reference's director datums; SK, both SG and SM aerials and the four large directors turn,
 and the ensign flies from the mainmast gaff.
 
@@ -101,8 +102,8 @@ superstructure plating are 25 and 13 mm.
 The paint is the reference's plain scheme sampled through its own UVs: one haze grey over hull, upperworks and
 turrets, deck blue over the timber weather decks and steel roofs, a black boot-topping from 0.24 to 0.76 m and a
 fouled olive-brown bottom, black funnel caps (`appearance.json`); the 8-inch barrels are haze grey like their gunhouses,
-and the shafts carry the bottom paint. The twin Oerlikons' canvas case bags are shaded smooth: faceted, their twenty
-elevation keys each made 9.6 MB of the model.
+and the shafts carry the bottom paint. The twin Oerlikons' canvas case bags are shaded smooth: drawn faceted, their
+twenty elevation shape keys came to 9.6 MB of the model.
 
 ## Accepted approximations
 
@@ -128,8 +129,8 @@ elevation keys each made 9.6 MB of the model.
   control platform's singles cannot depress over the tub wall ahead of them, so they rest at 10 and 5 degrees.
 - Masts, yards, radars, directors, the crane and the catapults are simplified; the catapults are empty, as in the
   reference, and no aircraft are carried. The funnel mouths are capped black with bars laid over them where the
-  reference's are open over an inner grating, and their rims are level where the reference's fall about 0.7 m aft. The reference shows no torpedo tubes or depth-charge gear, so none are
-  fitted.
+  reference's are open over an inner grating, and their rims are level where the reference's fall about 0.7 m aft.
+  The reference shows no torpedo tubes or depth-charge gear, so none are fitted.
 - Handling (32.7 kn), stability, mass distribution, flooding compartmentation and weapon values are shared game
   calibration, not historical measurements. Model fidelity and export checks do not certify historical accuracy.
 
