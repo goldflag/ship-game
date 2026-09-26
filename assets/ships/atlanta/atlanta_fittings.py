@@ -423,6 +423,7 @@ WAIST_SHIELD = [(3.95, 2.84), (5.16, 2.33), (5.82, 2.15), (6.59, 2.36), (7.15, 2
 
 # ---------------------------------------------------------------- funnels
 # Steam pipes (reference frame points, radius): from each funnel's base up to the reference's pipe ends.
+FUNNEL_RING = {'forward-funnel': 19.37, 'after-funnel': 18.45}
 STEAM_PIPES = {
     'forward-funnel': ([(-.22, 15.18, -7.72), (-.22, 18.3, -7.41), (-.22, 18.62, -7.12)], .11),
     'after-funnel': ([(1.085, 15.62, 8.54), (1.085, 20.26, 8.99)], .19),
@@ -456,35 +457,32 @@ def funnels(D, kit):
             if len(cut) >= 2:
                 cut.sort(key=lambda p: p.y)
                 kit.member(aid, col, cut[0] + Vector((0, 0, .08)), cut[-1] + Vector((0, 0, .08)), .03, 'black', 4)
-        # A ladder up the after side of the casing from its base to the rim.
+        # A ladder up the forward face of the casing from its base to the rim, where the reference has it.
         bottom = [Vector(R(v)) for v in vs[:n]]
-        rear = min(range(n), key=lambda i: bottom[i].x)
-        a, b = bottom[rear] + Vector((-.14, 0, .1)), top[rear] + Vector((-.14, 0, -.25))
+        front = max(range(n), key=lambda i: bottom[i].x)
+        a, b = bottom[front] + Vector((.14, 0, .1)), top[front] + Vector((.14, 0, -.25))
         kit.ladder(aid, col, a, b, (0, 1, 0), .42)
-        # Gallery 0.9 m under the rim's lowest point: a grating on brackets, 0.5 m wide, with a rail.
+        # The narrow foot ring round the casing (reference sections: a 0.28 m flat, 4 cm thick, at 19.37 m on the
+        # forward funnel and 18.45 m on the after one, on small brackets, with no rail).
         rings = [[Vector(R(v)) for v in vs[j * n:(j + 1) * n]] for j in range(len(vs) // n)]
-        yg = min(p.z for p in top) - .9
+        yg = FUNNEL_RING[aid]
         ring = min(rings[:-1], key=lambda r: abs(sum(p.z for p in r) / n - yg))
         cx, cy = sum(p.x for p in ring) / n, sum(p.y for p in ring) / n
         inner, outer = [], []
         for p in ring:
             d = Vector((p.x - cx, p.y - cy, 0)).normalized()
-            inner.append(Vector((p.x, p.y, yg)) - d * .02)
-            outer.append(Vector((p.x, p.y, yg)) + d * .5)
+            inner.append(Vector((p.x, p.y, yg)) - d * .03)
+            outer.append(Vector((p.x, p.y, yg)) + d * .28)
         vv, ff = [], []
         for q in inner + outer:
-            vv += [tuple(q), tuple(q + Vector((0, 0, .06)))]
+            vv += [tuple(q), tuple(q + Vector((0, 0, .04)))]
         for i in range(n):
             j = (i + 1) % n
             a0, b0, a1, b1 = 2 * i, 2 * j, 2 * (n + i), 2 * (n + j)
             ff += [(a0 + 1, b0 + 1, b1 + 1, a1 + 1), (a0, a1, b1, b0), (a1, a1 + 1, b1 + 1, b1), (a0, b0, b0 + 1, a0 + 1)]
-        grating = kit.tag(kit.mesh(aid + '.gallery grating', vv, ff, 'edge', col), aid)
-        for i in range(0, n, 2):
-            kit.member(aid, col, outer[i], outer[i] + Vector((0, 0, 1.0)), .022, 'naval', 5)
-            kit.member(aid, col, inner[i] + Vector((0, 0, -.02)), outer[i] - Vector((0, 0, .45)) + (inner[i] - outer[i]) * .5, .03, 'naval', 5)
-        for h in (.5, 1.0):
-            for i in range(n):
-                kit.member(aid, col, outer[i] + Vector((0, 0, h)), outer[(i + 1) % n] + Vector((0, 0, h)), .016, 'naval', 4)
+        kit.tag(kit.mesh(aid + '.foot ring', vv, ff, 'naval', col), aid)
+        for i in range(n):
+            kit.member(aid, col, outer[i] + (inner[i] - outer[i]) * .15 - Vector((0, 0, .01)), inner[i] - Vector((0, 0, .3)), .025, 'naval', 5)
         # The steam pipe where the reference runs it (reference frame): up the after face of the forward casing, a
         # little to port, to a short bend aft at 18.6 m; on the after funnel, clear of the casing's starboard quarter
         # to just above the rim.
