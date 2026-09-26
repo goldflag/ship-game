@@ -1418,6 +1418,30 @@ def deck_gear(D, kit):
         f = kit.below(c.x, c.y, y + .6, y - .6)
         kit.boxc('hatches', col, 'hatch coaming', Vector((c.x, c.y, f + .15)), (l, w, .3), 'naval')
         kit.boxc('hatches', col, 'hatch lid', Vector((c.x, c.y, f + .32)), (l + .06, w + .06, .05), 'edge')
+    # Fuelling-at-sea hoses faked down in racks on the 01 deck beside and under the motor launches (reference am480,
+    # 9.3 m at x 3.76, and am479, 5.9 m at x 1.56): black hose runs with white bands on low chocks.
+    for s in (-1, 1):
+        for x, zc, length, n in ((3.76, -3.47, 9.3, 4), (1.56, -3.02, 5.9, 3)):
+            c = V(s * x, 0, zc)
+            f = kit.below(c.x, c.y, 7.2, 5.8)
+            for i in range(n):
+                dy = (i - (n - 1) / 2) * .3
+                a, b = Vector((c.x + length / 2, c.y + dy, f + .2)), Vector((c.x - length / 2, c.y + dy, f + .2))
+                kit.part('rod', 'fuelling-hoses', col, 'hose', a, b, .14, 'black', vertices=8)
+            for k in range(int(length // 1.8) + 1):
+                xx = c.x - length / 2 + .3 + k * 1.8
+                if xx > c.x + length / 2 - .2:
+                    break
+                kit.boxc('fuelling-hoses', col, 'band', Vector((xx, c.y, f + .2)), (.06, .3 * n + .02, .3), 'raft')
+                kit.boxc('fuelling-hoses', col, 'chock', Vector((xx, c.y, f + .03)), (.2, .3 * n + .1, .06), 'edge')
+    # Gas cylinders racked upright on the forward 01 deck (reference am114, three pairs).
+    for x, zc in ((2.64, -45.65), (3.06, -44.73), (2.85, -45.19)):
+        c = V(x, 0, zc)
+        f = kit.below(c.x, c.y, 7.5, 5.5)
+        for dz in (-.12, .12):
+            kit.cylz('gas-cylinders', col, 'cylinder', Vector((c.x + dz, c.y, f)), .11, 1.12, 'canvas', 10)
+            kit.cylz('gas-cylinders', col, 'valve', Vector((c.x + dz, c.y, f + 1.12)), .04, .12, 'edge', 6)
+        kit.boxc('gas-cylinders', col, 'rack band', Vector((c.x, c.y, f + .8)), (.5, .26, .05), 'edge')
     # Stern smoke generators and the spare Mk 15 torpedoes stowed on the main deck forward of the tube mounts.
     for s in (-1, 1):
         c = V(s * 2.23, 0, 80.92)
