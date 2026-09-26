@@ -49,7 +49,18 @@ docker compose run --rm -T --interactive=false migrate
 mkdir -p /opt/ships/backups
 # A PostgreSQL backup is mandatory for every release.
 docker compose exec -T postgres pg_dump -U ships_admin -d ships -Fc > "/opt/ships/backups/postgres-$release.dump"
-docker compose up -d --wait --wait-timeout 120 compiler api server web
+if ! docker compose up -d --wait --wait-timeout 120 compiler api server web; then
+  docker compose logs --tail=40 server api compiler || true
+  # Restore the previous release when this one added no migrations; its schema is then unchanged.
+  if [ -L /opt/ships/current ] && diff -rq services/db/migrations "$(readlink /opt/ships/current)/services/db/migrations" >/dev/null; then
+    echo "Release $release did not become healthy; restoring $(basename "$(readlink /opt/ships/current)")" >&2
+    docker compose rm -sf compiler api server web
+    (cd /opt/ships/current && docker compose up -d --wait --wait-timeout 120 compiler api server web)
+  else
+    echo "Release $release did not become healthy after new migrations; not restoring automatically" >&2
+  fi
+  exit 1
+fi
 # Once accounts/design writes begin, rollback must preserve PostgreSQL.
 if [ -L /opt/ships/current ]; then ln -sfn "$(readlink /opt/ships/current)" /opt/ships/previous; fi
 ln -sfn "/opt/ships/releases/$release" /opt/ships/current
