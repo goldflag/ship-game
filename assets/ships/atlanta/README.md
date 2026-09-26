@@ -72,7 +72,10 @@ hard turn and a 638 m turning circle.
 - Superstructure blocks are measured prisms and straight lofts: small overhangs step and curved faces are faceted.
   Glazing covers the openings whose wall here stands near the reference's; hull scuttles and other painted texture
   detail are not modelled.
-- The torpedo tubes are authored at zero train and rest trained forward; the reference stows them trained aft.
+- The reference stows its torpedo mounts trained aft (muzzles 4.72 m abaft the pivot, breeches and the trainer's cab
+  forward). The game trains tubes from zero, so each mount is the reference's turned end for end and rests trained
+  forward; trained aft it matches the reference, and its short breech end clears the waist deckhouse through the
+  firing arc. The waist deck-edge rails stop at reference z 10.0 (the reference's at 11.2) so the muzzles clear them.
 - The waist 20 mm mounts carry an installed depression stop at 0 degrees and the stern pair at -2 degrees, so their
   barrels stay over the splinter shields the reference draws round them.
 - Deck-edge rails are three courses at the reference's heights, kept out of the gun arcs; platform rails keep the

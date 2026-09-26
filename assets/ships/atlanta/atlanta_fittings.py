@@ -591,34 +591,92 @@ def directors(D, kit):
 
 
 # ---------------------------------------------------------------- torpedo mounts
+def spoon(kit, aid, col, start, length, r, thick=.035, material='naval', n=10):
+    """The scarfed muzzle of a torpedo tube: an upper half-pipe that narrows to a lip over `length` (+X)."""
+    rings = []
+    for i in range(n + 1):
+        t = i / n
+        half = math.radians(90 - 62 * t ** 1.3)     # half the arc left of the tube, from 180 degrees to a 56-degree lip
+        ring = []
+        for k in range(9):
+            a = math.pi / 2 - half + 2 * half * k / 8
+            ring.append((start.x + length * t, start.y + math.cos(a) * r, start.z + math.sin(a) * r))
+        rings.append(ring)
+    m = len(rings[0])
+    vv, ff = [], []
+    for ring in rings:
+        for (px, py, pz) in ring:
+            vv.append((px, py, pz))
+        for (px, py, pz) in ring:
+            dy, dz = py - start.y, pz - start.z
+            s = (r - thick) / r
+            vv.append((px, start.y + dy * s, start.z + dz * s))
+    for i in range(n):
+        o0, o1 = 2 * m * i, 2 * m * (i + 1)
+        for k in range(m - 1):
+            ff.append((o0 + k, o1 + k, o1 + k + 1, o0 + k + 1))                   # outer skin
+            ff.append((o0 + m + k, o0 + m + k + 1, o1 + m + k + 1, o1 + m + k))   # inner skin
+        ff.append((o0, o0 + m, o1 + m, o1))                                        # the two cut edges
+        ff.append((o0 + m - 1, o1 + m - 1, o1 + 2 * m - 1, o0 + 2 * m - 1))
+    last = 2 * m * n
+    ff.append(tuple([last + k for k in range(m)] + [last + m + k for k in reversed(range(m))]))
+    ob = kit.mesh(aid + '.muzzle spoon', vv, ff, material, col)
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    bm.to_mesh(ob.data)
+    bm.free()
+    return kit.tag(ob, aid)
+
+
 def torpedo_mounts(D, kit):
-    """Quadruple 21-inch Mk 14 mounts: a training base and deck, four tubes with bands, breech doors and the
-    trainer's seat, trained from the rest pose (tubes forward) about the reference pivot."""
+    """Quadruple 21-inch Mk 14 mounts measured on the reference (HP_AGT_1/2): a training base, four 8.05 m tubes on
+    saddles with bands, breech doors and scarfed muzzles, and the trainer's cylindrical cab over the breech end.
+    The reference stows them trained aft; the game trains tubes from zero (forward), so each mount is authored as
+    the reference's turned end for end about its pivot (muzzles 4.72 m ahead, breeches 3.33 m abaft, the cab 1.46 m
+    abaft and 0.33 m outboard) and the rig trains it from there."""
     col = kit.collections['Torpedoes and depth charges']
     for launcher in D['torpedoLaunchers']:
         lid = launcher['id']
         x, y, z = R(launcher['position'])
+        outboard = 1 if y > 0 else -1                 # authoring +Y is port
         floor = kit.below(x, y, z + .2, z)
         kit.cylz(lid, col, 'base ring', (x, y, floor - .01), 1.05, z - floor + .08, 'naval', 28)
         pivot = kit.empty(lid + '.yaw', (x, y, z), assembly=lid, col=col)
         local(kit.cylz(lid, col, 'turntable', (x, y, z + .08), 1.0, .12, 'edge', 28), pivot)
-        local(kit.boxc(lid, col, 'training deck', (x - .5, y, z + .26), (5.2, 2.5, .08), 'roof'), pivot)
-        for xx in (-2.9, -.5, 1.8):
-            local(kit.boxc(lid, col, 'tube saddle', (x + xx, y, z + .5), (.18, 2.6, .36), 'edge'), pivot)
-        side = 1 if y > 0 else -1
-        local(kit.boxc(lid, col, 'trainer seat', (x - 3.3, y + side * .9, z + .75), (.45, .45, .9), 'edge'), pivot)
-        local(kit.boxc(lid, col, 'sight hood', (x - 3.0, y - side * .9, z + 1.25), (.6, .5, .5), 'naval'), pivot)
-        for tube in [t for t in D['torpedoTubes'] if t['launcherId'] == lid]:
-            mx, my, mz = R(tube['position'])
-            muzzle = Vector((mx, my, mz))
-            breech = muzzle - Vector((8.0, 0, 0))
-            local(kit.part('rod', lid, col, 'tube', breech, muzzle, .31, 'naval', vertices=16), pivot)
-            local(kit.part('rod', lid, col, 'tube mouth', muzzle - Vector((.03, 0, 0)), muzzle + Vector((.005, 0, 0)), .26, 'dark', vertices=16), pivot)
-            local(kit.part('rod', lid, col, 'breech door', breech - Vector((.16, 0, 0)), breech + Vector((.1, 0, 0)), .34, 'edge', vertices=16), pivot)
-            for xx in (-6.8, -4.6, -2.4, -.5):
-                cband = muzzle + Vector((xx, 0, 0))
-                local(kit.part('rod', lid, col, 'tube band', cband - Vector((.05, 0, 0)), cband + Vector((.05, 0, 0)), .335, 'edge', vertices=16), pivot)
+        # Training base under the tubes (reference: 2.1 m square, 3.77 to 4.11 m).
+        local(kit.boxc(lid, col, 'training deck', (x, y, z + .27), (2.1, 2.1, .14), 'roof'), pivot)
+        tubes = [t for t in D['torpedoTubes'] if t['launcherId'] == lid]
+        mz = R(tubes[0]['position'])[2]
+        breech_x = x - 3.326
+        for xx in (-2.2, -.2, 1.6):
+            local(kit.boxc(lid, col, 'tube saddle', (x + xx, y, (z + .34 + mz - .27) / 2), (.22, 2.5, mz - .27 - z - .34), 'edge'), pivot)
+        for tube in tubes:
+            tx, ty, tz = R(tube['position'])
+            muzzle = Vector((tx, ty, tz))
+            breech = Vector((breech_x, ty, tz))
+            scarf = muzzle - Vector((2.1, 0, 0))
+            local(kit.part('rod', lid, col, 'tube', breech, scarf, .3, 'naval', vertices=16), pivot)
+            local(spoon(kit, lid, col, scarf, 2.1, .3), pivot)
+            local(kit.part('rod', lid, col, 'tube mouth', scarf - Vector((.03, 0, 0)), scarf + Vector((.005, 0, 0)), .26, 'dark', vertices=16), pivot)
+            # Breech door and locking ring flush with the tube end, as the reference's: nothing stands proud of the
+            # 3.33 m breech end, which clears the waist deckhouse by 0.15 m at 60 and 120 degrees of train.
+            local(kit.part('rod', lid, col, 'breech door', breech - Vector((.005, 0, 0)), breech + Vector((.08, 0, 0)), .305, 'edge', vertices=16), pivot)
+            local(kit.part('rod', lid, col, 'breech ring', breech + Vector((.08, 0, 0)), breech + Vector((.2, 0, 0)), .318, 'edge', vertices=16), pivot)
+            for xx in (1.31, .54, -.6):
+                cband = Vector((x + xx, ty, tz))
+                local(kit.part('rod', lid, col, 'tube band', cband - Vector((.05, 0, 0)), cband + Vector((.05, 0, 0)), .325, 'edge', vertices=16), pivot)
             kit.empty(tube['id'] + '.muzzle', tuple(muzzle - Vector(pivot.location)), pivot, lid, col)
+        # The trainer's cab: a 2 m drum from the tube tops (4.78 m) to its roof (6.29 m), with sight ports forward
+        # (toward the muzzles), a roof hatch and rungs up its after face.
+        cx, cy = x - 1.461, y + outboard * .333
+        local(kit.cylz(lid, col, 'cab', (cx, cy, 4.78), 1.0, 1.42, 'naval', 24), pivot)
+        local(kit.cylz(lid, col, 'cab roof', (cx, cy, 6.2), .96, .09, 'naval', 24), pivot)
+        local(kit.cylz(lid, col, 'cab hatch', (cx - .2, cy, 6.29), .3, .1, 'naval', 12), pivot)
+        for dy in (-.45, 0, .45):
+            local(kit.boxc(lid, col, 'sight port', (cx + math.sqrt(max(0, 1 - dy * dy)) - .01, cy + dy, 5.85), (.06, .3, .16), 'glass'), pivot)
+        for h in (5.0, 5.3, 5.6, 5.9):
+            local(kit.part('rod', lid, col, 'rung', (cx - 1.05, cy - .22, h), (cx - 1.05, cy + .22, h), .02, 'edge', vertices=6), pivot)
 
 
 # ---------------------------------------------------------------- depth charges
@@ -1115,11 +1173,21 @@ def railings(D, kit):
             x = hull_half(kit, z, y - .03) - .12
             if x > .3:
                 pts.append(V(s * x, y, z))
-        # Three courses as the reference's deck-edge rails (0.33, 0.73 and 1.12 m over the deck).
-        for a, b in zip(pts, pts[1:]):
+        # Three courses as the reference's deck-edge rails (0.33, 0.73 and 1.12 m over the deck). The reference has
+        # none along the waist from reference z 11.2 to 26.4, where the torpedo tubes train out over the side; here
+        # the gap starts at 10.0, because the muzzles, authored forward (torpedo_mounts), cross the deck edge at 10.7.
+        def open_waist(p, q):
+            za, zb = sorted((-p.x - ZS, -q.x - ZS))
+            return zb > 10.0 and za < 26.39
+        segments = list(zip(pts, pts[1:]))
+        for i, (a, b) in enumerate(segments):
+            if open_waist(a, b):
+                continue
             for h in (.33, .73, 1.12):
                 kit.wire('railings', col, a + Vector((0, 0, h)), b + Vector((0, 0, h)), .016, True)
             kit.wire('railings', col, a, a + Vector((0, 0, 1.12)), .022, True)
+            if i + 1 < len(segments) and open_waist(*segments[i + 1]):
+                kit.wire('railings', col, b, b + Vector((0, 0, 1.12)), .022, True)
         # Over the bow bulwark a single course 0.42 m above its top, run down onto it short of the stem.
         bow = []
         for z, h in ((-77.58, .42), (-78.6, .42), (-79.6, .42), (-80.6, .42), (-81.8, .04)):

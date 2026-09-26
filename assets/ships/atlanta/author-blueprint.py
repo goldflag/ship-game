@@ -236,20 +236,25 @@ for i, (id, x, y, z, bearing) in enumerate(SINGLE, 1):
 
 # ---------------------------------------------------------------- torpedo mounts
 # Two trainable quadruple 21-inch Mk 14 mounts on the main deck abreast the after superstructure (HP_AGT_1/2),
-# with the reference's muzzle datums (gunFire points 0.666 m apart, 3.23 m ahead of the pivot). The tubes rest
-# trained forward; each trains out over its own side and fires within 30 degrees of the beam, as the reference's
-# sectors allow.
+# pivots at the reference datums, tubes 0.666 m apart. The reference stows them trained aft: its tubes run 3.33 m
+# forward of the pivot to the breeches and the trainer's cab and 4.72 m aft to the scarfed muzzles. The game trains
+# tubes from zero (forward), so the mount is authored as the reference's turned end for end: muzzles 4.72 m ahead of
+# the pivot and breeches 3.33 m abaft it; trained aft it matches the reference, and trained to the beam the short
+# breech end swings clear of the waist deckhouse (x 2.22) as the reference's does. Each trains out over its own side
+# and fires within 30 degrees of the beam, as the reference's sectors allow.
+TORPEDO_PIVOT_Z, TORPEDO_MUZZLE, TORPEDO_BREECH = 14.936, 4.724, 3.326
 b['torpedoLaunchers'] = []
 b['torpedoTubes'] = []
 for id, name, x, side in [('torpedo-port', 'Port quadruple torpedo mount', -5.902, -1), ('torpedo-starboard', 'Starboard quadruple torpedo mount', 5.903, 1)]:
-    b['torpedoLaunchers'].append(dict(id=id, name=name, position=[x, 3.66, rz(14.936)], traverseRateDeg=18,
+    b['torpedoLaunchers'].append(dict(id=id, name=name, position=[x, 3.66, rz(TORPEDO_PIVOT_Z)], traverseRateDeg=18,
                                       traverseLimitsDeg=[-180, 0] if side < 0 else [0, 180], launchArcsDeg=[[-120, -60]] if side < 0 else [[60, 120]]))
     for k, dx in enumerate([-.999, -.333, .333, .999], 1):
         b['torpedoTubes'].append(dict(id=f'{id}-tube-{k}', name=f'{name.split(" quadruple")[0]} tube {k}', partId='us-mk15-fast',
-                                      position=[round(x + dx, 3), 4.493, rz(11.702)], bearingDeg=0, arcDeg=2, ammo=1,
+                                      position=[round(x + dx, 3), 4.493, rz(TORPEDO_PIVOT_Z - TORPEDO_MUZZLE)], bearingDeg=0, arcDeg=2, ammo=1,
                                       magazineId='torpedo-magazine', launcherId=id, launcherModuleId=f'{id}-equipment'))
     b['modules'].append(dict(id=f'{id}-equipment', name=name, kind='launcher', placement='fixed', torpedoLauncherId=id,
-                             center=[x, 4.3, rz(15.3)], size=[2.8, 1.3, 7.8], hp=90, protectionMm=6, immersionToleranceM=.3))
+                             center=[x, 4.95, rz(TORPEDO_PIVOT_Z - (TORPEDO_MUZZLE - TORPEDO_BREECH) / 2)], size=[2.8, 2.6, 8.0],
+                             hp=90, protectionMm=6, immersionToleranceM=.3))
 
 # ---------------------------------------------------------------- depth charges
 # Six throwers on the quarterdeck (HP_AGB_1-6) and two stern roller tracks (HP_AGB_7/8), released at the

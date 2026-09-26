@@ -64607,13 +64607,13 @@
       "torpedoLauncherId": "torpedo-port",
       "center": [
         -5.902,
-        4.3,
-        15.5
+        4.95,
+        14.437
       ],
       "size": [
         2.8,
-        1.3,
-        7.8
+        2.6,
+        8
       ],
       "hp": 90,
       "protectionMm": 6,
@@ -64627,13 +64627,13 @@
       "torpedoLauncherId": "torpedo-starboard",
       "center": [
         5.903,
-        4.3,
-        15.5
+        4.95,
+        14.437
       ],
       "size": [
         2.8,
-        1.3,
-        7.8
+        2.6,
+        8
       ],
       "hp": 90,
       "protectionMm": 6,
@@ -86771,7 +86771,7 @@
       "position": [
         -6.901,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -86802,7 +86802,7 @@
       "position": [
         -6.235,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -86833,7 +86833,7 @@
       "position": [
         -5.569,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -86864,7 +86864,7 @@
       "position": [
         -4.903,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -86895,7 +86895,7 @@
       "position": [
         4.904,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -86926,7 +86926,7 @@
       "position": [
         5.57,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -86957,7 +86957,7 @@
       "position": [
         6.236,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -86988,7 +86988,7 @@
       "position": [
         6.902,
         4.493,
-        11.902
+        10.412
       ],
       "bearingDeg": 0,
       "arcDeg": 2,
@@ -89620,5 +89620,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "390873339eb49787e190ddac84598debf306fdc88a845f6e0aed9ea0e50b5fad"
+  "contentHash": "78c4d30340249aa6e3f9ded44b2eded9ea8094041556c5d22f592008310841f6"
 }
