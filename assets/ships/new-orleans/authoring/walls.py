@@ -287,6 +287,17 @@ for w in sorted(walls, key=lambda w: -length(w['pts'])):
     else:
         merged.append(dict(w))
 walls = sorted(merged, key=lambda w: -min(p[0] for p in w['pts']))
+# A wall whose top meets a block's top where it runs inside or along that block (a screen under a platform slab)
+# stops 5 cm under it, so the two tops do not share a plane (ship:check counts tops within 3 cm as one).
+for w in walls:
+    for s in BLOCKS:
+        top = s['baseY'] + s['height']
+        b = s['bounds']
+        if abs(top - w['top']) > .03 or not any(b[0] - .2 <= x <= b[2] + .2 and b[1] - .2 <= z <= b[3] + .2 for x, z in w['pts']):
+            continue
+        ring = block_outline(s, top)
+        if any(inside((x, z), ring) or min(seg_dist((x, z), a, c) for a, c in zip(ring, ring[1:] + ring[:1])) < .1 for x, z in w['pts']):
+            w['top'] = round(top - .05, 3)
 # Mirror: a starboard wall whose port twin is also found keeps one record marked `mirror`.
 out = []
 used = set()

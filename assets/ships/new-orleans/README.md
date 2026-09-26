@@ -10,8 +10,8 @@ construction ship. `blueprint.json` (written by `author-blueprint.py`), `build.p
 vocabulary: materials, primitives, barbettes, gun seats, merged rails and wires), `new_orleans_fittings.py` (masts,
 directors, radars, funnel tops, aviation, boats, searchlights, bulwarks, deck gear and rails),
 `new_orleans_underwater.py` (screws, shafts, bossings and brackets, rudder, skeg, bilge keels, propeller guards),
-`new_orleans_walls.py` (the traced bulwarks, splinter screens and gun tubs) and `new_orleans_windows.py` with its table
-(bridge glazing) are the durable inputs; the guns come from `assets/parts/`. `authoring/` keeps the measurement scripts
+`new_orleans_walls.py` (the traced bulwarks, splinter screens and gun tubs), `new_orleans_lockers.py` (the ready-use
+lockers by the guns) and `new_orleans_windows.py` with its table (bridge glazing) are the durable inputs; the guns come from `assets/parts/`. `authoring/` keeps the measurement scripts
 and their outputs. Generated Blender scenes and runtime models are build outputs.
 
 ## Approved brief
@@ -40,16 +40,19 @@ and eleven levels up to the flared forecastle's deck edge. The frame is centred 
 At the reference's y = 0 design waterline it is 179.78 m overall and 176.0 m on the waterline, 18.48 m in beam
 (18.41 m on the waterline), 7.07 m to the keel and 13,217 t. The forecastle deck falls from 9.15 m at the stem to
 6.23 m amidships and 5.97 m at the break; the main deck abaft it stands at 3.6 m, rising to 4.3 m at the stern. The
-skeg, bilge keels, four screws on their shafts and
-brackets, the balanced rudder and the propeller guards are original constructions at the reference's positions.
+skeg, bilge keels, four screws on their shafts and brackets, the balanced rudder and the propeller guards are original
+constructions at the reference's positions.
 
 Superstructure blocks come from plan traces of the reference every 5 cm (`authoring/plans.ts`, the shared
 `ship:slice --plan --sym` trace) carried up level by level by `authoring/structures.py`: a block continues while its
-outline moves little, ends at a roof, platform or overhang and splits where it comes apart; it is a prism, or where
-its walls taper a straight loft through the few levels its shape needs. Cells are kept only under a surface of the
-reference (so the deck inside a tub or an open bridge does not come back solid), the main barbettes and every open
-gun's working circle are cut out, and small lintels are carried to the block they rest on. The funnels are raked
-extrusions of one measured section with sooted caps. Bulwarks, splinter screens and gun tubs, which the block trace
+outline moves little, ends at a roof, platform or overhang, splits where it comes apart and where its outline jumps
+between two levels. A block whose levels nearly all match its middle level (nine tenths of each outline within 15 cm,
+over 85% of its height) is a prism; one whose walls taper (the funnel uptakes' flares, sloped platform edges) is a
+straight loft through the few levels its shape needs, each level resampled where its neighbour's points fall on it so
+the facets follow the walls. Cells are kept only under a surface of the reference (so the deck inside a tub or an open
+bridge does not come back solid), the main barbettes and every open gun's working circle are cut out, and small lintels
+are carried to the block they rest on. The funnels are raked extrusions of one measured section with sooted caps.
+Bulwarks, splinter screens and gun tubs, which the block trace
 drops as too thin, are traced as polylines by `authoring/walls.py` and drawn as 6 cm plating; where one crosses a
 light or secondary gun's working circle (the catalog part's swept rests, shield and platform, measured on the built
 model by `authoring/mount_envelope.py` into `authoring/mount-envelopes.json`) it bulges round the gun onto a small
@@ -60,12 +63,16 @@ stands within 35 cm of the reference's and faces the view.
 Mounts stand at the reference's hardpoint datums, each foot on the deck the reference stands it on: the catalog's
 `us-8in55-ca32-triple`, `us-5in25-mk19-single`, `us-40mm-bofors-mk2-quad`, `us-20mm-oerlikon-mk24-hsienyang` (the
 twin Mk 20 mounts) and `us-20mm-oerlikon-mk4`. Every mount carries a `mountClearance` installation envelope (barrels
-with the recoil stroke) against the blocks it can reach and against the bulwarks and tubs within its reach (6 cm
-thin structures along the traced walls, which the recipe does not draw twice), and neighbouring mounts whose working
-circles overlap are interlocked. Firing obstructions are fore-and-aft strips of the deckhouses, the stowed boats and
-catapults, the forecastle ahead of No. 1 turret (which its barrels would otherwise meet at full depression) and the
-quarterdeck boat winch. The Mk 31, Mk 28 and Mk 51 directors stand at the reference's director datums; SK, both SG and
-SM aerials and the four large directors turn, and the ensign flies from the mainmast gaff.
+with the recoil stroke, and a carriage box; the CA-32 gunhouse's rangefinder hoods are two capsules a side) against the
+blocks it can reach and the bulwarks and tubs within its reach (6 cm thin structures along the traced walls, which the
+recipe does not draw twice), and neighbouring mounts whose working circles overlap are interlocked. Firing obstructions
+are fore-and-aft strips of the deckhouses (each boxing only the runs that lie inside the outline all along the strip),
+the stowed boats and catapults, the ready-use lockers by the guns, the forecastle ahead of No. 1 turret (which its
+barrels would otherwise meet at full depression) and the quarterdeck boat winch. Nos. 1 and 3 turrets train to ±132°
+and ±128° at the horizontal and ±141° to ±150° once elevated; the forward 20 mm twins and the after control
+platform's single Oerlikons rest elevated 10° and 5°, over the tub wall ahead of them. The Mk 31, Mk 28 and Mk 51
+directors stand at the reference's director datums; SK, both SG and SM aerials and the four large directors turn,
+and the ensign flies from the mainmast gaff.
 
 Masts and yards, directors, radars, searchlights, the aircraft crane, catapults, boats and davits, ground tackle,
 bollards, fairleads, vents, hatches, lockers, rafts, rails and the underwater gear are simplified original
@@ -88,15 +95,17 @@ fouled olive-brown bottom, black funnel caps (`appearance.json`).
 - Displacement at the reference waterline (13,217 t, 7.07 m keel draft) is the reference's loading, heavier than the
   class's published full load; the stated mass equals the loft's displacement. The beam (18.48 m) is the
   reference's.
-- Superstructure blocks are measured prisms and straight lofts: small overhangs step and curved faces are faceted.
-  Only the bridge's windows and portholes are glazed; doors, scuttles on the hull and other painted texture detail are
-  not modelled, and openings whose wall here stands away from the reference's are left out.
+- Superstructure blocks are measured prisms and straight lofts: small overhangs step and curved faces are faceted,
+  and the reference's open-framed spaces (under the bridge wings, between the pillars of the lower bridge) are closed
+  blocks. Only the bridge's windows and portholes are glazed; doors, scuttles on the hull and other painted texture
+  detail are not modelled, and openings whose wall here stands away from the reference's are left out.
 - The catalog Oerlikon, Bofors and 5-inch parts sweep wider than the reference's own guns, so traced screens and tubs
   bulge round them: up to 0.39 m at the bridge wings' single Oerlikons and 0.33 m on the after control platform, on
-  small sponson floors. The forecastle capstans stand 0.44 m high (caps at 7.72 m) under No. 1 turret's overhang, and
-  the chains run from them to the hawse pipes without a windlass.
-- The light guns' carriages are not interlocked against blocks, only their barrels; the installation profile keeps
-  them clear where the sweep found contacts.
+  small sponson floors; the two ready-use lockers beside the bridge-wing Oerlikons stand 0.6 m abaft the reference's.
+  The forecastle capstans stand 0.44 m high (caps at 7.72 m) under No. 1 turret's overhang, and the chains run from
+  them to the hawse pipes without a windlass.
+- The catalog 20 mm mounts' trunnions stand lower against the reference's tub walls than its own guns', so the forward
+  twins and the after control platform's singles rest elevated and cannot depress over the wall ahead of them.
 - Masts, yards, radars, directors, the crane and the catapults are simplified; the catapults are empty, as in the
   reference, and no aircraft are carried. The reference shows no torpedo tubes or depth-charge gear, so none are
   fitted.
@@ -114,9 +123,13 @@ python assets/ships/new-orleans/authoring/structures.py .build/new-orleans/plans
 python assets/ships/new-orleans/authoring/walls.py .build/new-orleans/structures.json > assets/ships/new-orleans/new_orleans_walls.py
 python assets/ships/new-orleans/authoring/windows.py > assets/ships/new-orleans/new_orleans_windows_data.py
 
-python3 assets/ships/new-orleans/author-blueprint.py   # add --structures .build/new-orleans/structures.json after re-measuring
+# A change that leaves the hull, blocks and rooms alone keeps the gameplay data as it stands:
+python3 assets/ships/new-orleans/author-blueprint.py --keep-gameplay
+# after re-measuring, rebuild it (this ship has no hand calibration in them yet):
+python3 assets/ships/new-orleans/author-blueprint.py --structures .build/new-orleans/structures.json
 bun -e "import { writeLocalDamage } from './assets/ships/author-local-damage.ts'; await writeLocalDamage(['new-orleans'])"
 bun assets/ships/author-flood-spaces.ts new-orleans && bun assets/ships/author-stability.ts new-orleans && bun assets/ships/author-damage-control.ts new-orleans
+
 bun run ship:build new-orleans
 bun run ship:review new-orleans
 bun run ship:check new-orleans

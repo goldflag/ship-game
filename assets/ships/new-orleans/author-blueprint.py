@@ -13,10 +13,14 @@ The editable blueprint is the versioned asset. This recipe records how it was ma
 - Mounts at the reference's hardpoint datums, each foot on the deck the reference stands it on; armour zones and
   thicknesses from the reference's armour model (asc014_new_orlean_1944 armour), placed on this loft; directors at
   the reference director datums. Machinery, magazines, flood spaces and stability are provisional game estimates.
+- Interlocks: the traced bulwarks and tubs within a gun's reach (`new_orleans_walls.py`, from `authoring/walls.py`)
+  become 6 cm structures the barrels are tested against, the ready-use lockers by the guns (`new_orleans_lockers.py`)
+  firing obstructions, and a light gun whose barrel would rest on the wall ahead of it rests elevated.
 
 Run afterwards: author-local-damage (new ship only), author-flood-spaces, author-stability and author-damage-control,
 always passing `new-orleans` (see the README). `--keep-gameplay` keeps the current blueprint's local damage, flood
-regions, compartment connections, stability and damage control, for a change that does not touch them.
+regions, compartment connections, stability and damage control, and its rooms and modules as the helpers left them,
+for a change that does not touch them (it then reproduces the blueprint exactly).
 """
 import argparse
 import json
@@ -173,7 +177,8 @@ if opts.structures:
             entry['surface'] = s['surface']
         structures.append(entry)
 else:
-    structures = previous['structures']
+    # the measured blocks as they stand; the walls' interlock copies are rebuilt below from new_orleans_walls.py
+    structures = [s for s in previous['structures'] if not s['id'].startswith('wall-')]
 
 
 def region(s):
@@ -240,6 +245,47 @@ for id, name, z_ref, rake, y_ref, y0, y1 in FUNNELS:
                            material='naval', surface=dict(vertices=verts, triangles=tris),
                            exhaust=dict(position=[0, y1, rz(zc1 - .2)], width=3.3, length=5.2)))
 b['structures'] = structures
+
+
+def point_in(x, z, poly):
+    c = False
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        if (az > z) != (bz > z) and x < ax + (bx - ax) * (z - az) / (bz - az):
+            c = not c
+    return c
+
+
+def shared_area(A, B, cell=.1):
+    """Plan area two footprints share, on a 10 cm grid (as ship:check's coplanar-top test counts it)."""
+    ax, az = [p[0] for p in A['footprint']], [p[1] for p in A['footprint']]
+    bx, bz = [p[0] for p in B['footprint']], [p[1] for p in B['footprint']]
+    x0, x1, z0, z1 = max(min(ax), min(bx)), min(max(ax), max(bx)), max(min(az), min(bz)), min(max(az), max(bz))
+    if x0 >= x1 or z0 >= z1:
+        return 0
+    n = 0
+    for i in range(int((x1 - x0) / cell) + 1):
+        for k in range(int((z1 - z0) / cell) + 1):
+            x, z = x0 + (i + .5) * cell, z0 + (k + .5) * cell
+            if x < x1 and z < z1 and point_in(x, z, A['footprint']) and point_in(x, z, B['footprint']):
+                n += 1
+    return n * cell * cell
+
+
+def footprint_area(s):
+    p = s['footprint']
+    return abs(sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(p, p[1:] + p[:1]))) / 2
+
+
+# Two measured blocks whose tops meet in one plane over the same deck (a slab laid over a slab) would z-fight: the
+# smaller stops 5 cm under the larger's top (ship:check counts tops within 3 cm as one plane).
+for i, A in enumerate(structures):
+    for B in structures[i + 1:]:
+        if abs(A['baseY'] + A['height'] - B['baseY'] - B['height']) > .03 or 'surface' in A or 'surface' in B:
+            continue
+        if shared_area(A, B) >= .25:
+            low = min((A, B), key=footprint_area)
+            low['height'] = round(max(.01, max(A['baseY'] + A['height'], B['baseY'] + B['height']) - .05 - low['baseY']), 3)
+            low['name'] = low['name'].rsplit(' ', 2)[0] + f" {low['baseY']:.1f}-{low['baseY'] + low['height']:.1f} m"
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is cut into
 # fore-and-aft strips of at most 3 m, and each strip boxes only the runs across the ship that lie inside the outline
@@ -317,6 +363,36 @@ def seg_dist(p, a, c):
     return math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dz)
 
 
+def ear_clips(points):
+    """Whether the runtime's ear clipper (structure.rs and hullStructure.ts `cap`) triangulates this footprint."""
+    def cross(a, c, e):
+        return (points[c][0] - points[a][0]) * (points[e][1] - points[a][1]) - (points[c][1] - points[a][1]) * (points[e][0] - points[a][0])
+    n = len(points)
+    area = sum(points[i][0] * points[(i + 1) % n][1] - points[i][1] * points[(i + 1) % n][0] for i in range(n))
+    ids = list(range(n))[::-1 if area < 0 else 1]
+    while len(ids) > 2:
+        for i in range(len(ids)):
+            a, c, e = ids[i - 1], ids[i], ids[(i + 1) % len(ids)]
+            if abs(cross(a, c, e)) < 1e-9:
+                ids.pop(i)
+                break
+            if cross(a, c, e) < 0 or any(p not in (a, c, e) and cross(a, c, p) >= -1e-9 and cross(c, e, p) >= -1e-9 and cross(e, a, p) >= -1e-9 for p in ids):
+                continue
+            ids.pop(i)
+            break
+        else:
+            return False
+    return True
+
+
+def clipped(piece):
+    """A wall piece split in halves until each half's ribbon is a footprint the runtime can triangulate."""
+    if len(piece) <= 2 or ear_clips(ribbon(piece)):
+        return [piece]
+    half = len(piece) // 2
+    return clipped(piece[:half + 1]) + clipped(piece[half:])
+
+
 def pieces(pts):
     """A wall split where its ribbon could fold over itself: at bends sharper than 100 degrees, in runs of at most 60
     points, and a closed tub into halves."""
@@ -356,7 +432,7 @@ for i, w in enumerate(WALLS):
                 near.append(d / reach)
         if not near:
             continue
-        for k, piece in enumerate(pieces(pts)):
+        for k, piece in enumerate([q for p in pieces(pts) for q in clipped(p)]):
             sid = f'wall-{i:03d}{side}-{k + 1}'
             structures.append(dict(id=sid, name=f"Bulwark {w['base']:.1f}-{w['top']:.1f} m", footprint=ribbon(piece), baseY=w['base'],
                                    height=round(w['top'] - w['base'], 3), material='naval'))
@@ -417,6 +493,8 @@ for st in structures:
     if best is not None:
         nearby.append((best, st['id']))
 print(f'{len(nearby)} blocks and walls within a barrel\'s reach ({len(WALL_IDS)} walls); keeping {min(128, len(nearby))}')
+if len(nearby) > 128:
+    print('  beyond the 128 kept (share of reach):', ', '.join(f'{sid} ({d:.2f})' for d, sid in sorted(nearby)[128:]))
 nearby = [sid for _, sid in sorted(nearby)[:128]]
 b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for every mount (8-inch, 5-inch, 40 mm and 20 mm) against the measured superstructure blocks they can reach, including the full recoil stroke, and between neighbouring mounts whose working circles overlap. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
@@ -642,6 +720,11 @@ if opts.keep_gameplay and previous:
     for key in ['localDamage', 'floodRegions', 'connections', 'stability', 'damageControl']:
         if key in previous:
             b[key] = previous[key]
+    # the rooms and modules as the helpers left them (fire vents, support generators, the side and end flood spaces)
+    for key in ['compartments', 'modules']:
+        before = {c['id']: c for c in previous[key]}
+        ids = {c['id'] for c in b[key]}
+        b[key] = [before.get(c['id'], c) for c in b[key]] + [c for c in previous[key] if c['id'] not in ids]
 if 'damageControl' not in b:
     b['damageControl'] = dict(version=1, teams=3, setupSeconds=8, repairPoints=240, roomFuelSeconds=180, mountFuelSeconds=80, suppressionPerSecond=.1,
                               portablePumpM3PerSecond=.08, repairHpPerSecond=.8, repairCeiling=.6, patchM2PerSecond=.004, maxPatchM2=.4, flashProtection=.9,
