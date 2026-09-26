@@ -426,7 +426,7 @@ pub fn spawn(
             if session.battle.outcome.as_ref().is_some_and(|o| {
                 matches!(
                     o.reason,
-                    FinishReason::Destruction | FinishReason::TimeLimit
+                    FinishReason::Destruction | FinishReason::TimeLimit | FinishReason::Withdrawal
                 )
             }) {
                 let aftermath_start = Instant::now();
@@ -602,6 +602,7 @@ mod tests {
             weather: "clear".into(),
             spawn_distance: 5000.0,
             wind_speed: None,
+            time_of_day: None,
             mission_rules,
             air_rules: None,
         };

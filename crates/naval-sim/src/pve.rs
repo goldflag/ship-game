@@ -68,6 +68,10 @@ pub struct PveBriefing {
     pub totals: FleetTotals,
     pub eligible_presets: Vec<String>,
     pub deployment_min_z: f64,
+    /// A scenario's conditions, clock and opening orders; its fleet is fixed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub scenario: Option<crate::scenario::ScenarioBriefing>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Role {
@@ -136,14 +140,18 @@ fn strength(def: &ShipDefinition) -> f64 {
         + def.torpedo_tubes.as_ref().map_or(0, Vec::len) as f64 * 15.0
         + aircraft * 12.0
 }
-struct Random(u32);
+pub(crate) struct Random(pub(crate) u32);
 impl Random {
-    fn next(&mut self) -> u32 {
+    pub(crate) fn next(&mut self) -> u32 {
         self.0 = mix32(self.0.wrapping_add(0x9e37_79b9));
         self.0
     }
-    fn index(&mut self, count: usize) -> usize {
+    pub(crate) fn index(&mut self, count: usize) -> usize {
         self.next() as usize % count
+    }
+    /// Uniform in 0..=1.
+    pub(crate) fn unit(&mut self) -> f64 {
+        self.next() as f64 / u32::MAX as f64
     }
     fn signed(&mut self, reach: f64) -> f64 {
         (self.next() as f64 / u32::MAX as f64 * 2.0 - 1.0) * reach
@@ -158,8 +166,10 @@ pub struct PvePlan {
     pub(crate) assignments: Vec<FleetShip>,
     pub(crate) enemy_groups: Vec<TaskGroup>,
     pub(crate) enemy_assignments: Vec<FleetShip>,
-    identities: Vec<ContentIdentity>,
-    totals: FleetTotals,
+    pub(crate) identities: Vec<ContentIdentity>,
+    pub(crate) totals: FleetTotals,
+    /// A hand-authored scenario: fixed deployment, scripted raid, victory points.
+    pub(crate) scenario: Option<crate::scenario::ScenarioPlan>,
 }
 impl PvePlan {
     pub fn generate(catalog: &Catalog, request: PveRequest) -> Result<Self, String> {
@@ -263,6 +273,7 @@ impl PvePlan {
                 weather: request.weather,
                 spawn_distance: 16000.0,
                 wind_speed: None,
+                time_of_day: None,
                 air_rules: Some(catalog.air_profiles[&rules.air_profile_id].clone()),
                 mission_rules: Some(rules),
             },
@@ -272,6 +283,7 @@ impl PvePlan {
             enemy_assignments: enemy_units,
             identities,
             totals,
+            scenario: None,
         })
     }
     pub fn briefing(&self, catalog: &Catalog) -> PveBriefing {
@@ -283,9 +295,18 @@ impl PvePlan {
             groups: self.groups.clone(),
             assignments: self.assignments.clone(),
             totals: self.totals,
-            eligible_presets: eligible_presets(catalog),
+            // A scenario's fleet is fixed, so it offers no catalog to build from.
+            eligible_presets: if self.scenario.is_some() {
+                vec![]
+            } else {
+                eligible_presets(catalog)
+            },
             deployment_min_z: 7000.0,
+            scenario: self.scenario.as_ref().map(|s| s.briefing(&self.setup)),
         }
+    }
+    pub fn scenario_plan(&self) -> Option<&crate::scenario::ScenarioPlan> {
+        self.scenario.as_ref()
     }
     /// Validate the complete proposed placement before changing the frozen setup.
     pub fn deploy(
@@ -305,6 +326,27 @@ impl PvePlan {
                 .any(|p| !self.assignments.iter().any(|s| s.id == p.id))
         {
             return Err("Place every friendly ship exactly once".into());
+        }
+        // A scenario's order of battle is history: its ships start where they were.
+        if self.scenario.is_some() {
+            let authored = self
+                .setup
+                .ships
+                .iter()
+                .filter(|s| s.team == TeamId::A)
+                .all(|ship| {
+                    let placed = &placements.iter().find(|p| p.id == ship.id).unwrap().spawn;
+                    ship.spawn.as_ref().is_some_and(|s| {
+                        (s.x - placed.x).abs() < 1.0
+                            && (s.z - placed.z).abs() < 1.0
+                            && (s.heading - placed.heading).abs() < 1e-3
+                    })
+                });
+            return if authored {
+                Ok(self.setup.clone())
+            } else {
+                Err("A scenario's ships start at their historical positions".into())
+            };
         }
         let rules = self.setup.mission_rules.as_ref().unwrap();
         let environment = catalog
@@ -356,8 +398,12 @@ impl PvePlan {
         self.setup.clone()
     }
     /// Only expose this after the battle outcome is final.
-    pub fn debrief(&self) -> serde_json::Value {
-        serde_json::json!({"generationVersion":1,"setup":self.setup,"content":self.identities,"groups":self.groups,"assignments":self.assignments})
+    pub fn debrief(&self, battle: &crate::battle::Battle) -> serde_json::Value {
+        let mut debrief = serde_json::json!({"generationVersion":1,"setup":self.setup,"content":self.identities,"groups":self.groups,"assignments":self.assignments});
+        if let Some(scenario) = &self.scenario {
+            debrief["scenario"] = scenario.debrief(battle);
+        }
+        debrief
     }
 }
 fn valid_id(id: &str) -> bool {

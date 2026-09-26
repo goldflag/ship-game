@@ -37,6 +37,10 @@ struct Manifest {
     terrain: Vec<ManifestTerrain>,
     maps: serde_json::Value,
     conditions: serde_json::Value,
+    /// Hand-authored actions (`assets/gameplay/scenarios/`); each carries its
+    /// own mission rules, registered alongside the generated missions'.
+    #[serde(default)]
+    scenarios: Vec<crate::scenario::Scenario>,
 }
 /// One baked heightfield: the bytes of `public/maps/terrain/<id>.ntf`, base64, and
 /// their SHA-256. A browser worker carries only the terrain its battle needs.
@@ -81,6 +85,7 @@ pub struct Catalog {
     pub conditions: serde_json::Value,
     pub missions: BTreeMap<String, crate::mission::MissionRules>,
     pub air_profiles: BTreeMap<String, crate::aviation::AirRules>,
+    pub scenarios: BTreeMap<String, Arc<crate::scenario::Scenario>>,
 }
 
 pub fn sha256(bytes: &[u8]) -> String {
@@ -217,6 +222,21 @@ impl Catalog {
             ));
         }
         let mut missions = BTreeMap::new();
+        let mut scenarios = BTreeMap::new();
+        for scenario in manifest.scenarios {
+            scenario.validate().map_err(ContentError::Invalid)?;
+            let mission = scenario.mission.clone();
+            if scenarios
+                .insert(scenario.id.clone(), Arc::new(scenario))
+                .is_some()
+            {
+                return Err(ContentError::Invalid("Duplicate scenario".into()));
+            }
+            mission.validate_profile().map_err(ContentError::Invalid)?;
+            if missions.insert(mission.id.clone(), mission).is_some() {
+                return Err(ContentError::Invalid("Duplicate mission profile".into()));
+            }
+        }
         for mission in manifest.missions {
             mission.validate_profile().map_err(ContentError::Invalid)?;
             if missions.insert(mission.id.clone(), mission).is_some() {
@@ -263,6 +283,7 @@ impl Catalog {
             conditions: manifest.conditions,
             missions,
             air_profiles,
+            scenarios,
         };
         catalog.map_ids().map_err(ContentError::Invalid)?;
         catalog.weather_ids().map_err(ContentError::Invalid)?;

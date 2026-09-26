@@ -436,6 +436,7 @@ fn a_lost_guide_hands_the_formation_to_its_lowest_slot_escort() {
             weather: "clear".into(),
             spawn_distance: 12000.0,
             wind_speed: None,
+            time_of_day: None,
             mission_rules: None,
             air_rules: None,
         },

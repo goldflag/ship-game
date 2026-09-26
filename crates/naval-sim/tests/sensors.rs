@@ -42,6 +42,7 @@ fn clear() -> VisualConditions {
     VisualConditions {
         visibility_m: 28000.0,
         light: 1.0,
+        night_lookout: [1.0; 2],
     }
 }
 #[test]
@@ -193,6 +194,7 @@ fn low_aircraft_have_shorter_signatures_and_high_search_has_a_longer_horizon() {
     let fog = VisualConditions {
         visibility_m: 4500.0,
         light: 1.0,
+        night_lookout: [1.0; 2],
     };
     assert!(sensors::observation_strength(&ship, &high, 100, true, fog, &rules).is_none());
 }
@@ -382,4 +384,51 @@ fn formation_visibility_is_shared_by_observers_and_recomputed_when_planes_separa
         contact.last_observed_tick, 0,
         "a departed neighbor must not keep extending detection range"
     );
+}
+#[test]
+fn night_shortens_the_lookouts_but_a_flash_or_a_fire_shows_a_ship_far_off() {
+    let rules = VisualRules::default();
+    let night = VisualConditions {
+        visibility_m: 20000.0,
+        light: 0.22,
+        night_lookout: [1.0, 2.0],
+    };
+    let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
+    let at = |x: f64| entity("enemy", TeamId::B, ContactKind::Surface, x, 0.0);
+    let seen = |observer: &VisualEntity, target: &VisualEntity, conditions: VisualConditions| {
+        sensors::observation_strength(observer, target, 1, false, conditions, &rules).is_some()
+    };
+    assert!(seen(&observer, &at(9000.0), clear()));
+    assert!(!seen(&observer, &at(9000.0), night));
+    assert!(seen(&observer, &at(4500.0), night));
+    // Gunfire or a fire aboard shows the ship out to the flash range, which weather still bounds.
+    let firing = VisualEntity {
+        firing: true,
+        ..at(12000.0)
+    };
+    assert!(seen(&observer, &firing, night));
+    assert!(!seen(
+        &observer,
+        &firing,
+        VisualConditions {
+            visibility_m: 8000.0,
+            ..night
+        }
+    ));
+    let mut burning = at(12000.0);
+    burning.cues.fire = Some([12000.0, 20.0, 0.0]);
+    assert!(seen(&observer, &burning, night));
+    // A navy trained for night fighting sees further, and only in poor light.
+    let raider = entity("raider", TeamId::B, ContactKind::Surface, 0.0, 0.0);
+    let own = |x: f64| entity("own", TeamId::A, ContactKind::Surface, x, 0.0);
+    assert!(seen(&raider, &own(9000.0), night));
+    assert!(!seen(&observer, &at(9000.0), night));
+    assert!(!seen(
+        &raider,
+        &own(12000.0),
+        VisualConditions {
+            night_lookout: [1.0, 2.0],
+            ..clear()
+        }
+    ));
 }

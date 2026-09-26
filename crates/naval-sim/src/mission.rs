@@ -40,6 +40,104 @@ pub enum EliminationPolicy {
 #[serde(rename_all = "kebab-case")]
 pub enum TimeoutPolicy {
     Draw,
+    /// The mission's objective scores both sides; the higher total wins.
+    VictoryPoints,
+}
+/// A scenario's victory points: what each side earns from the other's losses.
+/// Every decided mission that carries one is judged on points, however it ends.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct MissionObjective {
+    /// The ships a side is there to protect (transports, a convoy): the other
+    /// side scores `protected_points` for each one sunk, whatever its size.
+    pub protected_ship_ids: Vec<String>,
+    pub protected_points: u32,
+    /// Any other ship sunk scores this per 1000 tonnes to the side that did not lose it.
+    pub points_per_kilotonne: f64,
+    /// A side that must be gone by the deadline (a raid caught at dawn): each of
+    /// its ships still afloat and not withdrawn when time runs out scores for
+    /// the other side at this rate per 1000 tonnes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub exposed_at_deadline: Option<DeadlineExposure>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct DeadlineExposure {
+    pub team: TeamId,
+    pub points_per_kilotonne: f64,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum ScoreKind {
+    /// A protected ship was sunk.
+    Protected,
+    /// Any other ship was sunk.
+    Sunk,
+    /// A ship was still inside the area when the deadline passed.
+    Exposed,
+}
+/// One line of a victory-point tally: `team` earned `points` from `ship_id`.
+#[derive(Clone, Debug, PartialEq, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct ScoreLine {
+    pub team: TeamId,
+    pub kind: ScoreKind,
+    pub ship_id: String,
+    pub preset_id: String,
+    pub points: u32,
+}
+#[derive(Clone, Debug, Default, PartialEq, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct Score {
+    pub points: [u32; 2],
+    pub lines: Vec<ScoreLine>,
+}
+/// Tally the objective over the fleet as it stands. `deadline` adds the
+/// exposure of a side still in the area when time ran out.
+pub fn score(
+    actors: &[Vessel],
+    withdrawn: &std::collections::BTreeSet<String>,
+    objective: &MissionObjective,
+    deadline: bool,
+) -> Score {
+    let mut tally = Score::default();
+    for a in actors {
+        let kilotonnes = a.definition().hull.mass_kg / 1_000_000.0;
+        let line = if a.physical_loss().is_some() {
+            if objective.protected_ship_ids.contains(&a.motion.id) {
+                Some((ScoreKind::Protected, objective.protected_points))
+            } else {
+                Some((
+                    ScoreKind::Sunk,
+                    (kilotonnes * objective.points_per_kilotonne).round() as u32,
+                ))
+            }
+        } else if deadline
+            && !withdrawn.contains(&a.motion.id)
+            && let Some(exposure) = &objective.exposed_at_deadline
+            && exposure.team == a.team
+        {
+            Some((
+                ScoreKind::Exposed,
+                (kilotonnes * exposure.points_per_kilotonne).round() as u32,
+            ))
+        } else {
+            None
+        };
+        if let Some((kind, points)) = line {
+            let team = a.team.other();
+            tally.points[team.index()] += points;
+            tally.lines.push(ScoreLine {
+                team,
+                kind,
+                ship_id: a.motion.id.clone(),
+                preset_id: a.preset_id.clone(),
+                points,
+            });
+        }
+    }
+    tally
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -54,6 +152,14 @@ pub struct MissionRules {
     #[ts(type = "number | null")]
     pub duration_seconds: Option<u64>,
     pub timeout: TimeoutPolicy,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub objective: Option<MissionObjective>,
+    /// Team a's and team b's lookout reach short of full daylight, as a
+    /// multiple of the common visual rule. Omitted is even.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub night_lookout: Option<[f64; 2]>,
 }
 /// Versioned PvE simulation cadence, in the style of `visual-sensors.v2.json`:
 /// content, not a client flag. A battle applies it only while it carries
@@ -124,6 +230,18 @@ impl MissionRules {
             || self
                 .duration_seconds
                 .is_some_and(|s| !(1..=21600).contains(&s))
+            || (self.timeout == TimeoutPolicy::VictoryPoints) != self.objective.is_some()
+            || self
+                .night_lookout
+                .is_some_and(|l| l.iter().any(|n| !(0.5..=2.0).contains(n)))
+            || self.objective.as_ref().is_some_and(|o| {
+                o.protected_ship_ids.len() > 30
+                    || o.protected_points > 1000
+                    || !(0.0..=100.0).contains(&o.points_per_kilotonne)
+                    || o.exposed_at_deadline
+                        .as_ref()
+                        .is_some_and(|e| !(0.0..=100.0).contains(&e.points_per_kilotonne))
+            })
         {
             return Err("Invalid mission profile".into());
         }
@@ -270,20 +388,30 @@ pub fn permanently_incapable(a: &Vessel, wing: Option<&AirWingState>) -> bool {
     }
     true
 }
+/// `withdrawn` ships left on their commander's order: they stop fighting
+/// without being lost, and a side with nothing else left has withdrawn.
 pub fn evaluate(
     tick: u64,
     actors: &[Vessel],
     aviation: &crate::aviation::Aviation,
     mission: &MissionRules,
     afloat_kg: [u64; 2],
+    withdrawn: &std::collections::BTreeSet<String>,
 ) -> Option<Outcome> {
     let mut fighting = [false; 2];
+    let mut left = [false; 2];
     for a in actors {
-        if a.physical_loss().is_none() && !permanently_incapable(a, aviation.wing(&a.motion.id)) {
+        if a.physical_loss().is_some() {
+            continue;
+        }
+        if withdrawn.contains(&a.motion.id) {
+            left[a.team.index()] = true;
+        } else if !permanently_incapable(a, aviation.wing(&a.motion.id)) {
             fighting[a.team.index()] = true;
         }
     }
-    let (reason, winner) = match fighting {
+    let departed = |team: TeamId| !fighting[team.index()] && left[team.index()];
+    let (reason, mut winner) = match fighting {
         [true, true] => {
             if !mission
                 .duration_seconds
@@ -293,10 +421,27 @@ pub fn evaluate(
             }
             (FinishReason::TimeLimit, None)
         }
+        [true, false] if departed(TeamId::B) => (FinishReason::Withdrawal, Some(TeamId::A)),
+        [false, true] if departed(TeamId::A) => (FinishReason::Withdrawal, Some(TeamId::B)),
         [true, false] => (FinishReason::Destruction, Some(TeamId::A)),
         [false, true] => (FinishReason::Destruction, Some(TeamId::B)),
         [false, false] => (FinishReason::Destruction, None),
     };
+    if mission.timeout == TimeoutPolicy::VictoryPoints
+        && let Some(objective) = &mission.objective
+    {
+        let tally = score(
+            actors,
+            withdrawn,
+            objective,
+            reason == FinishReason::TimeLimit,
+        );
+        winner = match tally.points[0].cmp(&tally.points[1]) {
+            std::cmp::Ordering::Greater => Some(TeamId::A),
+            std::cmp::Ordering::Less => Some(TeamId::B),
+            std::cmp::Ordering::Equal => None,
+        };
+    }
     Some(Outcome {
         winner_team_id: winner,
         reason,

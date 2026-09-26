@@ -39,6 +39,7 @@ fn clear() -> VisualConditions {
     VisualConditions {
         visibility_m: 28000.0,
         light: 1.0,
+        night_lookout: [1.0; 2],
     }
 }
 
@@ -143,6 +144,7 @@ fn terrain_horizon_and_weather_clip_search_history() {
         VisualConditions {
             visibility_m: 3500.,
             light: 1.,
+            night_lookout: [1.0; 2],
         },
         &rules,
     );

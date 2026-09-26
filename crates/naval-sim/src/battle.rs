@@ -57,6 +57,11 @@ pub struct BattleSetup {
     pub spawn_distance: f64,
     /// Metres per second, 0..=30; null takes the weather preset's wind.
     pub wind_speed: Option<f64>,
+    /// A `times` preset from the battle conditions, such as "night". Only its
+    /// light reaches the simulation, as the lookouts' reach; omitted is full day.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub time_of_day: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub mission_rules: Option<crate::mission::MissionRules>,
@@ -114,6 +119,9 @@ pub struct Battle {
     pub sequence: i64,
     pub dispersion: u32,
     pub mission_rules: Option<crate::mission::MissionRules>,
+    /// Ships that left the battle on their commander's order (a scenario raid
+    /// clearing the area). They no longer fight, and they no longer count as lost.
+    pub withdrawn: std::collections::BTreeSet<String>,
     event_sequence: u64,
     pub sensors: crate::sensors::Sensors,
     navigation_reports: [Vec<crate::sensors::ContactTrack>; 2],
@@ -293,8 +301,22 @@ impl Battle {
         }
         let mut aviation = Aviation::with_rules(&actors, catalog.aircraft.clone(), air_rules)?;
         aviation.airspace = setup.mission_rules.as_ref().map(|m| m.area.clone());
-        let visual_conditions =
-            crate::sensors::VisualConditions::resolve(&catalog, &setup.map_id, &setup.weather);
+        if let Some(time) = &setup.time_of_day
+            && !catalog.conditions["times"]
+                .as_array()
+                .is_some_and(|times| times.iter().any(|t| t["id"] == time.as_str()))
+        {
+            return Err(format!("Unknown time of day {time:?}"));
+        }
+        let mut visual_conditions = crate::sensors::VisualConditions::resolve_at(
+            &catalog,
+            &setup.map_id,
+            &setup.weather,
+            setup.time_of_day.as_deref(),
+        );
+        if let Some(lookout) = setup.mission_rules.as_ref().and_then(|m| m.night_lookout) {
+            visual_conditions.night_lookout = lookout;
+        }
         let cadence = match setup.mission_rules {
             Some(_) => {
                 let cadence = crate::mission::SimulationCadence::default();
@@ -328,6 +350,7 @@ impl Battle {
             rules: Rules::default(),
             trails: Default::default(),
             mission_rules: setup.mission_rules,
+            withdrawn: Default::default(),
             sensors: Default::default(),
             navigation_reports: Default::default(),
             visual_conditions,

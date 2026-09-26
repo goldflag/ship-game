@@ -88,6 +88,7 @@ pub mod captain;
 pub mod mission;
 pub mod pve;
 pub mod recon;
+pub mod scenario;
 pub mod sensors;
 
 pub mod records;

@@ -350,7 +350,8 @@ fn an_observed_strike_can_finish_after_carrier_loss_but_aircraft_cannot_preserve
             &actors,
             &air,
             &catalog().missions["pve-fleet-v1"],
-            [1, 1]
+            [1, 1],
+            &Default::default()
         )
         .is_none()
     );
@@ -361,7 +362,8 @@ fn an_observed_strike_can_finish_after_carrier_loss_but_aircraft_cannot_preserve
             &actors,
             &air,
             &catalog().missions["pve-fleet-v1"],
-            [0, 1]
+            [0, 1],
+            &Default::default()
         )
         .unwrap()
         .winner_team_id,

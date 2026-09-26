@@ -97,6 +97,7 @@ fn owned_carriers_receive_deck_commands_without_taking_the_destroyer_helm() {
             weather: "clear".into(),
             spawn_distance: 12000.0,
             wind_speed: None,
+            time_of_day: None,
             mission_rules: None,
             air_rules: Some(rules),
         },
