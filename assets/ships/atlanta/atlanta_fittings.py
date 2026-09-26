@@ -10,6 +10,7 @@ import math
 import bmesh
 from mathutils import Vector, Matrix
 from atlanta_kit import P, R, ZS
+import atlanta_rails
 
 
 def V(x, y, z):
@@ -499,13 +500,18 @@ def mk37(kit, did, x, y, z, face):
     pivot = kit.empty(did + '.yaw', (bx, by, bz), assembly=did, col=col)
     s = 1 if face == 0 else -1
     local(kit.cylz(did, col, 'roller ring', (bx, by, bz - .05), 1.28, .3, 'edge', 32), pivot)
-    # House: 3.4 m long, 2.9 m wide, 2.1 m tall, the front face raked back.
-    L, W, H = 3.4, 2.9, 2.1
+    # House: 3.4 m long, 2.9 m wide, 2.1 m tall, upright to 1.05 m and then sloping back 0.95 m to the roof, as the
+    # reference's house; three sighting hatches on the slope (lids hinged down) and three on the roof (lids up).
+    L, W, H, V1, SB = 3.4, 2.9, 2.1, 1.05, .95
     f, r = s * L / 2, -s * L / 2
     outline = [(r, -W / 2), (f - s * .45, -W / 2), (f, -W / 2 + .45), (f, W / 2 - .45), (f - s * .45, W / 2), (r, W / 2)]
-    vv = [(bx + px, by + py, bz + .25) for px, py in outline] + [(bx + px - s * (.35 if abs(px - f) < .5 else 0), by + py, bz + .25 + H) for px, py in outline]
     n = len(outline)
-    ff = [tuple(reversed(range(n))), tuple(range(n, 2 * n))] + [(i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)]
+
+    def ring(h, back):
+        return [(bx + px - s * (back if abs(px - f) < .5 else 0), by + py, bz + .25 + h) for px, py in outline]
+    vv = ring(0, 0) + ring(V1, 0) + ring(H, SB)
+    ff = [tuple(reversed(range(n))), tuple(range(2 * n, 3 * n))]
+    ff += [(k * n + i, k * n + (i + 1) % n, (k + 1) * n + (i + 1) % n, (k + 1) * n + i) for k in (0, 1) for i in range(n)]
     house = kit.tag(kit.mesh(did + '.house', vv, ff, 'naval', col), did)
     bm = bmesh.new()
     bm.from_mesh(house.data)
@@ -513,14 +519,27 @@ def mk37(kit, did, x, y, z, face):
     bm.to_mesh(house.data)
     bm.free()
     local(house, pivot)
+    up = Vector((-s * SB, 0, H - V1)).normalized()
+    out = Vector((s * (H - V1), 0, SB)).normalized()
+    mid = Vector((bx + f - s * SB / 2, by, bz + .25 + (V1 + H) / 2))
+    roof = Vector((bx + f - s * (SB + .4), by, bz + .25 + H))
+    back = Vector((-s, 0, 0))
+    for t in (-.8, 0, .8):
+        c = mid + Vector((0, t, 0))
+        local(kit.beam(did, col, 'sight hatch', c - up * .24 + out * .03, c + up * .24 + out * .03, .52, .08, 'naval'), pivot)
+        local(kit.beam(did, col, 'sight window', c - up * .15 + out * .07, c + up * .15 + out * .07, .34, .02, 'glass'), pivot)
+        hinge = c - up * .24 + out * .07
+        local(kit.beam(did, col, 'hatch lid', hinge, hinge + (-up * .6 + out * .8).normalized() * .46, .5, .04, 'naval'), pivot)
+        c2 = roof + Vector((0, t, 0))
+        local(kit.boxc(did, col, 'roof hatch', c2 + Vector((0, 0, .05)), (.5, .5, .1), 'naval'), pivot)
+        local(kit.boxc(did, col, 'roof window', c2 + Vector((0, 0, .1)), (.34, .34, .02), 'glass'), pivot)
+        hinge2 = c2 + back * .25 + Vector((0, 0, .1))
+        local(kit.beam(did, col, 'hatch lid', hinge2, hinge2 + (back * .3 + Vector((0, 0, .95))).normalized() * .46, .5, .04, 'naval'), pivot)
     # Rangefinder tube through the house and its end hoods, 4.75 m over the hoods.
     local(kit.part('rod', did, col, 'rangefinder', (bx - s * .2, by - 2.2, bz + 1.55), (bx - s * .2, by + 2.2, bz + 1.55), .2, 'naval', vertices=14), pivot)
     for t in (-1, 1):
         local(kit.boxc(did, col, 'rangefinder hood', (bx - s * .2, by + t * 2.2, bz + 1.55), (.62, .36, .58), 'naval'), pivot)
         local(kit.boxc(did, col, 'hood window', (bx - s * .2 + s * .31, by + t * 2.2, bz + 1.55), (.02, .22, .16), 'glass'), pivot)
-    for k, t in enumerate((-.8, 0, .8)):
-        local(kit.boxc(did, col, 'roof hatch', (bx + s * .4, by + t, bz + .25 + H + .06), (.55, .5, .12), 'naval'), pivot)
-        local(kit.boxc(did, col, 'sight window', (bx + s * .65, by + t, bz + .25 + H + .04), (.04, .32, .1), 'glass'), pivot)
     local(kit.boxc(did, col, 'rear door', (bx + r - s * .02, by, bz + 1.05), (.05, .7, 1.4), 'edge'), pivot)
 
 
@@ -1125,4 +1144,5 @@ def build(D, kit):
     deck_gear(D, kit)
     underwater(D, kit)
     railings(D, kit)
+    atlanta_rails.build(D, kit, V)
     kit.build_wires()
