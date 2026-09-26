@@ -449,6 +449,7 @@ export class Game {
     installBindGroupReuse(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
     for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
+    this.effects.prepare(this.renderer);
     configureRenderOrder(this.renderer);
     this.assertActive();
     this.callbacks.progress(`Loading ${this.definition.name}`, 0.2);

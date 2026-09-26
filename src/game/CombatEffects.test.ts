@@ -122,19 +122,26 @@ test('burning-turret smoke climbs, drifts with wind, responds to changes, and fr
   // Follow the existing column only: no new puffs enter while the wind changes.
   effects.setDensity(0);
   const mesh = effects.root.getObjectByName('Ship fire smoke') as InstancedMesh<InstancedBufferGeometry>;
-  const mean = () => {
-    const center = mesh.geometry.getAttribute('fireCenter'), n = mesh.geometry.instanceCount, sum = new Vector3();
-    for (let i = 0; i < n; i++) sum.add(new Vector3(center.getX(i), center.getY(i), center.getZ(i)));
+  /** Every drawn puff's centre by its seed, so the same puffs compare across frames while short-lived flame bodies expire. */
+  const centres = () => {
+    const center = mesh.geometry.getAttribute('fireCenter'), state = mesh.geometry.getAttribute('fireState'), found = new Map<number, Vector3>();
+    for (let i = 0; i < mesh.geometry.instanceCount; i++) found.set(state.getX(i), new Vector3(center.getX(i), center.getY(i), center.getZ(i)));
+    return found;
+  };
+  const meanDrift = (from: Map<number, Vector3>, to: Map<number, Vector3>) => {
+    const sum = new Vector3(); let n = 0;
+    for (const [seed, position] of to) { const was = from.get(seed); if (was) { sum.add(position.clone().sub(was)); n++; } }
+    expect(n).toBeGreaterThan(5);
     return sum.divideScalar(n);
   };
   const beforeSimulation = JSON.stringify(sim);
   for (const [speed, direction] of [[10, 0], [10, Math.PI / 2], [20, Math.PI], [10, -Math.PI / 2], [0, 1]]) {
-    const before = mean();
+    const before = centres();
     effects.setWind(speed, direction);
     effects.update(sim, 0, camera);
-    expect(mean().distanceTo(before)).toBe(0);
+    expect(meanDrift(before, centres()).length()).toBe(0);
     effects.update(sim, .1, camera);
-    const drift = mean().sub(before);
+    const drift = meanDrift(before, centres());
     const along = drift.x * Math.cos(direction) + drift.z * Math.sin(direction);
     const across = -drift.x * Math.sin(direction) + drift.z * Math.cos(direction);
     // Wind carries a third of its drift at the fire and all of it higher up the column.
@@ -147,33 +154,39 @@ test('burning-turret smoke climbs, drifts with wind, responds to changes, and fr
 
 test('optics hide existing and new own-ship smoke while other smoke remains and ages normally', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  // The same events without optics: a blast's gas rolls out over its first moments, so its drawn puffs change with age.
+  const reference = new CombatEffects();
+  const step = (dt: number, optics?: string) => { effects.update(sim, dt, camera, optics); reference.update(sim, dt, camera); };
+  const drawn = (fx: CombatEffects) => fx.diagnostics().smoke;
   const event: CombatEvent = { sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
     shell: { id: 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } };
-  // One heavy barrel: its fireball plus four cordite billows.
-  const blast = 5;
   sim.events.push(event);
-  effects.update(sim, 0, camera);
-  expect(effects.diagnostics().smoke).toBe(blast);
-  effects.update(sim, .1, camera, sim.player.motion.id);
-  expect(effects.diagnostics().smoke).toBe(0);
+  step(0);
+  // A fresh heavy barrel: the lobes of its secondary flash (its gunsmoke bank and the bore's wisp come a moment later).
+  const blast = drawn(effects);
+  expect(blast).toBe(6);
+  step(.1, sim.player.motion.id);
+  expect(drawn(effects)).toBe(0);
+  expect(drawn(reference)).toBeGreaterThan(0);
   sim.events.push({ ...event, sequence: 2 }, { ...event, sequence: 3, shipId: 'target' });
-  effects.update(sim, .1, camera, sim.player.motion.id);
-  expect(effects.diagnostics().smoke).toBe(blast);
-  effects.update(sim, 0, camera);
-  expect(effects.diagnostics().smoke).toBe(3 * blast);
+  step(.1, sim.player.motion.id);
+  expect(drawn(effects)).toBe(blast);
+  step(0);
+  expect(drawn(effects)).toBe(drawn(reference));
+  expect(drawn(effects)).toBeGreaterThanOrEqual(3 * blast);
   sim.events.push({ ...event, sequence: 4, kind: 'penetration', normal: [-1, 0, 0] },
     { ...event, sequence: 5, kind: 'module', detonation: true });
-  effects.update(sim, 0, camera, sim.player.motion.id);
-  expect(effects.diagnostics().smoke).toBe(blast); // Own impact and magazine smoke are hidden too.
-  effects.update(sim, 120, camera, sim.player.motion.id);
-  effects.update(sim, 0, camera);
-  expect(effects.diagnostics().smoke).toBe(0);
-  effects.reset();
+  step(0, sim.player.motion.id);
+  expect(drawn(effects)).toBe(blast); // Own impact and magazine smoke are hidden too.
+  step(120, sim.player.motion.id);
+  step(0);
+  expect(drawn(effects)).toBe(0);
+  effects.reset(); reference.reset();
   sim.reset();
   sim.events.push({ ...event, sequence: 6 });
-  effects.update(sim, 0, camera);
-  expect(effects.diagnostics().smoke).toBe(blast);
-  effects.dispose();
+  step(0);
+  expect(drawn(effects)).toBe(blast);
+  effects.dispose(); reference.dispose();
 });
 
 test('spray reaches the same position at different frame rates and falls out at the sea', () => {
@@ -264,7 +277,8 @@ test('large-gun fire flashes through the gas, cools into a cordite cloud that li
   expect(Math.max(...each(i => state.getZ(i)))).toBeGreaterThan(.2);
   effects.update(sim, .25, camera);
   expect(Math.max(...each(i => sphere.getW(i) * 2))).toBeGreaterThan(24);
-  effects.update(sim, .65, camera);
+  // Its flame breaks up into pockets that burn out inside its own smoke within about a second and a half.
+  effects.update(sim, 1.15, camera);
   expect(each(i => state.getZ(i)).every(heat => heat === 0)).toBe(true);
   effects.update(sim, 3, camera);
   const opacity = mesh.geometry.getAttribute('effectOpacity');
@@ -280,7 +294,9 @@ test('the barrels of one salvo merge into one blast per turret', () => {
     const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
     events.forEach((event, i) => sim.events.push({ sequence: i + 1, tick: 3, kind: 'shot', message: 'A turret fired', ...event,
       shell: { id: i + 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } }));
-    effects.update(sim, 0, new Camera());
+    // Each bore shoots out its own flame; the turret's gunsmoke bank, shared by its barrels, has rolled out by 0.6 s.
+    const camera = new Camera();
+    effects.update(sim, 0, camera); effects.update(sim, .6, camera);
     const count = effects.diagnostics().smoke; effects.dispose(); return count;
   };
   const barrel = (z: number, shipId = 'player') => ({ position: [0, 10, z] as [number, number, number], shipId });

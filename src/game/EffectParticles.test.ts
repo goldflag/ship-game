@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Matrix4, PerspectiveCamera, Quaternion, Vector3 } from 'three/webgpu';
+import { Matrix4, MeshBasicNodeMaterial, PerspectiveCamera, Quaternion, Vector3 } from 'three/webgpu';
 import { EffectParticlePool, effectTexture, type EffectParticle } from './EffectParticles';
 
 const seeded = (seed: number) => { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296; };
@@ -84,5 +84,31 @@ test('publication writes the poses three composes, back to front, and clears wha
     const matrices = pool.mesh.instanceMatrix.array, alphas = pool.mesh.geometry.getAttribute('effectOpacity').array;
     expect(Array.from(matrices.subarray(pool.count * 16)).every(v => v === 0)).toBe(true);
     expect(Array.from(alphas.subarray(pool.count)).every(v => v === 0)).toBe(true);
+  } finally { pool.dispose(); texture.dispose(); }
+});
+
+test('gas puffs face the camera from their centres, drawn half a radius nearer at the same angular size, and faded puffs draw nothing', () => {
+  const texture = effectTexture('smoke'), pool = new EffectParticlePool(4, texture, false, new MeshBasicNodeMaterial(), false, true);
+  const camera = new PerspectiveCamera(50, 1.5, .5, 5000);
+  camera.position.set(30, 20, 120); camera.lookAt(0, 10, 0); camera.updateMatrixWorld();
+  try {
+    const puff = pool.emit(new Vector3(5, 12, -10)); puff.size = 16; puff.life = 10;
+    pool.publish(camera);
+    expect(pool.count).toBe(1);
+    const matrix = new Matrix4(), position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
+    pool.mesh.getMatrixAt(0, matrix); matrix.decompose(position, rotation, scale);
+    const toCamera = camera.position.clone().sub(puff.position), distance = toCamera.length();
+    // Nearer by half the radius, along the line of sight from the camera to the centre.
+    expect(position.distanceTo(puff.position)).toBeCloseTo(4, 4);
+    expect(position.clone().sub(puff.position).normalize().dot(toCamera.clone().normalize())).toBeCloseTo(1, 5);
+    // The same angle across: 16 m at the centre's distance.
+    expect(scale.x / position.distanceTo(camera.position)).toBeCloseTo(16 / distance, 5);
+    // Its normal points back at the camera from the centre, so the material's frame matches the quad's.
+    expect(new Vector3(0, 0, 1).applyQuaternion(rotation).dot(toCamera.normalize())).toBeCloseTo(1, 5);
+    expect(pool.mesh.geometry.getAttribute('effectSphere').getW(0)).toBe(8);
+    // A puff at the end of its life still ages but costs no fill.
+    puff.age = puff.life * .999;
+    pool.publish(camera);
+    expect(pool.count).toBe(0);
   } finally { pool.dispose(); texture.dispose(); }
 });

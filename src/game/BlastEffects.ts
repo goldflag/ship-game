@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { attribute, float, texture, vec3, vec4 } from 'three/tsl';
+import { float, texture, vec3, vec4 } from 'three/tsl';
 import { EffectParticlePool, effectTexture, type EffectParticle } from './EffectParticles';
 import type { EffectLighting } from './EffectLighting';
 import type { WaterPlumes } from './WaterPlumes';
@@ -8,16 +8,21 @@ import { localToWorld, rotate, worldToLocal } from './geometry';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const WATER = new THREE.Color('#e7f2f1');
-const CORDITE = new THREE.Color('#bab4a6');
-const SOOT = new THREE.Color('#3a3734');
-const BLACK_SMOKE = new THREE.Color('#2b2927');
+/** Gunsmoke: grey where the propellant burnt out in the bank, charcoal where the flash burnt it. */
+const GUNSMOKE = new THREE.Color('#9c9fa5');
+const GUNSMOKE_DARK = new THREE.Color('#85888f');
+/** Smoke of burnt explosive and of burning paint, cork and fittings: dark, but lit grey where the sun reaches it. */
+const SOOT = new THREE.Color('#77797c');
+const BLACK_SMOKE = new THREE.Color('#646669');
 type Vec3 = [number, number, number];
 
 /** Pools and lights that CombatEffects shares with the blasts, so every gas and
  * flash still renders in the same few instanced draws. */
 export interface BlastContext {
-  /** Raymarched gas: propellant, fireballs and explosion columns. */
+  /** Gas puffs (the baked atlas relit): propellant, fireballs and explosion columns. */
   volumes: EffectParticlePool;
+  /** A new material of the same gas, for the blasts' own pool of smouldering and trailing smoke. */
+  gasMaterial(): THREE.MeshBasicNodeMaterial;
   /** Additive flash, flame-jet and spark sprites. */
   fire: EffectParticlePool;
   foam: EffectParticlePool;
@@ -57,18 +62,6 @@ export function debrisTexture(): THREE.DataTexture {
   const map = new THREE.DataTexture(pixels, size, size);
   map.minFilter = THREE.LinearMipmapLinearFilter; map.magFilter = THREE.LinearFilter; map.generateMipmaps = true; map.needsUpdate = true;
   return map;
-}
-
-/** Sprite smoke lit by the scene's sun, sky and moon (the texture's baked light gives each
- * lobe its relief) and softened where it meets decks, hulls and the sea. */
-function litSmokeMaterial(map: THREE.Texture, lighting: EffectLighting): THREE.MeshBasicNodeMaterial {
-  const material = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
-  const sample = texture(map);
-  const light = lighting.ambient.mul(1.35).add(lighting.direct.mul(.62));
-  material.colorNode = vec4(sample.rgb.mul(light), sample.a);
-  material.opacityNode = attribute<'float'>('effectOpacity', 'float').mul(lighting.softEdge(2.5));
-  material.forceSinglePass = true;
-  return material;
 }
 
 /** Dark cut-out fragments, lit like the smoke they trail. */
@@ -127,7 +120,7 @@ export class BlastEffects {
 
   constructor(private readonly context: BlastContext, lighting: EffectLighting) {
     this.root.name = 'Shell blasts';
-    this.soot = spritePool(2048, this.smokeMap, litSmokeMaterial(this.smokeMap, lighting));
+    this.soot = new EffectParticlePool(2048, this.smokeMap, false, context.gasMaterial(), false, true);
     this.debris = spritePool(384, this.debrisMap, debrisMaterial(this.debrisMap, lighting));
     this.soot.mesh.name = 'Smouldering and fragment smoke';
     this.debris.mesh.name = 'Blast fragments';
@@ -174,74 +167,101 @@ export class BlastEffects {
     p.volumeAspect = aspect; p.volumeYaw = Math.atan2(axis.z, axis.x); p.volumeAxisY = clamp(axis.y, -1, 1);
   }
 
-  /** One turret: core flashes, flame jets along each bore, side lobes, a hot fireball per barrel and a
-   * large cordite cloud that erupts forward, rolls outward and hangs downwind. */
+  /** One turret: a white-hot core and a flame tongue at each muzzle, the secondary flash (propellant gas shot out of each
+   * bore that burns in the air and swells into a great fireball ahead of the guns), a bank of gunsmoke thrown forward that
+   * stops, billows and drifts downwind, burning grains, smoke curling from each bore, and the blast striking the sea below
+   * heavy guns. */
   private turret(group: CombatEvent[], random: () => number): void {
     const { volumes, fire, foam, mist, illuminate } = this.context;
     const shell = group[0].shell, calibre = shell?.caliberM ?? .38;
     const scale = clamp(calibre / .38, .1, 1.7), size = scale ** .8, big = scale > .45;
+    // The flash grows with the charge burnt, far faster than with the bore: a 15 cm gun's is a small fraction of a 38 cm gun's.
+    const flash = scale ** 1.35;
     const forward = this.direction.fromArray(shell?.velocity ?? [0, 0, -1]).normalize();
     if (forward.lengthSq() === 0) forward.set(0, 0, -1);
     this.frame(forward);
     const center = this.position.set(0, 0, 0);
     for (const event of group) center.x += event.position[0] / group.length, center.y += event.position[1] / group.length, center.z += event.position[2] / group.length;
     const source = group[0].shipId, barrels = group.length;
-    this.point.copy(center).addScaledVector(forward, 8 * size);
-    illuminate(this.point, 2600 * size * size * Math.sqrt(barrels), big ? .2 : .12, 110 * size);
+    this.point.copy(center).addScaledVector(forward, 12 * size);
+    illuminate(this.point, 2800 * size * size * Math.sqrt(barrels), big ? .22 : .12, 120 * size);
     for (const event of group) {
       this.point.fromArray(event.position);
-      // A white-hot core for a frame or two, then a flame jet driven along the bore.
+      // A white-hot core at the muzzle for a frame or two.
       const core = fire.emit(this.point.clone().addScaledVector(forward, 1.5 * size));
-      core.size = 3.5 * size; core.growth = 70 * size; core.growthDecay = 22; core.life = .075;
+      core.size = 4 * flash + 1.5 * size; core.growth = 90 * flash; core.growthDecay = 20; core.life = .08;
       core.color.setRGB(5, 4.6, 3.8); core.opacity = 1;
-      for (let j = 0; j < 3; j++) {
-        const jet = fire.emit(this.point.clone().addScaledVector(forward, (3 + j * 4) * size));
-        jet.velocity.copy(forward).multiplyScalar((140 + j * 55 + random() * 30) * size);
-        jet.drag = 7.5; jet.align = 'velocity'; jet.size = (6.5 - j * .8) * size; jet.growth = 20 * size; jet.growthDecay = 10;
-        jet.stretch = 3.2 + j; jet.life = .12 + j * .045 + random() * .03; jet.opacity = .95;
-        jet.color.setRGB(3.4, 1.9 - j * .35, .7 - j * .2);
+      // The flame tongue: burning gas driven out along the bore in a stream that stays joined to the muzzle for about a tenth
+      // of a second, white at the muzzle and orange where it runs into the fireball.
+      for (let j = 0; j < 6; j++) {
+        const jet = fire.emit(this.point.clone().addScaledVector(forward, (1 + j * .6) * size));
+        jet.age = -j * .018;
+        jet.velocity.copy(forward).multiplyScalar((170 + random() * 60) * flash + 40 * size);
+        jet.drag = 9; jet.align = 'velocity'; jet.size = (3.2 + random()) * (flash * .7 + size * .3); jet.growth = 26 * flash; jet.growthDecay = 9;
+        jet.stretch = 4.5 + random() * 2; jet.life = .16 + random() * .06; jet.opacity = .95;
+        jet.color.setRGB(3.6, 2.1 - j * .1, .8 - j * .08);
       }
-      // Each barrel's own fireball: hot, stretched along the bore, cooling to propellant smoke.
-      const ball = volumes.emit(this.point.clone().addScaledVector(forward, 5 * size), source);
-      ball.velocity.copy(forward).multiplyScalar((95 + random() * 30) * size).addScaledVector(this.sideways(random), (4 + random() * 8) * size);
-      ball.velocity.y += 3;
-      ball.drag = 3.4; this.volumeAxis(ball, forward, 2.4);
-      ball.size = 7 * size; ball.growth = 34 * size; ball.growthDecay = 3.4; ball.diffusion = .8 * size;
-      ball.heat = 1.15; ball.cooling = .22 + .16 * Math.sqrt(size); ball.life = big ? 5 : 2.2; ball.dissipationTime = big ? 2.4 : 1;
-      ball.density = 3.4; ball.gravity = -1; ball.wind = .6; ball.opacity = .95;
-      ball.color.copy(CORDITE).multiplyScalar(.85);
+      // The secondary flash, shot out of the bore: unburnt propellant gas leaves the muzzle at hundreds of metres a second and
+      // burns as it mixes with the air. The air stops each parcel at its own distance (launch speed ÷ drag): the head flies
+      // furthest and swells into the fireball, the tail stays near the muzzle as a narrower tongue, so the flame reaches out
+      // of the barrel along the line of fire. White-hot at first; its flame then breaks up into pockets inside its own
+      // charcoal soot, the tail by the muzzle first.
+      // Along the line of fire the lobes stop at staggered distances, overlap and swell (their growth slows as they do), so
+      // one connected fireball fills in from the muzzle outward.
+      const lobes = big ? 6 : 2;
+      for (let i = 0; i < lobes; i++) {
+        const t = lobes > 1 ? i / (lobes - 1) : 1, side = this.sideways(random).clone();
+        const p = volumes.emit(this.point.clone().addScaledVector(forward, (1.5 + t) * size), source);
+        // Metres out along the bore where the air stops this parcel, and how fast it gets there.
+        const reach = (3 + 30 * t + random() * 4) * flash;
+        p.drag = 7 + random() * 1.5;
+        p.velocity.copy(forward).multiplyScalar(reach * p.drag).addScaledVector(side, (2 + random() * 6) * flash * (.3 + t));
+        p.velocity.y += (.5 + 3 * t) * flash;
+        this.volumeAxis(p, forward, 2.4 - t * .9);
+        // Narrow at the muzzle, widest at the head: the flame opens out of the bore like a cone.
+        p.size = (2.5 + 10 * t) * flash + size; p.growth = (40 + 190 * t + random() * 30) * flash; p.growthDecay = 5.5; p.diffusion = flash;
+        p.heat = 2.3 + random() * .3; p.cooling = (.35 + .8 * t + random() * .2) * Math.sqrt(flash);
+        p.life = big ? 7 + 3 * t + random() * 2 : 2.5 + random(); p.dissipationTime = big ? 3 : 1.1;
+        p.density = 2.2; p.gravity = -1.5; p.wind = .7; p.opacity = .97;
+        p.color.copy(big ? GUNSMOKE_DARK : GUNSMOKE).multiplyScalar(.85 + random() * .25);
+      }
+      // Once the gas is gone the hot bore breathes a wisp of smoke.
+      const wisp = volumes.emit(this.point.clone().addScaledVector(forward, -.5 * size), source);
+      wisp.velocity.copy(forward).multiplyScalar(3 * size); wisp.velocity.y += .8;
+      wisp.drag = 1.2; wisp.size = 1.4 * size; wisp.growth = 2.4 * size; wisp.growthDecay = .5; wisp.diffusion = .2 * size;
+      wisp.life = 4 + random() * 2; wisp.age = -(.35 + random() * .25); wisp.fadeIn = .8; wisp.cooling = .01; wisp.dissipationTime = 2.2;
+      wisp.density = 1.6; wisp.gravity = -.8; wisp.wind = 1; wisp.opacity = .5; wisp.color.copy(GUNSMOKE).multiplyScalar(1.15);
     }
-    // The daylight fireball: a short orange bloom ahead of the turret that the gas then swallows.
-    const bloom = fire.emit(center.clone().addScaledVector(forward, 11 * size));
-    bloom.size = 10 * size * Math.sqrt(barrels); bloom.growth = 95 * size; bloom.growthDecay = 11; bloom.life = .14;
-    bloom.color.setRGB(3, 1.4, .42); bloom.opacity = .85;
-    if (big) for (const side of [-1, 1]) {
-      // Blast-bag flash escaping sideways at the muzzle face: the characteristic petals.
-      const lobe = fire.emit(center.clone().addScaledVector(forward, 4 * size));
-      lobe.velocity.copy(this.across).multiplyScalar(side * 60 * size).addScaledVector(this.vertical, 12 * size).addScaledVector(forward, 25 * size);
-      lobe.drag = 8; lobe.align = 'velocity'; lobe.size = 4.5 * size; lobe.growth = 22 * size; lobe.growthDecay = 9;
-      lobe.stretch = 1.7; lobe.life = .11; lobe.color.setRGB(3, 1.7, .6); lobe.opacity = .9;
-    }
-    // The cordite cloud: few, large billows so neighbouring turrets merge into one bank.
-    const billows = big ? 3 + barrels : 1 + Math.ceil(barrels / 2);
+    // A blinding flare at the muzzles over the first frames.
+    const flare = fire.emit(center.clone().addScaledVector(forward, 5 * flash));
+    flare.size = 12 * flash * Math.sqrt(barrels); flare.growth = 200 * flash; flare.growthDecay = 16; flare.life = .1;
+    flare.color.setRGB(2.6, 2.1, 1.3); flare.opacity = .7;
+    // The gunsmoke bank: each billow is thrown forward and stopped by the air at its own distance (launch speed ÷ drag), so
+    // the cloud stretches far ahead of the turret, rolls outward and upward, then hangs and drifts downwind.
+    // Smaller guns burn less propellant: fewer, thinner billows that merge into a light haze rather than a bank.
+    const billows = big ? 4 + 2 * barrels : 1 + barrels;
     for (let i = 0; i < billows; i++) {
-      const t = billows > 1 ? i / (billows - 1) : .5;
-      const p = volumes.emit(center.clone().addScaledVector(forward, (4 + t * 10) * size), source);
-      const out = this.sideways(random).clone();
-      p.position.addScaledVector(out, (1 + random() * 3) * size);
-      p.velocity.copy(forward).multiplyScalar((38 + t * 42 + random() * 16) * size)
-        .addScaledVector(out, (7 + random() * 11) * size);
-      p.velocity.y += 2 + random() * 3;
-      p.drag = 1.9 + random() * .5; this.volumeAxis(p, forward, Math.max(1, 1.6 - t * .5));
-      p.size = (11 + random() * 6) * size; p.growth = (30 + random() * 14) * size; p.growthDecay = 1.6; p.diffusion = (1.1 + random() * .6) * size;
-      // Leading billows start as flame and cool fast; trailing ones only glow.
-      p.heat = (1 - t * .5) * (.85 + random() * .25); p.cooling = (.2 + t * .15 + random() * .1) * Math.sqrt(size);
-      p.life = big ? 11 + random() * 4 : 3.5 + random() * 2; p.dissipationTime = big ? 4.5 + random() * 1.5 : 1.6;
-      p.density = 2.3 + random() * .6; p.gravity = -.5 - random() * .6; p.wind = .75 + random() * .25; p.opacity = .92;
-      p.color.copy(CORDITE).multiplyScalar(.86 + random() * .18);
+      // Stopping points overlap along the bank, so the billows merge into one cloud rather than a row of balls.
+      const t = billows > 1 ? Math.min(1, i / (billows - 1) * .85 + random() * .2) : .5, out = this.sideways(random).clone();
+      const p = volumes.emit(center.clone().addScaledVector(forward, (3 + random() * 4) * size).addScaledVector(out, random() * 3 * size), source);
+      const reach = (7 + t * t * 55 + random() * 6) * size;
+      p.drag = 2.4 + random() * .6;
+      p.velocity.copy(forward).multiplyScalar(reach * p.drag).addScaledVector(out, (6 + random() * 14) * size);
+      p.velocity.y += 1 + random() * 5;
+      this.volumeAxis(p, forward, 1.5 - t * .3);
+      p.size = (11 + random() * 9) * size * (1 - t * .2); p.growth = (28 + random() * 16) * size; p.growthDecay = 1.2; p.diffusion = (.9 + random() * .7) * size;
+      // Nearest the muzzles the gas burnt hottest: patches of flame deep in the cloud for a moment.
+      p.heat = (1 - t) * (.7 + random() * .4); p.cooling = (.3 + random() * .2) * Math.sqrt(size);
+      // Thin smoke: the bank's core stays dense while its rim is see-through from the start and tears away as it spreads.
+      p.life = big ? 9.5 + random() * 3 : 3 + random() * 1.5; p.dissipationTime = big ? 3.5 + random() : 1.4;
+      p.density = (.8 + random() * .35) * (big ? 1 : .6); p.gravity = -.4 - random() * .6; p.wind = .8 + random() * .2; p.opacity = big ? .92 : .8;
+      // The bank rolls out of the fireball as it dies down: its fire burns on in pockets inside its own soot meanwhile.
+      p.age = -(.18 + t * .3) * Math.sqrt(size); p.fadeIn = .45;
+      // Lighter guns leave a paler, greyer haze.
+      p.color.copy(t < .3 && big ? GUNSMOKE_DARK : GUNSMOKE).multiplyScalar((.85 + random() * .3) * (big ? 1 : 1.25));
     }
     // Burning propellant grains.
-    for (let i = 0; i < Math.round((big ? 10 : 3) * size * Math.sqrt(barrels)); i++) {
+    for (let i = 0; i < Math.round((big ? 12 : 3) * size * Math.sqrt(barrels)); i++) {
       const ember = fire.emit(center.clone().addScaledVector(forward, 6 * size));
       ember.velocity.copy(forward).multiplyScalar((70 + random() * 90) * size).addScaledVector(this.sideways(random), (10 + random() * 30) * size);
       ember.gravity = 9.81; ember.drag = .7; ember.align = 'velocity'; ember.size = (.22 + random() * .25) * size; ember.stretch = 5;
@@ -305,17 +325,32 @@ export class BlastEffects {
       return;
     }
     this.fragments(at, normal, solid ? 7 : 4, solid ? 2 : 0, 1.4 * size, random);
-    // Hot gas blooms out of the hole and cools in place into soot.
+    // The shell bursts inside a moment after the spark flash: flame blows back out of the hole in a jet along the plate's
+    // normal that opens into a sooty ball, then dark smoke keeps pouring out and rises.
+    for (let i = 0; i < (solid ? 5 : 3); i++) {
+      const p = volumes.emit(at, event.shipId), side = this.sideways(random).clone();
+      p.age = -(solid ? .03 + i * .012 : i * .01);
+      p.position.addScaledVector(normal, (.4 + random() * .5) * size).addScaledVector(side, random() * .6 * size);
+      p.velocity.copy(normal).multiplyScalar((13 + random() * 16) * size).addScaledVector(side, (2 + random() * 6) * size);
+      p.velocity.y += 2 * size;
+      p.drag = 3.2; this.volumeAxis(p, normal, 1.6);
+      p.size = (2.6 + random() * 2) * size; p.growth = (solid ? 20 + random() * 8 : 14) * size; p.growthDecay = 3.4; p.diffusion = .55 * size;
+      p.heat = solid ? 1.8 + random() * .2 : 1.2; p.cooling = (.26 + random() * .2) * Math.sqrt(size);
+      p.life = solid ? 5.5 + random() * 2 : 3.5 + random(); p.dissipationTime = solid ? 2.2 : 1.3;
+      p.gravity = -1.5; p.wind = .6; p.density = 3.4 + random() * .6; p.opacity = .95;
+      p.color.copy(SOOT).multiplyScalar(.85 + random() * .3);
+    }
+    // Then smoke keeps pouring from the hole: a short plume that climbs away from the plating and leans downwind.
     for (let i = 0; i < (solid ? 4 : 2); i++) {
       const p = volumes.emit(at, event.shipId), side = this.sideways(random).clone();
-      p.position.addScaledVector(normal, (.5 + random() * .6) * size).addScaledVector(side, (.3 + random() * .7) * size);
-      p.velocity.copy(normal).multiplyScalar((9 + random() * 12) * size).addScaledVector(side, (2 + random() * 5) * size);
-      p.velocity.y += 2 * size;
-      p.size = (3.5 + random() * 3) * size; p.growth = (solid ? 24 + random() * 10 : 14) * size; p.growthDecay = 3; p.diffusion = .6 * size;
-      p.heat = solid ? 1.25 + random() * .15 : .85; p.cooling = (.5 + random() * .25) * Math.sqrt(size);
-      p.life = solid ? 5.5 + random() * 2 : 3 + random(); p.dissipationTime = solid ? 2.2 : 1.2;
-      p.drag = 2.6; p.gravity = -1.5; p.wind = .6; p.density = 3 + random() * .8; p.opacity = .95;
-      p.color.copy(SOOT).multiplyScalar(.9 + random() * .2);
+      p.age = -(.2 + i * .3 + random() * .1);
+      p.position.addScaledVector(normal, (1 + random()) * size).addScaledVector(side, random() * size);
+      p.velocity.copy(normal).multiplyScalar((4 + random() * 3) * size).addScaledVector(side, random() * 2 * size);
+      p.velocity.y += (4 + random() * 3) * size;
+      p.drag = 1.1; p.size = (3 + random() * 2) * size; p.growth = (6 + random() * 3) * size; p.growthDecay = .8; p.diffusion = .6 * size;
+      p.heat = .35; p.cooling = .5; p.life = 7 + random() * 2.5; p.dissipationTime = 3; p.fadeIn = .25;
+      p.gravity = -2.4; p.wind = .85; p.density = 2.6; p.opacity = .9;
+      p.color.copy(SOOT).multiplyScalar(1 + random() * .25);
     }
     if (solid) this.smoulder(event.shipId, at, normal, (12 + random() * 14) * Math.sqrt(scale), scale, random);
   }
@@ -340,23 +375,28 @@ export class BlastEffects {
       p.gravity = 9.81; p.drag = .8; p.color.setRGB(2.6, 1.5, .6); p.waterline = true;
     }
     this.fragments(at, normal, 6, 2, 1.5 * s, random);
-    for (let i = 0; i < 5; i++) {
+    // The fireball: lobes of burning explosive thrown out over the side facing away from the plating, a turbulent orange
+    // ball for a few tenths of a second whose rim cools first, into the black smoke such fillings leave.
+    for (let i = 0; i < 7; i++) {
       const p = volumes.emit(at, event.shipId), yaw = random() * Math.PI * 2, y = random() * 1.4 - .4, r = Math.sqrt(1 - Math.min(1, y * y));
-      this.point.set(Math.cos(yaw) * r, y, Math.sin(yaw) * r).addScaledVector(normal, .7).normalize();
-      p.position.addScaledVector(this.point, (1.5 + random() * 2.5) * s);
-      p.velocity.copy(this.point).multiplyScalar((12 + random() * 18) * s); p.velocity.y += 3 * s;
-      p.size = (3 + random() * 3.5) * s; p.growth = (20 + random() * 12) * s; p.growthDecay = 2.8; p.diffusion = .8 * s;
-      p.heat = 1.35 + random() * .15; p.cooling = (.55 + random() * .3) * Math.sqrt(s);
-      p.life = 6.5 + random() * 2; p.dissipationTime = 2.6; p.drag = 2.6; p.gravity = -1.8; p.wind = .6;
-      p.density = 3.6; p.opacity = .96; p.color.copy(BLACK_SMOKE).multiplyScalar(.9 + random() * .2);
+      this.point.set(Math.cos(yaw) * r, y, Math.sin(yaw) * r).addScaledVector(normal, .8).normalize();
+      p.position.addScaledVector(this.point, (.6 + random() * 1.6) * s);
+      p.velocity.copy(this.point).multiplyScalar((16 + random() * 20) * s); p.velocity.y += 2.5 * s;
+      p.drag = 3.6; this.volumeAxis(p, this.point, 1.3);
+      p.size = (3 + random() * 2.5) * s; p.growth = (38 + random() * 18) * s; p.growthDecay = 5.5; p.diffusion = .8 * s;
+      p.heat = 1.9 + random() * .2; p.cooling = (.3 + random() * .25) * Math.sqrt(s);
+      p.life = 7 + random() * 2; p.dissipationTime = 2.8; p.gravity = -1.8; p.wind = .6;
+      p.density = 3.8; p.opacity = .97; p.color.copy(BLACK_SMOKE).multiplyScalar(.85 + random() * .3);
     }
-    for (let i = 0; i < 3; i++) {
+    // Black smoke rising out of it and hanging over the hit.
+    for (let i = 0; i < 4; i++) {
       const p = volumes.emit(at, event.shipId);
+      p.age = -(.12 + random() * .25);
       p.position.addScaledVector(normal, 2 * s).add(new THREE.Vector3(random() - .5, random() * .6, random() - .5).multiplyScalar(6 * s));
       p.velocity.set((random() - .5) * 6, 4 + random() * 5, (random() - .5) * 6).multiplyScalar(s);
-      p.size = (4.5 + random() * 3) * s; p.growth = (12 + random() * 8) * s; p.growthDecay = 1.2; p.diffusion = 1.2 * s; p.heat = .3; p.cooling = .6;
-      p.life = 9 + random() * 3; p.dissipationTime = 3.5; p.drag = 1.2; p.gravity = -1; p.wind = .8; p.density = 2.6; p.opacity = .9;
-      p.color.copy(BLACK_SMOKE).multiplyScalar(1.1);
+      p.size = (5 + random() * 3) * s; p.growth = (12 + random() * 8) * s; p.growthDecay = 1.1; p.diffusion = 1.1 * s; p.heat = .3; p.cooling = .6;
+      p.life = 9 + random() * 3; p.dissipationTime = 3.5; p.drag = 1.2; p.gravity = -1.1; p.wind = .8; p.density = 3; p.opacity = .92;
+      p.color.copy(BLACK_SMOKE).multiplyScalar(1.1 + random() * .2);
     }
     if (event.shipId) this.smoulder(event.shipId, at, normal, (8 + random() * 8) * Math.sqrt(s), s, random);
   }
@@ -374,37 +414,38 @@ export class BlastEffects {
       flash.size = (40 + i * 10) * s; flash.growth = (420 - i * 90) * s; flash.growthDecay = 5 + i; flash.life = .4 + i * .12; flash.age = -i * .05;
       flash.color.setRGB(5, 4, 2.8 - i * .6); flash.opacity = 1;
     }
-    // Fireball.
-    for (let i = 0; i < 10; i++) {
-      const yaw = random() * Math.PI * 2, y = .15 + random() * .85, r = Math.sqrt(1 - y * y);
+    // Fireball: a great ball of burning propellant heaving up off the hull, turbulent and white-yellow at first, whose
+    // surface cools through orange and deep red into black smoke over two or three seconds while its heart still glows.
+    for (let i = 0; i < 16; i++) {
+      const yaw = random() * Math.PI * 2, y = .1 + random() * .9, r = Math.sqrt(1 - y * y);
       const p = volumes.emit(base, source);
       this.point.set(Math.cos(yaw) * r, y, Math.sin(yaw) * r);
-      p.position.addScaledVector(this.point, (4 + random() * 8) * s);
-      p.velocity.copy(this.point).multiplyScalar((25 + random() * 45) * s); p.velocity.y += 22 * s;
-      p.drag = 1.3; p.size = (18 + random() * 10) * s; p.growth = 50 * s; p.growthDecay = 1.1; p.diffusion = 1.2 * s;
-      p.heat = 1.4 + random() * .15; p.cooling = 1.6 + random() * 1.2; p.life = 60 + random() * 14; p.dissipationTime = 40;
-      p.density = 2.7; p.gravity = -2.4; p.wind = .6; p.opacity = .97; p.color.copy(BLACK_SMOKE).multiplyScalar(.8 + random() * .3);
+      p.position.addScaledVector(this.point, (4 + random() * 14) * s);
+      p.velocity.copy(this.point).multiplyScalar((20 + random() * 50) * s); p.velocity.y += 24 * s;
+      p.drag = 1.25; p.size = (20 + random() * 14) * s; p.growth = 58 * s; p.growthDecay = 1.1; p.diffusion = 1.2 * s;
+      p.heat = 2 + random() * .2; p.cooling = 1.4 + random() * 1.6; p.life = 60 + random() * 14; p.dissipationTime = 40;
+      p.density = 3.2; p.gravity = -2.4; p.wind = .6; p.opacity = .97; p.color.copy(BLACK_SMOKE).multiplyScalar(.8 + random() * .3);
     }
     // Column: each billow decelerates at its own height under drag, stacking into a stem.
-    for (let i = 0; i < 9; i++) {
-      const p = volumes.emit(base, source), rise = (18 + i * 13 + random() * 6) * s;
+    for (let i = 0; i < 12; i++) {
+      const p = volumes.emit(base, source), rise = (18 + i * 9.5 + random() * 6) * s;
       p.position.x += (random() - .5) * 12 * s; p.position.z += (random() - .5) * 12 * s;
       p.velocity.set((random() - .5) * 6, rise, (random() - .5) * 6);
-      p.drag = .36; p.size = (20 + random() * 8) * s; p.growth = (12 + i * 1.5) * s; p.growthDecay = .2; p.diffusion = .8 * s;
-      p.heat = .7 - i * .06; p.cooling = 3 + random() * 2; p.life = 80 + random() * 15; p.dissipationTime = 70;
-      p.density = 2.3; p.gravity = -.7; p.wind = .5 + i * .05; p.opacity = .95;
-      p.color.copy(SOOT).multiplyScalar(.95 + i * .07);
+      p.drag = .36; p.size = (20 + random() * 8) * s; p.growth = (12 + i * 1.1) * s; p.growthDecay = .2; p.diffusion = .8 * s;
+      p.heat = 1.4 - i * .06; p.cooling = 2.4 + random() * 2; p.life = 80 + random() * 15; p.dissipationTime = 70;
+      p.density = 2.6; p.gravity = -.7; p.wind = .5 + i * .04; p.opacity = .95;
+      p.color.copy(SOOT).multiplyScalar(.9 + i * .05);
       this.volumeAxis(p, UP, 1.35);
     }
     // Mushroom cap: billows that reach the top and roll outward.
-    for (let i = 0; i < 7; i++) {
-      const angle = (i + random() * .5) / 7 * Math.PI * 2, radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+    for (let i = 0; i < 9; i++) {
+      const angle = (i + random() * .5) / 9 * Math.PI * 2, radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
       const p = volumes.emit(base, source);
       p.velocity.set(0, (125 + random() * 15) * s, 0).addScaledVector(radial, (20 + random() * 12) * s);
       p.drag = .34; p.size = (34 + random() * 8) * s; p.growth = (26 + random() * 8) * s; p.growthDecay = .2; p.diffusion = 1 * s;
-      p.heat = .45; p.cooling = 4.5; p.life = 85 + random() * 15; p.dissipationTime = 75;
-      p.density = 2; p.gravity = -.9; p.wind = .8; p.opacity = .94;
-      p.color.set('#6a645c').multiplyScalar(.9 + random() * .15);
+      p.heat = .95; p.cooling = 3.2 + random(); p.life = 85 + random() * 15; p.dissipationTime = 75;
+      p.density = 2.4; p.gravity = -.9; p.wind = .8; p.opacity = .94;
+      p.color.set('#78716a').multiplyScalar(.9 + random() * .15);
       this.volumeAxis(p, radial, 1.6);
     }
     // Secondary explosions ripple along the hull.

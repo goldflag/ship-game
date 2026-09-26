@@ -1,21 +1,21 @@
 import * as THREE from 'three/webgpu';
-import { float, uniform } from 'three/tsl';
 import { EffectParticlePool, effectTexture } from '/src/game/EffectParticles.ts';
-import { effectVolumeMaterial, effectVolumeTexture } from '/src/game/EffectVolume.ts';
+import { EffectLighting } from '/src/game/EffectLighting.ts';
+import { GasAtlas, gasSpriteMaterial } from '/src/game/GasAtlas.ts';
 import { prepareInstanceUploads } from '/src/game/InstanceUploads.ts';
 import { installInstanceBufferNames } from '/src/game/InstanceBufferNames.ts';
 
-const map = effectTexture('smoke'), volumeMap = effectVolumeTexture(), rows = [];
+const map = effectTexture('smoke'), lighting = new EffectLighting(), rows = [];
 const hash = async pixels => [...new Uint8Array(await crypto.subtle.digest('SHA-256', pixels))].map(n => n.toString(16).padStart(2, '0')).join('');
 for (const reversed of [false, true]) {
 const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer: reversed });
 await renderer.init(); installInstanceBufferNames(renderer.backend);
+const atlas = new GasAtlas(); atlas.bake(renderer);
 const target = new THREE.RenderTarget(256, 256), scene = new THREE.Scene();
 renderer.setRenderTarget(target);
 for (const kind of ['billboard', 'velocity', 'water', 'additive', 'volume']) {
   const pools = [false, true].map(cull => {
-    const material = kind === 'volume'
-      ? effectVolumeMaterial(volumeMap, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), float(reversed ? 0 : 1), 16, true) : undefined;
+    const material = kind === 'volume' ? gasSpriteMaterial(atlas, { lighting }) : undefined;
     const pool = new EffectParticlePool(128, map, kind === 'additive', material, false, cull);
     prepareInstanceUploads(pool.mesh); scene.add(pool.mesh); return pool;
   });
