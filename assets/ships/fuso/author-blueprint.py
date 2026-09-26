@@ -244,7 +244,70 @@ structures.sort(key=lambda s: (s['id'] != 'funnel', s['id']))
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is
-# cut into fore-and-aft strips of at most 3 m so a stepped deckhouse is not boxed at its widest.
+# cut into fore-and-aft strips of at most 3 m so a stepped deckhouse is not boxed at its widest; a strip whose box
+# would stand more than 0.35 m outside the walls (a notched or rounded end, a slanted wall, a gun tub's cut) is
+# halved, and at 1.2 m or less keeps only the spans inside the plan along its whole length. The pagoda base's after
+# face is notched 0.7 m in the middle, where No. 3 turret's muzzles point.
+def plan_spans(poly, z):
+    """The plan's x-intervals at z (even-odd crossings)."""
+    xs = sorted(ax + (bx - ax) * (z - az) / (bz - az) for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]) if (az <= z) != (bz <= z))
+    return list(zip(xs[::2], xs[1::2]))
+
+
+def stands_out(poly, x0, x1, z0, z1, n=12):
+    """How far the box x0..x1, z0..z1 reaches outside the plan (sampled on its grid), metres."""
+    edges = list(zip(poly, poly[1:] + poly[:1]))
+    worst = 0.0
+    for i in range(n + 1):
+        z = z0 + (z1 - z0) * i / n
+        spans = plan_spans(poly, z)
+        for j in range(n + 1):
+            x = x0 + (x1 - x0) * j / n
+            if any(a <= x <= c for a, c in spans):
+                continue
+            d = math.inf
+            for (ax, az), (bx, bz) in edges:
+                ex, ez = bx - ax, bz - az
+                t = max(0.0, min(1.0, ((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez or 1)))
+                d = min(d, math.hypot(ax + t * ex - x, az + t * ez - z))
+            worst = max(worst, d)
+    return worst
+
+
+def inside_spans(poly, z0, z1, n=12):
+    """The x-intervals inside the plan at every z from z0 to z1."""
+    out = []
+    for a, c in plan_spans(poly, (z0 + z1) / 2):
+        lo, hi = a, c
+        for i in range(n + 1):
+            span = next(((p, q) for p, q in plan_spans(poly, z0 + (z1 - z0) * i / n) if p <= (lo + hi) / 2 <= q), None)
+            if span is None:
+                hi = lo
+                break
+            lo, hi = max(lo, span[0]), min(hi, span[1])
+        if hi - lo > 0:
+            out.append((lo, hi))
+    return out
+
+
+def strip_boxes(poly, z0, z1):
+    if z1 - z0 < .6:
+        return []
+    pts = [p[0] for p in poly if z0 <= p[1] <= z1]
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        for zc in (z0, z1):
+            if (az - zc) * (bz - zc) < 0:
+                pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
+    if len(pts) < 2 or max(pts) - min(pts) < .6:
+        return []
+    x0, x1 = min(pts), max(pts)
+    if stands_out(poly, x0 + .2, x1 - .2, z0 + .1, z1 - .1) > .35:
+        if z1 - z0 > 1.2:
+            return strip_boxes(poly, z0, (z0 + z1) / 2) + strip_boxes(poly, (z0 + z1) / 2, z1)
+        return [(lo, hi, z0, z1) for lo, hi in inside_spans(poly, z0 + .1, z1 - .1) if hi - lo >= .8]
+    return [(x0, x1, z0, z1)]
+
+
 for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
@@ -252,22 +315,26 @@ for s in structures:
     if s['height'] < 1.2 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 6:
         continue
     n = max(1, math.ceil((max(zs) - min(zs)) / 3))
-    for k in range(n):
-        z0 = min(zs) + (max(zs) - min(zs)) * k / n
-        z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
-        pts = [p[0] for p in poly if z0 <= p[1] <= z1]
-        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
-            for zc in (z0, z1):
-                if (az - zc) * (bz - zc) < 0:
-                    pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
-        if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
-            continue
-        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
-                                      size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+    boxes = [box for k in range(n) for box in strip_boxes(poly, min(zs) + (max(zs) - min(zs)) * k / n, min(zs) + (max(zs) - min(zs)) * (k + 1) / n)]
+    # Strips that abut with the same breadth are one box; only the block's ends are inset.
+    merged = []
+    for x0, x1, z0, z1 in boxes:
+        if merged and abs(merged[-1][3] - z0) < 1e-6 and abs(merged[-1][0] - x0) < .1 and abs(merged[-1][1] - x1) < .1:
+            p = merged[-1]
+            merged[-1] = (min(p[0], x0), max(p[1], x1), p[2], z1)
+        else:
+            merged.append((x0, x1, z0, z1))
+    for k, (x0, x1, z0, z1) in enumerate(merged):
+        z0 += .1 if abs(z0 - min(zs)) < 1e-6 else 0
+        z1 -= .1 if abs(z1 - max(zs)) < 1e-6 else 0
+        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((x0 + x1) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
+                                      size=[round(x1 - x0 - .4, 3), round(s['height'], 3), round(z1 - z0, 3)]))
 
 # Stowed boats: reference boat bounds (x, y, z ranges, runtime z), so barrels stop at and cannot fire through them.
+# The motor boats top out at the recipe's lowered wheelhouses (10.0 m, the blocks above), not the reference's
+# 10.85 m, so No. 4 turret's barrels pass over them as its gunhouse does.
 BOATS = [('cutter-pagoda', (4.4, 8.4), (9.28, 10.9), (-38.5, -29.2)), ('launch-midships', (5.2, 9.3), (6.7, 8.55), (-2.2, 9.3)),
-         ('motor-boat', (5.3, 9.4), (6.66, 10.85), (16.2, 33.2)), ('launch-aft', (4.3, 8.3), (6.75, 8.6), (26.3, 38.6))]
+         ('motor-boat', (5.3, 9.4), (6.66, 10.01), (16.2, 33.2)), ('launch-aft', (4.3, 8.3), (6.75, 8.6), (26.3, 38.6))]
 for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
     for side, sign in [('port', -1), ('starboard', 1)]:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), round((z0 + z1) / 2, 3)],
@@ -276,9 +343,12 @@ for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: main barrels (with the full recoil stroke) and gunhouses may not enter the prisms
 # they can reach, and superfiring pairs may not cross. Game clearance, not verified historical stops.
+# No. 3 turret's barrels depressed on the beam meet casemates 4 elevated and trained forward, and No. 4's trained
+# forward meet the 25 mm twins abreast the funnel's after end: those pairs stop at each other too.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
 NEIGHBORS = [['main-1', 'main-2'], ['main-5', 'main-6'], ['main-2', 'aa25-1'], ['main-2', 'aa25-4'], ['main-5', 'aa25-24'],
-             ['main-5', 'aa25-25'], ['main-6', 'aa25-26'], ['main-6', 'aa25-27'], ['aa25-2', 'aa25-3']]
+             ['main-5', 'aa25-25'], ['main-6', 'aa25-26'], ['main-6', 'aa25-27'], ['aa25-2', 'aa25-3'],
+             ['main-3', 'casemate-p4'], ['main-3', 'casemate-s4'], ['main-4', 'aa25-16'], ['main-4', 'aa25-17']]
 PAIRED = {mid for pair in NEIGHBORS for mid in pair}
 clear_mounts, reach = [], {}
 for m in b['mounts']:

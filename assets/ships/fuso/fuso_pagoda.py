@@ -103,7 +103,7 @@ def type22_radars(kit, col):
     for id, rx in [('type22-port', -2.835), ('type22-starboard', 2.835)]:
         x, y, z = P(rx, 38.588, -26.63)
         floor = kit.floor(x, y, 38.7)
-        base = y if floor is None or y - floor > 1.2 else floor
+        base = z if floor is None or z - floor > 1.2 else floor
         kit.part('box', id, col, 'cabinet', (x, y, base + .35), (.55, .6, .7), 'naval')
         for dy in (-.18, .18):
             mouth = Vector((x + .85, y + dy, base + .95))

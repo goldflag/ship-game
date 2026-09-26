@@ -43,8 +43,8 @@ def after_director(kit, col):
     """After director (reference HP_JD_4, Type 91 house facing aft) on the tower roof; it trains."""
     A = 'after-director'
     x, y, z = P(0, 24.375, 47.201)
-    floor = kit.floor(x, y, 24.6)
-    base = y if floor is None or abs(floor - y) > .8 else floor
+    floor = kit.floor(x, y, z + .3)
+    base = z if floor is None or abs(floor - z) > .8 else floor
     moving = [kit.cylz(A, col, 'seat', (x, y, base), .95, .22, 'naval', 28)]
     moving.append(kit.part('box', A, col, 'house', (x, y, base + 1.05), (2.2, 1.9, 1.62), 'naval'))
     moving.append(kit.part('box', A, col, 'house roof', (x, y, base + 1.89), (2.28, 1.98, .06), 'roof'))
@@ -59,8 +59,8 @@ def periscopes(kit, col):
     """Director periscopes on the tower roof (reference HP_JF_10-12): hooded heads on columns."""
     for id, ref in [('periscope-port', (-1.734, 24.635, 39.276)), ('periscope-starboard', (1.722, 24.635, 39.281)), ('periscope-after', (-0.009, 24.635, 43.994))]:
         x, y, z = P(*ref)
-        floor = kit.floor(x, y, y + .3)
-        base = y if floor is None or abs(floor - y) > .8 else floor
+        floor = kit.floor(x, y, z + .3)
+        base = z if floor is None or abs(floor - z) > .8 else floor
         kit.cylz(id, col, 'column', (x, y, base), .28, 1.05, 'naval', 16)
         kit.part('box', id, col, 'head', (x, y, base + 1.28), (.62, .5, .46), 'naval')
         kit.part('box', id, col, 'head window', (x + .32, y, base + 1.3), (.02, .34, .16), 'glass')
@@ -117,7 +117,7 @@ def catapult(kit, col):
     A = 'catapult'
     x, y, z = P(2.997, 3.957, 92.951)
     floor = kit.floor(x, y, 4.5)
-    base = y if floor is None else floor
+    base = z if floor is None else floor
     kit.cylz(A, col, 'turntable', (x, y, base), 1.45, .3, 'naval', 32)
     kit.cylz(A, col, 'pedestal', (x, y, base + .3), .9, 1.3, 'naval', 24, r2=.75)
     kit.cylz(A, col, 'pivot cap', (x, y, base + 1.6), 1.05, .2, 'naval', 24)

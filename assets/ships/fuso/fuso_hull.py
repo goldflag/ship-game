@@ -222,12 +222,27 @@ def deck_fittings(kit, col):
 
 def crest_and_staffs(kit, col):
     # Gold chrysanthemum on the stem at 6.48 m (reference jm306/jm307), seated on this loft's stem by a ray from ahead.
-    hit = kit.hit(P(.01, 6.48, -115), (-1, 0, 0), 12)
-    x, y, z = (hit[0].x, hit[0].y, hit[0].z) if hit else P(0, 6.48, -105.62)
-    kit.part('rod', 'chrysanthemum', col, 'crest', (x - .12, y, z), (x + .07, y, z), .42, 'gold', vertices=16)
+    # The disc lies on the raked stem: its face is square to the line between the stem's points 0.42 m above and
+    # below the crest's centre.
+    hi = kit.hit(P(.01, 6.9, -115), (-1, 0, 0), 12)
+    lo = kit.hit(P(.01, 6.06, -115), (-1, 0, 0), 12)
+    if hi and lo:
+        a, b = Vector(hi[0]), Vector(lo[0])
+        tangent = (a - b).normalized()
+        normal = Vector((tangent.z, 0, -tangent.x))
+        if normal.x < 0:
+            normal = -normal
+        centre = (a + b) / 2 + normal * .05
+    else:
+        centre, normal = Vector(P(0, 6.48, -106.6)), Vector((1, 0, 0))
+    kit.part('rod', 'chrysanthemum', col, 'crest', tuple(centre - normal * .12), tuple(centre + normal * .07), .42, 'gold', vertices=16)
+    across = Vector((0, 1, 0))
+    up = normal.cross(across).normalized()
     for i in range(16):
-        a = math.tau * i / 16
-        kit.part('box', 'chrysanthemum', col, 'petal', (x + .05, y + .33 * math.cos(a), z + .33 * math.sin(a)), (.06, .12, .12), 'gold')
+        ang = math.tau * i / 16
+        p = centre + normal * .07 + (across * math.cos(ang) + up * math.sin(ang)) * .33
+        petal = kit.part('box', 'chrysanthemum', col, 'petal', tuple(p), (.06, .12, .12), 'gold')
+        petal.rotation_euler = normal.to_track_quat('X', 'Z').to_euler()
     x, y, z = P(0, 7.5, -106.2)
     kit.part('rod', 'jackstaff', col, 'staff', (x, y, z), (x, y, z + 7.2), .05, 'naval', vertices=8)
     kit.cylz('jackstaff', col, 'step', (x, y, z - .02), .14, .3, 'naval', 12)
@@ -344,6 +359,34 @@ def screws_and_rudders(kit, col):
         kit.part('rod', id, col, 'bracket boss', (bx + .45, by, bz), (bx - .45, by, bz), .3, 'antifouling', vertices=12)
     for id, rx in [('rudder-port', -2.8), ('rudder-starboard', 2.8)]:
         rudder(kit, id, col, rx)
+    skeg(kit, col)
+
+
+def skeg(kit, col):
+    """Centreline skeg: the reference keeps its bottom at 9.83 m on the centreline from 56 to 74 m aft of midships
+    while the hull above rises, then steps up at a near-vertical after edge. A fin 0.5 m thick from the keel line
+    into the hull."""
+    A = 'skeg'
+    zs = [52.5, 56.0, 60.0, 64.0, 68.0, 71.5, 74.2]          # runtime z
+    vv, rows = [], []
+    for i, z in enumerate(zs):
+        x = -z
+        hit = kit.hit((x, 0.0, -12.0), (0, 0, 1), 8)
+        top = (hit[0].z if hit else -7.0) + .45
+        bottom = -9.72 if i == 0 else -9.83
+        half = .06 if i == 0 else .25
+        k = len(vv)
+        vv += [(x, -half, bottom), (x, half, bottom), (x, half, top), (x, -half, top)]
+        rows.append(k)
+    ff = []
+    for a, b in zip(rows, rows[1:]):
+        ff += [(a + j, b + j, b + (j + 1) % 4, a + (j + 1) % 4) for j in range(4)]
+    ff += [(rows[0] + 3, rows[0] + 2, rows[0] + 1, rows[0]), (rows[-1], rows[-1] + 1, rows[-1] + 2, rows[-1] + 3)]
+    ob = kit.mesh(A + '.fin', vv, ff, 'antifouling', col)
+    import bmesh
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces)); bm.to_mesh(ob.data); bm.free()
+    kit.tag(ob, A)
 
 
 # ---------------------------------------------------------------- deck-edge rails
