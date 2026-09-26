@@ -323,30 +323,54 @@ def rangefinders(D, kit):
 
 
 def radars(D, kit):
-    """CXAM bedspring aerial on the topmast (HP_ARS_1, bounds 6.3 x 2.15 x 5.33 m), trained by the rig."""
+    """CXAM bedspring aerial on the topmast (HP_ARS_1, part bounds 6.3 x 5.33 x 2.15 m; sections at x 0 and 2 m): a
+    railed platform at 38.1 m on the topmast, the turntable and pedestal, the yoke beam across at 39.0-39.5 m with
+    its side arms, and the 6.2 x 3.8 m screen leaning back 23 degrees (bottom edge 39.8 m at reference z -24.9, top
+    edge 43.3 m at -23.4): a grey mesh on its frame with the dipole grid. The yoke and screen are trained by the rig."""
     col = kit.collections['Sensors and masts']
     rid = 'cxam-radar'
     bx, by, bz = P(0, 38.159, -24.121)
+    # Fixed platform on the topmast's head (1.9 m across), its rail and two brackets to the topmast.
+    kit.cylz('foremast', col, 'radar platform', V(0, 0, -24.0)[:2] + (38.06,), .95, .1, 'roof', 20)
+    ring = [V(.95 * math.cos(math.tau * k / 12), 0, -24.0 + .95 * math.sin(math.tau * k / 12))[:2] for k in range(12)]
+    kit.rail('foremast', col, ring, 38.16, .9, .8, True, False)
+    for sx in (-1, 1):
+        kit.member('foremast', col, V(sx * .7, 38.06, -24.0), V(0, 37.2, -24.08), .05, 'naval', 6)
     pivot = kit.empty(rid + '.yaw', (bx, by, bz), assembly=rid, col=col)
-    local(kit.cylz(rid, col, 'turntable', (bx, by, bz - .1), .45, .25, 'edge', 18), pivot)
-    local(kit.boxc(rid, col, 'pedestal', (bx, by, bz + .45), (.5, .5, .75), 'naval'), pivot)
-    w, h = 6.2, 4.3
-    zc = bz + .85 + h / 2
-    frame = kit.boxc(rid, col, 'reflector screen', (bx - .1, by, zc), (.05, w, h), 'dark')
-    local(frame, pivot)
-    for i in range(11):
-        yy = -w / 2 + w * i / 10
-        local(kit.part('rod', rid, col, 'dipole column', (bx + .05, by + yy, zc - h / 2), (bx + .05, by + yy, zc + h / 2), .025, 'edge', vertices=5), pivot)
-    for j in range(7):
-        zz = zc - h / 2 + h * j / 6
-        local(kit.part('rod', rid, col, 'dipole row', (bx + .05, by - w / 2, zz), (bx + .05, by + w / 2, zz), .025, 'edge', vertices=5), pivot)
-    for yy in (-w / 2, w / 2):
-        local(kit.part('rod', rid, col, 'frame', (bx - .02, by + yy, zc - h / 2), (bx - .02, by + yy, zc + h / 2), .07, 'naval', vertices=8), pivot)
-    for zz in (zc - h / 2, zc + h / 2):
-        local(kit.part('rod', rid, col, 'frame', (bx - .02, by - w / 2, zz), (bx - .02, by + w / 2, zz), .07, 'naval', vertices=8), pivot)
-    local(kit.part('rod', rid, col, 'spine', (bx - .02, by, bz + .8), (bx - .02, by, zc + h / 2), .08, 'naval', vertices=8), pivot)
-    for s in (-1, 1):
-        local(kit.part('rod', rid, col, 'brace', (bx - .02, by, bz + .8), (bx - .02, by + s * w * .45, zc - h / 2), .05, 'naval', vertices=6), pivot)
+    local(kit.cylz(rid, col, 'turntable', (bx, by, bz - .02), .45, .2, 'edge', 18), pivot)
+    local(kit.cylz(rid, col, 'pedestal', (bx, by, bz + .18), .42, .7, 'naval', 16), pivot)
+    # Yoke: the beam across under the screen and its two side arms up to the screen's trunnions.
+    local(kit.boxc(rid, col, 'yoke beam', V(0, 39.25, -24.12), (.45, 6.3, .45), 'naval'), pivot)
+    for sx in (-1, 1):
+        local(kit.part('rod', rid, col, 'yoke arm', V(sx * 3.08, 39.3, -24.12), V(sx * 3.08, 43.0, -24.15), .1, 'naval', vertices=8), pivot)
+        local(kit.part('rod', rid, col, 'trunnion', V(sx * 3.14, 41.55, -24.15), V(sx * 2.98, 41.55, -24.15), .12, 'edge', vertices=10), pivot)
+    # Screen: corners in the reference frame, leaning back; a thin mesh panel inside a frame, the grid on its face.
+    b0, b1 = (39.8, -24.9), (43.3, -23.4)
+    ny, nz = (b1[1] - b0[1]), -(b1[0] - b0[0])          # normal in (y, z), pointing forward and up
+    n = math.hypot(ny, nz)
+    ny, nz = ny / n * .025, nz / n * .025
+    vv, ff = [], []
+    for (yy, zz) in (b0, b1):
+        for sx in (-3.0, 3.0):
+            for t in (-1, 1):
+                vv.append(P(sx, yy + t * ny, zz + t * nz))
+    # vertices: 0 b0 x- back, 1 b0 x- front, 2 b0 x+ back, 3 b0 x+ front, 4..7 the same at b1
+    ff = [(0, 2, 6, 4), (1, 5, 7, 3), (0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6)]
+    local(fix_normals(kit.tag(kit.mesh(rid + '.reflector screen', vv, ff, 'edge', col), rid)), pivot)
+    edge = lambda sx, t: V(sx, b0[0] + (b1[0] - b0[0]) * t, b0[1] + (b1[1] - b0[1]) * t)
+    for t in (0.0, 1.0):
+        local(kit.part('rod', rid, col, 'frame', edge(-3.1, t), edge(3.1, t), .07, 'naval', vertices=8), pivot)
+    for sx in (-3.1, 3.1):
+        local(kit.part('rod', rid, col, 'frame', edge(sx, 0.0), edge(sx, 1.0), .07, 'naval', vertices=8), pivot)
+    front = Vector(P(0, ny * 1.8, nz * 1.8)) - Vector(P(0, 0, 0))
+    for i in range(1, 12):
+        sx = -3.0 + 6.0 * i / 12
+        local(kit.part('rod', rid, col, 'dipole column', edge(sx, 0.0) + front, edge(sx, 1.0) + front, .02, 'naval', vertices=5), pivot)
+    for j in range(1, 7):
+        t = j / 7
+        local(kit.part('rod', rid, col, 'dipole row', edge(-3.0, t) + front, edge(3.0, t) + front, .02, 'naval', vertices=5), pivot)
+    for sx in (-2.2, 0.0, 2.2):
+        local(kit.part('rod', rid, col, 'screen strut', V(sx, 39.45, -24.12), edge(sx, .45), .05, 'naval', vertices=6), pivot)
     # Radio direction finder loop on the house abaft the bridge top (am239_rdf, 1.92 m tall).
     aid = 'rdf-loop'
     c = V(0, 20.59, -24.10)
