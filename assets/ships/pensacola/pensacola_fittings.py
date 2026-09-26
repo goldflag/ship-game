@@ -220,12 +220,28 @@ def catapults(D, kit):
         # Aircraft cradle and dolly stowed on the deck beside it.
         c = V(s * 8.34, 6.62, 8.65)
         kit.boxc(aid, col, 'aircraft cradle', c, (2.42, 1.52, .5), 'edge')
-    # Spare seaplane float on the deckhouse roof abaft the forward funnel.
+    # Spare seaplane float on the deckhouse roof abaft the forward funnel (am373: 7.97 m long athwartships, 1.11 m
+    # wide, 1.02 m deep, bottom at 7.06 m), in the reference's float blue: a pontoon with a flat deck, a V bottom
+    # with its step, a raked bow to starboard and a tail tapering to port, on two chocks.
     aid = 'spare-float'
-    y = kit.below(*V(0, 0, -10.62)[:2], 8.0, 6.6)
-    kit.part('rod', aid, col, 'float', V(-3.9, y + .52, -10.62), V(3.9, y + .52, -10.62), .45, 'naval', r2=.2, vertices=14)
+    zc = -10.62
+    y = kit.below(*V(0, 0, zc)[:2], 8.0, 6.6)
+    y0 = max(y + .14, 7.06)
+    stations = [(0.0, .06, .10, .78), (.12, .42, .36, .62), (.3, .9, .78, .3), (.55, 1.1, 1.0, .12), (.56, 1.1, .95, .12),
+                (.8, 1.06, .98, .06), (.92, .86, .86, .06), (.98, .46, .5, .28), (1.0, .14, .18, .62)]
+    rings = []
+    for t, w, h, lift in stations:
+        x = -3.97 + 7.97 * t
+        top = y0 + 1.02
+        bottom = y0 + lift * .9
+        depth = max(.05, top - bottom)
+        hw = w / 2
+        ring = [(hw * .75, top), (hw, top - depth * .15), (hw, top - depth * .6), (hw * .35, bottom + depth * .08), (0, bottom),
+                (-hw * .35, bottom + depth * .08), (-hw, top - depth * .6), (-hw, top - depth * .15), (-hw * .75, top)]
+        rings.append([P(x, yy, zc + zz) for zz, yy in ring])
+    kit.loft(aid, col, 'float', rings, 'floatblue', True, True, True)
     for xx in (-2.2, 1.8):
-        kit.boxc(aid, col, 'float chock', V(xx, y + .07, -10.62), (.9, .3, .16), 'edge')
+        kit.boxc(aid, col, 'float chock', V(xx, (y + y0) / 2 + .1, zc), (.9, .3, y0 - y + .2), 'edge')
 
 
 # ---------------------------------------------------------------- fire control and sensors
@@ -411,6 +427,13 @@ def searchlights(D, kit):
     kit.rail(aid, col, [V(x, 0, z)[:2] for x, z in corners], 20.99, .6, 1.0, True, False)
     for i, x in enumerate((-.74, .74), 5):
         searchlight(kit, f"searchlight-{i}", col, V(x, 21.02, -26.19), .3, 0, 20.99)
+    # Four ventilation trunks standing on the searchlight platform (plan cuts at 14.6-16.3 m: two 0.6 m octagons and
+    # two 0.36 m pipes to 16.2 m), each under a cowl.
+    for i, (x, z, r, n) in enumerate([(-1.45, 21.17, .3, 8), (-.39, 21.17, .3, 8), (.93, 21.18, .17, 12), (-1.47, 22.72, .18, 12)]):
+        c = V(x, 0, z)
+        floor = kit.below(c.x, c.y, 14.2, 13.2)
+        kit.cylz('platform-trunks', col, 'trunk', Vector((c.x, c.y, floor - .02)), r, 16.15 - floor + .02, 'naval', n)
+        kit.cylz('platform-trunks', col, 'trunk cowl', Vector((c.x, c.y, 16.15)), r * 1.25, .14, 'edge', n, r2=r * .6)
     # Sky lookout stations on the bridge top (am061): a pedestal seat with binoculars.
     for i, (x, z) in enumerate([(-1.79, -31.06), (1.79, -31.06), (-2.10, -25.94), (2.10, -25.94)], 1):
         aid = f'sky-lookout-{i}'

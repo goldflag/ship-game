@@ -68,7 +68,10 @@ are thin surfaced blocks (so hits and the clearance interlocks see them) with a 
 top: the eight 5-inch tubs (tops sloping from 10.25 to 10.85 m forward, 7.75-8.0 m aft), the bridge-top bulwark
 (17.3-18.85 m, with its bulges round the Mk 44 directors), the sidelight screens and the ring round the Mk 22
 director's trunk on the foretop (32.8-34.0 m, over the platform's flared floor, where the plan tracer had filled a solid
-block). The 1.1-inch tubs follow the
+block). Vertical rays through the reference (`opentops.ts`) found three more platforms the tracer had filled: the
+searchlight platform abaft the after funnel (floor 13.45 m), the Mk 18 director's platform on the after tower
+(12.02 m) and the after Mk 44 directors' tubs (4.76 m); their blocks stop at the floor and their bulwarks are traced
+the same way. The 1.1-inch tubs follow the
 section chains round each mount, and the foretop and after-tower platforms' bulwarks their traced outlines. The windows and scuttles were
 read off orthographic textured renders of the reference with the depth of the wall each lies on
 (`windows_detect.py`, `windows_table.py`) and are set into this model's own walls where they stand within 0.35 m of
@@ -122,6 +125,8 @@ top, 1.63°/s, 90° in 32 s.
   the traced steps of its base.
 - Masts, the crane, catapults, directors, the radar and searchlights are simplified; the catapults are empty, as the
   brief asks (the reference's aircraft are not modelled). Rails stay out of the gun arcs.
+- The covered gallery round the pilothouse at 12.47 m and the walkway round the midships house at 9.68 m stay filled
+  to their bulwark tops (the tracer's blocks); both lie under the platforms above and show only their bulwarks.
 - Deck stores the 8-inch gunhouses or depressed barrels would strike (three hatches under No. 1 turret's overhang, two
   hatches and a winch under No. 4's barrels) and three whose deck here stands away from the reference's are left off;
   the small bridge and deck furniture (telephones, switch boxes, voice tubes, fire-hose reels) is not modelled.

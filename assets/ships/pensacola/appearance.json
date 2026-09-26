@@ -15,7 +15,8 @@
     "pensacola-authored-fitting-wood": [0.19, 0.13, 0.075],
     "pensacola-authored-white-light": [0.52, 0.53, 0.52],
     "pensacola-authored-red-light": [0.40, 0.03, 0.02],
-    "pensacola-authored-green-light": [0.02, 0.30, 0.04]
+    "pensacola-authored-green-light": [0.02, 0.30, 0.04],
+    "pensacola-reference-float-blue": [0.041, 0.067, 0.112]
   },
   "materials": {
     "naval": { "paint": "pensacola-reference-grey", "finish": "painted-steel" },
@@ -30,7 +31,8 @@
     "wood": { "paint": "pensacola-authored-fitting-wood", "finish": "wood", "fittings": true },
     "white": { "paint": "pensacola-authored-white-light", "finish": "painted-steel" },
     "red": { "paint": "pensacola-authored-red-light", "finish": "painted-steel" },
-    "green": { "paint": "pensacola-authored-green-light", "finish": "painted-steel" }
+    "green": { "paint": "pensacola-authored-green-light", "finish": "painted-steel" },
+    "floatblue": { "paint": "pensacola-reference-float-blue", "finish": "painted-steel" }
   },
   "decking": {
     "deck": {
