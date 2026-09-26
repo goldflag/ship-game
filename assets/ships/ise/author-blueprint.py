@@ -442,7 +442,9 @@ def measured_prisms(cuts, cell=.1, gap=3):
             img = Image.new('L', (W, H), 0)
             draw = ImageDraw.Draw(img)
             for p in lv['polygons']:
-                if p['area'] >= .15:
+                # A cut that closes round the whole hull (4,500 m2 on single levels where the shell's strakes line
+                # up) is the hull, not a deckhouse; the largest real blocks, the flight deck and hangar, are under 2,000 m2.
+                if .15 <= p['area'] < 3000:
                     draw.polygon([((x - x0) / cell, (z - z0) / cell) for x, z in p['ring']], fill=1)
             grid = np.asarray(img, dtype=np.uint8) > 0
             hull_rows = np.nonzero(row_deck >= lv['y'] - .03)[0]
@@ -559,7 +561,7 @@ def measured_prisms(cuts, cell=.1, gap=3):
 
 PARTS = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
 # Working space per secondary and AA mount (reference x, z, seat y, carriage radius, barrel reach, bearing, half arc).
-CARRIAGE = {'type96-25-triple': 1.2, 'type96-25-kongo-single': .85, 'type89-127-yamato-open-twin': 2.35}
+CARRIAGE = {'type96-25-triple': 1.42, 'type96-25-kongo-single': 1.18, 'type89-127-yamato-open-twin': 2.62}
 guns = []
 for m in b['mounts']:
     if m['battery'] == 'main':
@@ -684,7 +686,7 @@ def surface_below(x, zr, y, skip):
 
 def mount_space(x, zr):
     """True inside a gun's working circle (posts stay out of it)."""
-    return any(math.hypot(x - gx, zr - gz) < (carriage if not reach else max(carriage, reach)) + .2 for gx, gz, gy, carriage, reach, _, _ in guns) or \
+    return any(math.hypot(x - gx, zr - gz) < (max(carriage, reach) if reach else carriage + 1.3) + .2 for gx, gz, gy, carriage, reach, _, _ in guns) or \
         any(math.hypot(x, zr - z) < 7.2 for _, _, _, z, _ in MAIN)
 
 
@@ -738,10 +740,17 @@ for s in ALL_BLOCKS:
     feet = []
     for px, pz in sorted(fp, key=lambda p: -math.hypot(p[0] - cx, p[1] - cz)):
         fx, fz = px + (cx - px) * .25, pz + (cz - pz) * .25
-        if all(math.hypot(fx - a, fz - c) > 1.2 for a, c in feet) and not mount_space(fx, fz):
+        if inside(fp, fx, fz) and all(math.hypot(fx - a, fz - c) > 1.2 for a, c in feet) and not mount_space(fx, fz):
             feet.append((fx, fz))
         if len(feet) == 4:
             break
+    if not feet:
+        # A thin or hooked outline: any point inside it, on a 0.2 m lattice, nearest its centroid.
+        xs, zs = [q[0] for q in fp], [q[1] for q in fp]
+        grid = [(min(xs) + .1 + .2 * i, min(zs) + .1 + .2 * j) for i in range(int((max(xs) - min(xs)) / .2) + 1) for j in range(int((max(zs) - min(zs)) / .2) + 1)]
+        grid = [q for q in grid if inside(fp, *q)]
+        if grid:
+            feet = [min(grid, key=lambda q: math.hypot(q[0] - cx, q[1] - cz))]
     area = plan_area(fp)
     r = .06 if area < 6 else .09 if area < 30 else .13
     added = 0

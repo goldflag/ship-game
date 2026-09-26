@@ -47,9 +47,9 @@ for name in ['Hull and decks', 'Superstructure', 'Main and secondary batteries',
 # Reference default paint: grey hull and upperworks, grey steel roofs, natural wood weather decks, a steel flight
 # deck, black funnel cap and mast heads, red-oxide bottom. Linear RGB interpretations of the source swatches;
 # appearance.json binds the named paints.
-colors = {'naval': (.118, .124, .140), 'hullgray': (.118, .124, .140), 'roof': (.092, .096, .108), 'deck': (.100, .076, .054),
-          'flightdeck': (.090, .094, .104), 'edge': (.038, .038, .040), 'painted-edge': (.082, .085, .097), 'dark': (.012, .013, .014),
-          'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.105, .050, .039), 'bronze': (.36, .27, .12),
+colors = {'naval': (.128, .140, .170), 'hullgray': (.128, .140, .170), 'roof': (.092, .096, .108), 'deck': (.155, .115, .081),
+          'flightdeck': (.118, .124, .146), 'edge': (.038, .038, .040), 'painted-edge': (.082, .085, .097), 'dark': (.012, .013, .014),
+          'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.123, .065, .046), 'bronze': (.36, .27, .12),
           'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12)}
 materials = {}
 for key, color in colors.items():
