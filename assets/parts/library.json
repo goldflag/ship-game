@@ -709,6 +709,11 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "us-5in25-mk19-single": {
+      "path": "assets/parts/us-5in25-mk19/mk19_single.py",
+      "function": "create_mount",
+      "inputs": []
     }
   },
   "components": [
@@ -1843,6 +1848,14 @@
       "review": "unreviewed",
       "limitations": "Original reconstruction against GameModels3D bga097_40mm_bofors_mk1. Weapon values are provisional game calibration; installed clearance requires ship review.",
       "builder": "rn-bofors-twin"
+    },
+    {
+      "partId": "us-5in25-mk19-single",
+      "nation": "United States",
+      "family": "US 5-inch/25",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D ags007_5in25_mk19_mod6 (Pensacola pasc106, New Orleans pasc107) only. The trunnion sits on the bore axis 0.237 m above the reference pivot; a breech well through the platform and carriage, a hollow stand and a concentric elevating arc let the slide reach 85 degrees; the port half of the slide is an open loading tray; the starboard sight box sits 0.095 m outboard of the reference so it clears the cheek. Weapon values are provisional game calibration. Standalone and installation review pending.",
+      "builder": "us-5in25-mk19-single"
     }
   ]
 }
