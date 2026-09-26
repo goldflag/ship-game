@@ -114,6 +114,7 @@ Provisional game calibration from the commonly published 5-inch/25 figures and t
   between the sight box and the starboard cheek, 10 mm between the slide and the cheeks, 23 mm to the well coaming
   and 46 mm to the stand race. Every training part except the two decks, which bear on the race, clears the stand
   through a full turn in 10 degree steps.
+- No floating geometry: at rest each of the 145 meshes intersects another or lies within 3 mm of one.
 - The shared entry point was also called the way a Blender-recipe ship calls it (ship mesh helper, only
   `naval`, `dark` and `edge` materials, Pensacola's `HP_AGS_3` position and bearing): the base lands on the
   hardpoint, the yaw turns to the bearing and the muzzle sits 3.065 m out along it.
