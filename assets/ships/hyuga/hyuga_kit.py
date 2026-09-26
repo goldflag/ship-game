@@ -217,19 +217,34 @@ class Kit:
         return self.part('rod', assembly, col, 'block', c - a, c + a, r, material, vertices=12)
 
     def rail(self, assembly, col, pts, z, height=1.0, spacing=1.6, closed=False, check=True):
-        """Stanchions and three courses along a polyline of (x, y) points at deck height z."""
+        """Three courses along a polyline of (x, y) points at deck height z, with stanchions evenly spaced
+        about `spacing` apart along the whole run and at every corner that turns more than 25 degrees."""
         seq = list(pts) + ([pts[0]] if closed else [])
-        for (ax, ay), (bx, by) in zip(seq, seq[1:]):
-            seg = math.hypot(bx - ax, by - ay)
-            if seg < 1e-3:
-                continue
+        segs = [(a, b, math.hypot(b[0] - a[0], b[1] - a[1])) for a, b in zip(seq, seq[1:])]
+        segs = [(a, b, d) for a, b, d in segs if d >= 1e-3]
+        if not segs:
+            return
+        for (ax, ay), (bx, by), _ in segs:
             for h in (height * .33, height * .66, height):
                 self.wire(assembly, col, (ax, ay, z + h), (bx, by, z + h), .016, check)
-            n = max(1, round(seg / spacing))
-            for i in range(n + (0 if closed else 1)):
-                t = i / n
-                px, py = ax + (bx - ax) * t, ay + (by - ay) * t
-                self.wire(assembly, col, (px, py, z), (px, py, z + height), .022, check)
+        total = sum(d for _, _, d in segs)
+        n = max(1, round(total / spacing))
+        marks = [total * i / n for i in range(n + (0 if closed else 1))]
+        posts, run = [], 0.0
+        for k, ((ax, ay), (bx, by), d) in enumerate(segs):
+            for m in marks:
+                if run - 1e-6 <= m < run + d - 1e-6 or (k == len(segs) - 1 and abs(m - run - d) < 1e-6):
+                    t = (m - run) / d
+                    posts.append((ax + (bx - ax) * t, ay + (by - ay) * t))
+            if k:
+                (px, py), _, pd = segs[k - 1][0], None, segs[k - 1][2]
+                ux, uy = (ax - px) / pd, (ay - py) / pd
+                vx, vy = (bx - ax) / d, (by - ay) / d
+                if ux * vx + uy * vy < math.cos(math.radians(25)) and all(math.hypot(ax - qx, ay - qy) > .3 for qx, qy in posts):
+                    posts.append((ax, ay))
+            run += d
+        for px, py in posts:
+            self.wire(assembly, col, (px, py, z), (px, py, z + height), .022, check)
 
     def build_wires(self):
         for (assembly, _, material), (col, segs) in self.wires.items():

@@ -53,7 +53,8 @@ measured deck edges, between the edge and the crown of the reference's cambered 
 Superstructure prisms come from plan cuts of the reference's hull group every 0.1 m (mirrored, gaps up to 1 m bridged so
 doors and windows do not open the outline, features thinner than 0.25 m left out), with our loft and the main barbettes
 cleared, followed up through the levels: a piece that keeps its footprint continues its band, and each band is one prism
-with its middle level's outline. A block standing less than 0.6 m over the deck or the block below reaches down to it.
+with its middle level's outline. A block standing less than 0.6 m over the deck or the block below reaches down to it,
+and the after tower's lowest tiers, traced standing on the reference's deck crown, reach down to our flat deck.
 The recipe draws what the tracer cannot: the funnel's lattice tower (the traced block round the funnel's middle is
 replaced by the funnel casing, its trunks, corner posts, X bracing, girts and knees), the mainmast's pole, yards and
 aerial spar, stanchions and brackets under the platforms that stand on them, and the pagoda's after legs.
@@ -77,8 +78,8 @@ ventilators, hatches, winches, reels, fairleads, capstans, paravanes, lockers an
 our decks (a fitting with nothing under it is left out); the anchors housed against the shell; the boats in their cradles;
 the catapult on its turntable at the reference's pivot and 10° heading; four three-bladed screws, their shafts and
 A-brackets, the inner shafts' skegs and the twin rudders at the reference's positions. Windows and portholes were located
-by orthographic renders of the textured reference and seated on this model's own walls where they stand within 0.35 m of
-the reference's (hull portholes on the loft, mirrored).
+by orthographic renders of the textured reference and set in the plane of this model's own walls where they stand within
+0.35 m of the reference's, never on a prism a region module replaces (hull portholes on the loft, mirrored).
 
 Machinery (four boiler rooms under the funnel between No. 2 and No. 3 barbettes, four turbine rooms between No. 4 and
 No. 5, four shafts), magazines, flood spaces, stability (GM 7% of beam) and damage-control values are game estimates;

@@ -216,6 +216,16 @@ def regularize(poly, tol=.08, snap=math.tan(math.radians(5))):
 
 if opts.structures:
     structures = [dict(s, footprint=regularize(s['footprint'])) for s in structures]
+# The after tower's lowest prisms were traced standing on the reference's cambered deck crown; our deck is
+# flat, so they reach down to it.
+for s in structures:
+    if s['id'] in ('after-tower-001', 'after-tower-002', 'after-tower-003'):
+        zs = [p[1] for p in s['footprint']]
+        n = max(2, int((max(zs) - min(zs)) / .5) + 1)
+        deck = min(deck_y(min(zs) + (max(zs) - min(zs)) * i / (n - 1)) for i in range(n))
+        if s['baseY'] > deck:
+            top = s['baseY'] + s['height']
+            s['baseY'], s['height'] = round(deck, 3), round(top - deck, 3)
 # No. 4 turret's muzzles pass within a few centimetres of the after deckhouse's forward corners as it trains
 # off the centreline; those corners stand 0.25 m further aft than traced so the trained barrels clear them.
 for s in structures:

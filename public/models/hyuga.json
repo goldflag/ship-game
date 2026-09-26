@@ -131344,12 +131344,12 @@
       "id": "after-tower-003-0",
       "center": [
         -4.361,
-        6.417,
+        6.145,
         39.171
       ],
       "size": [
         1.472,
-        2.965,
+        3.511,
         2.741
       ]
     },
@@ -131357,12 +131357,12 @@
       "id": "after-tower-003-0-1",
       "center": [
         4.361,
-        6.417,
+        6.145,
         39.171
       ],
       "size": [
         1.472,
-        2.965,
+        3.511,
         2.741
       ]
     },
@@ -131370,12 +131370,12 @@
       "id": "after-tower-003-1",
       "center": [
         0.018,
-        6.417,
+        6.145,
         42.112
       ],
       "size": [
         14.225,
-        2.965,
+        3.511,
         2.741
       ]
     },
@@ -131383,12 +131383,12 @@
       "id": "after-tower-003-2",
       "center": [
         0,
-        6.417,
+        6.145,
         45.053
       ],
       "size": [
         15.032,
-        2.965,
+        3.511,
         2.741
       ]
     },
@@ -131396,12 +131396,12 @@
       "id": "after-tower-003-3",
       "center": [
         -4.55,
-        6.417,
+        6.145,
         47.993
       ],
       "size": [
         4.934,
-        2.965,
+        3.511,
         2.741
       ]
     },
@@ -131409,12 +131409,12 @@
       "id": "after-tower-003-3-1",
       "center": [
         4.496,
-        6.417,
+        6.145,
         47.993
       ],
       "size": [
         5.044,
-        2.965,
+        3.511,
         2.741
       ]
     },
@@ -132837,8 +132837,8 @@
           37.205
         ]
       ],
-      "baseY": 4.737,
-      "height": 0.463,
+      "baseY": 4.389,
+      "height": 0.811,
       "material": "naval"
     },
     {
@@ -132946,8 +132946,8 @@
           44.005
         ]
       ],
-      "baseY": 4.761,
-      "height": 0.439,
+      "baseY": 4.389,
+      "height": 0.811,
       "material": "naval"
     },
     {
@@ -133434,8 +133434,8 @@
           37.7
         ]
       ],
-      "baseY": 4.935,
-      "height": 2.965,
+      "baseY": 4.389,
+      "height": 3.511,
       "material": "naval"
     },
     {
@@ -156417,5 +156417,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "a74c8ae3cb34824c51c6a56ce784468d4eec14ab21b609ffbf4ff53f87637861"
+  "contentHash": "c2a79a5b753871e72c93c474ffec9672db040ddba3fddce2d356669180ced220"
 }
