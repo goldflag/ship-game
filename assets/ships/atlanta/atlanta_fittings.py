@@ -428,15 +428,66 @@ def masts(D, kit):
     # 0.26 m across, a topmast above 26 m), its yard and the ensign gaff to the HP_flag_nation datum.
     aid = 'mainmast'
     axis_m = lambda y: 9.38 + (y - 16.5) * .0563
-    taper(kit, aid, col, 'pole', (0, 14.6, axis_m(14.6)), (0, 26.2, axis_m(26.2)), .18, .12, 'naval', 6)
-    taper(kit, aid, col, 'topmast', (0, 26.0, axis_m(26.0)), (0, 28.9, axis_m(28.9)), .07, .04, 'naval', 8)
+    taper(kit, aid, col, 'pole', (0, 14.6, axis_m(14.6)), (0, 27.4, axis_m(27.4)), .18, .11, 'naval', 6)
+    taper(kit, aid, col, 'topmast', (0, 27.3, axis_m(27.3)), (0, 28.75, axis_m(28.75)), .07, .04, 'naval', 8)
     kit.cylz(aid, col, 'foot collar', V(0, 14.6, axis_m(14.6)), .28, .3, 'naval', 6)
+    # The reference's wire ends: the yard at 25.15 m across 9.1 m, a 1.15 m masthead platform at 27.37 m, a small
+    # crosstree at 23.4 m and the gaff level at 24.8 m to z 13.14.
     for s in (-1, 1):
-        taper(kit, aid, col, 'yard', (s * .08, 27.3, axis_m(27.3)), (s * 3.2, 27.3, axis_m(27.3)), .07, .04, 'naval', 8)
-    taper(kit, aid, col, 'gaff', (0, 25.6, axis_m(25.6) + .1), (0, 24.34, 13.1), .07, .04, 'naval', 8)
-    kit.member(aid, col, V(0, 27.0, axis_m(27.0)), V(0, 24.4, 13.05), .02, 'edge', 4)
+        taper(kit, aid, col, 'yard', (s * .06, 25.15, axis_m(25.15) + .1), (s * 4.57, 25.15, axis_m(25.15) + .1), .08, .04, 'naval', 8)
+        kit.member(aid, col, V(s * .1, 23.42, 9.78), V(s * 1.04, 23.42, 9.78), .03, 'naval', 5)
+    kit.boxc(aid, col, 'masthead platform', V(0, 27.37, 9.97), (1.3, 1.15, .06), 'naval')
+    taper(kit, aid, col, 'gaff', (0, 24.8, axis_m(24.8) + .1), (0, 24.8, 13.14), .07, .04, 'naval', 8)
+    kit.member(aid, col, V(0, 23.07, axis_m(23.07) + .1), V(0, 24.8, 12.54), .03, 'naval', 5)
     kit.boxc(aid, col, 'speed light', V(0, 18.0, axis_m(18.0) + .3), (.8, .28, .6), 'edge')
     kit.ladder(aid, col, V(0, 14.8, axis_m(14.8) + .32), V(0, 25.8, axis_m(25.8) + .28), (0, 1, 0), .34)
+
+
+# ---------------------------------------------------------------- rigging
+def rigging(D, kit):
+    """Shrouds, stays, braces and the wire aerials as the reference strings them: ends read off its thin wire
+    triangles (reference frame), each wire drawn straight and mirrored where the reference is."""
+    col = kit.collections['Sensors and masts']
+
+    def wire(aid, a, b, r=.016, mirror=True):
+        for s in ((-1, 1) if mirror else (1,)):
+            kit.member(aid, col, V(s * a[0], a[1], a[2]), V(s * b[0], b[1], b[2]), r, 'edge', 3)
+
+    aid = 'foremast-rigging'
+    for a, b in [((.07, 30.49, -13.4), (3.98, 12.57, -21.92)), ((.04, 30.49, -13.38), (3.61, 15.16, -17.88)),
+                 ((.06, 30.68, -12.96), (3.8, 15.29, -9.32)), ((.1, 28.53, -13.57), (4.38, 13.58, -16.27))]:
+        wire(aid, a, b, .022)
+    wire(aid, (0, 29.66, -16.21), (0, 15.61, -29.62), .022, False)  # forestay from the forward outrigger
+    wire(aid, (0, 30.79, -12.35), (1.4, 19.11, -9.25), .014, False)
+    wire(aid, (1.4, 19.11, -9.25), (3.37, 10.79, -12.21), .014, False)
+    wire(aid, (0, 30.92, -9.48), (0, 21.22, -10.71), .014, False)
+    for a, b in [((7.53, 30.93, -12.87), (0, 29.72, -16.25)), ((7.71, 30.92, -12.81), (0, 30.94, -10.02)),
+                 ((.1, 32.61, -13.05), (6.43, 30.96, -12.83))]:
+        wire(aid, a, b, .014)
+    # The foremast aerial fan: ten wires a side from the signal yard down to a spreader beside the bridge.
+    aid = 'aerials'
+    fan = [(.71, 2.65, 13.92, -11.52), (1.18, 2.74, 13.92, -11.85), (1.76, 2.84, 13.92, -12.34), (2.23, 2.94, 13.92, -12.85),
+           (2.67, 3.03, 13.92, -13.39), (3.59, 3.11, 13.92, -13.81), (4.57, 3.17, 13.92, -14.24), (5.54, 3.21, 13.92, -14.74),
+           (6.55, 3.27, 14.11, -15.27), (7.49, 3.3, 14.1, -15.79)]
+    for xt, xb, yb, zb in fan:
+        wire(aid, (xt, 30.89, -12.83), (xb, yb, zb), .012)
+    wire(aid, (2.6, 13.92, -11.4), (3.33, 14.11, -15.9), .03)
+    # Four long aerials from the foremast yard aft to the main yard, with their lead-ins down to the after deckhouses.
+    for xf, xa in ((4.45, 2.59), (6.38, 4.52)):
+        wire(aid, (xf, 30.9, -12.77), (xa, 25.19, 10.04), .012)
+    wire(aid, (3.06, 26.65, 4.17), (1.57, 17.58, 7.12), .012)
+    wire(aid, (1.57, 17.58, 7.12), (2.9, 10.67, 15.34), .012)
+    wire(aid, (4.65, 25.64, 8.21), (2.33, 13.89, 9.04), .012)
+    # The main-yard fan: four a side down to the after superstructure.
+    for xt, xb, zb in ((1.65, .9, 13.42), (2.52, 1.23, 13.69), (3.39, 1.65, 14.03), (4.22, 2.07, 14.37)):
+        wire(aid, (xt, 25.14, 10.09), (xb, 12.54, zb), .012)
+    aid = 'mainmast-rigging'
+    for a, b in [((.05, 24.88, 9.75), (2.4, 14.72, 5.3)), ((.05, 24.98, 9.97), (2.49, 8.76, 12.28))]:
+        wire(aid, a, b, .02)
+    for a, b in [((.07, 27.28, 10.0), (4.53, 25.2, 10.09)), ((4.56, 25.17, 10.11), (0, 24.81, 12.54))]:
+        wire(aid, a, b, .014)
+    wire(aid, (0, 27.25, 10.06), (0, 24.81, 12.55), .014, False)  # gaff peak halyard
+    wire(aid, (0, 24.78, 13.1), (-1.04, 12.53, 13.54), .012, False)  # ensign halyard
 
 
 # ---------------------------------------------------------------- fire control
@@ -608,8 +659,9 @@ def depth_charges(D, kit):
 
 
 # ---------------------------------------------------------------- boats and the crane
-def boat(kit, aid, col, c, length, beam, depth, heading=0.0, covered=False, material='white'):
-    """Original lofted boat hull on its keel point c (authoring frame), bow toward +X."""
+def boat(kit, aid, col, c, length, beam, depth, heading=0.0, covered=False, material='white', bottom=None):
+    """Original lofted boat hull on its keel point c (authoring frame), bow toward +X; `bottom` paints the lower
+    third of the hull."""
     rings = []
     n = 13
     for i in range(n):
@@ -627,6 +679,11 @@ def boat(kit, aid, col, c, length, beam, depth, heading=0.0, covered=False, mate
     rot = Matrix.Rotation(heading, 3, 'Z')
     rings = [[tuple(Vector(c) + rot @ Vector(p)) for p in ring] for ring in rings]
     hull = kit.loft(aid, col, 'boat hull', rings, material, True, True, True)
+    if bottom:
+        hull.data.materials.append(kit.mat(bottom))
+        for face in hull.data.polygons:
+            if face.center.z < Vector(c).z + depth * .32:
+                face.material_index = 1
     if covered:
         kit.boxc(aid, col, 'canopy', Vector(c) + rot @ Vector((-length * .08, 0, depth * .9 + .4)), (length * .5, beam * .7, .85), 'naval', heading)
         kit.boxc(aid, col, 'cockpit coaming', Vector(c) + rot @ Vector((length * .28, 0, depth * .9 + .12)), (length * .2, beam * .6, .25), 'naval', heading)
@@ -638,33 +695,41 @@ def boat(kit, aid, col, c, length, beam, depth, heading=0.0, covered=False, mate
 
 def boats(D, kit):
     col = kit.collections['Boats']
-    # 26 ft whaleboats at the 01 level abreast the forward funnel (reference 7.9 m x 2.0 m), in chocks under
-    # quadrantal davits.
+    # Motor whaleboats abreast the bridge (reference: 8.4 m x 2.0 m, keel 6.63 m, gunwale 7.57 m, centred at x 6.13,
+    # z -13.87), in chocks, under two davits stepped at the ship's side (z -10.21 and -17.19, x 7.85) whose arms
+    # curve in over the boat to heads at 9.1 m, joined by a span wire.
     for s in (-1, 1):
         aid = 'whaleboat-' + ('port' if s < 0 else 'starboard')
-        keel = V(s * 6.14, 6.3, -13.46)
-        floor = kit.below(keel.x, keel.y, keel.z + .5, keel.z - .3)
-        keel.z = max(keel.z, floor + .12)
-        boat(kit, aid, col, keel, 7.88, 2.0, 1.1, 0, False, 'naval')
-        for dz in (-2.3, 2.3):
-            ck = V(s * 6.14, 0, -13.46 + dz)
-            f = kit.below(ck.x, ck.y, keel.z + .3, keel.z - .3)
+        keel = V(s * 6.13, 6.63, -13.87)
+        boat(kit, aid, col, keel, 8.4, 2.0, .94, 0, False, 'naval', 'black')
+        for dz in (-2.4, 2.4):
+            ck = V(s * 6.13, 0, -13.87 + dz)
+            f = kit.below(ck.x, ck.y, keel.z + .3, keel.z - 1.5)
             kit.boxc(aid, col, 'chock', Vector((ck.x, ck.y, (f + keel.z + .1) / 2)), (.3, 1.3, keel.z + .1 - f), 'edge')
-            foot = V(s * 5.2, 0, -13.46 + dz * 1.3)
-            ff = kit.below(foot.x, foot.y, keel.z + .5, keel.z - .3)
-            foot.z = ff
-            top = Vector((foot.x, foot.y, keel.z + 2.4))
-            kit.part('rod', aid, col, 'davit', foot, top, .09, 'naval', vertices=10)
-            kit.part('rod', aid, col, 'davit head', top, top + Vector((0, s * -.95, -.1)), .07, 'naval', vertices=8)
-            kit.wire(aid, col, top + Vector((0, s * -.95, -.15)), Vector((ck.x, ck.y, keel.z + 1.05)), .014, False)
+        heads = []
+        for zz in (-10.21, -17.19):
+            xe = min(7.85, hull_half(kit, zz, deck(kit, zz) - .05) - .12)
+            foot = V(s * xe, deck(kit, zz) - .02, zz)
+            arm = [V(s * xe, 8.25, zz), V(s * (xe - .13), 8.8, zz), V(s * (xe - .55), 9.1, zz), V(s * 6.7, 9.18, zz), V(s * 6.13, 9.12, zz)]
+            kit.part('rod', aid, col, 'davit', foot, arm[0], .1, 'naval', vertices=10)
+            for a, b in zip(arm, arm[1:]):
+                kit.part('rod', aid, col, 'davit arm', a, b, .085, 'naval', vertices=8)
+            kit.wire(aid, col, arm[-1] + Vector((0, 0, -.05)), V(s * 6.13, 7.62, zz), .016, False)
+            heads.append(arm[-1])
+        kit.wire(aid, col, heads[0], heads[1], .014, False)
     # 40 ft motor launches on the 01 deck between the funnels, in cradles under the crane (reference 12.25 m x 3.25 m),
     # the 12 ft punts stacked on the centreline between them.
     for s in (-1, 1):
         aid = 'motor-launch-' + ('port' if s < 0 else 'starboard')
-        keel = V(s * 2.62, 6.75, -3.84)
+        keel = V(s * 2.62, 6.85, -3.84)
         floor = kit.below(keel.x, keel.y, keel.z + .5, keel.z - .5)
         keel.z = max(keel.z, floor + .35)
-        boat(kit, aid, col, keel, 12.25, 3.25, 1.7, 0, True, 'naval')
+        # Decked ends round an open well (reference sheer 8.45 m, keel 6.87 m) and a small coxswain's shelter
+        # over the stern (z 0.75 to 1.96, to 9.24 m).
+        boat(kit, aid, col, keel, 12.25, 3.25, 1.9, 0, False, 'naval', 'black')
+        gunwale = 1.9 * .85
+        kit.boxc(aid, col, 'coxswain shelter', keel + Vector((-5.2, 0, gunwale + .38)), (1.2, 1.9, .8), 'naval')
+        kit.boxc(aid, col, 'shelter roof', keel + Vector((-5.2, 0, gunwale + .8)), (1.35, 2.05, .06), 'canvas')
         for dz in (-4.0, 0, 4.0):
             ck = V(s * 2.62, 0, -3.84 + dz)
             f = kit.below(ck.x, ck.y, keel.z + .3, keel.z - .6)
@@ -874,6 +939,8 @@ def deck_gear(D, kit):
         zc, yc = -81.62, 7.92
         surface_disc(kit, 'bullnose', col, 'opening', sd, zc, yc, .37, .3, .03, 'black', 16)
         surface_ring(kit, 'bullnose', col, sd, zc, yc, .43, .36, .06, .065, 16)
+        # The centre bullnose through the stem head, seen from ahead as a dark opening either side of the stem bar.
+        surface_disc(kit, 'bullnose', col, 'stem opening', sd, -82.4, 7.98, .13, .2, .02, 'black', 12)
     # Hull number 51 in white on both bows and quarters (the reference's default paint), 0.55 m high.
     hull_numbers(kit, col)
     # Jack staff stepped on the bulwark's stem head (reference z -82.5, up to 15.3 m) with a truck on top and two
@@ -1048,6 +1115,7 @@ def build(D, kit):
     tubs(D, kit)
     funnels(D, kit)
     masts(D, kit)
+    rigging(D, kit)
     directors(D, kit)
     torpedo_mounts(D, kit)
     depth_charges(D, kit)
