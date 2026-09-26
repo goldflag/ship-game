@@ -52,8 +52,16 @@ for face in hull.data.polygons:
 
 # ---------------------------------------------------------------- superstructure
 shells = []
+import bmesh
 for s in D['structures']:
     ob = authored_structure(s, kit.mesh, materials, collections['Superstructure'])
+    if 'exhaust' in s:
+        # Split the funnel's walls where the black top band begins (1.2 m under the rim).
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bmesh.ops.bisect_plane(bm, geom=[*bm.verts, *bm.edges, *bm.faces], dist=1e-6, plane_co=(0, 0, s['exhaust']['position'][1] - 1.2), plane_no=(0, 0, 1))
+        bm.to_mesh(ob.data)
+        bm.free()
     ob.data.materials.append(materials[kit.roof(s)])
     ob.data.materials.append(materials['black'])
     for face in ob.data.polygons:

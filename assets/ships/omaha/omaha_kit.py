@@ -56,7 +56,8 @@ class Kit:
             w = m['weapon']
             mx, my, mz = R(m['position'])
             if w.get('gunhouseMesh'):
-                house = max((v[0] ** 2 + v[1] ** 2) ** .5 for v in w['gunhouseMesh']['vertices']) + .2
+                # The shell plus the recipe's footboards, boxes and bevels outside it.
+                house = max((v[0] ** 2 + v[1] ** 2) ** .5 for v in w['gunhouseMesh']['vertices']) + .45
             else:
                 house = max(w['gunhouseSize'][:2]) * .55
             self.arcs.append((mx, my, mz, house, w, m))

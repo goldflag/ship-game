@@ -384,6 +384,70 @@ for id, name, zc, rim in FUNNELS:
                            height=round(7.95 - base, 3), material='naval'))
     structures.append(dict(id=id, name=name, footprint=ellipse(0, rz(zc), 1.57, 1.62, 28), baseY=7.9, height=round(rim - 7.9, 3), material='naval',
                            exhaust=dict(position=[0, rim, rz(zc)], width=3.14, length=3.24)))
+structures = [s for s in structures if s['id'] != 'fwd-08']  # a stray level of the tripod's foot, carried by nothing
+
+
+# The 6-inch training drums turn inside round recesses in the casemate walls: each block that stands beside a
+# drum gives up the drum's working circle (3.67 m drum, 6 cm clearance), as the reference's walls do.
+def notch(poly, c, r, steps=28):
+    """Footprint minus a circle that crosses its boundary: the arc inside the footprint replaces the cut edge."""
+    inside = lambda p: (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 < r * r
+    n = len(poly)
+    start = next((i for i in range(n) if not inside(poly[i])), None)
+    if start is None:
+        return None
+    seq = poly[start:] + poly[:start]
+    out, entry = [], None
+    for i in range(n):
+        a, e = seq[i], seq[(i + 1) % n]
+        if entry is None:
+            out.append(a)
+        dx, dz = e[0] - a[0], e[1] - a[1]
+        fx, fz = a[0] - c[0], a[1] - c[1]
+        qa, qb, qc = dx * dx + dz * dz, 2 * (fx * dx + fz * dz), fx * fx + fz * fz - r * r
+        disc = qb * qb - 4 * qa * qc
+        ts = []
+        if qa > 1e-12 and disc > 0:
+            root = math.sqrt(disc)
+            ts = sorted(t for t in ((-qb - root) / (2 * qa), (-qb + root) / (2 * qa)) if 0 < t < 1)
+        for t in ts:
+            p = [a[0] + dx * t, a[1] + dz * t]
+            if entry is None:
+                entry = p
+                out.append(p)
+            else:
+                a0 = math.atan2(entry[1] - c[1], entry[0] - c[0])
+                a1 = math.atan2(p[1] - c[1], p[0] - c[0])
+                sweep = (a0 - a1) % math.tau
+                k = max(2, int(steps * sweep / math.tau))
+                out += [[c[0] + r * math.cos(a0 - sweep * j / k), c[1] + r * math.sin(a0 - sweep * j / k)] for j in range(1, k)]
+                out.append(p)
+                entry = None
+    return [[round(x, 3), round(z, 3)] for x, z in out]
+
+
+DRUMS = [(x, y0, y1, z) for x, y0, y1, z in [(-5.502, 10.035, 11.745, -49.467), (5.502, 10.035, 11.745, -49.467),
+                                               (-4.242, 13.197, 14.907, -49.462), (4.242, 13.197, 14.907, -49.462),
+                                               (-6.931, 4.269, 5.979, 45.923), (6.931, 4.269, 5.979, 45.923),
+                                               (-5.571, 7.347, 9.057, 45.923), (5.571, 7.347, 9.057, 45.923)]]
+for s in structures:
+    for x, y0, y1, z in DRUMS:
+        top = s['baseY'] + s['height']
+        overlap = min(top, y1) - max(s['baseY'], y0)
+        if overlap <= 0:
+            continue
+        cut = notch(s['footprint'], (x, rz(z)), 1.93)
+        if not cut:
+            continue
+        if y0 - .001 < top <= y0 + .06 and s['baseY'] < y0 - .2:
+            # The drum stands on this block: its roof comes down to the drum's sole.
+            s['height'] = round(y0 - s['baseY'], 3)
+        elif y1 - .06 <= s['baseY'] < y1 + .001 and top > y1 + .12:
+            # The block roofs the drum: its floor lifts clear of the drum's top.
+            s['height'] = round(top - (y1 + .05), 3)
+            s['baseY'] = round(y1 + .05, 3)
+        elif overlap > .02 and len(cut) >= 3:
+            s['footprint'] = ccw(cut)
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, cut into fore-and-aft strips of at

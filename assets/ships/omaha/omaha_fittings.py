@@ -119,6 +119,7 @@ def torpedo_mounts(D, kit):
         local(kit.boxc(lid, col, 'sight post', (x + .41, y - .37 * (1 if y > 0 else -1), z + 1.40), (.18, .18, .70), 'naval'), pivot)
         local(kit.part('rod', lid, col, 'sight', (x + .15, y - .37 * (1 if y > 0 else -1), z + 1.78), (x + .75, y - .37 * (1 if y > 0 else -1), z + 1.78), .05, 'edge', vertices=8), pivot)
         local(kit.boxc(lid, col, 'trainer seat', (x - .5, y - .37 * (1 if y > 0 else -1), z + 1.32), (.35, .35, .08), 'edge'), pivot)
+        local(kit.part('rod', lid, col, 'seat post', (x - .5, y - .37 * (1 if y > 0 else -1), z + .80), (x - .5, y - .37 * (1 if y > 0 else -1), z + 1.30), .04, 'edge', vertices=6), pivot)
 
 
 # ---------------------------------------------------------------- funnel caps
@@ -435,9 +436,8 @@ def casemates(D, kit):
     col = kit.collections['Superstructure']
     for s in (-1, 1):
         aid = 'casemate-hood-' + ('port' if s < 0 else 'starboard')
-        c = V(s * 5.502, 11.745, -49.467)
+        c = V(s * 5.502, 11.795, -49.467)
         kit.cylz(aid, col, 'hood', c, 1.95, .07, 'naval', 32)
-        kit.cylz(aid, col, 'hood rim', c - Vector((0, 0, .08)), 1.97, .08, 'edge', 32)
 
 
 # ---------------------------------------------------------------- deck gear
@@ -469,6 +469,9 @@ def deck_gear(D, kit):
             kit.cylz('bollards', col, 'bitt cap', c + o + Vector((0, 0, .63)), .25, .06, 'naval', 12)
     for x, z in [(4.1, -71.5), (-4.1, -71.5), (5.0, -63.4), (-5.0, -63.4), (8.3, -17.7), (-8.3, -17.7), (7.9, -26.8), (-7.9, -26.8),
                  (8.68, 15.35), (-8.68, 15.35), (6.26, 54.6), (-6.26, 54.6), (5.4, 60.2), (-5.4, 60.2), (3.5, 70.15), (-3.5, 70.15), (0, 82.65)]:
+        # Fairleads stand at the deck edge: keep them just inside the loft's edge.
+        edge = hull_half(kit, z, deck(kit, z) - .05) - .3
+        x = max(-edge, min(edge, x))
         c = V(x, 0, z)
         c.z = kit.below(c.x, c.y, 12.0 if z < -50 else 9.0, 3.0)
         kit.boxc('fairleads', col, 'fairlead', c + Vector((0, 0, .12)), (.5, .22, .24), 'edge')
