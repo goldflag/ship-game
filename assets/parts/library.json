@@ -1854,7 +1854,7 @@
       "nation": "United States",
       "family": "US 5-inch/25",
       "review": "unreviewed",
-      "limitations": "Original recipe measured against GameModels3D ags007 5in25 Mk19 Mod6 (Pensacola pasc106, New Orleans pasc107) only. Trunnion moved from the reference pivot up to the bore axis, a breech well opened through the platform and carriage and the stand made hollow so the slide clears at 85 degrees, and the starboard sight box moved 0.095 m outboard of the cheek. Weapon values are provisional game calibration. Standalone and installation review pending.",
+      "limitations": "Original recipe measured against GameModels3D ags007_5in25_mk19_mod6 (Pensacola pasc106, New Orleans pasc107) only. The trunnion sits on the bore axis 0.237 m above the reference pivot; a breech well through the platform and carriage, a hollow stand and a concentric elevating arc let the slide reach 85 degrees; the port half of the slide is an open loading tray; the starboard sight box sits 0.095 m outboard of the reference so it clears the cheek. Weapon values are provisional game calibration. Standalone and installation review pending.",
       "builder": "us-5in25-mk19-single"
     }
   ]

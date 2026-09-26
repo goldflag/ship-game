@@ -331,6 +331,14 @@ train past one another), the 4.7-inch Mk XII twin and Mk IX single (9.5 m and 8.
 (11.1 m). These figures cover the mounts alone: a ship's own platforms and neighbours still need installation review,
 and the library keeps every part `unreviewed` until that passes.
 
+The United States 5-inch/25 Mk 19 open anti-aircraft mount (`us-5in25-mk19-single`,
+[`../us-5in25-mk19/`](../us-5in25-mk19/README.md)) joins them. It is authored against GameModels3D
+`ags007_5in25_mk19_mod6`, the one visual that Pensacola and New Orleans fit at all eight secondary hardpoints, and
+keeps the same deck contract: one support socket on the fixed stand's sole, no ammunition socket, no occupancy box and
+no `gunhouseMesh`. The reference's elevation pivot lies 0.237 m below its bore and its platform is solid under the
+slide, so the recipe puts the trunnion on the bore axis and opens a breech well through the platform, the carriage
+and a hollow stand, which lets the gun reach its published +85 degrees; its README gives the installation datums.
+
 ## National masts and directors
 
 Four recipe files adapt superstructure from the original ship recipes into
