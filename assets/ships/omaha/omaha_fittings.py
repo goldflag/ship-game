@@ -730,6 +730,15 @@ def searchlights(D, kit):
         kit.part('rod', aid, col, 'barrel', c + Vector((-.32, 0, 1.0)), c + Vector((.30, 0, 1.0)), .40, 'naval', vertices=18)
         kit.part('rod', aid, col, 'lens', c + Vector((.30, 0, 1.0)), c + Vector((.34, 0, 1.0)), .35, 'glass', vertices=18)
         kit.cylz(aid, col, 'ventilator', c + Vector((-.05, 0, 1.38)), .18, .18, 'naval', 10)
+    # A walkway joins the platforms abreast Nos. 3 and 4 funnels on each side, with a hand line along it (reference
+    # side and top views: 14.3 m, from platform edge to platform edge).
+    for s in (-1, 1):
+        aid = 'searchlight-walkway-' + ('port' if s < 0 else 'starboard')
+        a, b = V(s * 3.17, 14.28, 13.22), V(s * 3.17, 14.28, 5.86)
+        kit.beam(aid, col, 'walkway', a, b, .55, .08, 'roof')
+        for t in (-1, 1):
+            kit.member(aid, col, a + Vector((0, t * .26, -.08)), b + Vector((0, t * .26, -.08)), .035, 'naval', 5)
+        kit.wire(aid, col, V(s * 3.44, 15.25, 13.30), V(s * 3.44, 15.25, 5.78), .012, False)
 
 
 # ---------------------------------------------------------------- casemate hoods
@@ -822,6 +831,13 @@ def deck_gear(D, kit):
     kit.lattice('forecastle-crane', col, c + Vector((0, 0, 1.2)), c + Vector((1.9, 0, 3.7)), .28, .28, 5, .035, .02)
     kit.wire('forecastle-crane', col, c + Vector((1.9, 0, 3.6)), c + Vector((1.9, 0, 1.6)), .012, False)
     kit.wire('forecastle-crane', col, c + Vector((0, 0, 2.5)), c + Vector((1.9, 0, 3.75)), .012, False)
+    # The paravane booms stand stowed against the forward superstructure's front, leaning in at the head
+    # (reference AM109: 8.55-15.38 m at z -53.2).
+    for s, (x0, x1) in ((-1, (3.25, 2.08)), (1, (3.75, 2.52))):
+        foot = V(s * x0, 0, -53.28)
+        foot.z = kit.below(foot.x, foot.y, 9.5, 8.5)
+        kit.part('rod', 'paravane-booms', col, 'paravane boom', foot - Vector((0, 0, .02)), V(s * x1, 15.30, -53.28), .10, 'naval', r2=.07, vertices=10)
+        kit.cylz('paravane-booms', col, 'boom heel', foot - Vector((0, 0, .01)), .16, .16, 'naval', 10)
     for s in (-1, 1):
         c = V(s * 4.32, 0, -55.3)
         c.z = kit.below(c.x, c.y, 9.9, 8.3) + .02
