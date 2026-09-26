@@ -401,6 +401,19 @@ def measured_prisms(cuts, cell=.1, gap=3):
         row_deck = np.array([deck_y(z) if -L / 2 - ZS <= z <= L / 2 - ZS else -99 for z in row_z])
         row_half = np.array([max(half_breadth(z, y) for y in (-3, 0, 2, 4, 6)) + .1 for z in row_z])
         col_x = np.abs(x0 + (np.arange(W) + .5) * cell)
+        # The guns' working space is not structure: a traced gun tub or platform fills solid round the mount.
+        # From just over each mount's seat, clear its carriage circle and, for the 25 mm mounts (which carry no
+        # interlocks), the barrels' reach over their training arc. The 12.7 cm mounts' barrels are stopped by
+        # their interlocks against the blocks instead.
+        cx = x0 + (np.arange(W) + .5) * cell
+        cz = z0 + (np.arange(H) + .5) * cell
+        carve = []
+        for gx, gz, gy, carriage, reach, bearing, half in guns:
+            dx, dz = cx[None, :] - gx, cz[:, None] - gz
+            r = np.hypot(dx, dz)
+            ang = (np.degrees(np.arctan2(dx, -dz)) - bearing + 540) % 360 - 180
+            mask = (r <= carriage) | ((r <= reach) & (np.abs(ang) <= half + 8))
+            carve.append((gy, np.nonzero(mask)))
         for k, lv in enumerate(levels):
             img = Image.new('L', (W, H), 0)
             draw = ImageDraw.Draw(img)
@@ -411,6 +424,9 @@ def measured_prisms(cuts, cell=.1, gap=3):
             hull_rows = np.nonzero(row_deck >= lv['y'] - .03)[0]
             if len(hull_rows):
                 grid[hull_rows] &= col_x[None, :] > row_half[hull_rows, None]
+            for gy, where in carve:
+                if gy + .08 < lv["y"] < gy + 3.4:
+                    grid[where] = False
             on = grid.reshape(-1)
             # Above the hull's working decks the towers' open galleries and window bands are bridged up to
             # 1.2 m; lower down, 15 cm.
@@ -500,17 +516,29 @@ def measured_prisms(cuts, cell=.1, gap=3):
         block = dict(id=f"block-{i:03d}", name=f"{label} superstructure {p['base']:.1f}-{p['top']:.1f} m",
                      footprint=[[x, rz(z)] for x, z in ring], baseY=p['base'], height=round(p['top'] - p['base'], 3), material='naval')
         (structures if p["rank"] < MAX_MEASURED else minor).append(block)
-    table = ',\n'.join('    ' + json.dumps(m) for m in minor)
-    (HERE / 'ise_blocks.py').write_text('"""Measured superstructure blocks beyond the blueprint\'s 256-structure limit, written by\n'
-                                        'author-blueprint.py --plan: visual geometry the recipe draws and fittings stand on."""\n'
-                                        f'BLOCKS = [\n{table}\n]\n')
-    return structures
+    return structures, minor
 
+
+PARTS = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
+# Working space per secondary and AA mount (reference x, z, seat y, carriage radius, barrel reach, bearing, half arc).
+CARRIAGE = {'type96-25-triple': 1.2, 'type96-25-kongo-single': .85, 'type89-127-yamato-open-twin': 2.35}
+guns = []
+for m in b['mounts']:
+    if m['battery'] == 'main':
+        continue
+    w = PARTS[m['partId']]
+    reach = w['muzzleForward'] + .2 if m['partId'].startswith('type96') else 0
+    guns.append((m['position'][0], m['position'][2] - ZS, m['position'][1], CARRIAGE[m['partId']], reach, m['bearingDeg'], m.get('traverseDeg', w['traverseDeg'])))
 
 if opts.plan:
-    structures = measured_prisms(json.loads(Path(opts.plan).read_text()))
+    structures, minor_blocks = measured_prisms(json.loads(Path(opts.plan).read_text()))
 else:
     structures = previous['structures']
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('ise_blocks', HERE / 'ise_blocks.py')
+    blocks_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(blocks_module)
+    minor_blocks = blocks_module.BLOCKS
 # Recorded corrections to the measured blocks, by id: None drops a block the recipe draws itself (the barbettes
 # under the turrets, which the recipe builds as cylinders), a dict overrides fields.
 STRUCTURE_EDITS = {}
@@ -529,9 +557,38 @@ structures = [s for s in structures if not inside_barbette(s)]
 # Measured pieces the column raster splits below its 0.3 m2 component floor, added from single plan cuts
 # (reference x0, x1, z0, z1, base, top): the after tower's cantilevered control platform (plan at 18.5 m).
 EXTRA = [('after-control-platform', 'After tower control platform', (-1.4, 1.4, 44.6, 48.69, 17.72, 19.37))]
+structures = [s for s in structures if s['id'] not in {e[0] for e in EXTRA}]
 for sid, name, (x0, x1, z0, z1, y0, y1) in EXTRA:
     structures.append(dict(id=sid, name=name, footprint=[[x0, rz(z0)], [x1, rz(z0)], [x1, rz(z1)], [x0, rz(z1)]], baseY=y0,
                            height=round(y1 - y0, 3), material='naval'))
+
+
+def plan_area(poly):
+    return abs(sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(poly, poly[1:] + poly[:1]))) / 2
+
+
+def box_overlap(a, c):
+    ax = [p[0] for p in a['footprint']]
+    az = [p[1] for p in a['footprint']]
+    cx = [p[0] for p in c['footprint']]
+    cz = [p[1] for p in c['footprint']]
+    return min(ax) < max(cx) and min(cx) < max(ax) and min(az) < max(cz) and min(cz) < max(az)
+
+
+# Overlapping blocks that end at the same height would share a top plane (z-fighting, doubled plating):
+# the smaller one stops 5 cm short.
+for _ in range(6):
+    clashes = 0
+    for a in structures:
+        for c in structures:
+            if a is c or abs(a['baseY'] + a['height'] - c['baseY'] - c['height']) > .035 or not box_overlap(a, c):
+                continue
+            small_one = a if plan_area(a['footprint']) < plan_area(c['footprint']) else c
+            if small_one['height'] > .06:
+                small_one['height'] = round(small_one['height'] - .05, 3)
+                clashes += 1
+    if not clashes:
+        break
 
 
 def contains(poly, x, z):
@@ -549,13 +606,125 @@ FUNNEL = dict(x=0, z=-3.55, base=21.3, width=4.8, length=6.4)
 funnel = sorted((s for s in structures if FUNNEL['base'] < s['baseY'] + s['height'] < 27 and contains(s['footprint'], 0, rz(FUNNEL['z']))),
                 key=lambda s: s['baseY'] + s['height'])
 for s in funnel:
-    s['name'] = 'Funnel ' + s['name'].split('superstructure ')[-1]
+    s['name'] = 'Funnel ' + s['name'].split('superstructure ')[-1].split('Funnel ')[-1]
     s['funnel'] = True
 if funnel:
     top = funnel[-1]
     top['exhaust'] = dict(position=[0, round(top['baseY'] + top['height'], 3), rz(FUNNEL['z'])], width=FUNNEL['width'], length=FUNNEL['length'])
-structures = [{k: v for k, v in s.items() if k != 'funnel'} | ({'id': s['id'] + '-funnel'} if s.get('funnel') else {}) for s in structures]
+structures = [{k: v for k, v in s.items() if k != 'funnel'} | ({'id': s['id'] + '-funnel'} if s.get('funnel') and not s['id'].endswith('-funnel') else {}) for s in structures]
 b['structures'] = structures
+
+
+# Posts under blocks that rest on nothing: whatever carried them in the reference (lattice legs, knees, thin
+# pillars) is under the plan cuts' 0.3 m minimum. A block is carried when some point of its underside lies
+# within 10 cm of the deck or another block's top; otherwise up to four posts drop from it to what lies below.
+def inside(poly, x, z):
+    c = False
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        if (az > z) != (bz > z) and x < (bx - ax) * (z - az) / (bz - az) + ax:
+            c = not c
+    return c
+
+
+ALL_BLOCKS = structures + minor_blocks
+
+
+def surface_below(x, zr, y, skip):
+    """Highest deck or block top at or below y over (x, reference z)."""
+    best = -99.0
+    d = deck_y(zr)
+    if -L / 2 < zr + ZS < L / 2 and abs(x) <= half_breadth(zr, d - .05) + .05 and d <= y + .05:
+        best = d
+    for o in ALL_BLOCKS:
+        if o is skip:
+            continue
+        top = o['baseY'] + o['height']
+        if best < top <= y + .05 and o['baseY'] < y and inside(o['footprint'], x, zr + ZS):
+            best = top
+    return best
+
+
+def mount_space(x, zr):
+    """True inside a gun's working circle (posts stay out of it)."""
+    return any(math.hypot(x - gx, zr - gz) < (carriage if not reach else max(carriage, reach)) + .2 for gx, gz, gy, carriage, reach, _, _ in guns) or \
+        any(math.hypot(x, zr - z) < 7.2 for _, _, _, z, _ in MAIN)
+
+
+def carried(s, x, zr):
+    """True when the deck or another block reaches the block's underside at (x, reference z): a surface within
+    10 cm under it, or something the block's base passes into."""
+    base, top = s['baseY'], s['baseY'] + s['height']
+    d = deck_y(zr)
+    if -L / 2 < zr + ZS < L / 2 and abs(x) <= half_breadth(zr, d - .05) + .05 and base - .05 <= d <= top:
+        return True
+    return any(o is not s and o['baseY'] <= base + .05 and o['baseY'] + o['height'] >= base - .05 and inside(o['footprint'], x, zr + ZS)
+               for o in ALL_BLOCKS)
+
+
+def edge_gap(a, c):
+    """Smallest distance from a vertex of either outline to an edge of the other."""
+    def point_edges(p, poly):
+        best = 1e9
+        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+            dx, dz = bx - ax, bz - az
+            t = max(0, min(1, ((p[0] - ax) * dx + (p[1] - az) * dz) / max(1e-12, dx * dx + dz * dz)))
+            best = min(best, math.hypot(p[0] - ax - t * dx, p[1] - az - t * dz))
+        return best
+    return min(min(point_edges(p, c) for p in a), min(point_edges(p, a) for p in c))
+
+
+def side_attached(s):
+    """True when a block standing beside this one over at least 10 cm of its height touches its walls."""
+    xs = [p[0] for p in s['footprint']]
+    zs = [p[1] for p in s['footprint']]
+    for o in ALL_BLOCKS:
+        if o is s or min(s['baseY'] + s['height'], o['baseY'] + o['height']) - max(s['baseY'], o['baseY']) < .1:
+            continue
+        ox = [p[0] for p in o['footprint']]
+        oz = [p[1] for p in o['footprint']]
+        if min(ox) > max(xs) + .1 or min(xs) > max(ox) + .1 or min(oz) > max(zs) + .1 or min(zs) > max(oz) + .1:
+            continue
+        if edge_gap(s["footprint"], o["footprint"]) <= .05:
+            return True
+    return False
+
+
+posts = []
+for s in ALL_BLOCKS:
+    fp = [(p[0], p[1] - ZS) for p in s['footprint']]
+    cx, cz = sum(p[0] for p in fp) / len(fp), sum(p[1] for p in fp) / len(fp)
+    samples = [(cx, cz)] + [(px + (cx - px) * .15, pz + (cz - pz) * .15) for px, pz in fp]
+    base = s['baseY']
+    if any(carried(s, x, z) for x, z in samples) or side_attached(s):
+        continue
+    feet = []
+    for px, pz in sorted(fp, key=lambda p: -math.hypot(p[0] - cx, p[1] - cz)):
+        fx, fz = px + (cx - px) * .25, pz + (cz - pz) * .25
+        if all(math.hypot(fx - a, fz - c) > 1.2 for a, c in feet) and not mount_space(fx, fz):
+            feet.append((fx, fz))
+        if len(feet) == 4:
+            break
+    area = plan_area(fp)
+    r = .06 if area < 6 else .09 if area < 30 else .13
+    added = 0
+    for fx, fz in feet or [(cx, cz)]:
+        floor = surface_below(fx, fz, base - .01, s)
+        if 0 < base - floor < 14:
+            posts.append([round(fx, 3), rz(fz), round(floor - .02, 3), round(base + .02, 3), r])
+            added += 1
+    if not added and s in minor_blocks:
+        # A thin plate high over open space (a yard platform whose brackets fall under the cuts' minimum) is
+        # left out rather than stood on posts over 14 m tall.
+        s['unsupported'] = True
+minor_blocks = [s for s in minor_blocks if not s.pop('unsupported', False)]
+# Posts are obstructions too, so barrels stop at them rather than pass through.
+for i, (x, z, y0, y1, r) in enumerate(posts):
+    b['obstructions'].append(dict(id=f'post-{i}', center=[x, round((y0 + y1) / 2, 3), z], size=[round(2 * r + .1, 3), round(y1 - y0, 3), round(2 * r + .1, 3)]))
+table = ',\n'.join('    ' + json.dumps(m) for m in minor_blocks)
+(HERE / 'ise_blocks.py').write_text('"""Measured superstructure blocks beyond the blueprint\'s 256-structure limit, and the posts under blocks\n'
+                                    'that rest on nothing, written by author-blueprint.py: geometry the recipe draws and fittings stand on."""\n'
+                                    f'BLOCKS = [\n{table}\n]\n# [x, z, foot y, head y, radius] in the runtime frame\nPOSTS = {json.dumps(posts)}\n')
+print(f'posts: {len(posts)}')
 print(f'structures: {len(structures)}')
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, each outline cut into
@@ -586,6 +755,13 @@ for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
     for side, sign in [('port', -1), ('starboard', 1)]:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
                                       size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
+# The dinghy on the forecastle, under No. 1 turret's depressed barrels when trained to port.
+b['obstructions'].append(dict(id='dinghy', center=[-4.43, 7.98, rz(-69.74)], size=[1.62, 1.15, 6.36]))
+# The superfiring turrets' barbettes, up to just under their gunhouses, so the lower turret's barrels stop at
+# them: No. 2 over No. 1, No. 3 over No. 4.
+for mid, (y0, zr) in [('main-2', (6.9, -48.895)), ('main-3', (4.51, 9.498))]:
+    top = next(y for i, _, y, z, _ in MAIN if i == mid) - .1
+    b['obstructions'].append(dict(id=f'{mid}-barbette', center=[0, round((y0 + top) / 2, 3), rz(zr)], size=[9.6, round(top - y0, 3), 9.6]))
 
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: main barrels (with the full recoil stroke) and gunhouses may not enter the blocks they

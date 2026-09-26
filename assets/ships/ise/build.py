@@ -162,38 +162,11 @@ for ob in [o for o in shells if o['assemblyId'] in CLAIMED]:
     bpy.data.objects.remove(ob, do_unlink=True)
 kit = Kit(D, helpers, materials, collections, support)
 
-# Measured blocks resting on nothing (whatever carried them was under the plan cuts' 0.3 m minimum, or a
-# block between was dropped) stand on posts down to the structure or deck below.
-for s in D['structures'] + [dict(b, id='minor-' + b['id']) for b in BLOCKS]:
-    if s['id'] in CLAIMED:
-        continue
-    pts = [(-z, -x) for x, z in s['footprint']]
-    cx, cy = sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)
-    base = s['baseY']
-
-    def gap(x, y):
-        try:
-            return base - support.below(x, y, base - .03)
-        except ValueError:
-            return 99
-    if min(gap(x, y) for x, y in pts + [(cx, cy)]) <= .1:
-        continue
-    far = sorted(pts, key=lambda p: -math.hypot(p[0] - cx, p[1] - cy))
-    feet = []
-    for px, py in far:
-        if all(math.hypot(px - fx, py - fy) > 1.2 for fx, fy in feet):
-            feet.append((px, py))
-        if len(feet) == 4:
-            break
-    area = abs(sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(pts, pts[1:] + pts[:1]))) / 2
-    r = .06 if area < 6 else .09 if area < 30 else .13
-    for fx, fy in feet or [(cx, cy)]:
-        x, y = fx + (cx - fx) * .25, fy + (cy - fy) * .25
-        try:
-            floor = support.below(x, y, base - .03)
-        except ValueError:
-            continue
-        kit.part('rod', s['id'], collections['Superstructure'], 'post', (x, y, floor - .02), (x, y, base + .02), r, 'naval', vertices=10)
+# Posts under measured blocks that rest on nothing (author-blueprint.py computes them; they are also firing
+# obstructions in the blueprint).
+from ise_blocks import POSTS
+for i, (x, z, y0, y1, r) in enumerate(POSTS):
+    kit.part('rod', 'superstructure-posts', collections['Superstructure'], 'post', (-z, -x, y0), (-z, -x, y1), r, 'naval', vertices=10)
 
 # ---------------------------------------------------------------- guns
 arm = collections['Main and secondary batteries']
@@ -210,6 +183,17 @@ for mount in D['mounts']:
         ob = cyl(mount['id'] + '.barbette', (x, y, (floor + top) / 2), 4.8, top - floor + .02, 'naval', arm, 72)
         ob['assemblyId'] = mount['id']
         kit.cylz(mount['id'], arm, 'barbette top ring', (x, y, top - .16), 4.9, .12, 'naval', vertices=72)
+    else:
+        # Every secondary and AA mount stands on a seat plate down to the platform or deck under it.
+        seat_r = {'type96-25-triple': .75, 'type96-25-kongo-single': .45, 'type89-127-yamato-open-twin': 1.5}[kind]
+        try:
+            floor = support.below(x, y, z + .05)
+        except ValueError:
+            floor = z - .1
+        if z - floor > 1.5:
+            floor = z - .1
+        seat = cyl(mount['id'] + '.seat', (x, y, (floor + z) / 2 - .01), seat_r, max(.06, z - floor + .02), 'naval', col, 32)
+        seat['assemblyId'] = mount['id']
     create_mount(mount, col, helpers, materials)
     if kind == 'type96-25-kongo-single':
         # The shared single's ring sight hangs 8 cm off its rail; the sight's cross-wires, owned by the same
