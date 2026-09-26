@@ -468,9 +468,10 @@ class Kit:
         self.part('box', id, col, 'operator shield', tuple(c - Vector((fx, fy, 0)) * .45 + Vector((0, 0, -.1))), (.8, .9, .9), 'naval')
 
     # ------------------------------------------------------------ measured windows, roof rails and knees
-    def windows(self, assembly, col, rows, zone=None):
+    def windows(self, assembly, col, rows, zone=None, rim='painted-edge'):
         """Dark glass panes and rimmed portholes from a measured table (runtime frame rows:
-        kind, x, y, z, width, height, normal x, normal z), merged into two meshes per assembly."""
+        kind, x, y, z, width, height, normal x, normal z), merged into two meshes per assembly;
+        `rim` paints the frames (the reference's hull scuttles have brass rims)."""
         panes, rims = ([], []), ([], [])
 
         def quad(buf, c, u, w, h, d):
@@ -503,7 +504,7 @@ class Kit:
             else:
                 quad(rims, c, u, w + .08, h + .08, n * .012)
                 quad(panes, c, u, w, h, n * .02)
-        for (vv, ff), material, label in [(rims, 'painted-edge', 'window frames'), (panes, 'glass', 'window glass')]:
+        for (vv, ff), material, label in [(rims, rim, 'window frames'), (panes, 'glass', 'window glass')]:
             if ff:
                 self.tag(self.mesh(assembly + '.' + label, vv, ff, material, col), assembly)
 

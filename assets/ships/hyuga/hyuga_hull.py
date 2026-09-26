@@ -3,8 +3,8 @@ deck-edge rails and everything below the waterline.
 
 Owns the fittings table (ventilators, hatches, winches, reels, fairleads, cleats, life buoys, capstans,
 paravanes, anchors, ammunition boxes, lamps and ladders at the reference's positions and sizes), the
-anchors in their hawses, the four three-bladed screws with their shafts and brackets, the inner shaft
-skegs and the twin rudders. Datums are reference-frame measurements converted by `P`.
+anchors in their hawses, the four three-bladed screws with their exposed shafts and A-brackets, and the
+twin rudders. Datums are reference-frame measurements converted by `P`.
 """
 import math
 from mathutils import Vector
@@ -23,7 +23,7 @@ def build(D, kit):
     deck_fittings(kit, deck)
     anchors(kit, deck)
     crest_and_staffs(kit, deck)
-    kit.windows('hull-portholes', cols['Hull and decks'], WINDOWS['hull'])
+    kit.windows('hull-portholes', cols['Hull and decks'], WINDOWS['hull'], rim='brass')
     screws_and_rudders(kit, under)
     deck_edge_rails(D, kit, deck)
 
@@ -194,7 +194,7 @@ def crest_and_staffs(kit, col):
     kit.part('rod', 'jackstaff', col, 'staff', (fx, fy, floor), (fx, fy, floor + 7.4), .05, 'naval', vertices=8)
 
 
-# ---------------------------------------------------------------- screws, shafts, brackets, skegs and rudders
+# ---------------------------------------------------------------- screws, shafts, brackets and rudders
 def screw(kit, id, col, hub, pitch_hand, R=1.8):
     """Three-bladed screw on a tapered boss; blades lofted with pitch and skew."""
     hx, hy, hz = hub
@@ -237,19 +237,24 @@ def screw(kit, id, col, hub, pitch_hand, R=1.8):
 
 
 def rudder(kit, id, col, rx):
-    """Streamlined rudder blade (reference z 85.9-92.8, 4.7 m deep) under a stock into the counter."""
-    zs = [85.86, 86.1, 86.6, 87.4, 88.4, 89.5, 90.7, 91.8, 92.5, 92.8]
-    top = [-4.9, -4.75, -4.7, -4.68, -4.68, -4.7, -4.72, -4.75, -4.8, -4.9]
-    bot = [-4.9, -8.7, -9.1, -9.3, -9.36, -9.36, -9.3, -9.15, -8.9, -4.9]
-    c0, c1 = zs[0], zs[-1]
+    """Streamlined rudder blade (reference z 85.86-92.8, from the counter at 4.7 m down to 9.36 m) with the
+    reference's rounded corners, under a stock into the counter."""
+    z0, z1, yt, yb = 85.86, 92.8, -4.7, -9.36
+    rt, rb = .6, .9                     # top and bottom corner radii
+    n = 25
+    zs = [z0 + (z1 - z0) * (1 - math.cos(math.pi * i / (n - 1))) / 2 for i in range(n)]
+
+    def corner(z, r):
+        d = max(0.0, z0 + r - z, z - (z1 - r))
+        return r - math.sqrt(max(0.0, r * r - d * d))
     vv = []
-    for z, yt, yb in zip(zs, top, bot):
-        u = (z - c0) / (c1 - c0)
+    for z in zs:
+        u = (z - z0) / (z1 - z0)
         f = 1.4845 * math.sqrt(u) - .63 * u - 1.758 * u * u + 1.4215 * u ** 3 - .5075 * u ** 4
-        t = max(.02, .4 * f / .5)
-        for sx, yy in ((-1, yb), (1, yb), (1, yt), (-1, yt)):
+        t = max(.02, .3 * f / .5)
+        top, bot = yt - corner(z, rt), yb + corner(z, rb)
+        for sx, yy in ((-1, bot), (1, bot), (1, top), (-1, top)):
             vv.append(P(rx + sx * t, yy, z))
-    n = len(zs)
     ff = [(4 * i + j, 4 * i + (j + 1) % 4, 4 * (i + 1) + (j + 1) % 4, 4 * (i + 1) + j) for i in range(n - 1) for j in range(4)]
     ff += [(3, 2, 1, 0), (4 * (n - 1), 4 * (n - 1) + 1, 4 * (n - 1) + 2, 4 * (n - 1) + 3)]
     kit.tag(kit.mesh(id + '.blade', vv, ff, 'antifouling', col), id)
@@ -260,41 +265,26 @@ def rudder(kit, id, col, rx):
 
 
 def screws_and_rudders(kit, col):
-    sup = kit.support
-    # Screws (reference propeller bounds): outer pair at z 75.1, inner pair at z 84.2.
-    for id, (rx, ry, rz_), shaft_from in [('screw-1', (-7.11, -6.43, 75.12), 62.0), ('screw-2', (-2.86, -7.17, 84.18), 74.0),
-                                          ('screw-3', (2.87, -7.17, 84.18), 74.0), ('screw-4', (7.11, -6.43, 75.12), 62.0)]:
+    # Screws (reference propeller bounds): outer pair at z 75.1, inner pair at z 84.2. Each shaft runs exposed,
+    # painted with the bottom, nearly level from its screw to where it leaves the shell (the outer pair near
+    # reference z 64, the inner pair near z 71), on an A-bracket two metres ahead of the screw.
+    for id, (rx, ry, rz_), (ey, ez) in [('screw-1', (-7.11, -6.43, 75.12), (-6.7, 62.5)), ('screw-2', (-2.86, -7.17, 84.18), (-7.35, 69.5)),
+                                        ('screw-3', (2.87, -7.17, 84.18), (-7.35, 69.5)), ('screw-4', (7.11, -6.43, 75.12), (-6.7, 62.5))]:
         x, y, z = P(rx, ry, rz_)
         screw(kit, id, col, (x, y, z), 1 if rx < 0 else -1)
-        sx, sy, sz = P(rx, ry + .6, shaft_from)
-        kit.part('rod', id, col, 'shaft', (x + .5, y, z), (sx, sy, sz), .24, 'edge', vertices=12)
-        # A-bracket two metres ahead of the screw, its legs into the hull.
-        bx, by, bz = P(rx, ry + .08, rz_ - 1.9)
-        kit.part('rod', id, col, 'bracket boss', (bx + .45, by, bz), (bx - .45, by, bz), .33, 'antifouling', vertices=12)
+        hub, far = Vector((x + .5, y, z)), Vector(P(rx, ey, ez))
+        kit.part('rod', id, col, 'shaft', tuple(hub), tuple(far), .24, 'antifouling', vertices=12)
+        # The shaft's fairing from the screw forward past the bracket, as the reference swells it.
+        kit.part('rod', id, col, 'shaft fairing', tuple(hub), tuple(hub.lerp(far, 3.2 / (far - hub).length)), .4, 'antifouling', vertices=16, r2=.3)
+        b = hub.lerp(far, 1.4 / (far - hub).length)
+        bx, by, bz = b
+        kit.part('rod', id, col, 'bracket boss', (bx + .5, by, bz), (bx - .5, by, bz), .45, 'antifouling', vertices=16)
+        # Two streamlined struts, their chord along the ship, up and out to the shell.
         for dy in (-.9, .9):
             target = (bx, by + dy * 1.4, bz + 2.4)
             hit = kit.try_along((bx, by, bz), Vector(target) - Vector((bx, by, bz)), 5.0)
             end = tuple(hit + (hit - Vector((bx, by, bz))).normalized() * .15) if hit else target
-            kit.part('rod', id, col, 'bracket', (bx, by, bz), end, .13, 'antifouling', vertices=8)
-    # Inner shaft skegs (reference z 73-83 at x 2.86, down to y -7.96).
-    for s in (-1, 1):
-        A = f'skeg-{"port" if s < 0 else "starboard"}'
-        pts = [(73.0, -7.6), (75.5, -7.95), (80.0, -7.96), (83.0, -7.6)]
-        vv = []
-        for zr, yb in pts:
-            x, y, _ = P(s * 2.86, 0, zr)
-            top = kit.try_along((x, y, yb), (0, 0, 1), 6.0)
-            yt = top.z + .1 if top else yb + 2.0
-            for dx in (-.35, .35):
-                vv += [(x, y + dx, yb), (x, y + dx, yt)]
-        n = len(pts)
-        ff = []
-        for i in range(n - 1):
-            a, b = 4 * i, 4 * (i + 1)
-            ff += [(a, b, b + 1, a + 1), (a + 3, b + 3, b + 2, a + 2), (a, a + 2, b + 2, b), (a + 1, b + 1, b + 3, a + 3)]
-        ff += [(0, 1, 3, 2), (4 * (n - 1) + 2, 4 * (n - 1) + 3, 4 * (n - 1) + 1, 4 * (n - 1))]
-        ob = kit.mesh(A + '.skeg', vv, ff, 'antifouling', col)
-        kit.tag(ob, A)
+            kit.beam(id, col, 'bracket', (bx, by, bz), end, .7, .14, 'antifouling')
     for id, rx in [('rudder-port', -1.87), ('rudder-starboard', 1.87)]:
         rudder(kit, id, col, rx)
 
