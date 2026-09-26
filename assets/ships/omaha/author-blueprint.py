@@ -96,6 +96,12 @@ def width_at(profile, y):
     return interp(profile, y)
 
 
+# Stem: the lowest hull point at each station of the raked stem and forefoot (reference cuts; the lines' running
+# median lags it by up to 1.7 m). The loft's end stations stand at the stem head and just abaft the stern.
+STEM = [(-85.62, 9.95), (-85.40, 9.60), (-85.20, 8.70), (-85.00, 7.66), (-84.80, 6.26), (-84.50, 4.20), (-84.00, 1.03),
+        (-83.50, -1.72), (-83.00, -3.40), (-82.40, -3.40)]
+BOW_END, STERN_END = -85.62, 83.85
+
 measured = []
 for s in lines['sections']:
     zr = L / 2 - s['station'] - ZSHIFT
@@ -104,7 +110,15 @@ for s in lines['sections']:
     if KEEL_FLAT[0] < zr < KEEL_FLAT[1] and keel > KEEL_FLAT[2] + .05:
         profile = [(KEEL_FLAT[2], 0.0)] + [q for q in profile[1:]]
         keel = KEEL_FLAT[2]
+    if zr < STEM[-1][0]:
+        keel = interp(STEM, zr)
+        profile = [(keel, 0.0)] + [q for q in profile[1:] if q[0] > keel + .02]
     measured.append(dict(zr=zr, keel=keel, profile=profile))
+# End stations: a sliver at the stem head and one closing the cruiser stern under its deck edge.
+tip = lambda zr, keel, deck: dict(zr=zr, keel=keel, profile=[(keel, 0.0), (deck, .04)])
+measured.append(tip(BOW_END, interp(STEM, BOW_END), deck_ref(BOW_END)))
+measured.append(tip(STERN_END, .8, 3.82))
+measured.sort(key=lambda e: e['zr'])
 
 
 def resample(entry, deck):
@@ -592,9 +606,10 @@ b['damageControl'] = dict(version=1, teams=3, setupSeconds=8, repairPoints=240, 
                           basis='Placeholder; author-damage-control.ts writes the shared fleet defaults.')
 b['localDamage'] = dict(version=1, regions=[dict(id='hull-placeholder', name='Hull', kind='hull', durabilityFraction=1, center=[0, 0, 0], size=[round(beam, 3), 30, round(L, 3)])],
                         basis='Placeholder; author-local-damage.ts replaces it.')
-# Keep the gameplay data the helpers wrote (local damage, flood spaces, stability, damage control) when rebuilding.
+# Keep the committed local damage and damage control the helpers wrote; flood spaces and stability follow the hull
+# and rooms, so rerun author-flood-spaces.ts and author-stability.ts after this script.
 if previous:
-    for key in ['localDamage', 'floodRegions', 'stability', 'damageControl']:
+    for key in ['localDamage', 'damageControl']:
         if key in previous and not (key == 'localDamage' and previous[key]['regions'][0]['id'] == 'hull-placeholder'):
             b[key] = previous[key]
 write(HERE / 'blueprint.json', b)
