@@ -103,9 +103,10 @@ def directors(kit):
     for x0 in (-2.288, 2.375):
         A = 'searchlight-control-' + ('port' if x0 < 0 else 'starboard')
         x, y, z = P(x0, 20.435, 20.155)
-        kit.cylz(A, col, 'pedestal', (x, y, z), .25, .3, 'naval', 16)
-        kit.cylz(A, col, 'drum', (x, y, z + .3), .78, .55, 'naval', 20)
-        kit.boxc(A, col, 'hood', (x + .25, y, z + .95), (.6, .5, .3), 'naval')
+        # Held to the reference's 0.93 m so the 25 mm singles beside it clear it at level.
+        kit.cylz(A, col, 'pedestal', (x, y, z), .25, .22, 'naval', 16)
+        kit.cylz(A, col, 'drum', (x, y, z + .22), .78, .5, 'naval', 20)
+        kit.boxc(A, col, 'hood', (x + .25, y, z + .82), (.6, .5, .2), 'naval')
 
 
 # ------------------------------------------------------------------ mainmast

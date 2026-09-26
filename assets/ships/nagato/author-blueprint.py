@@ -121,8 +121,10 @@ else:
     structures = previous['structures']
 # Recorded corrections to the measured prisms, one per line: None drops a prism, a dict overrides fields.
 STRUCTURE_EDITS = {
-    'deckhouse-005': None,            # a 0.3 m scrap of the accommodation-ladder platform outboard of the upper deck
-    'platform-005': None,             # its 0.15 m companion
+    'deckhouse-005': None,            # a scrap of the accommodation-ladder platform outboard of the upper deck
+    'platform-065': None,             # one level of the sloped catwalk abaft the pagoda top, clear of every modelled wall
+    'platform-075': None,             # ladder landings on the pagoda's after legs, which stand 3 m clear of the
+    'platform-076': None,             # stepped prisms that model those legs
 }
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures
               if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
@@ -156,9 +158,14 @@ MAIN = [('main-1', 'No. 1 turret', 'type3-410-nagato-twin', (7.452, -63.715), 0,
         ('main-2', 'No. 2 turret', 'type3-410-nagato-twin-rf', (10.722, -49.296), 0, True),
         ('main-3', 'No. 3 turret', 'type3-410-nagato-twin-rf-aft', (8.199, 48.326), 180, True),
         ('main-4', 'No. 4 turret', 'type3-410-nagato-twin', (4.793, 63.18), 180, False)]
+# The superfiring pair rest at 8 degrees: level, their barrels would pass through the lower turret's rear-roof arch
+# and davit (4.6-4.8 m over its sole), as they would on the reference's own turrets.
 for id, name, part, (y, z), bearing, rangefinder in MAIN:
-    b['mounts'].append(dict(id=id, name=name + ' 41 cm', partId=part, battery='main', position=[0, y, rz(z)], bearingDeg=bearing,
-                            rangefinder=rangefinder, magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN))
+    mount = dict(id=id, name=name + ' 41 cm', partId=part, battery='main', position=[0, y, rz(z)], bearingDeg=bearing,
+                 rangefinder=rangefinder, magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN)
+    if id in ('main-2', 'main-3'):
+        mount['initialElevationDeg'] = 8
+    b['mounts'].append(mount)
 # Eighteen 14 cm casemates (HP_JGS, jgs053): the forward lower row on the casemate shelf, the upper row on the
 # forecastle deck and the after pair each side on the upper deck. bearingDeg is the arc centre; the reference
 # rests them trained fore or aft along the side, which the rest rule reproduces.
@@ -166,12 +173,21 @@ CASEMATES = [('l1', 12.397, 4.031, -33.607), ('u1', 8.620, 6.933, -29.641), ('l2
              ('l3', 13.260, 4.026, -17.313), ('u3', 9.647, 6.933, -12.342), ('l4', 13.208, 4.026, -9.136), ('a1', 12.789, 3.780, 14.484),
              ('a2', 11.512, 3.780, 21.540)]
 CASEMATE_ARC = {'l': (90, 80), 'u': (90, 80), 'a': (90, 75)}
+# Degrees of train from the beam toward the bow and toward the stern where the barrel stays clear of the ship:
+# No. 1 upper stops short of the pagoda base overhang, No. 3 upper of the boat crane, No. 4 lower of the deck-edge
+# sponson and the sheet anchor, the first after gun of the sponson above it (sweep contacts; game stops).
+CASEMATE_LIMITS = {'u1': (80, 65), 'u3': (80, 35), 'l4': (80, 35), 'a1': (60, 75), 'a2': (60, 75)}
 for side, sign in [('p', -1), ('s', 1)]:
     for key, x, y, z in CASEMATES:
         centre, half = CASEMATE_ARC[key[0]]
-        b['mounts'].append(dict(id=f'casemate-{side}{key}', name=f'{"Port" if sign < 0 else "Starboard"} casemate {key} 14 cm', partId='type3-140-nagato-casemate',
-                                battery='secondary', position=[round(sign * x, 3), y, rz(z)], bearingDeg=sign * centre, traverseDeg=half, rangefinder=False,
-                                magazineId='secondary-magazine-forward' if z < 0 else 'secondary-magazine-after', fire=FIRE_LIGHT))
+        mount = dict(id=f'casemate-{side}{key}', name=f'{"Port" if sign < 0 else "Starboard"} casemate {key} 14 cm', partId='type3-140-nagato-casemate',
+                     battery='secondary', position=[round(sign * x, 3), y, rz(z)], bearingDeg=sign * centre, traverseDeg=half, rangefinder=False,
+                     magazineId='secondary-magazine-forward' if z < 0 else 'secondary-magazine-after', fire=FIRE_LIGHT)
+        if key in CASEMATE_LIMITS:
+            fwd, aft = CASEMATE_LIMITS[key]
+            # Compass sense relative to the arc centre: toward the bow is negative on the starboard side.
+            mount['traverseLimitsDeg'] = [-aft, fwd] if sign < 0 else [-fwd, aft]
+        b['mounts'].append(mount)
 # Four twin 12.7 cm Type 89 (HP_JGS 1, 23, 24, 25; jgs009 is the catalog A1 twin's own reference visual).
 HA = [('ha-1', -8.417, 11.404, -25.208, -90), ('ha-2', 8.417, 11.404, -25.208, 90), ('ha-3', -6.418, 8.315, 15.782, -110), ('ha-4', 6.419, 8.315, 15.782, 110)]
 for id, x, y, z, bearing in HA:
@@ -188,11 +204,17 @@ TWINS = [(-3.736, 20.616, -36.208, -45), (3.737, 20.616, -36.208, 45), (-4.861, 
 SINGLES = [(-10.446, 6.492, -46.744, -45), (10.523, 6.491, -46.738, 45), (-11.433, 6.486, -42.318, -45), (11.759, 6.483, -42.315, 45),
            (-5.743, 17.484, -28.125, -90), (5.744, 17.484, -28.125, 90), (-1.155, 20.249, 19.643, -119), (1.128, 20.246, 19.751, 109),
            (-12.466, 3.705, 45.527, -135), (12.644, 3.675, 43.749, 135), (-12.090, 3.759, 49.410, -135), (12.173, 3.747, 48.509, 135)]
+# The two singles inside the mainmast tripod work only abaft and outboard of its legs, over the searchlight-control
+# sights, never depressed (game stops, not historical ones).
+SINGLE_STOPS = {7: dict(bearingDeg=-110, traverseDeg=40, elevationMinDeg=0), 8: dict(bearingDeg=110, traverseDeg=40, elevationMinDeg=0)}
 for group, part, rows, label in [('aa3', 'type96-25-triple', TRIPLES, 'triple'), ('aa2', 'type96-25-mogami-2', TWINS, 'twin'),
                                  ('aa1', 'type96-25-kongo-single', SINGLES, 'single')]:
     for i, (x, y, z, bearing) in enumerate(rows, 1):
-        b['mounts'].append(dict(id=f'{group}-{i}', name=f'25 mm {label} {i}', partId=part, battery='secondary', position=[x, y, rz(z)],
-                                bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition', fire=FIRE_LIGHT))
+        mount = dict(id=f'{group}-{i}', name=f'25 mm {label} {i}', partId=part, battery='secondary', position=[x, y, rz(z)],
+                     bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition', fire=FIRE_LIGHT)
+        if group == 'aa1' and i in SINGLE_STOPS:
+            mount.update(SINGLE_STOPS[i])
+        b['mounts'].append(mount)
 # Two triples on the roofs of Nos. 2 and 3 turrets train with them (HP_JGM_2/3_HP_JGA; neutral datums).
 for parent, rows in [('main-2', [(-1.900, 13.998, -48.096, 0), (1.901, 13.998, -48.098, 0)]), ('main-3', [(1.899, 11.475, 47.109, 180), (-1.899, 11.475, 47.109, 180)])]:
     for i, (x, y, z, bearing) in enumerate(rows, 1):
@@ -223,22 +245,47 @@ for s in structures:
                                       size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
 
 # ---------------------------------------------------------------- installation interlocks
-# CPU motion envelopes: main barrels (with the full recoil stroke) and gunhouses may not enter the prisms they can
-# reach, and the superfiring pairs may not cross. Game clearance, not verified historical stops.
+# CPU motion envelopes for every hull-mounted gun except the casemates (whose drums turn half inside their wall
+# recesses): barrels with the full recoil stroke and the rotating bodies may not enter the measured prisms they can
+# reach, and neighbouring mounts whose working circles overlap may not cross (Takao's scheme). Game clearance, not
+# verified historical stops.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
+# Rotating bodies in the yaw frame (x across, y up, z aft): each 41 cm gunhouse from its sole over the roof arch,
+# rails and davit (3.9 m) or the rangefinder housing (4.3 m), the rear plate 7.1 m (No. 3: 7.8 m) behind the axis and
+# the face 5.2 m ahead; the open mounts' carriages, seats and magazines behind their trunnions.
+BODIES = {'type89-127-a1-twin': dict(center=[0, 1.2, .35], size=[2.9, 2.4, 2.6]),
+          'type96-25-triple': dict(center=[0, .95, .3], size=[2.0, 1.9, 1.7]),
+          'type96-25-mogami-2': dict(center=[0, .95, .25], size=[1.7, 1.9, 1.6]),
+          'type96-25-kongo-single': dict(center=[0, .9, .25], size=[.8, 1.8, 1.2])}
 clear_mounts, reach = [], {}
 for m in b['mounts']:
-    if m['battery'] != 'main' and not m['id'].startswith('ha-'):
+    if m['partId'].startswith('type3-140') or m.get('parentMountId'):
         continue
     w = catalog[m['partId']]
-    entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
+    entry = dict(mountId=m['id'], barrelRadiusM=round(max(w['barrelBaseRadius'] * .8, .05), 3))
     if m['battery'] == 'main':
-        # Gunhouse from the sole to the roof crown, the rear plate 7.1 m (No. 3: 7.8 m) behind the axis and the face
-        # 5.2 m ahead; the rangefinder turrets carry their 11.9 m housing across the rear roof.
+        # Gunhouse and roof rails to 4.05 m; the plain turrets' rear-roof arch (to 4.61 m, 4.4-6.4 m abaft the axis,
+        # 2.3 m across) and davit (4.76 m), and the rangefinder turrets' housing across the rear roof, as capsules.
         rear = 7.8 if m['partId'].endswith('rf-aft') else 7.1
-        entry['body'] = dict(center=[0, 1.6, round((rear - 5.2) / 2, 3)], size=[11.9 if m['rangefinder'] else 10.2, 3.1, round(rear + 5.2, 3)])
+        entry['body'] = dict(center=[0, 2.025, round((rear - 5.2) / 2, 3)], size=[10.4, 4.05, round(rear + 5.2, 3)])
+        if m['rangefinder']:
+            back, top = (5.05, 4.55) if m['partId'].endswith('rf-aft') else (4.4, 4.1)
+            entry['fittings'] = [dict(joint='yaw', a=[-5.3, top, back], b=[5.3, top, back], radiusM=.85)]
+        else:
+            entry['fittings'] = [dict(joint='yaw', a=[-.65, 4.1, 5.4], b=[.65, 4.1, 5.4], radiusM=.62),
+                                 dict(joint='yaw', a=[0, 3.3, 4.71], b=[0, 4.62, 4.71], radiusM=.3)]
+    else:
+        entry['body'] = BODIES[m['partId']]
     clear_mounts.append(entry)
-    reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
+    reach[m['id']] = (m['position'], w['muzzleForward'] + (1.5 if m['battery'] == 'main' else 1.0), m['position'][1] + w['pivotHeight'])
+pairs = []
+ids = list(reach)
+for i, a in enumerate(ids):
+    for c in ids[i + 1:]:
+        (pa, ra, _), (pc, rc, _) = reach[a], reach[c]
+        if math.hypot(pa[0] - pc[0], pa[2] - pc[2]) < ra + rc - 1.0 and abs(pa[1] - pc[1]) < 3.6:
+            pairs.append((math.hypot(pa[0] - pc[0], pa[2] - pc[2]), [a, c]))
+neighbors = [p for _, p in sorted(pairs)[:128]]
 nearby = []
 for st in structures:
     xs = [p[0] for p in st['footprint']]
@@ -247,14 +294,14 @@ for st in structures:
     for (x, y, z), r, pivot in reach.values():
         dx = max(min(xs) - x, 0, x - max(xs))
         dz = max(min(zs) - z, 0, z - max(zs))
-        if math.hypot(dx, dz) <= r and st['baseY'] < pivot + 2 and st['baseY'] + st['height'] > pivot - 3:
+        if math.hypot(dx, dz) <= r and st['baseY'] < pivot + r * .8 and st['baseY'] + st['height'] > pivot - 3:
             best = min(best if best is not None else 1e9, math.hypot(dx, dz))
     if best is not None:
         nearby.append((best, st['id']))
 nearby = [sid for _, sid in sorted(nearby)[:128]]
-b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 12.7 cm mounts against the measured superstructure prisms they can reach, including the full recoil stroke, and between the superfiring turret pairs. Game clearance envelopes, not verified historical mechanical stops.',
+b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for every hull-mounted gun but the casemates (41 cm, 12.7 cm and 25 mm) against the measured superstructure prisms they can reach, including the full recoil stroke, and between neighbouring mounts whose working circles overlap. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
-                           neighbors=[['main-1', 'main-2'], ['main-3', 'main-4']])
+                           neighbors=neighbors)
 
 # ---------------------------------------------------------------- rooms, machinery, directors (reference z)
 def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):

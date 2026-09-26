@@ -1,0 +1,9 @@
+{
+  "accepted": [
+    { "mount": "casemate-[ps]l?", "against": "forecastle-001", "reason": "14 cm casemate drums turn half inside their recesses in the forecastle block's casemate wall, as the reference's drums do; the barrel stays outboard within the installed arc" },
+    { "mount": "casemate-[ps]a?", "against": "forecastle-001", "reason": "the after 14 cm casemate drums turn half inside the forecastle block's after wall, as in the reference" },
+    { "mount": "casemate-[ps]u?", "against": "deckhouse-011", "reason": "the upper 14 cm casemate drums turn half inside their recesses in the 01-level deckhouse wall, as in the reference" },
+    { "mount": "casemate-[ps]u?", "against": "deckhouse-018", "reason": "the upper 14 cm casemate drums turn half inside their recesses in the 01-level deckhouse wall, as in the reference" },
+    { "mount": "casemate-*", "against": "casemate-*", "reason": "neighbouring casemates 8 m apart only meet when posed independently toward each other; in action a side's casemates train together on one bearing" }
+  ]
+}

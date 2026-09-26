@@ -62,7 +62,8 @@ def build(kit):
             px, w, k, g = st(t)
             kit.member(C + '-boat', col, (px, hang.y, g - .25), tuple(hang - Vector((0, 0, .15))), .025, 'black', 4)
     # Small davits by No. 2 turret and aft; the stowed boom along the port upper deck.
-    for x, y, z, sx, sy, sz, foot in rows('small-crane') + rows('davit'):
+    # (The two small davits abreast No. 1 turret stand in its barrels' depressed sweep and are left out.)
+    for x, y, z, sx, sy, sz, foot in rows('davit'):
         D = f'davit-{"port" if x < 0 else "starboard"}-{abs(round(z))}'
         s = 1 if x > 0 else -1
         bx, by, bz = P(x, foot, z)

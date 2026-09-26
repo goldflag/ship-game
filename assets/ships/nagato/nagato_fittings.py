@@ -9,6 +9,7 @@ import nagato_masts
 import nagato_boats
 import nagato_hull
 import nagato_rails
+from nagato_windows import WINDOWS
 
 # Measured prisms a region draws itself (still used as supports).
 CLAIMED_STRUCTURES = set()
@@ -61,9 +62,9 @@ def main_director(kit):
     attach(parts, yaw)
 
 
-# Measured platforms that stand clear of the blocks below them (the machine-gun control sponsons by the funnel,
-# the pagoda's side platforms): each gets a post down to the deck or roof under it.
-POSTED = ['deckhouse-037', 'deckhouse-038', 'platform-046', 'platform-047', 'platform-072']
+# Measured drums that stand clear of the blocks below them: the reference carries the two control drums abreast
+# the funnel on round columns about 0.9 m across, down to the deck under them. {structure: column radius}
+POSTED = {'deckhouse-037': .45, 'deckhouse-038': .45}
 
 
 def posts(D, kit):
@@ -76,7 +77,7 @@ def posts(D, kit):
         cy = sum(p[1] for p in pts) / len(pts)
         base = s['baseY']
         floor = kit.below(cx, cy, base - .05, base - 3)
-        kit.cylz(s['id'], col, 'post', (cx, cy, floor - .02), .16, base - floor + .04, 'naval', 12)
+        kit.cylz(s['id'], col, 'post', (cx, cy, floor - .02), POSTED[s['id']], base - floor + .04, 'naval', 20)
 
 
 def build(D, kit):
@@ -89,3 +90,6 @@ def build(D, kit):
     nagato_boats.build(kit)
     nagato_hull.build(kit, D)
     nagato_rails.build(kit, D)
+    # Glazing: windows and portholes the reference paints, seated on this model's own walls.
+    kit.windows('glazing', kit.collections['Superstructure'], [r for r in WINDOWS if r[0] == 'window'])
+    kit.windows('scuttles', kit.collections['Hull and decks'], [r for r in WINDOWS if r[0] == 'port'])

@@ -50,13 +50,26 @@ def gear(kit):
     col = kit.collections['Deck fittings']
     A = 'deck-gear'
 
-    def seated(x, foot, z):
-        """Authoring foot point on the deck or roof under a datum, or None when nothing stands within 35 cm."""
+    # Main gunhouses sweep a circle round their axes from the sole up: gear there must stay under the sole.
+    turrets = []
+    for m in kit.D['mounts']:
+        if m['battery'] == 'main':
+            tx, ty, tz = -m['position'][2], -m['position'][0], m['position'][1]
+            turrets.append((tx, ty, tz, 8.0 if m['partId'].endswith('rf-aft') else 7.4))
+
+    def clear_of_turrets(cx, cy, cz, top, r):
+        return all(math.hypot(cx - tx, cy - ty) > rr + r or top < tz - .05 for tx, ty, tz, rr in turrets)
+
+    def seated(x, foot, z, height=1.0, r=.5):
+        """Authoring foot point on the deck or roof under a datum, or None when nothing stands within 35 cm or the
+        fitting would stand in a main gunhouse's swept circle."""
         cx, cy, cz = P(x, foot, z)
         floor = kit.below(cx, cy, cz + .3, -99.0)
-        return None if cz - floor > .35 else (cx, cy, floor)
+        if cz - floor > .35 or not clear_of_turrets(cx, cy, floor, floor + height, r):
+            return None
+        return (cx, cy, floor)
     for x, y, z, sx, sy, sz, foot in rows('mushroom-vent'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
@@ -64,7 +77,7 @@ def gear(kit):
         kit.cylz(A, col, 'vent trunk', (cx, cy, cz - .02), r * .55, sy * .7, 'naval', 12)
         kit.cylz(A, col, 'vent head', (cx, cy, cz + sy * .66), r, sy * .3, 'naval', 16, r2=r * .75)
     for x, y, z, sx, sy, sz, foot in rows('cowl-vent'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
@@ -73,14 +86,14 @@ def gear(kit):
         kit.part('rod', A, col, 'cowl head', (cx, cy, cz + sy * .62), (cx + r * .9, cy, cz + sy * .62), r * .75, 'naval', vertices=12)
         kit.part('rod', A, col, 'cowl mouth', (cx + r * .9, cy, cz + sy * .62), (cx + r * .95, cy, cz + sy * .62), r * .6, 'dark', vertices=12)
     for x, y, z, sx, sy, sz, foot in rows('box-vent'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
         kit.boxc(A, col, 'ventilator housing', (cx, cy, cz + sy * .4), (sz, sx, sy * .8), 'naval')
         kit.boxc(A, col, 'ventilator louvres', (cx, cy, cz + sy * .88), (sz * 1.04, sx * 1.04, sy * .14), 'painted-edge')
     for x, y, z, sx, sy, sz, foot in rows('bitts'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
@@ -93,7 +106,7 @@ def gear(kit):
             kit.cylz(A, col, 'bollard', (px, py, cz + .06), .17, sy * .8, 'naval', 12)
             kit.cylz(A, col, 'bollard cap', (px, py, cz + .06 + sy * .8), .21, .06, 'naval', 12)
     for x, y, z, sx, sy, sz, foot in rows('fairlead'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
@@ -101,7 +114,7 @@ def gear(kit):
         for t in (-1, 1):
             kit.cylz(A, col, 'fairlead roller', (cx + t * sz * .28, cy, cz + .16), .14, sy * .55, 'edge', 10)
     for x, y, z, sx, sy, sz, foot in rows('winch'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
@@ -111,7 +124,7 @@ def gear(kit):
         c = Vector((cx + sz * .15, cy, cz + sy * .55))
         kit.part('rod', A, col, 'winch drum', tuple(c - drum_axis * .45), tuple(c + drum_axis * .45), .3, 'edge', vertices=14)
     for x, y, z, sx, sy, sz, foot in rows('capstan'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
@@ -119,14 +132,14 @@ def gear(kit):
         kit.cylz(A, col, 'capstan barrel', (cx, cy, cz + .12), sx * .3, sy * .7, 'edge', 20, r2=sx * .26)
         kit.cylz(A, col, 'capstan head', (cx, cy, cz + .12 + sy * .7), sx * .38, sy * .18, 'edge', 20)
     for x, y, z, sx, sy, sz, foot in rows('hatch'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
         kit.boxc(A, col, 'hatch coaming', (cx, cy, cz + min(sy, .5) * .5), (sz, sx, min(sy, .5)), 'naval')
         kit.boxc(A, col, 'hatch lid', (cx, cy, cz + min(sy, .5) + .02), (sz + .06, sx + .06, .04), 'roof')
     for x, y, z, sx, sy, sz, foot in rows('reel'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
@@ -136,19 +149,19 @@ def gear(kit):
             kit.boxc(A, col, 'reel stand', tuple(c + axis * t * .45 - Vector((0, 0, sy * .27))), (.08, .08, sy * .55) if axis.x else (.08, .08, sy * .55), 'naval')
         kit.part('rod', A, col, 'reel drum', tuple(c - axis * .42), tuple(c + axis * .42), sy * .42, 'edge', vertices=16)
     for x, y, z, sx, sy, sz, foot in rows('locker'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
         kit.boxc(A, col, 'locker', (cx, cy, cz + sy / 2), (sz, sx, sy), 'wood' if sy < 1 else 'naval')
     for x, y, z, sx, sy, sz, foot in rows('leadsman-platform'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
         kit.boxc(A, col, 'leadsman platform', (cx, cy, cz + .08), (sz, sx, .12), 'naval')
     for x, y, z, sx, sy, sz, foot in rows('lamp'):
-        at = seated(x, foot, z)
+        at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
             continue
         cx, cy, cz = at
