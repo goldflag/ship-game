@@ -443,6 +443,14 @@
         "assets/parts/gun_bloomers.py"
       ]
     },
+    "ijn-140-nagato-casemate": {
+      "path": "assets/parts/ijn-140-nagato/casemate.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
     "ijn-light-agano-twin": {
       "path": "assets/parts/ijn-light-cruiser-guns/type41_152_twin.py",
       "function": "create_mount",
@@ -1443,6 +1451,14 @@
       "review": "unreviewed",
       "limitations": "Original reconstruction against GameModels3D pjsc013 Kuma AB1 artillery (jgm035); Tenryu, Iwaki and Kitakami fit the same visual. The catalog shell is a thin closed slab of the open-backed shield; lower rear corner, the below-deck lip and interior fittings approximate; weapon and armor values are provisional game calibration. Installed clearance, including the port opening, requires ship review.",
       "builder": "ijn-light-140-single"
+    },
+    {
+      "partId": "type3-140-nagato-casemate",
+      "nation": "Japan",
+      "family": "14 cm/50 3rd Year Type casemate",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction of the drum casemate against GameModels3D pjsb010 (jgs053), measured with ship:slice cuts: twelve-sided fixed seat and revolving drum, slot curtain, two sight ports, bore 0.96 m above the seat and muzzle 6.2 m ahead. The drum interior, sights and the curtain folds are simplified; the breech is kept short so the gun recoils and elevates inside the drum. Weapon values reuse the 14 cm/50 single; armour, arcs and elevation limits are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-140-nagato-casemate"
     },
     {
       "partId": "type41-152-agano-twin",

@@ -1,19 +1,20 @@
-"""Nagato blueprint authoring: a Blender-recipe preset scaffolded by `ship:new --legacy`.
+"""Original IJN Nagato 1944 blueprint authoring, GameModels3D-only brief.
 
-The editable blueprint is the versioned asset. This recipe records how it was made and
-rebuilds it. Every table below starts as a placeholder sized for a generic cruiser so the
-starter compiles and builds; replace each one with values measured from the approved
-reference (docs/ship-pipeline.md, Blender-recipe presets; assets/ships/alaska is a worked
-example):
+The editable blueprint is the versioned asset. This recipe records how it was first made and rebuilds
+everything except the superstructure prisms, which it keeps from the current blueprint unless a fresh
+measurement file is passed:
 
-  python3 assets/ships/nagato/author-blueprint.py [--loft loft.json]
+  python3 assets/ships/nagato/author-blueprint.py [--loft lines.json] [--structures superstructure.json]
 
-`--loft` takes measured sections as {"sections": [{"station", "points": [[half breadth, height], ...]}]},
-station in meters from the transom (0) to the stem (L), points from the keel up to the deck
-edge, the same count in every section. Keep reference downloads and measurements in ignored
-.build/. After any hull, structure or mount change run author-flood-spaces.ts,
-author-stability.ts and, on a new ship, author-local-damage.ts and author-damage-control.ts
-(see the README), then `bun run ship:build nagato`.
+The hull loft is `authoring/lines.json`, measured from the cached `bun run ship:reference pjsb010 --hull B_Hull`
+view with `bun run ship:lines` (see that file's note). The superstructure prisms were grouped in ignored
+.build/nagato/ from `ship:slice pjsb010 --plan y --sym --parts hull` cuts every 0.1 m: a band of levels whose
+outline stays the same becomes one prism, and the forecastle deck block (casemate shelf to forecastle deck) is
+the 5.0 m outline aft of the loft's forecastle break. Both hold our own sampled offsets, never source triangles.
+Mount datums are the reference's HP_ nodes (`bun run ship:hardpoints pjsb010`). Protection, machinery,
+magazines and every weapon value are provisional game calibration, not a historical survey: the repository's
+reference tools expose no armour model. Run afterwards (see the README): author-local-damage.ts (first build
+only), author-flood-spaces.ts, author-stability.ts and author-damage-control.ts nagato.
 """
 import argparse
 import json
@@ -22,14 +23,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-# Placeholder principal dimensions; replace with the reference's.
-L = 180.0            # stem to transom at the design waterline
-BEAM = 19.0
-DRAFT = 6.4
-DEPTH = 12.5         # keel to the midships weather deck
-SPEED_KN = 32
-STATIONS = 41
-POINTS = 9
+ZC = -2.2            # runtime z = reference z - ZC (the loft is centred on its 225.2 m length)
+L = 225.2            # stem to stern at the reference waterline datum
+DRAFT = 9.3
+DEPTH = 15.8         # keel to the midships forecastle deck
+SPEED_KN = 25.0
 
 
 def write(path, data):
@@ -43,26 +41,22 @@ def interp(points, s):
     return points[0][1] if s < points[0][0] else points[-1][1]
 
 
+def rz(z):
+    return round(z - ZC, 4)
+
+
 args = argparse.ArgumentParser()
-args.add_argument('--loft')
+args.add_argument('--loft', default=str(HERE / 'authoring/lines.json'))
+args.add_argument('--structures')
 opts = args.parse_args()
+previous = json.loads((HERE / 'blueprint.json').read_text()) if (HERE / 'blueprint.json').exists() else None
 
 # ---------------------------------------------------------------- hull
-def starter_section(s):
-    """Placeholder section at fraction s of the length, from the transom (0) to the stem (1)."""
-    fore = max(0, (s - .62) / .38)
-    aft = max(0, (.25 - s) / .25)
-    half = BEAM / 2 * (1 - fore ** 1.8) * (1 - .3 * aft ** 1.5)
-    keel = -DRAFT + (DRAFT + 1) * fore ** 3 + DRAFT * .55 * aft ** 2
-    deck = DEPTH - DRAFT + 2.2 * fore ** 2 + .4 * aft
-    n = 2.2 + 2.8 * (1 - max(fore, aft))    # full midships, fine ends
-    return [[round(half * (1 - (1 - k / (POINTS - 1)) ** n) ** (1 / n), 4), round(keel + (deck - keel) * k / (POINTS - 1), 4)] for k in range(POINTS)]
-
-
-if opts.loft:
-    sections = sorted(({'station': s['station'], 'points': s['points']} for s in json.loads(Path(opts.loft).read_text())['sections']), key=lambda s: s['station'])
-else:
-    sections = [{'station': round(L * i / (STATIONS - 1), 4), 'points': starter_section(i / (STATIONS - 1))} for i in range(STATIONS)]
+loft = json.loads(Path(opts.loft).read_text())
+sections = [{'station': round(s['station'], 4), 'points': [[round(w, 4), round(max(y, -DRAFT), 4)] for w, y in s['points']]}
+            for s in sorted(loft['sections'], key=lambda s: s['station'])]
+sections[0]['station'] = 0
+sections[-1]['station'] = L
 
 
 def area_below(points, level):
@@ -80,27 +74,18 @@ def breadth_at(points, level):
     ys = [p[1] for p in points]
     if level < ys[0] or level > ys[-1]:
         return 0
-    return interp([(p[1], p[0]) for p in points], level)
+    for (w0, y0), (w1, y1) in zip(points, points[1:]):
+        if y0 <= level <= y1:
+            return w0 if y1 - y0 < 1e-9 else w0 + (w1 - w0) * (level - y0) / (y1 - y0)
+    return points[-1][0]
 
 
 def integrate(fn):
     return sum((fn(a) + fn(b)) / 2 * (b['station'] - a['station']) for a, b in zip(sections, sections[1:]))
 
 
-volume = integrate(lambda s: area_below(s['points'], 0))
-above = integrate(lambda s: area_below(s['points'], 50)) - volume
-waterplane = integrate(lambda s: 2 * breadth_at(s['points'], 0))
-beam = 2 * max(p[0] for s in sections for p in s['points'])
-hull = dict(kind='authored-stations-v1', length=L, beam=round(beam, 4), draft=DRAFT, depth=DEPTH,
-            massKg=round(volume * 1025, 1), waterplaneAreaM2=round(waterplane, 1), reserveBuoyancyM3=round(above * .55, 1),
-            halfBreadths=[[s['station'], round(max(p[0] for p in s['points']), 4)] for s in sections],
-            deckHeights=[[s['station'], s['points'][-1][1]] for s in sections],
-            keelHeights=[[s['station'], s['points'][0][1]] for s in sections],
-            sections=sections)
-
-
 def deck_y(z):
-    """Weather-deck height at runtime z (bow negative)."""
+    """Loft deck height at runtime z (bow negative)."""
     return interp([(L / 2 - s['station'], s['points'][-1][1]) for s in reversed(sections)], z)
 
 
@@ -108,71 +93,171 @@ def half_breadth(z, y):
     station = L / 2 - z
     for a, b in zip(sections, sections[1:]):
         if a['station'] <= station <= b['station']:
-            t = (station - a['station']) / (b['station'] - a['station'])
+            t = (station - a['station']) / max(1e-9, b['station'] - a['station'])
             return breadth_at(a['points'], y) * (1 - t) + breadth_at(b['points'], y) * t
     return 0
 
 
-b = dict(schemaVersion=1, id='nagato', name='Nagato',
-         configuration='Scaffolded starter · replace with the approved vessel, year and fit',
-         coordinates='meters-y-up-bow-negative-z', modelUrl='/models/nagato.glb', hull=hull,
-         handling=dict(forwardSpeed=round(SPEED_KN * .5144444, 4), reverseSpeed=4, acceleration=.17, braking=.2, rudderRate=.34, maxYawRate=.02),
+volume = integrate(lambda s: area_below(s['points'], 0))
+above = integrate(lambda s: area_below(s['points'], 50)) - volume
+waterplane = integrate(lambda s: 2 * breadth_at(s['points'], 0))
+beam = 2 * max(p[0] for s in sections for p in s['points'])
+
+b = dict(schemaVersion=1, id='nagato', name='IJN Nagato',
+         configuration='Nagato · 1944 exterior after the GameModels3D pjsb010 B hull · reference design waterline',
+         coordinates='meters-y-up-bow-negative-z', modelUrl='/models/nagato.glb',
+         handling=dict(forwardSpeed=round(SPEED_KN * .5144444, 4), reverseSpeed=3.6, acceleration=.16, braking=.22, rudderRate=.3, maxYawRate=.021),
          mounts=[], armor=[], compartments=[], modules=[], connections=[], obstructions=[], structures=[],
-         structuralPlating=dict(hullMm=20, superstructureMm=12, note='Scaffold placeholder plating; replace with the reference or a stated game estimate.'),
-         accuracy=dict(exterior='Scaffold placeholder hull and deckhouses; replace with the approved reference measurements.',
-                       internals='Machinery, magazines, flood spaces and stability are provisional game estimates.',
-                       weapons='Scaffold placeholder armament; ballistics, rates and damage are shared game calibration.'))
+         viewpoints=dict(bridge=[0, 27.6, rz(-33.6)]),
+         structuralPlating=dict(hullMm=19, superstructureMm=13, note='Constructional plating of 19 mm on the hull and 13 mm on the superstructure; provisional game values, not a verified plating schedule.'),
+         accuracy=dict(exterior='Original loft and superstructure prisms measured from the approved GameModels3D pjsb010 B hull (jsb010_nagato_1944) at its design waterline; fittings are independently modelled approximations. No historical-accuracy claim.',
+                       internals='Machinery, magazines, flood spaces and stability are provisional game estimates; the visual reference does not establish internal plans.',
+                       weapons='Eight 41 cm/45 Type 3 in four twin turrets, eighteen 14 cm/50 3rd Year Type casemates, eight 12.7 cm/40 Type 89 in four twin mounts and 25 mm Type 96 in fourteen triple, twelve twin and twelve single mounts at the reference mount datums (twelve further singles are fixed fittings). Ballistics, rates and damage are shared provisional game calibration.'))
 
 # ---------------------------------------------------------------- superstructure
-# Prisms: footprint [x, z] in runtime meters (+X starboard, -Z bow), base and height in meters.
-def rect(x0, x1, z0, z1):
-    return [[x0, z0], [x1, z0], [x1, z1], [x0, z1]]
+if opts.structures:
+    structures = json.loads(Path(opts.structures).read_text())
+else:
+    structures = previous['structures']
+# Recorded corrections to the measured prisms, one per line: None drops a prism, a dict overrides fields.
+STRUCTURE_EDITS = {
+}
+structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures
+              if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
+structures = [{k: v for k, v in s.items() if k in ('id', 'name', 'footprint', 'baseY', 'height', 'material', 'exhaust', 'surface')} for s in structures]
+for s in structures:
+    s.setdefault('material', 'naval')
+b['structures'] = structures
 
 
-def structure(id, name, footprint, base, height, **extra):
-    b['structures'].append(dict(id=id, name=name, footprint=footprint, baseY=round(base, 3), height=height, material='naval', **extra))
+def footprint_area(poly):
+    return abs(sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(poly, poly[1:] + poly[:1]))) / 2
 
 
-BRIDGE_Z = -.12 * L
-structure('bridge', 'Bridge deckhouse', rect(-4, 4, BRIDGE_Z - 5, BRIDGE_Z + 5), deck_y(BRIDGE_Z), 6)
-structure('bridge-upper', 'Upper bridge', rect(-3, 3, BRIDGE_Z - 3, BRIDGE_Z + 2), deck_y(BRIDGE_Z) + 6, 3)
-FUNNEL = dict(z=.03 * L, half=1.8, length=6, height=12)
-stadium = []
-for i in range(32):
-    a = i * math.tau / 32
-    straight = FUNNEL['length'] / 2 - FUNNEL['half']
-    stadium.append([round(FUNNEL['half'] * math.cos(a), 3), round(FUNNEL['z'] + math.copysign(straight, math.sin(a)) + FUNNEL['half'] * math.sin(a), 3)])
-funnel_base = deck_y(FUNNEL['z'])
-# A funnel is an exhaust structure; the smoke test counts it (ship:register adds the row).
-structure('funnel', 'Funnel', stadium, funnel_base, FUNNEL['height'],
-          exhaust=dict(position=[0, round(funnel_base + FUNNEL['height'], 3), FUNNEL['z']], width=2 * FUNNEL['half'], length=FUNNEL['length']))
-structure('after-deckhouse', 'After deckhouse', rect(-3.5, 3.5, .1 * L, .17 * L), deck_y(.13 * L), 3)
-b['viewpoints'] = dict(bridge=[0, round(deck_y(BRIDGE_Z) + 9.5, 3), round(BRIDGE_Z - 1, 3)])
+# The forecastle deck block is watertight hull above the upper deck: it counts toward reserve buoyancy.
+forecastle_volume = sum(footprint_area(s['footprint']) * s['height'] for s in structures if s['id'].startswith('forecastle-'))
+b['hull'] = dict(kind='authored-stations-v1', length=L, beam=round(beam, 4), draft=DRAFT, depth=DEPTH,
+                 massKg=round(volume * 1025, 1), waterplaneAreaM2=round(waterplane, 1), reserveBuoyancyM3=round((above + forecastle_volume) * .55, 1),
+                 halfBreadths=[[s['station'], round(max(p[0] for p in s['points']), 4)] for s in sections],
+                 deckHeights=[[s['station'], s['points'][-1][1]] for s in sections],
+                 keelHeights=[[s['station'], s['points'][0][1]] for s in sections],
+                 sections=sections)
+b = {k: b[k] for k in ['schemaVersion', 'id', 'name', 'configuration', 'coordinates', 'modelUrl', 'hull', 'handling', 'mounts', 'armor',
+                       'compartments', 'modules', 'connections', 'obstructions', 'structures', 'viewpoints', 'structuralPlating', 'accuracy']}
 
-# Firing obstructions: fore-and-aft strips of at most 3 m, so a stepped deckhouse is never
-# boxed at its widest (turret clearance tests barrels against every obstruction box).
-for s in b['structures']:
-    xs = [p[0] for p in s['footprint']]
-    zs = [p[1] for p in s['footprint']]
-    if s['height'] < 1.2 or 'exhaust' in s:
+# ---------------------------------------------------------------- mounts (reference HP_ datums, reference frame)
+FIRE_MAIN = dict(fuelSeconds=90, ignitionHeat=.5, heatPerDamage=.014)
+FIRE_LIGHT = dict(fuelSeconds=45, ignitionHeat=.5, heatPerDamage=.014)
+# The catalog turrets were built against this reference's own gun visuals (jgm046 at A and Y, jgm047 at B,
+# jgm048 at No. 3), so each sole sits exactly on its HP_JGM datum.
+MAIN = [('main-1', 'No. 1 turret', 'type3-410-nagato-twin', (7.452, -63.715), 0, False),
+        ('main-2', 'No. 2 turret', 'type3-410-nagato-twin-rf', (10.722, -49.296), 0, True),
+        ('main-3', 'No. 3 turret', 'type3-410-nagato-twin-rf-aft', (8.199, 48.326), 180, True),
+        ('main-4', 'No. 4 turret', 'type3-410-nagato-twin', (4.793, 63.18), 180, False)]
+for id, name, part, (y, z), bearing, rangefinder in MAIN:
+    b['mounts'].append(dict(id=id, name=name + ' 41 cm', partId=part, battery='main', position=[0, y, rz(z)], bearingDeg=bearing,
+                            rangefinder=rangefinder, magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN))
+# Eighteen 14 cm casemates (HP_JGS, jgs053): the forward lower row on the casemate shelf, the upper row on the
+# forecastle deck and the after pair each side on the upper deck. bearingDeg is the arc centre; the reference
+# rests them trained fore or aft along the side, which the rest rule reproduces.
+CASEMATES = [('l1', 12.397, 4.031, -33.607), ('u1', 8.620, 6.933, -29.641), ('l2', 12.956, 4.026, -25.290), ('u2', 9.275, 6.933, -20.315),
+             ('l3', 13.260, 4.026, -17.313), ('u3', 9.647, 6.933, -12.342), ('l4', 13.208, 4.026, -9.136), ('a1', 12.789, 3.780, 14.484),
+             ('a2', 11.512, 3.780, 21.540)]
+CASEMATE_ARC = {'l': (90, 80), 'u': (90, 80), 'a': (90, 75)}
+for side, sign in [('p', -1), ('s', 1)]:
+    for key, x, y, z in CASEMATES:
+        centre, half = CASEMATE_ARC[key[0]]
+        b['mounts'].append(dict(id=f'casemate-{side}{key}', name=f'{"Port" if sign < 0 else "Starboard"} casemate {key} 14 cm', partId='type3-140-nagato-casemate',
+                                battery='secondary', position=[round(sign * x, 3), y, rz(z)], bearingDeg=sign * centre, traverseDeg=half, rangefinder=False,
+                                magazineId='secondary-magazine-forward' if z < 0 else 'secondary-magazine-after', fire=FIRE_LIGHT))
+# Four twin 12.7 cm Type 89 (HP_JGS 1, 23, 24, 25; jgs009 is the catalog A1 twin's own reference visual).
+HA = [('ha-1', -8.417, 11.404, -25.208, -90), ('ha-2', 8.417, 11.404, -25.208, 90), ('ha-3', -6.418, 8.315, 15.782, -110), ('ha-4', 6.419, 8.315, 15.782, 110)]
+for id, x, y, z, bearing in HA:
+    b['mounts'].append(dict(id=id, name=f'12.7 cm HA mount {id[-1]}', partId='type89-127-a1-twin', battery='secondary', position=[x, y, rz(z)],
+                            bearingDeg=bearing, rangefinder=False, magazineId='ha-magazine', fire=FIRE_LIGHT))
+# 25 mm Type 96 (HP_JGA): triples jga173, twins jga019, singles jga018, reference datum and rest bearing.
+TRIPLES = [(-6.198, 9.320, -41.004, -90), (6.198, 9.320, -41.004, 90), (0, 13.527, -23.213, 180), (-13.422, 6.446, -2.049, -90), (13.422, 6.446, -2.049, 90),
+           (-13.330, 6.451, 3.851, -90), (13.331, 6.451, 3.851, 90), (-2.415, 4.382, 96.447, -135), (2.415, 4.382, 96.447, 135), (0, 4.407, 99.039, 180)]
+TWINS = [(-3.736, 20.616, -36.208, -45), (3.737, 20.616, -36.208, 45), (-4.861, 13.535, -33.970, -90), (4.862, 13.535, -33.970, 90),
+         (-4.958, 21.096, -29.211, -90), (4.958, 21.096, -29.211, 90), (-8.616, 11.352, -19.326, -90), (8.616, 11.352, -19.326, 90),
+         (-4.344, 14.835, 0.963, -90), (4.346, 14.835, 0.963, 90), (-2.838, 17.228, 2.694, -90), (2.838, 17.228, 2.694, 90)]
+# A blueprint holds at most 64 mounts: the twelve singles of the forecastle-head and quarterdeck groups
+# (HP_JGA 1-5, 7 and 38-43) are fixed fittings drawn by the recipe (nagato_kit.FIXED_SINGLES); these train.
+SINGLES = [(-10.446, 6.492, -46.744, -45), (10.523, 6.491, -46.738, 45), (-11.433, 6.486, -42.318, -45), (11.759, 6.483, -42.315, 45),
+           (-5.743, 17.484, -28.125, -90), (5.744, 17.484, -28.125, 90), (-1.155, 20.249, 19.643, -119), (1.128, 20.246, 19.751, 109),
+           (-12.466, 3.705, 45.527, -135), (12.644, 3.675, 43.749, 135), (-12.090, 3.759, 49.410, -135), (12.173, 3.747, 48.509, 135)]
+for group, part, rows, label in [('aa3', 'type96-25-triple', TRIPLES, 'triple'), ('aa2', 'type96-25-mogami-2', TWINS, 'twin'),
+                                 ('aa1', 'type96-25-kongo-single', SINGLES, 'single')]:
+    for i, (x, y, z, bearing) in enumerate(rows, 1):
+        b['mounts'].append(dict(id=f'{group}-{i}', name=f'25 mm {label} {i}', partId=part, battery='secondary', position=[x, y, rz(z)],
+                                bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition', fire=FIRE_LIGHT))
+# Two triples on the roofs of Nos. 2 and 3 turrets train with them (HP_JGM_2/3_HP_JGA; neutral datums).
+for parent, rows in [('main-2', [(-1.900, 13.998, -48.096, 0), (1.901, 13.998, -48.098, 0)]), ('main-3', [(1.899, 11.475, 47.109, 180), (-1.899, 11.475, 47.109, 180)])]:
+    for i, (x, y, z, bearing) in enumerate(rows, 1):
+        b['mounts'].append(dict(id=f'aa3-{parent[-1]}{i}', name=f'25 mm triple on No. {parent[-1]} turret {i}', partId='type96-25-triple', battery='secondary',
+                                position=[x, y, rz(z)], bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition', fire=FIRE_LIGHT, parentMountId=parent))
+
+# ---------------------------------------------------------------- firing obstructions
+# Boxes kept inside the visual walls for substantial blocks. Each outline is cut into fore-and-aft strips of at
+# most 3 m so a stepped deckhouse is not boxed at its widest.
+for s in structures:
+    poly = s['footprint']
+    xs = [p[0] for p in poly]
+    zs = [p[1] for p in poly]
+    if s['height'] < 1.2 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 6 or 'exhaust' in s:
         continue
     n = max(1, math.ceil((max(zs) - min(zs)) / 3))
     for k in range(n):
-        z0, z1 = min(zs) + (max(zs) - min(zs)) * k / n, min(zs) + (max(zs) - min(zs)) * (k + 1) / n
-        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(xs) + max(xs)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
-                                      size=[round(max(xs) - min(xs) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+        z0 = min(zs) + (max(zs) - min(zs)) * k / n
+        z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
+        pts = [p[0] for p in poly if z0 <= p[1] <= z1]
+        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+            for zc in (z0, z1):
+                if (az - zc) * (bz - zc) < 0:
+                    pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
+        if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
+            continue
+        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
+                                      size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
 
-# ---------------------------------------------------------------- mounts
-# Catalog part IDs from `bun run part:list`; declare each part's `part:inputs` in recipe-inputs.json.
-FIRE = dict(fuelSeconds=90, ignitionHeat=.5, heatPerDamage=.014)
-MAIN = [('main-1', 'Turret A', -.26 * L, 0), ('main-2', 'Turret Y', .28 * L, 180)]
-for id, name, z, bearing in MAIN:
-    b['mounts'].append(dict(id=id, name=name, partId='type3-410-nagato-twin', battery='main', position=[0, round(deck_y(z) + .6, 3), round(z, 3)],
-                            bearingDeg=bearing, rangefinder=True, magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE))
+# ---------------------------------------------------------------- installation interlocks
+# CPU motion envelopes: main barrels (with the full recoil stroke) and gunhouses may not enter the prisms they can
+# reach, and the superfiring pairs may not cross. Game clearance, not verified historical stops.
+catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
+clear_mounts, reach = [], {}
+for m in b['mounts']:
+    if m['battery'] != 'main' and not m['id'].startswith('ha-'):
+        continue
+    w = catalog[m['partId']]
+    entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
+    if m['battery'] == 'main':
+        # Gunhouse from the sole to the roof crown, the rear plate 7.1 m (No. 3: 7.8 m) behind the axis and the face
+        # 5.2 m ahead; the rangefinder turrets carry their 11.9 m housing across the rear roof.
+        rear = 7.8 if m['partId'].endswith('rf-aft') else 7.1
+        entry['body'] = dict(center=[0, 1.6, round((rear - 5.2) / 2, 3)], size=[11.9 if m['rangefinder'] else 10.2, 3.1, round(rear + 5.2, 3)])
+    clear_mounts.append(entry)
+    reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
+nearby = []
+for st in structures:
+    xs = [p[0] for p in st['footprint']]
+    zs = [p[1] for p in st['footprint']]
+    best = None
+    for (x, y, z), r, pivot in reach.values():
+        dx = max(min(xs) - x, 0, x - max(xs))
+        dz = max(min(zs) - z, 0, z - max(zs))
+        if math.hypot(dx, dz) <= r and st['baseY'] < pivot + 2 and st['baseY'] + st['height'] > pivot - 3:
+            best = min(best if best is not None else 1e9, math.hypot(dx, dz))
+    if best is not None:
+        nearby.append((best, st['id']))
+nearby = [sid for _, sid in sorted(nearby)[:128]]
+b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 12.7 cm mounts against the measured superstructure prisms they can reach, including the full recoil stroke, and between the superfiring turret pairs. Game clearance envelopes, not verified historical mechanical stops.',
+                           mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
+                           neighbors=[['main-1', 'main-2'], ['main-3', 'main-4']])
 
-# ---------------------------------------------------------------- rooms, machinery, directors
+# ---------------------------------------------------------------- rooms, machinery, directors (reference z)
 def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):
     cid = id + '-room'
+    center = [center[0], center[1], rz(center[2])]
     compartment = dict(id=cid, name=name + ' space', center=center, size=size, capacityM3=round(math.prod(size) * .78, 1), pumpM3PerSecond=.016)
     if fire:
         compartment['fire'] = dict(fire, ventPosition=[center[0], round(deck_y(center[2]) + .5, 3), center[2]])
@@ -186,58 +271,151 @@ def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):
 
 MAG = dict(fuelSeconds=150, ignitionHeat=.65, heatPerDamage=.014)
 ENG = dict(fuelSeconds=240, ignitionHeat=.55, heatPerDamage=.014)
-LOW = round(-DRAFT + 2.4, 3)
-room('magazine-forward', 'Forward magazine', [0, LOW, round(-.24 * L, 3)], [8, 4, 12], 'magazine', hp=200, fire=MAG)
-room('magazine-after', 'After magazine', [0, LOW, round(.26 * L, 3)], [8, 4, 12], 'magazine', hp=200, fire=MAG)
-room('boiler-room', 'Boiler room', [0, LOW, round(-.04 * L, 3)], [14, 4.5, 18], 'engine', 'boiler', 200, ENG)
-room('engine-room', 'Engine room', [0, LOW, round(.07 * L, 3)], [14, 4.5, 18], 'engine', 'turbine', 200, ENG)
-room('shaft-alley', 'Shaft alley', [0, round(-DRAFT + 1.6, 3), round(.2 * L, 3)], [8, 2.4, 14], fire=ENG)
-for i, x in enumerate([-2.2, 2.2], 1):
-    b['modules'].append(dict(id=f'shaft-{i}', name=f'Shaft {i}', kind='engine', role='shaft', compartmentId='shaft-alley-room',
-                             center=[x, round(-DRAFT + 1.4, 3), round(.2 * L, 3)], size=[.6, 1, 12], hp=90, immersionToleranceM=.5))
-room('steering', 'Steering gear', [0, round(-DRAFT * .3, 3), round(.44 * L, 3)], [8, 2, 7], 'steering', hp=140, fire=dict(fuelSeconds=80, ignitionHeat=.45, heatPerDamage=.014))
-b['propulsion'] = dict(groups=[dict(id='main-drive', share=1, boilerIds=['boiler-room'], driveIds=['engine-room'], shaftIds=['shaft-1', 'shaft-2'])],
-                       basis='Scaffold placeholder machinery: one boiler room and one engine room on two shafts.')
-b['modules'].append(dict(id='main-director', name='Main battery director', kind='fire-control', placement='fixed', servesMountIds=[m['id'] for m in b['mounts']],
-                         center=[0, round(deck_y(BRIDGE_Z) + 10, 3), round(BRIDGE_Z, 3)], size=[2.4, 2, 2.4], hp=60, protectionMm=10))
+room('magazine-forward', 'Forward 41 cm magazines', [0, -5.4, -56.5], [15, 6.4, 26], 'magazine', hp=280, fire=MAG)
+room('magazine-after', 'After 41 cm magazines', [0, -5.2, 55.8], [14, 6.0, 25], 'magazine', hp=280, fire=MAG)
+room('secondary-magazine-forward', 'Forward 14 cm magazine', [0, -5.4, -39.5], [16, 6.4, 7], 'magazine', hp=150, fire=MAG)
+room('secondary-magazine-after', 'After 14 cm magazine', [0, -5.2, 39.2], [16, 6.2, 6], 'magazine', hp=150, fire=MAG)
+room('ha-magazine', '12.7 cm and light AA magazine', [0, -1.8, -31.0], [12, 2.6, 6], 'magazine', hp=110, fire=MAG)
+room('aa-ammunition', 'Light AA ready ammunition', [0, 2.2, -22.0], [9, 2.2, 6], 'magazine', hp=90, fire=MAG)
+BOILERS = [('boiler-room-1', 'No. 1 boiler room', -29.5, 11), ('boiler-room-2', 'No. 2 boiler room', -18.5, 11),
+           ('boiler-room-3', 'No. 3 boiler room', -7.5, 11), ('boiler-room-4', 'No. 4 boiler room', 3.5, 11)]
+for id, name, z, length in BOILERS:
+    room(id, name, [0, -4.9, z], [23, 7.5, length], 'engine', 'boiler', 230, ENG)
+TURBINES = [('engine-room-port-forward', 'Port forward engine room', -5.4, 15.5), ('engine-room-starboard-forward', 'Starboard forward engine room', 5.4, 15.5),
+            ('engine-room-port-after', 'Port after engine room', -5.0, 29.0), ('engine-room-starboard-after', 'Starboard after engine room', 5.0, 29.0)]
+for id, name, x, z in TURBINES:
+    room(id, name, [x, -5.2, z], [9.4 if abs(x) > 5.2 else 8.8, 6.8, 12.5], 'engine', 'turbine', 210, ENG)
+room('shaft-alley', 'Shaft alleys', [0, -5.6, 76.0], [10, 3.4, 16], fire=ENG)
+SHAFTS = [('shaft-1', -4.6), ('shaft-2', -1.6), ('shaft-3', 1.6), ('shaft-4', 4.6)]
+for id, x in SHAFTS:
+    b['modules'].append(dict(id=id, name=f'Shaft {id[-1]}', kind='engine', role='shaft', compartmentId='shaft-alley-room', center=[x, -5.9, rz(76.0)], size=[.7, 1.1, 15], hp=90, immersionToleranceM=.8))
+room('steering', 'Steering gear', [0, -2.2, 90.5], [8.0, 3.2, 13], 'steering', hp=160, fire=dict(fuelSeconds=80, ignitionHeat=.45, heatPerDamage=.014))
+b['propulsion'] = dict(groups=[
+    dict(id='outer-port', share=.25, boilerIds=['boiler-room-1'], driveIds=['engine-room-port-forward'], shaftIds=['shaft-1']),
+    dict(id='outer-starboard', share=.25, boilerIds=['boiler-room-2'], driveIds=['engine-room-starboard-forward'], shaftIds=['shaft-4']),
+    dict(id='inner-port', share=.25, boilerIds=['boiler-room-3'], driveIds=['engine-room-port-after'], shaftIds=['shaft-2']),
+    dict(id='inner-starboard', share=.25, boilerIds=['boiler-room-4'], driveIds=['engine-room-starboard-after'], shaftIds=['shaft-3'])],
+    basis='Provisional four-shaft machinery: four boiler rooms under the funnel and four turbine rooms between the funnel and No. 3 turret, one group per shaft with equal shares. Room bounds and routing are estimates; the approved exterior reference does not show them.')
+MAIN_IDS = [m['id'] for m in b['mounts'] if m['battery'] == 'main']
+CAS_P = [m['id'] for m in b['mounts'] if m['id'].startswith('casemate-p')]
+CAS_S = [m['id'] for m in b['mounts'] if m['id'].startswith('casemate-s')]
+HA_IDS = [m['id'] for m in b['mounts'] if m['id'].startswith('ha-')]
 
-# ---------------------------------------------------------------- protection
-def plate(id, name, vs, mm, exterior=False, note='Scaffold placeholder protection; replace with the reference or a stated game estimate.'):
+
+def director(id, name, pos, serves, size, hp, mm):
+    b['modules'].append(dict(id=id, name=name, kind='fire-control', placement='fixed', servesMountIds=serves,
+                             center=[pos[0], round(pos[1] + size[1] / 2, 3), rz(pos[2])], size=size, hp=hp, protectionMm=mm))
+
+
+director('main-director', 'Main battery director (Type 94) and 10 m rangefinder', [0, 37.41, -31.55], MAIN_IDS, [3.5, 1.9, 3.5], 80, 13)
+director('after-director', 'After main battery control and 4.5 m rangefinders', [0, 17.58, 23.53], MAIN_IDS, [8.0, 1.2, 3.2], 60, 10)
+director('secondary-director-port', 'Port secondary director and 4.5 m rangefinder', [-4.41, 24.52, -34.52], CAS_P, [2.4, 1.2, 4.9], 40, 6)
+director('secondary-director-starboard', 'Starboard secondary director and 4.5 m rangefinder', [4.41, 24.52, -34.52], CAS_S, [2.4, 1.2, 4.9], 40, 6)
+director('ha-director-port', 'Port Type 91 high-angle director', [-11.55, 12.05, -4.71], HA_IDS, [2.7, 2.0, 2.7], 45, 6)
+director('ha-director-starboard', 'Starboard Type 91 high-angle director', [11.55, 12.05, -4.71], HA_IDS, [2.7, 2.0, 2.7], 45, 6)
+
+# ---------------------------------------------------------------- protection (provisional game values)
+NOTE = ('Commonly published Nagato protection values used as provisional game calibration; zones fitted to the authored loft. '
+        'The repository reference tools expose no armour model for pjsb010.')
+
+
+def plate(id, name, vs, mm, exterior=False, note=NOTE):
     vs = [[round(c, 4) for c in v] for v in vs]
     lo = [min(v[i] for v in vs) for i in range(3)]
     hi = [max(v[i] for v in vs) for i in range(3)]
     b['armor'].append(dict(id=id, name=name, center=[round((a + c) / 2, 5) for a, c in zip(lo, hi)], size=[round(max(.001, c - a) + 2e-5, 5) for a, c in zip(lo, hi)],
                            thicknessMm=mm, plate=dict(vertices=vs, material='steel', exterior=exterior),
-                           provenance=dict(sourceId='scaffold', basis='inferred', note=note)))
+                           provenance=dict(sourceId='game-calibration-nagato', basis='inferred', note=note)))
 
 
-CIT_FWD, CIT_AFT, SEG = -.3 * L, .32 * L, 8
-BELT_LOW, BELT_TOP = -1.5, 2.2
-for side, sign in [('port', -1), ('starboard', 1)]:
-    for j in range(SEG):
-        z0, z1 = CIT_FWD + (CIT_AFT - CIT_FWD) * j / SEG, CIT_FWD + (CIT_AFT - CIT_FWD) * (j + 1) / SEG
-        vs = [[sign * half_breadth(z0, BELT_LOW) * .998, BELT_LOW, z0], [sign * half_breadth(z1, BELT_LOW) * .998, BELT_LOW, z1],
-              [sign * half_breadth(z1, BELT_TOP) * .998, BELT_TOP, z1], [sign * half_breadth(z0, BELT_TOP) * .998, BELT_TOP, z0]]
-        # The shell is curved, so each belt band is two planar triangles.
-        plate(f'belt-{side}-{j}-a', f'{side.title()} belt', vs[:3], 100, True)
-        plate(f'belt-{side}-{j}-b', f'{side.title()} belt', [vs[0], vs[2], vs[3]], 100, True)
-for j in range(SEG):
-    z0, z1 = CIT_FWD + (CIT_AFT - CIT_FWD) * j / SEG, CIT_FWD + (CIT_AFT - CIT_FWD) * (j + 1) / SEG
-    w0, w1 = half_breadth(z0, BELT_TOP) * .99, half_breadth(z1, BELT_TOP) * .99
-    plate(f'armoured-deck-{j}', 'Armoured deck', [[-w0, BELT_TOP, z0], [w0, BELT_TOP, z0], [w1, BELT_TOP, z1], [-w1, BELT_TOP, z1]], 50)
-for end, z in [('forward', CIT_FWD), ('after', CIT_AFT)]:
-    w, wl = half_breadth(z, BELT_TOP) * .99, half_breadth(z, BELT_LOW) * .99
-    plate('citadel-' + end, end.title() + ' armoured bulkhead', [[-wl, BELT_LOW, z], [wl, BELT_LOW, z], [w, BELT_TOP, z], [-w, BELT_TOP, z]], 100)
+def inner(zref, y):
+    """The original shell inside the anti-torpedo bulges: 90% of the loft's half breadth (29 m original beam)."""
+    return half_breadth(rz(zref), y) * .9
 
-# ---------------------------------------------------------------- damage control
-# Placeholders that compile; author-damage-control.ts and author-local-damage.ts replace them.
-b['damageControl'] = dict(version=1, teams=3, setupSeconds=8, repairPoints=240, roomFuelSeconds=180, mountFuelSeconds=80, suppressionPerSecond=.1,
-                          portablePumpM3PerSecond=.08, repairHpPerSecond=.8, repairCeiling=.6, patchM2PerSecond=.004, maxPatchM2=.4, flashProtection=.9,
-                          basis='Scaffold placeholder; author-damage-control.ts writes the shared fleet defaults.')
-b['localDamage'] = dict(version=1, regions=[dict(id='hull-placeholder', name='Hull', kind='hull', durabilityFraction=1, center=[0, 0, 0], size=[round(beam, 3), 30, L])],
-                        basis='Placeholder; author-local-damage.ts replaces it.')
-# An ensign (rig.ensigns, designs us-48, white-ensign, ijn, kriegsmarine) and radar pivots
-# (rig.radars) go here once the brief names the nation and fit; see assets/ships/alaska.
+
+def band(prefix, name, zref0, zref1, seg, y0, y1, mm, exterior, width):
+    """Side plates between two heights on both sides; width(zref, y) gives the half breadth."""
+    for side, sign in [('port', -1), ('starboard', 1)]:
+        for j in range(seg):
+            za = zref0 + (zref1 - zref0) * j / seg
+            zb = zref0 + (zref1 - zref0) * (j + 1) / seg
+            vs = [[sign * width(za, y0), y0, rz(za)], [sign * width(zb, y0), y0, rz(zb)], [sign * width(zb, y1), y1, rz(zb)], [sign * width(za, y1), y1, rz(za)]]
+            # The shell is curved, so each band is two planar triangles.
+            plate(f'{prefix}-{side}-{j}-a', f'{side.title()} {name}', vs[:3], mm, exterior)
+            plate(f'{prefix}-{side}-{j}-b', f'{side.title()} {name}', [vs[0], vs[2], vs[3]], mm, exterior)
+
+
+CIT_FWD, CIT_AFT = -70.5, 70.0            # reference z of the armoured citadel ends (Nos. 1 and 4 barbettes)
+band('belt', 'main belt', CIT_FWD, CIT_AFT, 28, -1.6, 1.8, 305, True, inner)
+band('belt-lower', 'lower belt', CIT_FWD, CIT_AFT, 28, -3.4, -1.6, 229, True, inner)
+band('lower-side', 'lower side protection', CIT_FWD, CIT_AFT, 28, -7.6, -3.4, 76, False, lambda z, y: inner(z, y) * .99)
+band('upper-belt', 'upper belt', -58.0, 58.0, 22, 1.8, 3.66, 229, True, lambda z, y: half_breadth(rz(z), y) * .996)
+band('bow-belt', 'forward belt', -104.0, CIT_FWD, 10, -1.6, 1.8, 102, True, lambda z, y: half_breadth(rz(z), y) * .996)
+band('stern-belt', 'after belt', CIT_AFT, 96.0, 8, -1.6, 1.8, 102, True, lambda z, y: half_breadth(rz(z), y) * .996)
+fc = next((s for s in structures if s['id'] == 'forecastle-001'), None)
+if fc:
+    # Casemate battery walls: splinter plating on the forecastle block's sides between the shelf and the deck.
+    band('casemate-wall', 'casemate battery plating', -55.0, 12.0, 16, 3.8, 6.4, 25, True,
+         lambda z, y: max((abs(x) for x, zz in fc['footprint'] if abs(zz - rz(z)) < 1.2), default=10) * .995)
+for j in range(28):
+    za = CIT_FWD + (CIT_AFT - CIT_FWD) * j / 28
+    zb = CIT_FWD + (CIT_AFT - CIT_FWD) * (j + 1) / 28
+    wa, wb = inner(za, 1.8) * .98, inner(zb, 1.8) * .98
+    plate(f'armoured-deck-{j}', 'Armoured deck', [[-wa, 1.8, rz(za)], [wa, 1.8, rz(za)], [wb, 1.8, rz(zb)], [-wb, 1.8, rz(zb)]], 102)
+    for side, sign in [('port', -1), ('starboard', 1)]:
+        ia, ib = inner(za, -1.6) * .98, inner(zb, -1.6) * .98
+        ma, mb = wa * .8, wb * .8
+        vs = [[sign * ma, 1.8, rz(za)], [sign * mb, 1.8, rz(zb)], [sign * ib, -1.6, rz(zb)], [sign * ia, -1.6, rz(za)]]
+        plate(f'deck-slope-{side}-{j}-a', f'{side.title()} armoured deck slope', vs[:3], 76)
+        plate(f'deck-slope-{side}-{j}-b', f'{side.title()} armoured deck slope', [vs[0], vs[2], vs[3]], 76)
+    uy = min(deck_y(rz(za)), deck_y(rz(zb)), 3.72) - .04
+    ua, ub = half_breadth(rz(za), uy) * .97, half_breadth(rz(zb), uy) * .97
+    plate(f'upper-deck-{j}', 'Upper deck', [[-ua, uy, rz(za)], [ua, uy, rz(za)], [ub, uy, rz(zb)], [-ub, uy, rz(zb)]], 69)
+for end, z, mm in [('forward', CIT_FWD, 305), ('after', CIT_AFT, 305)]:
+    w, wl = inner(z, 1.8) * .98, inner(z, -7.6) * .98
+    plate('citadel-' + end, end.title() + ' armoured bulkhead', [[-wl, -7.6, rz(z)], [wl, -7.6, rz(z)], [w, 1.8, rz(z)], [-w, 1.8, rz(z)]], mm)
+for m in b['mounts'][:4]:
+    r = 4.85
+    x, top, z = m['position']
+    floor = 1.8
+    for i in range(24):
+        a, c = i * math.tau / 24, (i + 1) * math.tau / 24
+        plate(f"{m['id']}-barbette-{i}", m['name'] + ' barbette',
+              [[r * math.cos(a), floor, z + r * math.sin(a)], [r * math.cos(c), floor, z + r * math.sin(c)], [r * math.cos(c), top, z + r * math.sin(c)], [r * math.cos(a), top, z + r * math.sin(a)]], 305)
+# Conning tower in the pagoda base and the steering-gear box.
+ct = dict(x0=-2.6, x1=2.6, y0=9.4, y1=12.6, z0=rz(-42.2), z1=rz(-37.6))
+for id, vs, mm in [('ct-port', [[ct['x0'], ct['y0'], ct['z0']], [ct['x0'], ct['y0'], ct['z1']], [ct['x0'], ct['y1'], ct['z1']], [ct['x0'], ct['y1'], ct['z0']]], 369),
+                   ('ct-starboard', [[ct['x1'], ct['y0'], ct['z0']], [ct['x1'], ct['y0'], ct['z1']], [ct['x1'], ct['y1'], ct['z1']], [ct['x1'], ct['y1'], ct['z0']]], 369),
+                   ('ct-front', [[ct['x0'], ct['y0'], ct['z0']], [ct['x1'], ct['y0'], ct['z0']], [ct['x1'], ct['y1'], ct['z0']], [ct['x0'], ct['y1'], ct['z0']]], 369),
+                   ('ct-back', [[ct['x0'], ct['y0'], ct['z1']], [ct['x1'], ct['y0'], ct['z1']], [ct['x1'], ct['y1'], ct['z1']], [ct['x0'], ct['y1'], ct['z1']]], 369),
+                   ('ct-roof', [[ct['x0'], ct['y1'], ct['z0']], [ct['x1'], ct['y1'], ct['z0']], [ct['x1'], ct['y1'], ct['z1']], [ct['x0'], ct['y1'], ct['z1']]], 203)]:
+    plate(id, 'Conning tower', vs, mm, True)
+sg = dict(x=5.2, y0=-4.4, y1=-.4, z0=rz(84.0), z1=rz(97.0))
+for id, vs, mm in [('steering-port', [[-sg['x'], sg['y0'], sg['z0']], [-sg['x'], sg['y0'], sg['z1']], [-sg['x'], sg['y1'], sg['z1']], [-sg['x'], sg['y1'], sg['z0']]], 102),
+                   ('steering-starboard', [[sg['x'], sg['y0'], sg['z0']], [sg['x'], sg['y0'], sg['z1']], [sg['x'], sg['y1'], sg['z1']], [sg['x'], sg['y1'], sg['z0']]], 102),
+                   ('steering-after', [[-sg['x'], sg['y0'], sg['z1']], [sg['x'], sg['y0'], sg['z1']], [sg['x'], sg['y1'], sg['z1']], [-sg['x'], sg['y1'], sg['z1']]], 152),
+                   ('steering-roof', [[-sg['x'], sg['y1'], sg['z0']], [sg['x'], sg['y1'], sg['z0']], [sg['x'], sg['y1'], sg['z1']], [-sg['x'], sg['y1'], sg['z1']]], 102)]:
+    plate(id, 'Steering-gear protection', vs, mm)
+b['underwaterProtection'] = dict(version=1, basis='Estimated anti-torpedo bulge and side-protection system outside the belt; reductions are provisional game calibration, not a trials result.',
+                                 zones=[dict(id=f'bulge-{side}', name=f'{side.title()} anti-torpedo bulge', center=[sign * 15.6, -4.2, rz(0.0)],
+                                             size=[2.6, 7.6, 132], damageReduction=.4, breachReduction=.4) for side, sign in [('port', -1), ('starboard', 1)]])
+
+# ---------------------------------------------------------------- rig
+# At sea the ensign flies from the mainmast gaff (HP_flag_nation).
+b['rig'] = dict(version=1, ensigns=[dict(id='national-ensign', design='ijn', position=[0, 39.5, rz(20.4)], width=4.2, staffHeight=0)],
+                radars=[dict(id='main-director', nodeId='main-director.yaw', rpm=2, sweepDeg=55, phaseDeg=40)])
+if previous and previous.get('damageControl') and 'Scaffold' not in previous['damageControl'].get('basis', ''):
+    b['damageControl'] = previous['damageControl']
+else:
+    b['damageControl'] = dict(version=1, teams=4, setupSeconds=8, repairPoints=340, roomFuelSeconds=180, mountFuelSeconds=80, suppressionPerSecond=.1,
+                              portablePumpM3PerSecond=.09, repairHpPerSecond=.8, repairCeiling=.6, patchM2PerSecond=.004, maxPatchM2=.4, flashProtection=.9,
+                              basis='Provisional battleship crew and finite-stores calibration; not historical manning or damage-control performance.')
+# Local damage is authored once by its helper and kept across reruns; flood spaces and stability are
+# recomputed by their helpers after every run.
+if previous and previous.get('localDamage') and 'Placeholder' not in previous['localDamage'].get('basis', ''):
+    b['localDamage'] = previous['localDamage']
+b.setdefault('localDamage', dict(version=1, regions=[dict(id='hull-placeholder', name='Hull', kind='hull', durabilityFraction=1, center=[0, 0, 0], size=[round(beam, 3), 30, L])],
+                                 basis='Placeholder; author-local-damage.ts replaces it.'))
 write(HERE / 'blueprint.json', b)
-print(f'Authored nagato: {len(sections)} sections, {round(volume * 1.025)} t at the design waterline, {len(b["mounts"])} mounts, '
-      f'{len(b["structures"])} structures, {len(b["armor"])} armour plates.')
+print(f'Authored nagato: {len(sections)} sections, {round(volume * 1.025)} t at the reference waterline, {len(b["mounts"])} mounts, '
+      f'{len(structures)} structures, {len(b["armor"])} armour plates. Next: author-flood-spaces, author-stability, author-local-damage, author-damage-control.')

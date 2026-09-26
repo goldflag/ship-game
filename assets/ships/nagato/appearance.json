@@ -1,15 +1,36 @@
 {
   "version": 1,
-  "id": "nagato-starter-v1",
-  "basis": "Scaffold placeholder: one grey for hull and upperworks, dark painted-steel decks and a red-oxide bottom. Replace with the approved paint scheme (docs/ship-appearance.md); swatches are the recipe's linear-RGB material colors.",
+  "id": "nagato-1944-default-v1",
+  "basis": "Approved GameModels3D pjsb010 default (source) paint: one blue-grey over hull and upperworks, grey steel roofs and the casemate shelf, natural wood weather decks, a linoleum aircraft deck, black funnel cap and mast heads and a red-oxide bottom without boot topping, as the fleet's conventions paint a bottom the source shows weathered. Swatches are linear-RGB interpretations of the reference's texture, not measured historical paint.",
   "wear": "in-commission",
+  "palette": {
+    "nagato-reference-grey": [0.112, 0.118, 0.137],
+    "nagato-reference-steel-roof": [0.094, 0.098, 0.113],
+    "nagato-reference-wood": [0.100, 0.076, 0.054],
+    "nagato-reference-linoleum": [0.072, 0.040, 0.031],
+    "nagato-reference-red-oxide": [0.105, 0.050, 0.039],
+    "nagato-reference-black": [0.012, 0.012, 0.013],
+    "nagato-authored-dark-fittings": [0.038, 0.038, 0.040],
+    "nagato-authored-mid-fittings": [0.088, 0.093, 0.108],
+    "nagato-reference-canvas": [0.55, 0.53, 0.44],
+    "nagato-authored-fitting-wood": [0.19, 0.13, 0.075],
+    "nagato-reference-boat-white": [0.42, 0.43, 0.42]
+  },
   "materials": {
-    "naval": { "paint": "nagato-hull-grey", "finish": "painted-steel" },
-    "hullgray": { "paint": "nagato-hull-grey", "finish": "painted-steel" },
-    "antifouling": { "paint": "nagato-red-oxide", "finish": "underwater-coating" },
-    "deck": { "paint": "nagato-deck-grey", "finish": "painted-deck" },
-    "roof": { "paint": "nagato-deck-grey", "finish": "painted-deck" },
-    "edge": { "paint": "nagato-dark-fittings", "finish": "painted-steel" },
-    "painted-edge": { "paint": "nagato-mid-fittings", "finish": "painted-steel" }
+    "naval": { "paint": "nagato-reference-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "nagato-reference-grey", "finish": "painted-steel" },
+    "roof": { "paint": "nagato-reference-steel-roof", "finish": "painted-deck" },
+    "deck": { "paint": "nagato-reference-wood", "finish": "wood" },
+    "linoleum": { "paint": "nagato-reference-linoleum", "finish": "linoleum" },
+    "antifouling": { "paint": "nagato-reference-red-oxide", "finish": "underwater-coating" },
+    "black": { "paint": "nagato-reference-black", "finish": "painted-steel" },
+    "edge": { "paint": "nagato-authored-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "nagato-authored-mid-fittings", "finish": "painted-steel" },
+    "canvas": { "paint": "nagato-reference-canvas", "finish": "painted-steel" },
+    "wood": { "paint": "nagato-authored-fitting-wood", "finish": "wood", "fittings": true },
+    "white": { "paint": "nagato-reference-boat-white", "finish": "painted-steel" }
+  },
+  "decking": {
+    "deck": { "plankWidth": 0.15, "plankLength": 6.0, "seamWidth": 0.004, "coating": "bare" }
   }
 }
