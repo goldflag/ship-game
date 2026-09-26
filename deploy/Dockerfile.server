@@ -11,8 +11,12 @@ ENV RUSTUP_TOOLCHAIN=1.98.1 CARGO_BUILD_JOBS=1
 # Tests run on the deploying machine (scripts/deploy-ships.sh), not on the host.
 # Compose builds the server and compiler images concurrently; `locked` cache mounts make them take turns,
 # so crates are not unpacked twice at once and only one release rustc (about 2.3 GB) runs at a time.
+# Cargo judges workspace crates fresh by modification time, and the deploy's rsync keeps the sources' original
+# times. A cached build newer than the incoming sources would be reused unchanged (on 2026-09-26 this shipped a
+# 09-24 server that rejected the current manifest), so touch them. Registry dependencies stay cached.
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/source/target,sharing=locked \
+    find crates assets .build -type f -exec touch {} + && \
     cargo build --release --locked -p naval-server --bin naval-server && \
     cp target/release/naval-server /naval-server
 
