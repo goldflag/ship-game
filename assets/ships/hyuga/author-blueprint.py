@@ -214,10 +214,31 @@ def regularize(poly, tol=.08, snap=math.tan(math.radians(5))):
 
 if opts.structures:
     structures = [dict(s, footprint=regularize(s['footprint'])) for s in structures]
+# No. 4 turret's muzzles pass within a few centimetres of the after deckhouse's forward corners as it trains
+# off the centreline; those corners stand 0.25 m further aft than traced so the trained barrels clear them.
+for s in structures:
+    if s['id'] == 'after-tower-003':
+        s['footprint'] = [[x, max(z, 37.7)] if abs(x) > 3.0 else [x, z] for x, z in s['footprint']]
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is
-# cut into fore-and-aft strips of at most 3 m so a stepped deckhouse is not boxed at its widest.
+# cut into fore-and-aft strips of at most 3 m, and each strip into the athwartships spans the outline
+# holds all along it, so neither a stepped deckhouse nor a block notched round a gun is boxed at its widest.
+def spans(poly, z):
+    xs = sorted(ax + (bx - ax) * (z - az) / (bz - az) for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]) if (az - z) * (bz - z) < 0)
+    return list(zip(xs[0::2], xs[1::2]))
+
+
+def common(a, c):
+    out = []
+    for a0, a1 in a:
+        for c0, c1 in c:
+            lo, hi = max(a0, c0), min(a1, c1)
+            if hi > lo:
+                out.append((lo, hi))
+    return out
+
+
 for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
@@ -228,15 +249,17 @@ for s in structures:
     for k in range(n):
         z0 = min(zs) + (max(zs) - min(zs)) * k / n
         z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
-        pts = [p[0] for p in poly if z0 <= p[1] <= z1]
-        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
-            for zc in (z0, z1):
-                if (az - zc) * (bz - zc) < 0:
-                    pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
-        if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
+        if z1 - z0 < .6:
             continue
-        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
-                                      size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+        held = None
+        for t in range(9):
+            row = spans(poly, z0 + .05 + (z1 - z0 - .1) * t / 8)
+            held = row if held is None else common(held, row)
+        for j, (x0, x1) in enumerate(held or []):
+            if x1 - x0 < .6:
+                continue
+            b['obstructions'].append(dict(id=f"{s['id']}-{k}" + (f"-{j}" if j else ''), center=[round((x0 + x1) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
+                                          size=[round(x1 - x0 - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
 
 # Stowed boats (reference boat bounds: x, y and z ranges), so barrels stop at and cannot fire through them.
 BOATS = [('dinghy', (5.41, 8.75), (6.98, 8.14), (-55.51, -49.69)), ('cutter-pagoda-outer', (6.64, 9.99), (9.17, 10.78), (-42.58, -33.51)),
@@ -247,8 +270,14 @@ for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
     for side, sign in [('port', -1), ('starboard', 1)]:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
                                       size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
-for name, (x0, x1), (y0, y1), (z0, z1) in [('motor-boat-17m', (3.8, 8.04), (9.11, 14.81), (-24.18, -6.43)), ('landing-craft', (-8.59, -3.87), (9.58, 14.75), (-22.2, -7.46)),
-                                           ('catapult', (2.14, 7.3), (4.77, 8.6), (74.34, 93.98))]:
+# The catapult (reference pivot x 4.353, z 86.924, heading 10 degrees to starboard): its girder in three
+# boxes up to 6.2 m and the launching cradle over the pivot up to 8.1 m.
+CAT = []
+for i, (u0, u1, top) in enumerate([(-7.0, 0.0, 6.2), (0.0, 6.3, 6.2), (6.3, 12.6, 6.2), (.2, 3.0, 8.1)]):
+    ends = [(4.353 + .1736 * u, 86.924 - .9848 * u) for u in (u0, u1)]
+    xs, zs = [e[0] for e in ends], [e[1] for e in ends]
+    CAT.append((f'catapult-{i}', (min(xs) - .64, max(xs) + .64), (4.77, top), (min(zs) - .12, max(zs) + .12)))
+for name, (x0, x1), (y0, y1), (z0, z1) in [('motor-boat-17m', (3.8, 8.04), (9.11, 14.81), (-24.18, -6.43)), ('landing-craft', (-8.59, -3.87), (9.58, 14.75), (-22.2, -7.46))] + CAT:
     b['obstructions'].append(dict(id=name, center=[round((x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
                                   size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
 
@@ -262,11 +291,13 @@ for m in b['mounts']:
     if m['battery'] != 'main' and not m['id'].startswith(('ha-', 'casemate-')):
         continue
     w = catalog[m['partId']]
-    entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
+    # The main guns' turned barrels are 0.5 m in radius behind the locking bands (the catalog base radius is the
+    # shared mantlet's); the 14 cm and 12.7 cm barrels keep three quarters of their base radius.
+    entry = dict(mountId=m['id'], barrelRadiusM=.53 if m['battery'] == 'main' else round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
         # The Ise-class gunhouse in the yaw frame (x across, y up, z aft): 10.8 m long from 3.95 m ahead of the
-        # pivot, 8.6 m wide, from its floor to the periscope hood over the roof ridge.
-        entry['body'] = dict(center=[0, 1.7, 1.45], size=[8.6, 3.4, 10.8])
+        # pivot, 8.6 m wide, from its floor to the periscope hood on the roof ridge (2.72 m).
+        entry['body'] = dict(center=[0, 1.36, 1.45], size=[8.6, 2.72, 10.8])
     clear_mounts.append(entry)
     rise = (w['muzzleForward'] + 1.5) * math.sin(math.radians(w['elevationMaxDeg']))
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'], rise)

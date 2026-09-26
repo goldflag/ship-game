@@ -18,7 +18,7 @@ CLAIMED_STRUCTURES = {'funnel-002'}
 CASING = dict(half=2.12, z0=-7.24, z1=-0.24)
 FORE_TRUNK = dict(half=1.88, z0=-10.16, z1=-7.72)
 AFT_TRUNK = dict(half=2.12, z0=0.04, z1=1.72)
-TOWER = dict(half=4.25, z0=-9.95, z1=1.70, y0=10.2, y1=17.0)
+TOWER = dict(half=2.55, z0=-7.33, z1=0.08, y0=10.2, y1=17.0)   # inside the traced block's tapered outline
 
 
 def build(D, kit):
@@ -114,7 +114,7 @@ def lattice_tower(kit, col):
     y0, y1 = t['y0'], t['y1']
     tiers = [y0, y0 + (y1 - y0) / 3, y0 + 2 * (y1 - y0) / 3, y1]
     for rx, rz in corners:
-        kit.member(A, col, P(rx, y0 - .02, rz), P(rx, y1 + .02, rz), .16, 'naval', 8)
+        kit.member(A, col, P(rx, y0, rz), P(rx, y1 + .02, rz), .16, 'naval', 8)
     faces = [((-h, t['z0']), (h, t['z0'])), ((h, t['z0']), (h, t['z1'])), ((h, t['z1']), (-h, t['z1'])), ((-h, t['z1']), (-h, t['z0']))]
     for (ax, az), (bx, bz) in faces:
         for ya, yb in zip(tiers, tiers[1:]):

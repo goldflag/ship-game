@@ -293,12 +293,12 @@ def create_mount(mount, col, helpers, mats):
             hz = roof_z(hx, y) + .02
             flap = own(box(name + '.sight-cover', (hx - .05, y, hz + .28), (.05, width + .06, .56), mats['naval'], col))
             flap.rotation_euler.y = math.radians(-18)
-    # Periscope hood at the back of the roof, with its post.
-    px = -5.35
+    # Periscope hood on the ridge at the back of the roof: a low armoured disc with its lid, kept under the
+    # superfiring turret's depressed barrels (the reference's periscope tube is left housed).
+    px = -5.0
     pz = ridge_z(px) - .03
-    own(cyl(name + '.periscope-hood', (px, 0, pz + .21), .5, .42, mats['naval'], col, 24))
-    own(cyl(name + '.periscope-cap', (px, 0, pz + .45), .54, .06, mats['naval'], col, 24))
-    bar('periscope-post', (px + .1, -.62, roof_z(px + .1, -.62) - .02), (px + .1, -.62, pz + .72), .06, mats['naval'], 10)
+    own(cyl(name + '.periscope-hood', (px, 0, pz + .05), .3, .1, mats['naval'], col, 20))
+    own(cyl(name + '.periscope-cap', (px, 0, pz + .115), .22, .03, mats['naval'], col, 20))
     # Face-plate ladder between the bags, returning onto the roof.
     for yy in (-.29, .29):
         a = (front_x(yy, .05) + .065, yy, .05)
