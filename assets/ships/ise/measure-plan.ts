@@ -1,6 +1,8 @@
 // Plan cuts of the cached pjsb526 reference for Ise's measured superstructure blocks: the repository's own
-// `ship:slice --plan` (planPolygons) over the hull group, mirrored, gaps up to 1.2 m bridged, features under 0.3 m
-// dropped, every 5 cm from 4.57 to 44 m over the whole ship, from one reference load. Measurement only: it writes
+// `ship:slice --plan` (planPolygons) over the hull group, mirrored, features under 0.3 m dropped, every 5 cm from 4.57
+// to 44 m over the whole ship, from one reference load. Gaps up to 1.2 m are bridged below 15 m, where deckhouse
+// doors and embrasures would otherwise open the walls; above it, only 0.5 m, so the pagoda's open galleries between
+// its bridge walls and their railings stay open. Measurement only: it writes
 // our own traced outlines to ignored .build/, never source triangles; author-blueprint.py --plan reads the file.
 //
 //   bun assets/ships/ise/measure-plan.ts .build/ise/plan-cuts.json
@@ -18,7 +20,7 @@ const levels: { y: number; polygons: unknown[] }[] = [];
 for (let k = 0; ; k++) {
   const y = Math.round((4.57 + k * 0.05) * 1000) / 1000;
   if (y > 44 + 1e-9) break;
-  levels.push({ y, polygons: planPolygons(view, y, { box, symmetric: true, close: 0.6, minThickness: 0.3, resolution: 0.04, minArea: 0.15 }) });
+  levels.push({ y, polygons: planPolygons(view, y, { box, symmetric: true, close: y < 15 ? 0.6 : 0.25, minThickness: 0.3, resolution: 0.04, minArea: 0.15 }) });
 }
 writeFileSync(resolve(root, out), JSON.stringify({ ship: levels }));
 console.log(`${levels.length} levels -> ${out}`);

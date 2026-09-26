@@ -118,7 +118,8 @@ def directors(D, kit):
         kit.rangefinder(f'rangefinder-1-5-{"port" if s < 0 else "starboard"}', (s * 2.71, 22.77, -31.52), 1.5, 90 * s, col)
         A = f'rangefinder-4-5-{"port" if s < 0 else "starboard"}'
         c = P(s * 5.33, 19.21, -3.71)
-        kit.cylz(A, col, 'pedestal', c, .6, .8, 'naval', 20)
+        foot = floor_under(kit, *c, 2.0)
+        kit.cylz(A, col, 'pedestal', (c[0], c[1], foot - .02), .6, c[2] + .82 - foot, 'naval', 20)
         kit.part('box', A, col, 'house', (c[0], c[1], c[2] + 1.2), (1.6, 1.5, 1.0), 'naval')
         kit.part('rod', A, col, 'tube', (c[0] - 2.3, c[1], c[2] + 1.35), (c[0] + 2.3, c[1], c[2] + 1.35), .2, 'naval', vertices=14)
         for u in (-1, 1):
@@ -157,7 +158,7 @@ def masts(D, kit):
     # Upper yard (40.3 m, 4.2 m each way), the radar yard (37.0 m) and the gaff for the ensign.
     kit.member(A, col, V(-4.2, 40.3, 43.62), V(4.2, 40.3, 43.62), .06, 'black', 8)
     kit.member(A, col, V(-2.7, 37.05, 43.9), V(2.7, 37.05, 43.9), .07, 'black', 8)
-    kit.member(A, col, V(0, 31.5, 43.9), V(0, 32.1, 46.0), .06, 'naval', 8)
+    kit.member(A, col, V(0, 31.5, 43.62), V(0, 32.1, 46.0), .06, 'naval', 8)
     for s in (-1, 1):
         kit.member(A, col, V(s * 4.1, 40.3, 43.62), V(0, 42.3, 43.62), .012, 'edge', 3)
         kit.member(A, col, V(s * 2.6, 37.05, 43.9), V(0, 39.0, 43.62), .012, 'edge', 3)
@@ -207,7 +208,8 @@ def searchlights(D, kit):
     for i, (x, y, z) in enumerate([(-2.11, 20.68, -9.2), (2.11, 20.68, -9.2), (-2.11, 20.68, 1.89), (2.11, 20.68, 1.89)], 5):
         A = f'searchlight-{i}'
         c = V(x, y, z)
-        kit.cylz(A, col, 'pedestal', tuple(c), .3, .6, 'naval', 14)
+        foot = floor_under(kit, *c, 1.5)
+        kit.cylz(A, col, 'pedestal', (c.x, c.y, foot - .02), .3, c.z + .62 - foot, 'naval', 14)
         kit.part('box', A, col, 'yoke', tuple(c + Vector((0, 0, .85))), (.3, 1.35, .6), 'naval')
         kit.part('rod', A, col, 'drum', c + Vector((-.55, 0, 1.4)), c + Vector((.5, 0, 1.4)), .66, 'naval', vertices=22)
         kit.part('rod', A, col, 'glass', c + Vector((.5, 0, 1.4)), c + Vector((.55, 0, 1.4)), .6, 'glass', vertices=22)

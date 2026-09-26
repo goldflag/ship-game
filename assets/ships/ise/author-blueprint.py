@@ -278,9 +278,10 @@ ROCKETS = [(-9.603, 7.983, 94.709, -90), (9.603, 7.983, 94.709, 90), (-9.258, 7.
 # Measured prisms. Plan cuts of the reference hull group every 5 cm (mirrored; gaps up to 1.2 m bridged so
 # window and door openings close; features under 0.3 m dropped) in three overlapping regions whose floors
 # clear the hull decks (forecastle from 7.12 m, midships from 4.57 m, hangar and stern from 4.95 m) are
-# rasterised on a 10 cm grid. Each grid column's solid runs (gaps of up to 15 cm bridged) start and end at
-# heights snapped to the levels where many columns start or end (a deck, a roof, a platform), or else to
-# 30 cm steps; columns sharing a start and an end form a block, traced back to an outline. Blocks that do not
+# rasterised on a 10 cm grid. Each grid column's solid runs (gaps of up to 15 cm bridged, 1.2 m above 12 m) start
+# and end at heights snapped to the levels where many columns start or end (a deck, a roof, a platform), or else
+# to steps of 0.3 to 1 m by the run's length; columns sharing a start and an end form a block, traced back to an
+# outline. Blocks that do not
 # rise clear of the hull deck are hull; ones starting within 0.6 m of the deck reach down to it.
 
 
@@ -466,17 +467,22 @@ def measured_prisms(cuts, cell=.1, gap=3):
         runs.append(np.stack([done, start[done], last[done]], 1))
         runs = np.concatenate(runs)
 
-        def snapped(values, lift):
+        # Ends away from a common level round to a step that grows with the run, so a tall tower's columns,
+        # whose tops differ by a few centimetres, stay one block: 0.3 m under 3 m, 0.6 m under 10 m, 1 m above.
+        span = runs[:, 2] - runs[:, 1]
+        quantum = np.where(span < 60, 6, np.where(span < 200, 12, 20))
+
+        def snapped(values):
             hist = np.bincount(values, minlength=n)
             peaks = np.array([k for k in range(n) if hist[k] >= 25 and hist[k] == hist[max(0, k - 3):k + 4].max()])
-            out = ((values + lift) // 6) * 6
+            out = ((values + quantum // 2) // quantum) * quantum
             if len(peaks):
                 d = np.abs(values[:, None] - peaks[None, :])
                 j = d.argmin(1)
                 near = d[np.arange(len(values)), j] <= 3
                 out[near] = peaks[j[near]]
             return np.clip(out, 0, n - 1)
-        s, e = snapped(runs[:, 1], 0), snapped(runs[:, 2], 3)
+        s, e = snapped(runs[:, 1]), snapped(runs[:, 2])
         e = np.maximum(e, s)
         # Snapping must not lift a block back into a gun's working space: a run that starts below a carve ends
         # under it.
@@ -489,6 +495,40 @@ def measured_prisms(cuts, cell=.1, gap=3):
         cap = floor_level[runs[:, 0]]
         clip = (s < cap) & (e >= cap)
         e = np.where(clip, cap - 1, e)
+        # A column whose start and end few others share (a tower's cell whose top sits between two common levels)
+        # joins a neighbouring column's block when their runs overlap over most of their height, so a tall tower
+        # is not left pitted with dropped cells.
+        cells_of = runs[:, 0]
+        for _ in range(4):
+            key = s.astype(np.int64) * 100000 + e
+            _, inverse, counts = np.unique(key, return_inverse=True, return_counts=True)
+            size = counts[inverse]
+            small = np.nonzero(size < 30)[0]
+            big = np.nonzero(size >= 30)[0]
+            if not len(small) or not len(big):
+                break
+            big = big[np.argsort(cells_of[big], kind='stable')]
+            big_cells = cells_of[big]
+            best = np.full(len(small), -1)
+            best_share = np.zeros(len(small))
+            col = cells_of[small] % W
+            for shift, ok in ((-1, col > 0), (1, col + 1 < W), (-W, np.ones(len(small), bool)), (W, np.ones(len(small), bool))):
+                nb = cells_of[small] + shift
+                lo = np.searchsorted(big_cells, nb, 'left')
+                hi = np.searchsorted(big_cells, nb, 'right')
+                for k in range(int((hi - lo).max(initial=0))):
+                    has = ok & (lo + k < hi)
+                    j = big[np.minimum(lo + k, len(big) - 1)]
+                    overlap = np.minimum(e[small], e[j]) - np.maximum(s[small], s[j])
+                    share = overlap / np.maximum(1, np.maximum(e[small] - s[small], e[j] - s[j]))
+                    take = has & (share >= .7) & (share > best_share)
+                    best = np.where(take, j, best)
+                    best_share = np.where(take, share, best_share)
+            moved = best >= 0
+            if not moved.any():
+                break
+            s[small[moved]] = s[best[moved]]
+            e[small[moved]] = e[best[moved]]
         key = s.astype(np.int64) * 100000 + e
         order = np.argsort(key, kind='stable')
         bounds = np.nonzero(np.diff(key[order]))[0] + 1
@@ -532,9 +572,9 @@ def measured_prisms(cuts, cell=.1, gap=3):
             if not below:
                 p['base'] = round(p['deck'] - .02, 3)
     structures = []
-    # Blocks under 1.5 m2 in plan (lockers, vents, ladders; 0.6 m2 for pillars 2 m tall or more) are left
-    # to the recipe's fittings.
-    small = lambda ring, h: abs(sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(ring, ring[1:] + ring[:1]))) / 2 < (.6 if h >= 2 else 1.5)
+    # Blocks under 0.5 m2 in plan (ladders, pipes, small lockers) are left to the recipe's fittings; larger
+    # small ones stay, as pedestals and seats that fittings stand on.
+    small = lambda ring, h: abs(sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(ring, ring[1:] + ring[:1]))) / 2 < .5
     out = [p for p in out if not small(p['ring'], p['top'] - p['base'])]
     # The blueprint holds at most 256 blocks: keep the ones with the most visible surface (plan area plus wall
     # area), leaving room for the recipe's own.
@@ -733,14 +773,77 @@ def side_attached(s):
     return False
 
 
-posts = []
-for s in ALL_BLOCKS:
+
+def samples_of(s):
+    """The outline (reference frame), its vertex centroid and sample points inside it (a hooked or C-shaped outline's
+    centroid can lie outside it)."""
     fp = [(p[0], p[1] - ZS) for p in s['footprint']]
     cx, cz = sum(p[0] for p in fp) / len(fp), sum(p[1] for p in fp) / len(fp)
-    samples = [(cx, cz)] + [(px + (cx - px) * f, pz + (cz - pz) * f) for px, pz in fp for f in (.15, .03)]
+    pts = [(cx, cz)] + [(px + (cx - px) * f, pz + (cz - pz) * f) for px, pz in fp for f in (.15, .03)]
+    return fp, cx, cz, [q for q in pts if inside(fp, *q)]
+
+
+def rests_on(s, o):
+    """True when s's underside rests on o or passes into it at one of s's sample points."""
     base = s['baseY']
-    if any(carried(s, x, z) for x, z in samples) or side_attached(s):
+    if not (o['baseY'] <= base + .05 and o['baseY'] + o['height'] >= base - .05):
+        return False
+    return any(inside(o['footprint'], x, z + ZS) for x, z in samples_of(s)[3])
+
+
+def beside(s, o):
+    if min(s['baseY'] + s['height'], o['baseY'] + o['height']) - max(s['baseY'], o['baseY']) < .1:
+        return False
+    return edge_gap(s['footprint'], o['footprint']) <= .05
+
+
+def on_deck(s):
+    base, top = s['baseY'], s['baseY'] + s['height']
+    for x, z in samples_of(s)[3]:
+        d = deck_y(z)
+        if -L / 2 < z + ZS < L / 2 and abs(x) <= half_breadth(z, d - .05) + .05 and base - .05 <= d <= top:
+            return True
+    return False
+
+
+# Contacts between blocks (bounding boxes within 10 cm first), then everything reachable from the deck.
+boxes = []
+for s in ALL_BLOCKS:
+    xs = [p[0] for p in s['footprint']]
+    zs = [p[1] for p in s['footprint']]
+    boxes.append((min(xs), max(xs), min(zs), max(zs), s['baseY'], s['baseY'] + s['height']))
+links = {i: set() for i in range(len(ALL_BLOCKS))}
+for i, a in enumerate(ALL_BLOCKS):
+    ax0, ax1, az0, az1, ay0, ay1 = boxes[i]
+    for j in range(i + 1, len(ALL_BLOCKS)):
+        bx0, bx1, bz0, bz1, by0, by1 = boxes[j]
+        if bx0 > ax1 + .1 or ax0 > bx1 + .1 or bz0 > az1 + .1 or az0 > bz1 + .1 or by0 > ay1 + .06 or ay0 > by1 + .06:
+            continue
+        c = ALL_BLOCKS[j]
+        if rests_on(a, c) or rests_on(c, a) or beside(a, c):
+            links[i].add(j)
+            links[j].add(i)
+reached = {i for i, s in enumerate(ALL_BLOCKS) if on_deck(s)}
+
+
+def spread():
+    stack = list(reached)
+    while stack:
+        i = stack.pop()
+        for j in links[i]:
+            if j not in reached:
+                reached.add(j)
+                stack.append(j)
+
+
+spread()
+posts = []
+for i in sorted(range(len(ALL_BLOCKS)), key=lambda i: ALL_BLOCKS[i]['baseY']):
+    if i in reached:
         continue
+    s = ALL_BLOCKS[i]
+    fp, cx, cz, _ = samples_of(s)
+    base = s['baseY']
     feet = []
     for px, pz in sorted(fp, key=lambda p: -math.hypot(p[0] - cx, p[1] - cz)):
         fx, fz = px + (cx - px) * .25, pz + (cz - pz) * .25
@@ -751,22 +854,35 @@ for s in ALL_BLOCKS:
     if not feet:
         # A thin or hooked outline: any point inside it, on a 0.2 m lattice, nearest its centroid.
         xs, zs = [q[0] for q in fp], [q[1] for q in fp]
-        grid = [(min(xs) + .1 + .2 * i, min(zs) + .1 + .2 * j) for i in range(int((max(xs) - min(xs)) / .2) + 1) for j in range(int((max(zs) - min(zs)) / .2) + 1)]
+        grid = [(min(xs) + .1 + .2 * a, min(zs) + .1 + .2 * c) for a in range(int((max(xs) - min(xs)) / .2) + 1) for c in range(int((max(zs) - min(zs)) / .2) + 1)]
         grid = [q for q in grid if inside(fp, *q) and not mount_space(*q)]
         if grid:
             feet = [min(grid, key=lambda q: math.hypot(q[0] - cx, q[1] - cz))]
     area = plan_area(fp)
     r = .06 if area < 6 else .09 if area < 30 else .13
     added = 0
-    for fx, fz in feet or [(cx, cz)]:
+    for fx, fz in feet:
         floor = surface_below(fx, fz, base - .01, s)
         if 0 < base - floor < 14:
             posts.append([round(fx, 3), rz(fz), round(floor - .02, 3), round(base + .02, 3), r])
             added += 1
-    if not added and s in minor_blocks:
-        # A thin plate high over open space (a yard platform whose brackets fall under the cuts' minimum) is
-        # left out rather than stood on posts over 14 m tall.
+    if not added and not feet:
+        # All of it lies in a gun's working circle (a mount's own seat platform): it reaches down to what is under
+        # it, as a drum, when that is close.
+        floor = surface_below(cx, cz, base - .01, s)
+        if 0 < base - floor <= 1.5:
+            s['height'] = round(s['height'] + base - floor + .02, 3)
+            s['baseY'] = round(floor - .02, 3)
+            added = 1
+    if added:
+        reached.add(i)
+        spread()
+# A minor block still reaching nothing (a thin plate high over open space whose brackets fall under the cuts'
+# minimum) is left out rather than stood on posts over 14 m tall.
+for i, s in enumerate(ALL_BLOCKS):
+    if i not in reached and s in minor_blocks:
         s['unsupported'] = True
+print(f'unsupported structures: {[s["id"] for i, s in enumerate(ALL_BLOCKS) if i not in reached and s not in minor_blocks]}')
 minor_blocks = [s for s in minor_blocks if not s.pop('unsupported', False)]
 # Mounts with interlocks (the main turrets and the 12.7 cm twins) and the radius their barrels reach.
 INTERLOCKED = [(m['position'][0], m['position'][2], PARTS[m['partId']]['muzzleForward'] + 1.5) for m in b['mounts'] if m['battery'] == 'main' or m['id'].startswith('ha-')]

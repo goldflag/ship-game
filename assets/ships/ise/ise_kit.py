@@ -389,7 +389,7 @@ class Kit:
         x, y, z = P(*ref)
         # The pedestal stands on whatever platform lies under the measured datum.
         floor = self.support.below(x, y, z + .05)
-        floor = floor if z - floor < 1.0 else z
+        floor = floor if z - floor < 2.0 else z
         self.cylz(id, col, 'pedestal', (x, y, floor), .22, z + .55 - floor, 'naval', 12)
         self.part('box', id, col, 'yoke', (x, y, z + .75), (.25, 1.05, .5), 'naval')
         self.part('rod', id, col, 'drum', (x - .45, y, z + 1.15), (x + .4, y, z + 1.15), .55, 'naval', vertices=20)
