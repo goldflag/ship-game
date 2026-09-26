@@ -77402,12 +77402,12 @@
     {
       "id": "aft-02-1",
       "center": [
-        0.013,
+        -0.001,
         8.1,
         45.269
       ],
       "size": [
-        12.4,
+        6.956,
         1.5,
         2.13
       ]
@@ -77415,12 +77415,12 @@
     {
       "id": "aft-02-2",
       "center": [
-        0.061,
+        -0.007,
         8.1,
         47.599
       ],
       "size": [
-        8.325,
+        5.72,
         1.5,
         2.13
       ]
@@ -77433,7 +77433,7 @@
         49.929
       ],
       "size": [
-        8.84,
+        7.663,
         1.5,
         2.13
       ]
@@ -77459,7 +77459,7 @@
         45.251
       ],
       "size": [
-        14.344,
+        9.391,
         2.62,
         2.132
       ]
@@ -77472,7 +77472,7 @@
         47.583
       ],
       "size": [
-        9.835,
+        8.103,
         2.62,
         2.132
       ]
@@ -77485,7 +77485,7 @@
         49.916
       ],
       "size": [
-        11.46,
+        10.014,
         2.62,
         2.133
       ]
@@ -85273,5 +85273,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "26eb22fe001372b7afc0002f524838e108ab251f1f4ce34d0e0ada82e65dd954"
+  "contentHash": "a4e3db74eb1eb694d7a4e1e61319f466f178f0dee102348c56106f35e2dd31d2"
 }

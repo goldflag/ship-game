@@ -515,6 +515,20 @@ b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, cut into fore-and-aft strips of at
 # most 3 m so a stepped deckhouse is not boxed at its widest.
+# The after 6-inch casemates train in embrasures cut into the after superstructure's two lowest boxed tiers
+# (reference z of each embrasure's forward and after corners). A strip over an embrasure boxes only the runs across
+# the ship that lie inside the outline all along the strip, as the New Orleans recipe does, so the embrasure the
+# casemate's breech swings through is not boxed in; the widest run would fill it and hold all four after casemates
+# fouled at neutral, unable to train. Elsewhere a strip still boxes its widest run.
+EMBRASURES = {'after-house-low': (43.40, 48.27), 'aft-02': (43.50, 48.08)}
+
+
+def inside_runs(poly, z):
+    xs = sorted(ax + (bx - ax) * (z - az) / (bz - az) for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1])
+                if min(az, bz) <= z < max(az, bz))
+    return [(xs[i], xs[i + 1]) for i in range(0, len(xs) - 1, 2)]
+
+
 for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
@@ -522,18 +536,31 @@ for s in structures:
     if s['height'] < 1.0 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 4:
         continue
     n = max(1, math.ceil((max(zs) - min(zs)) / 3))
+    embrasure = EMBRASURES.get(s['id'])
     for k in range(n):
         z0 = min(zs) + (max(zs) - min(zs)) * k / n
         z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
-        pts = [p[0] for p in poly if z0 <= p[1] <= z1]
-        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
-            for zc in (z0, z1):
-                if (az - zc) * (bz - zc) < 0:
-                    pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
-        if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
-            continue
-        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
-                                      size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+        if embrasure and z0 < rz(embrasure[1]) and rz(embrasure[0]) < z1:
+            if z1 - z0 < .6:
+                continue
+            runs = None
+            for j in range(9):
+                here = inside_runs(poly, z0 + .1 + (z1 - z0 - .2) * j / 8)
+                runs = here if runs is None else [(max(a, c), min(e, f)) for a, e in runs for c, f in here if min(e, f) - max(a, c) > 0]
+            runs = [run for run in runs if run[1] - run[0] >= .6]
+        else:
+            pts = [p[0] for p in poly if z0 <= p[1] <= z1]
+            for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+                for zc in (z0, z1):
+                    if (az - zc) * (bz - zc) < 0:
+                        pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
+            if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
+                continue
+            runs = [(min(pts), max(pts))]
+        for r, (x0, x1) in enumerate(runs):
+            b['obstructions'].append(dict(id=f"{s['id']}-{k}" + (f'-{r + 1}' if r else ''),
+                                          center=[round((x0 + x1) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
+                                          size=[round(x1 - x0 - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
 # Boats on their chocks and the catapults: barrels stop at them and cannot fire through them.
 for name, (x0, x1), (y0, y1), (z0, z1) in [('launch', (4.25, 7.62), (8.0, 11.0), (-34.2, -22.0)), ('motor-boat', (5.62, 7.99), (7.4, 10.4), (-20.1, -9.5)),
                                            ('catapult', (4.9, 8.3), (7.0, 8.6), (11.0, 27.6))]:
