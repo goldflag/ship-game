@@ -166,6 +166,7 @@ fn strike(preset: &str, role: &str, moving: bool, seed: u32) -> (usize, usize) {
         weather: "clear".into(),
         spawn_distance: 14000.0,
         wind_speed: Some(0.0),
+        time_of_day: None,
         mission_rules: Some(c.missions["pve-fleet-v1"].clone()),
         air_rules: Some(c.air_profiles["pve-air-v1"].clone()),
     };

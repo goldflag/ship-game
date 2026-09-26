@@ -9,6 +9,9 @@ fn main() {
     naval_sim::pve::PveRequest::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::pve::PveBriefing::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::pve::Placement::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::scenario::ScenarioRequest::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::scenario::WithdrawReason::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::mission::Score::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_protocol::CommandEnvelope::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_protocol::MovementOrder::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_protocol::session::FleetOrderState::export_all(&ts_rs::Config::from_env()).unwrap();

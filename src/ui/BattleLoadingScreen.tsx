@@ -7,6 +7,7 @@ import { resolveShip } from '../ships/localShips';
 import './BattleLoadingScreen.css';
 import { ShipThumbnail } from './battle/ShipCard';
 import { botSelection, type BattleSetup } from '../game/session/battleSetup';
+import { scenarioForMission } from './battle/scenarios';
 
 export interface BattleLoadingState {
   label: string;
@@ -72,7 +73,9 @@ export function BattleLoadingScreen({ setup, state, onLeft, multiplayer, briefin
       />
       <div className="battle-loading-content">
         <p className="battle-loading-kicker">
-          {briefing ? (
+          {briefing?.scenario ? (
+            `Scenario · ${scenarioForMission(briefing.setup.missionRules?.id)?.date ?? ''} · Night · ${Math.round(briefing.scenario.durationSeconds / 60)} min to dawn`
+          ) : briefing ? (
             `PvE fleet command · ${briefing.setup.missionRules!.area.radiusM / 1000} km radius · No time limit`
           ) : (
             <>

@@ -2,10 +2,15 @@
 import type { BattleSetup } from "./BattleSetup";
 import type { FleetShip } from "./FleetShip";
 import type { FleetTotals } from "./FleetTotals";
+import type { ScenarioBriefing } from "./ScenarioBriefing";
 import type { TaskGroup } from "./TaskGroup";
 
 export type PveBriefing = { generationVersion: number, 
 /**
  * Owned ships only. This is presentation metadata, not a startable BattleSetup.
  */
-setup: BattleSetup, groups: Array<TaskGroup>, assignments: Array<FleetShip>, totals: FleetTotals, eligiblePresets: Array<string>, deploymentMinZ: number, };
+setup: BattleSetup, groups: Array<TaskGroup>, assignments: Array<FleetShip>, totals: FleetTotals, eligiblePresets: Array<string>, deploymentMinZ: number, 
+/**
+ * A scenario's conditions, clock and opening orders; its fleet is fixed.
+ */
+scenario?: ScenarioBriefing, };

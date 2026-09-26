@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "id": "savo-island",
+  "mapId": "iron-bottom-sound",
+  "timeOfDay": "night",
+  "weather": ["overcast", "partly-cloudy"],
+  "mission": {
+    "version": 1,
+    "id": "scenario-savo-island-v1",
+    "airProfileId": "pve-air-v1",
+    "budget": {
+      "maxDisplacementKg": 200000000,
+      "maxShips": 15,
+      "maxAircraft": 100
+    },
+    "area": {
+      "radiusM": 30000,
+      "warningMarginM": 1500
+    },
+    "observation": "visual-v1",
+    "elimination": "permanent-incapacity",
+    "durationSeconds": 2700,
+    "timeout": "victory-points",
+    "nightLookout": [1, 2],
+    "objective": {
+      "protectedShipIds": [
+        "barnett",
+        "george-f-elliott",
+        "hunter-liggett",
+        "fuller"
+      ],
+      "protectedPoints": 12,
+      "pointsPerKilotonne": 1,
+      "exposedAtDeadline": {
+        "team": "b",
+        "pointsPerKilotonne": 0.5
+      }
+    }
+  },
+  "groups": [
+    {
+      "id": "southern",
+      "name": "Southern group",
+      "formation": "column",
+      "guide": { "x": -1000, "z": -10500, "heading": 0 },
+      "ships": [
+        { "id": "canberra", "presetId": "baltimore" },
+        { "id": "chicago", "presetId": "baltimore" },
+        { "id": "bagley", "presetId": "gleaves" },
+        { "id": "patterson", "presetId": "gleaves" }
+      ],
+      "orders": {
+        "type": "patrol",
+        "waypoints": [[-1500, -14000], [-500, -7000]],
+        "speedMps": 6.2
+      }
+    },
+    {
+      "id": "northern",
+      "name": "Northern group",
+      "formation": "column",
+      "guide": { "x": 12500, "z": -12000, "heading": 1.8491 },
+      "ships": [
+        { "id": "vincennes", "presetId": "baltimore" },
+        { "id": "quincy", "presetId": "baltimore" },
+        { "id": "helm", "presetId": "fletcher" },
+        { "id": "wilson", "presetId": "fletcher" }
+      ],
+      "orders": {
+        "type": "patrol",
+        "waypoints": [[16000, -11000], [14000, -5500], [9500, -7500], [11500, -13000]],
+        "speedMps": 5.1
+      }
+    },
+    {
+      "id": "blue",
+      "name": "Picket Blue",
+      "formation": "column",
+      "guide": { "x": -13000, "z": -21500, "heading": 0.245 },
+      "ships": [
+        { "id": "blue", "presetId": "gleaves" }
+      ],
+      "orders": {
+        "type": "patrol",
+        "waypoints": [[-12000, -25500], [-13000, -21500]],
+        "speedMps": 6.2
+      }
+    },
+    {
+      "id": "ralph-talbot",
+      "name": "Picket Ralph Talbot",
+      "formation": "column",
+      "guide": { "x": 9000, "z": -24500, "heading": 1.9196 },
+      "ships": [
+        { "id": "ralph-talbot", "presetId": "gleaves" }
+      ],
+      "orders": {
+        "type": "patrol",
+        "waypoints": [[14500, -22500], [9000, -24500]],
+        "speedMps": 6.2
+      }
+    },
+    {
+      "id": "screen",
+      "name": "Transport screen",
+      "formation": "column",
+      "guide": { "x": 1500, "z": 13000, "heading": 2.2318 },
+      "ships": [
+        { "id": "san-juan", "presetId": "cleveland" }
+      ],
+      "orders": {
+        "type": "patrol",
+        "waypoints": [[6000, 16500], [1500, 13000]],
+        "speedMps": 6.2
+      }
+    },
+    {
+      "id": "transports",
+      "name": "Transports",
+      "formation": "column",
+      "guide": { "x": 6300, "z": 21800, "heading": -1.5708 },
+      "ships": [
+        { "id": "barnett", "presetId": "victory-cargo" },
+        { "id": "george-f-elliott", "presetId": "liberty-cargo" },
+        { "id": "hunter-liggett", "presetId": "liberty-cargo" },
+        { "id": "fuller", "presetId": "liberty-collier" }
+      ],
+      "orders": {
+        "type": "hold",
+        "radiusM": 800
+      }
+    }
+  ],
+  "raid": {
+    "groupName": "Raiding force",
+    "formation": "column",
+    "entry": { "x": -4500, "z": -24000, "heading": 2.6869 },
+    "exits": [[-5500, -24500], [11000, -25000]],
+    "exitRadiusM": 2500,
+    "speedFraction": 0.88,
+    "forces": {
+      "easy": [
+        { "id": "chokai", "presetId": "takao" },
+        { "id": "aoba", "presetId": "mogami" },
+        { "id": "kinugasa", "presetId": "mogami" },
+        { "id": "yunagi", "presetId": "fubuki" }
+      ],
+      "normal": [
+        { "id": "chokai", "presetId": "takao" },
+        { "id": "aoba", "presetId": "mogami" },
+        { "id": "kako", "presetId": "mogami" },
+        { "id": "kinugasa", "presetId": "mogami" },
+        { "id": "yunagi", "presetId": "yukikaze" }
+      ],
+      "hard": [
+        { "id": "chokai", "presetId": "takao" },
+        { "id": "aoba", "presetId": "mogami" },
+        { "id": "kako", "presetId": "mogami" },
+        { "id": "kinugasa", "presetId": "mogami" },
+        { "id": "furutaka", "presetId": "mogami" },
+        { "id": "tenryu", "presetId": "fubuki" },
+        { "id": "yunagi", "presetId": "yukikaze" }
+      ]
+    },
+    "plans": [
+      {
+        "id": "south-sweep",
+        "weight": 4,
+        "holdSeconds": 0,
+        "pressesPastDawn": false,
+        "route": [[-2300, -19500], [0, -16000], [4500, -12500], [10500, -13500], [17000, -16000]]
+      },
+      {
+        "id": "north-sweep",
+        "weight": 3,
+        "holdSeconds": 0,
+        "pressesPastDawn": false,
+        "route": [[3000, -24500], [11000, -23800], [17000, -18000], [17500, -12500], [11500, -9000], [3000, -11000], [-1500, -16000]]
+      },
+      {
+        "id": "south-strike",
+        "weight": 2,
+        "holdSeconds": 300,
+        "pressesPastDawn": true,
+        "route": [[-2300, -19500], [0, -16000], [3500, -9000], [3000, 0], [3500, 9000], [5500, 18500]]
+      },
+      {
+        "id": "north-strike",
+        "weight": 1,
+        "holdSeconds": 300,
+        "pressesPastDawn": true,
+        "route": [[3000, -24500], [11000, -23800], [17000, -18000], [16000, -5000], [10000, 8000], [6500, 18200]]
+      }
+    ],
+    "breakFraction": [0.35, 0.6],
+    "dawnMarginSeconds": 240
+  }
+}

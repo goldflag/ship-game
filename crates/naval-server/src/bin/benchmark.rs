@@ -72,6 +72,7 @@ fn main() {
         weather: weather.clone(),
         spawn_distance: 5000.0,
         wind_speed: None,
+        time_of_day: None,
         mission_rules: None,
         air_rules: None,
     };

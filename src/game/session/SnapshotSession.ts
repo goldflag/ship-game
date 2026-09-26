@@ -26,6 +26,8 @@ import type { Aircraft, Vessel, CarrierWing, Records, FleetActor, CombatEvent, S
 import type { AirOrder } from '../../multiplayer/generated/AirOrder';
 import type { CombatIntent } from './telemetry';
 import { squadronFlights } from '../airWing';
+import type { Score } from '../../multiplayer/generated/Score';
+import type { WithdrawReason } from '../../multiplayer/generated/WithdrawReason';
 
 /** The frame the renderer consumes is declared once, in Rust
  * (`naval_sim::snapshot::BattleFrame` flattened into
@@ -228,8 +230,13 @@ export abstract class SnapshotSession implements BattleSession {
   }
   private debriefOf(debrief: NonNullable<Snapshot['debrief']>): BattleDebrief {
     const own = this.ownTeam === 'a' ? 0 : 1;
+    // A scenario's mission record carries the raid's plan and the victory points once the battle is decided.
+    const scenario = (debrief.mission as { scenario?: { id: string; plan: string; weather: string; withdrawal: WithdrawReason | null; score: Score | null } } | undefined)?.scenario;
     return {
       seed: this.seed, tick: debrief.tick,
+      ...(scenario?.score ? { scenario: { id: scenario.id, plan: scenario.plan, weather: scenario.weather, withdrawal: scenario.withdrawal,
+        points: this.relativeTonnage(scenario.score.points),
+        lines: scenario.score.lines.map(line => ({ team: line.team === this.ownTeam ? 'friendly' as const : 'enemy' as const, kind: line.kind, shipId: line.shipId, presetId: line.presetId, points: line.points })) } } : {}),
       timeline: (debrief.afterAction?.timeline ?? []).map(sample => ({ tick: sample.tick, own: sample.dealt[own], enemy: sample.dealt[1 - own] })),
       ships: debrief.actors.map(actor => {
         const score = debrief.records.scores[actor.motion.id];

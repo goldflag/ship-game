@@ -587,6 +587,7 @@ fn trainable_torpedoes_use_one_absolute_rotation_for_sockets_damage_and_launch()
             weather: "clear".into(),
             spawn_distance: 3000.,
             wind_speed: Some(0.),
+            time_of_day: None,
             mission_rules: None,
             air_rules: None,
         };

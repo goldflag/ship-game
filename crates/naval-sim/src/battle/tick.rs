@@ -646,6 +646,7 @@ impl Battle {
                     &self.aviation,
                     mission,
                     rules::afloat_kg(&self.survivors()),
+                    &self.withdrawn,
                 )
             } else {
                 rules::evaluate_outcome(self.tick, &self.survivors(), &self.rules)

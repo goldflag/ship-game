@@ -7,6 +7,7 @@ import type { CombatTelemetry } from '../game/session/telemetry';
 import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
 import { resolveShip } from '../ships/localShips';
 import { shipClassOf, type ShipClass } from './shipGlyphs';
+import { deadlineCaption, deadlineReached, ObjectiveReadout } from './ObjectiveReadout';
 
 type Contact = CombatTelemetry['contacts'][number];
 export const contactLabel = (contact: Contact) =>
@@ -251,9 +252,11 @@ export function BattleStatus({
     combat.result === 'active'
       ? combat.remainingSeconds === null
         ? 'elapsed · no time limit'
-        : 'remaining'
+        : deadlineCaption(combat)
       : combat.outcome?.reason === 'time-limit'
-        ? 'Time limit reached'
+        ? deadlineReached(combat)
+        : combat.outcome?.reason === 'withdrawal'
+          ? 'Enemy withdrew'
         : combat.outcome?.reason === 'forfeit'
           ? 'Battle forfeited'
           : combat.outcome?.reason === 'abandoned'
@@ -282,6 +285,7 @@ export function BattleStatus({
       >
         <strong>{clock(seconds)}</strong>
         <span>{caption}</span>
+        <ObjectiveReadout combat={combat} />
       </div>
       <div className="fleet-tally-sides" aria-label="Team status">
         {(['friendly', 'enemy'] as const).map((team) => (

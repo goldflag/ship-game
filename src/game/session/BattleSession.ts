@@ -19,9 +19,11 @@ import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleOutcome } from './battleRules';
 import type { SeaState } from './sea';
-import type { FleetActor, Aircraft, Shell, Torpedo, DepthCharge, AirRelease, CombatEvent, ShellHistory, ShipState, HelmCommand } from './elements';
+import type { FleetActor, Aircraft, Shell, Torpedo, DepthCharge, AirRelease, CombatEvent, ShellHistory, ShipState, HelmCommand, Team } from './elements';
 import type { CombatIntent, CombatTelemetry } from './telemetry';
 import type { ShipReport } from '../../multiplayer/generated/ShipReport';
+import type { ScoreKind } from '../../multiplayer/generated/ScoreKind';
+import type { WithdrawReason } from '../../multiplayer/generated/WithdrawReason';
 /** Observed contacts are declared with the frame, in Rust (`naval_sim::snapshot`). */
 export type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 export type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
@@ -49,6 +51,17 @@ export interface BattleDebrief {
  ships: DebriefShip[];
  /** Damage dealt by each side over the battle, from the local side's point of view. */
  timeline: { tick: number; own: number; enemy: number }[];
+ /** A scenario's result: the raid's plan revealed, why it left, and the victory points (own side first). */
+ scenario?: ScenarioDebrief;
+}
+export interface ScenarioDebrief {
+ id: string;
+ plan: string;
+ weather: string;
+ withdrawal: WithdrawReason | null;
+ points: [number, number];
+ /** Who scored what, and from which ship. */
+ lines: { team: Team; kind: ScoreKind; shipId: string; presetId: string; points: number }[];
 }
 /** The renderer/intent seam: everything a scene, HUD or audio consumer may
  * read of a battle, and every intent it may address to one. The state half is

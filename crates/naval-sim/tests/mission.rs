@@ -152,25 +152,42 @@ fn simultaneous_elimination_draws_and_aircraft_cannot_keep_a_sunk_fleet_alive() 
     ];
     let aviation = Aviation::new(&actors, catalog().aircraft.clone());
     let mut m = mission();
-    assert!(mission::evaluate(1801 * TICK_RATE, &actors, &aviation, &m, [1, 1]).is_none());
+    assert!(
+        mission::evaluate(
+            1801 * TICK_RATE,
+            &actors,
+            &aviation,
+            &m,
+            [1, 1],
+            &Default::default()
+        )
+        .is_none()
+    );
     m.duration_seconds = Some(60);
     assert_eq!(
-        mission::evaluate(60 * TICK_RATE, &actors, &aviation, &m, [100, 1])
-            .unwrap()
-            .winner_team_id,
+        mission::evaluate(
+            60 * TICK_RATE,
+            &actors,
+            &aviation,
+            &m,
+            [100, 1],
+            &Default::default()
+        )
+        .unwrap()
+        .winner_team_id,
         None
     );
     m.duration_seconds = None;
     actors[0].damage.sunk = true;
     assert_eq!(
-        mission::evaluate(1, &actors, &aviation, &m, [0, 1])
+        mission::evaluate(1, &actors, &aviation, &m, [0, 1], &Default::default())
             .unwrap()
             .winner_team_id,
         Some(TeamId::B)
     );
     disable_weapons(&mut actors[1]);
     assert_eq!(
-        mission::evaluate(1, &actors, &aviation, &m, [0, 1])
+        mission::evaluate(1, &actors, &aviation, &m, [0, 1], &Default::default())
             .unwrap()
             .winner_team_id,
         None

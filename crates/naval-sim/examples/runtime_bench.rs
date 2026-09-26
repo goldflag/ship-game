@@ -99,6 +99,7 @@ fn main() {
         weather: "overcast".into(),
         spawn_distance: 5000.,
         wind_speed: None,
+        time_of_day: None,
         mission_rules: None,
         air_rules: None,
     };

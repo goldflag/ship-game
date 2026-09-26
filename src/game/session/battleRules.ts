@@ -6,7 +6,7 @@ export const BATTLE_RULES = Object.freeze(rules);
 export type MatchTeam = 'a' | 'b';
 export type PhysicalLoss = 'hull-failure' | 'flooding' | 'capsize';
 export interface Survivor { team: MatchTeam; displacementKg: number; physicalLoss?: PhysicalLoss | null; }
-export interface BattleOutcome { winnerTeamId: MatchTeam | null; reason: 'destruction' | 'time-limit' | 'forfeit' | 'abandoned' | 'infrastructure'; finalTick: number; afloatKg: [number, number]; }
+export interface BattleOutcome { winnerTeamId: MatchTeam | null; reason: 'destruction' | 'time-limit' | 'withdrawal' | 'forfeit' | 'abandoned' | 'infrastructure'; finalTick: number; afloatKg: [number, number]; }
 export function matchDisplacementKg(massKg: number): number {
   if (!Number.isFinite(massKg) || massKg < .5 || massKg > 1e12) throw new Error('Invalid ship displacement.');
   return Math.round(massKg);

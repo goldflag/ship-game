@@ -95,3 +95,24 @@ test('hits start on the battered side and hide behind the hull they struck', () 
   expect(facesCamera([-16, 3, -10], 17, 7, fromStarboard)).toBe(false);
   expect(facesCamera([-3, 18, -15], 17, 7, fromStarboard)).toBe(true);
 });
+
+test('a scenario is judged on points: both totals, where they came from, why the raid left and its plan revealed', () => {
+  const scenario = { id: 'savo-island', plan: 'south-sweep', weather: 'overcast', withdrawal: 'losses' as const, points: [32, 14] as [number, number], lines: [
+    { team: 'friendly' as const, kind: 'sunk' as const, shipId: 'e', presetId: 'takao', points: 17 },
+    { team: 'friendly' as const, kind: 'sunk' as const, shipId: 'x', presetId: 'mogami', points: 15 },
+    { team: 'enemy' as const, kind: 'protected' as const, shipId: 'barnett', presetId: 'victory-cargo', points: 12 },
+    { team: 'enemy' as const, kind: 'sunk' as const, shipId: 'blue', presetId: 'gleaves', points: 2 },
+  ] };
+  const html = renderToStaticMarkup(<AfterActionReport {...props} mode="Savo Island" outcome={{ ...props.outcome, reason: 'withdrawal' }} debrief={{ ...debrief, scenario }} />);
+  expect(html).toContain('Savo Island · <span class="aar-num">14:32</span>');
+  expect(html).toContain('The raiders broke off after heavy losses');
+  expect(html).toContain('Victory points');
+  expect(html).toContain('<strong class="aar-num">32</strong><span>You</span><small>2 warships sunk 32</small>');
+  expect(html).toContain('<strong class="aar-num">14</strong><span>The raiders</span><small>1 transport sunk 12 · 1 warship sunk 2</small>');
+  expect(html).toContain('The raid came through the south channel for your cruisers, as Mikawa did.');
+  // Dawn names the raiders it caught.
+  const dawn = renderToStaticMarkup(<AfterActionReport {...props} mode="Savo Island" outcome={{ ...props.outcome, reason: 'time-limit' }}
+    debrief={{ ...debrief, scenario: { ...scenario, withdrawal: null, lines: [...scenario.lines, { team: 'friendly' as const, kind: 'exposed' as const, shipId: 'y', presetId: 'mogami', points: 8 }] } }} />);
+  expect(dawn).toContain('Dawn found 1 raider still in the sound');
+  expect(dawn).toContain('1 caught at dawn 8');
+});

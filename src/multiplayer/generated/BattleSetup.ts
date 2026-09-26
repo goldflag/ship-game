@@ -12,7 +12,12 @@ spawnDistance: number,
 /**
  * Metres per second, 0..=30; null takes the weather preset's wind.
  */
-windSpeed: number | null, missionRules?: MissionRules, 
+windSpeed: number | null, 
+/**
+ * A `times` preset from the battle conditions, such as "night". Only its
+ * light reaches the simulation, as the lookouts' reach; omitted is full day.
+ */
+timeOfDay?: string, missionRules?: MissionRules, 
 /**
  * Omitted legacy setups explicitly resolve legacy-air-v1 from installed content.
  */

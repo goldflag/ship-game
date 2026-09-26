@@ -2,7 +2,13 @@
 import type { BattleArea } from "./BattleArea";
 import type { EliminationPolicy } from "./EliminationPolicy";
 import type { FleetBudget } from "./FleetBudget";
+import type { MissionObjective } from "./MissionObjective";
 import type { ObservationPolicy } from "./ObservationPolicy";
 import type { TimeoutPolicy } from "./TimeoutPolicy";
 
-export type MissionRules = { version: number, id: string, airProfileId: string, budget: FleetBudget, area: BattleArea, observation: ObservationPolicy, elimination: EliminationPolicy, durationSeconds: number | null, timeout: TimeoutPolicy, };
+export type MissionRules = { version: number, id: string, airProfileId: string, budget: FleetBudget, area: BattleArea, observation: ObservationPolicy, elimination: EliminationPolicy, durationSeconds: number | null, timeout: TimeoutPolicy, objective?: MissionObjective, 
+/**
+ * Team a's and team b's lookout reach short of full daylight, as a
+ * multiple of the common visual rule. Omitted is even.
+ */
+nightLookout?: [number, number], };

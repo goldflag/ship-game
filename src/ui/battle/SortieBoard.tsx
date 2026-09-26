@@ -39,7 +39,7 @@ export function SortieBoard({ lastMode, onChoose, onClose }: Props) {
   return <dialog ref={dialog} className="sortie-board" aria-labelledby="sortie-title" onCancel={event => { event.preventDefault(); onClose(); }}>
     <header className="sortie-head">
       <h1 id="sortie-title"><Icon name="anchor" size={18}/>Choose a battle</h1>
-      <p>Three ways to put the fleet to sea. Every mode ends on the deployment chart.</p>
+      <p>Four ways to put the fleet to sea.</p>
       <Button variant="icon" className="sortie-close" aria-label="Back to port" onClick={onClose}><Icon name="close"/></Button>
     </header>
     <div className="sortie-cards" role="radiogroup" aria-label="Battle mode">
@@ -63,11 +63,12 @@ export function SortieBoard({ lastMode, onChoose, onClose }: Props) {
   </dialog>;
 }
 
-/** Hull silhouettes: one ship, a fleet in three groups, two ships facing off. */
+/** Hull silhouettes: one ship, a fleet in three groups, a column under a crescent moon, two ships facing off. */
 function ModeGlyph({ mode }: { mode: BattleMode }) {
   return <svg className="sortie-glyph" viewBox="0 0 44 26" fill="currentColor" aria-hidden="true">
     {mode === 'custom' && <path d="M2 20h40l-4 4H6zM10 19l2-5h8l1-4h4v4h6l2 5z"/>}
     {mode === 'pve' && <path d="M1 12h14l-2 3H3zM4 11l1-3h5l1-2h2v2h3l1 3zM15 20h16l-2 3H17zM18 19l1-3h5l1-3h2v3h3l2 3zM29 12h14l-2 3H31zM32 11l1-3h5l1-2h2v2h3l1 3z"/>}
+    {mode === 'scenario' && <><path d="M10 2a7 7 0 1 0 7 9 5.5 5.5 0 1 1-7-9z"/><path d="M14 20h28l-3 3H17zM18 19l1-3h6l1-4h2v4h6l2 3z"/></>}
     {mode === 'duel' && <><path d="M1 18h18l-2 3H3zM4 17l1-3h6l1-4h2v4h4l1 3zM25 18h18l-2 3H27zM28 17l1-3h4l1-4h2v4h6l1 3z"/><path d="M20 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5"/></>}
   </svg>;
 }
