@@ -1192,30 +1192,62 @@ def raft(kit, aid, col, c, length, height, outward):
 
 
 def crane(D, kit):
-    """Boat crane between the funnels (reference part am491, cut on the centreline): a pillar on the 01 deck with a
-    kingpost to 13.25 m, a box-lattice jib pivoted low at 10 m and raked forward 49 degrees over the motor launches,
-    the topping lift from the kingpost head and the hoist."""
+    """Boat crane between the funnels as the reference's am491 (orthographic renders, reference frame): a pedestal on
+    the 01 deck and a tapered kingpost to its sheave block at 15.9 m (axis z 3.05); the jib hinged at z 3.0, 9.6 m
+    and raked forward 49 degrees to its head at z -4.5, 18.2 m, a lattice 1.8 m wide at the heel tapering to 0.5 m
+    and 0.35 m deep; the topping lift through a floating block at z -2.7, 17.0 m, and the three-part hoist to the
+    hook block."""
     col = kit.collections['Boats']
     aid = 'boat-crane'
-    base = V(0, 8.75, 3.1)
+    base = V(0, 8.9, 3.05)
     floor = kit.below(base.x, base.y, base.z + .2, base.z)
-    kit.cylz(aid, col, 'pillar', Vector((base.x, base.y, floor - .02)), .42, 10.25 - floor, 'naval', 16, r2=.38)
-    kit.cylz(aid, col, 'slewing ring', V(0, 10.2, 3.1), .5, .18, 'edge', 16)
-    kit.part('rod', aid, col, 'kingpost', V(0, 10.35, 3.1), V(0, 13.25, 3.1), .26, 'naval', r2=.08, vertices=10)
-    heel, head = V(0, 10.1, 2.7), V(0, 17.75, -4.0)
-    kit.lattice(aid, col, heel, head, .7, .7, 12, .06, .035)
-    for side in (-1, 1):
-        kit.beam(aid, col, 'heel lug', V(side * .38, 10.35, 3.1), V(side * .38, 10.1, 2.7) + Vector((0, 0, 0)), .06, .3, 'naval')
-    kit.boxc(aid, col, 'winch house', V(0, 10.9, 3.75), (1.0, .8, .9), 'naval')
-    kit.boxc(aid, col, 'head block', head + Vector((-.15, 0, -.05)), (.55, .75, .5), 'naval')
-    kit.part('rod', aid, col, 'head sheave', head + Vector((-.2, -.3, -.1)), head + Vector((-.2, .3, -.1)), .26, 'edge', vertices=12)
-    mid = heel.lerp(head, .55)
-    kit.boxc(aid, col, 'lift block', mid + Vector((0, 0, .45)), (.45, .45, .35), 'naval')
-    top = V(0, 13.25, 3.1)
-    kit.wire(aid, col, top, mid + Vector((0, 0, .55)), .02, False)
-    kit.wire(aid, col, mid + Vector((0, 0, .55)), head + Vector((0, 0, .2)), .02, False)
-    kit.wire(aid, col, head + Vector((-.2, 0, -.35)), head + Vector((-.2, 0, -4.2)), .015, False)
-    kit.part('rod', aid, col, 'hook block', head + Vector((-.2, 0, -4.2)), head + Vector((-.2, 0, -4.6)), .13, 'edge', vertices=8)
+    kit.cylz(aid, col, 'pedestal flange', Vector((base.x, base.y, floor - .01)), .75, .13, 'naval', 20)
+    kit.cylz(aid, col, 'pedestal', Vector((base.x, base.y, floor + .1)), .42, 9.95 - floor - .1, 'naval', 16)
+    kit.part('rod', aid, col, 'kingpost', V(0, 9.9, 3.1), V(0, 15.45, 3.07), .36, 'naval', r2=.22, vertices=12)
+    top = V(0, 15.65, 2.95)
+    kit.part('rod', aid, col, 'kingpost block', top + Vector((0, -.17, 0)), top + Vector((0, .17, 0)), .3, 'naval', vertices=6)
+    kit.beam(aid, col, 'block strap', V(0, 15.4, 3.07), top, .3, .12, 'naval')
+    # The jib: four chords of a section tapering 1.8 -> 0.5 m across and 0.35 m deep, laced on its broad faces.
+    heel, head = V(0, 9.6, 3.0), V(0, 18.2, -4.5)
+    axis = (head - heel).normalized()
+    across = Vector((0, 1, 0))
+    up = axis.cross(across).normalized()
+    if up.z < 0:
+        up = -up
+
+    def corner(u, sa, su):
+        w = .9 + (.25 - .9) * u
+        return heel.lerp(head, u) + across * sa * w + up * su * .175
+    for sa in (-1, 1):
+        for su in (-1, 1):
+            kit.member(aid, col, corner(0, sa, su), corner(1, sa, su), .05, 'naval', 6)
+    n = 12
+    for i in range(n):
+        u0, u1 = i / n, (i + 1) / n
+        for su in (-1, 1):
+            kit.member(aid, col, corner(u0, -1 if i % 2 else 1, su), corner(u1, 1 if i % 2 else -1, su), .03, 'naval', 5)
+            kit.member(aid, col, corner(u1, -1, su), corner(u1, 1, su), .025, 'naval', 5)
+        for sa in (-1, 1):
+            kit.member(aid, col, corner(u1, sa, -1), corner(u1, sa, 1), .025, 'naval', 5)
+    # Heel lugs and pin on the pedestal's forward face.
+    for sa in (-1, 1):
+        kit.beam(aid, col, 'heel lug', V(sa * .5, 9.25, 3.3), V(sa * .5, 9.75, 2.95), .08, .45, 'naval')
+    kit.part('rod', aid, col, 'heel pin', V(-.62, 9.6, 3.0), V(.62, 9.6, 3.0), .09, 'edge', vertices=10)
+    # Head: sheave block between the chords' ends, and the floating topping-lift block.
+    kit.part('rod', aid, col, 'head block', head + Vector((0, -.2, 0)), head + Vector((0, .2, 0)), .32, 'naval', vertices=6)
+    lift = V(0, 17.0, -2.7)
+    kit.part('rod', aid, col, 'lift block', lift + Vector((0, -.17, 0)), lift + Vector((0, .17, 0)), .3, 'naval', vertices=6)
+    for dy in (-.08, .08):
+        kit.wire(aid, col, top + Vector((0, dy, .1)), lift + Vector((0, dy, .12)), .02, False)
+    kit.wire(aid, col, lift + Vector((0, 0, .15)), head + Vector((0, 0, .2)), .02, False)
+    kit.wire(aid, col, lift + Vector((0, 0, -.15)), head + Vector((0, 0, -.1)), .02, False)
+    hook = V(0, 15.3, -4.75)
+    for dy in (-.12, 0, .12):
+        kit.wire(aid, col, head + Vector((0, dy, -.25)), hook + Vector((0, dy, .2)), .016, False)
+    kit.part('rod', aid, col, 'hook block', hook + Vector((0, -.15, 0)), hook + Vector((0, .15, 0)), .24, 'naval', vertices=6)
+    kit.part('rod', aid, col, 'hook shank', hook + Vector((0, 0, -.2)), hook + Vector((0, 0, -.65)), .04, 'edge', vertices=6)
+    kit.part('rod', aid, col, 'hook', hook + Vector((0, 0, -.65)), hook + Vector((-.2, 0, -.9)), .04, 'edge', vertices=6)
+    kit.part('rod', aid, col, 'hook tip', hook + Vector((-.2, 0, -.9)), hook + Vector((-.3, 0, -.7)), .035, 'edge', vertices=6)
     for s in (-1, 1):
         kit.boxc(aid, col, 'controls', V(s * 2.11, 9.42, 4.41), (.95, .7, 1.2), 'naval')
 
