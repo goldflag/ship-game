@@ -104,7 +104,7 @@ if (params.has('profile')) for (const [object,key,label] of [
   [g.fleetViews[0].impactMarks.constructor.prototype,'update','impactMarks'],
   [[...g.fleetDraws.proxies.values()][0].constructor.prototype,'update','renderProxies'],
   [g.fleetViews[0].rig.constructor.prototype,'update','rigging'],
-  [g.hitLabels,'update','hitLabels'],[g.shipLabels,'update','shipLabels'],[g.gunAim,'update','aimIndicators'],
+  [g.shipLabels,'update','shipLabels'],[g.gunAim,'update','aimIndicators'],
 ]) {
   const original=object[key], row=review.phases[label]={ms:0,calls:0};
   object[key]=function(...args) { const begin=performance.now(), result=original.apply(this,args); const done=value=>{row.ms+=performance.now()-begin;row.calls++;return value;};return result?.then?result.then(done):done(result); };

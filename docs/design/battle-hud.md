@@ -186,10 +186,13 @@ fades over one second of simulation time, so pause freezes it. Keep the sight ce
 dark stroke for contrast over sky and sea, and follow H and port visibility.
 
 Gold marks your actual hull damage beside overhead ship labels and in the vacated section of their
-bars; pale blue marks damage from other sources. Detailed impact labels use the same colors. Hits
-within 0.35 seconds combine into separate totals for your damage and other damage; the segment holds
-for one second after the latest hit and fades over 0.6 seconds. Simulation time freezes these cues
-during pause. The player's lower-left hull instrument uses the same gold segment and a numeric
+bars; pale blue marks damage from other sources. Your salvo reads as one gold total: a hit that
+lands while it still shows joins it, so mounts that fire a moment apart do not split it, and it
+holds for two seconds after its latest hit before fading over 0.6 seconds. It counts the weapons
+you fire: main guns, torpedoes, depth charges and rams, and secondary guns only while you have a
+secondary group selected, so automatic secondary fire never turns it into a running count. Other
+damage and the bar segment combine hits within 0.35 seconds, hold for one second and fade over 0.6
+seconds. Simulation time freezes these cues during pause. The player's lower-left hull instrument uses the same gold segment and a numeric
 damage notice above it, with no screen-covering tint. Feedback uses opacity only, without camera
 shake or movement.
 
@@ -209,8 +212,7 @@ Ctrl/Shift/Esc hint strip are removed. T remains the configurable shell-follow s
 mode hides smoke emitted at the player's ship, including already active smoke, while it continues
 aging; other ships' smoke remains visible.
 
-Local structural damage appears under Hull & structure in the ship damage view (I) and beside the affected shell
-impact. Labels explain reduced hull damage and intact equipment reached through wreckage. Combat
+Local structural damage appears under Hull & structure in the ship damage view (I). Combat
 inspection adds amber outlines for damaged structural regions and grey outlines for depleted
 regions; orange compartment fill marks active fires. These overlays are separate from equipment
 condition and blue floodwater.
@@ -228,8 +230,11 @@ Keep these additions within the
 scrolling naval instrument; room smoke exits above the deck and stays bounded with the existing
 gunhouse fire effects.
 
-Enemy impact labels sit just above their recorded hit positions, following the displayed hull.
-Damage gold leads with actual hull HP lost; the part name and impact outcome sit below. Zero-HP
-armor rejection uses muted text. Combine shell layers and nearby hits on one part, prioritize
-equipment damage, avoid overlapping labels, and cap the group at twelve. Labels hold for 2.4 seconds
-and fade over 0.8 seconds of simulation time; pause freezes them.
+No text sits on the hull at the impacts; the shell effects show where hits landed. Under your gold
+salvo total, one 13 px line counts your hits by outcome with the after-action report's rule (once a
+shell is inside it stays a penetration): penetrated, burst outside, ricochet, stopped, torpedo, each
+an icon and a number. Equipment an enemy loses, to anyone's fire, follows on its own lines, named by
+type (Main gun, Secondary gun, Engine, Steering, Magazine, Generator, Fire control, Launcher) with
+amber damaged or red destroyed, and holds for 3.2 seconds before a 0.8 second fade. Like the rest of
+the tag these lines are text with a dark shadow, never a plate. A faded line keeps its place while a
+line below it still shows, so the block never jumps.

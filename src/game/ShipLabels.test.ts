@@ -4,6 +4,7 @@ import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import { projectShipLabel, ShipLabels } from './ShipLabels';
 import type { ShipView } from './ShipView';
+import type { CombatEvent } from './session/elements';
 
 test.each([
   // A camera no renderer has drawn yet keeps three's default clip space.
@@ -62,7 +63,7 @@ test('overhead condition meters preserve own damage colors for either online shi
       const view = { root, motion: actor.motion } as unknown as ShipView;
       const host = new Element(), labels = new ShipLabels(host as unknown as HTMLElement);
       actor.controller = 'player'; // The opposing human still needs a visible contact label.
-      labels.setFleet([view], [actor], sim.player.motion.id); labels.resize(1600, 900);
+      labels.setFleet([{} as ShipView, view], [sim.player, actor], sim.player.motion.id); labels.resize(1600, 900);
       const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
       camera.coordinateSystem = WebGPUCoordinateSystem;
       Reflect.set(camera, '_reversedDepth', true);
@@ -92,22 +93,57 @@ test('overhead condition meters preserve own damage colors for either online shi
       expect(Number.parseFloat(host.find('ship-label-loss')!.style.width)).toBeCloseTo(40, 12);
       expect(host.find('ship-label-meter')!.children).not.toContain(host.find('ship-label-health')!);
       actor.damage.integrity = maxHp * .5;
-      const events = [{ sequence: 1, tick: 66, sourceId: sim.ship.id, kind: 'contact' as const, shipId: actor.motion.id,
-        position: [0, 0, 0] as [number, number, number], message: 'Hit', hullDamage: maxHp * .04 }];
+      const hit = (sequence: number, tick: number, share: number) => ({ sequence, tick, sourceId: sim.ship.id, kind: 'contact' as const, shipId: actor.motion.id,
+        position: [0, 0, 0] as [number, number, number], message: 'Hit', hullDamage: maxHp * share });
+      const events: CombatEvent[] = [hit(1, 66, .04)];
       labels.update(camera, 1.1, events, sim.ship.id);
-      const numbers = host.find('ship-label-damage')!.children;
+      const block = host.find('ship-label-damage')!, numbers = block.children;
+      expect(block.hidden).toBe(false);
       expect(numbers[0].dataset.source).toBe('player');
       expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .04).toLocaleString()}`);
-      expect(numbers[1].dataset.source).toBe('other');
-      expect(numbers[1].textContent).toBe(`−${Math.round(maxHp * .46).toLocaleString()}`);
+      expect(numbers[2].dataset.source).toBe('other');
+      expect(numbers[2].textContent).toBe(`−${Math.round(maxHp * .46).toLocaleString()}`);
       expect(Number.parseFloat(host.find('ship-label-player-loss')!.style.width)).toBeCloseTo(8);
       labels.update(camera, 1.1, events, sim.ship.id);
       expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .04).toLocaleString()}`);
-      // A new salvo can have the same total but a different owner.
-      actor.damage.integrity = 0;
+      // Your total holds two seconds; other damage keeps its own short groups.
+      actor.damage.integrity = maxHp * .3;
       labels.update(camera, 2, events, sim.ship.id);
-      expect(numbers[0].hidden).toBe(true);
-      expect(numbers[1].textContent).toBe(`−${Math.round(maxHp * .5).toLocaleString()}`);
+      expect(numbers[0].hidden).toBe(false);
+      expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .04).toLocaleString()}`);
+      expect(numbers[2].textContent).toBe(`−${Math.round(maxHp * .2).toLocaleString()}`);
+      // Once both have faded, the next salvo starts a new total, here with no other damage.
+      labels.update(camera, 4.7, events, sim.ship.id);
+      expect(block.hidden).toBe(true);
+      actor.damage.integrity = maxHp * .1;
+      events.push(hit(2, 300, .2));
+      labels.update(camera, 5, events, sim.ship.id);
+      expect(block.hidden).toBe(false);
+      expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .2).toLocaleString()}`);
+      expect(numbers[2].hidden).toBe(true);
+      // Lost equipment gets its own line, named by type.
+      const mount = actor.definition.mounts.find(mount => mount.battery === 'main')!;
+      events.push({ ...hit(3, 300, 0), kind: 'penetration', impact: { shellId: 7, shipId: actor.motion.id, targetId: mount.id, targetName: mount.name,
+        kind: 'mount', position: [0, 0, 0], penetrationBeforeMm: 400, penetrationAfterMm: 100, outcome: 'destroyed', damage: 50, hullDamage: 0 } });
+      labels.update(camera, 5, events, sim.ship.id);
+      const lost = host.find('ship-label-equipment')!;
+      expect(lost.dataset.state).toBe('destroyed');
+      expect(lost.children.map(child => child.textContent)).toEqual(['', 'Main gun', 'destroyed']);
+      // Automatic secondary fire is not your salvo, until you fire that battery yourself.
+      const secondary = sim.player.definition.mounts.find(mount => mount.battery === 'secondary')!;
+      const secondaryHit = (sequence: number, shellId: number): CombatEvent[] => [
+        { sequence, tick: 300, kind: 'shot', shipId: sim.ship.id, position: [0, 0, 0], message: `${secondary.name} fired`,
+          shell: { id: shellId, caliberM: secondary.weapon.caliberM, velocity: [0, 0, 0], type: 'HE' } },
+        { ...hit(sequence + 1, 300, 0), kind: 'penetration', impact: { shellId, shipId: actor.motion.id, targetId: 'belt', targetName: 'Belt',
+          kind: 'armor', position: [0, 0, 0], penetrationBeforeMm: 50, penetrationAfterMm: 0, outcome: 'penetrated', hullDamage: maxHp * .01 } },
+      ];
+      events.push(...secondaryHit(4, 40));
+      labels.update(camera, 5, events, sim.ship.id, 'main');
+      expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .2).toLocaleString()}`);
+      events.push(...secondaryHit(6, 41));
+      labels.update(camera, 5, events, sim.ship.id, 'secondary');
+      expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .21).toLocaleString()}`);
+      actor.damage.integrity = 0;
       actor.damage.sunk = true;
       labels.update(camera, 2);
       expect(host.find('ship-label-meter')!.hidden).toBe(true);

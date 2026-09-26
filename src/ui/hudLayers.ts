@@ -16,7 +16,6 @@
  */
 export const HUD_LAYERS = {
   shipLabels: { className: 'ship-label-layer', host: 'viewport', projected: true },
-  hitLabels: { className: 'hit-label-layer', host: 'viewport', projected: true },
   gunAim: { className: 'gun-aim-layer', host: 'viewport', projected: true },
   torpedoAim: { className: 'torpedo-aim-layer', host: 'viewport', projected: true },
   torpedoMarkers: { className: 'torpedo-marker-layer', host: 'viewport', projected: true },
