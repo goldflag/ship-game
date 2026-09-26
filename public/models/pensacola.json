@@ -302835,63 +302835,6 @@
     },
     {
       "id": "bulwark-7-1",
-      "name": "Bulwark sec-2 1",
-      "footprint": [
-        [
-          5.105,
-          -27.083
-        ],
-        [
-          6.006,
-          -26.663
-        ],
-        [
-          6.354,
-          -26.561
-        ],
-        [
-          7.12,
-          -26.47
-        ],
-        [
-          7.827,
-          -26.541
-        ],
-        [
-          8.619,
-          -26.761
-        ],
-        [
-          8.601,
-          -26.829
-        ],
-        [
-          7.813,
-          -26.609
-        ],
-        [
-          7.12,
-          -26.54
-        ],
-        [
-          6.366,
-          -26.629
-        ],
-        [
-          6.034,
-          -26.727
-        ],
-        [
-          5.135,
-          -27.147
-        ]
-      ],
-      "baseY": 9.329,
-      "height": 1.07,
-      "material": "naval"
-    },
-    {
-      "id": "bulwark-8-1",
       "name": "Bulwark sec-3 1",
       "footprint": [
         [
@@ -302964,7 +302907,7 @@
       "material": "naval"
     },
     {
-      "id": "bulwark-9-1",
+      "id": "bulwark-8-1",
       "name": "Bulwark sec-4 1",
       "footprint": [
         [
@@ -303037,7 +302980,7 @@
       "material": "naval"
     },
     {
-      "id": "bulwark-10-1",
+      "id": "bulwark-9-1",
       "name": "Bulwark sec-6 1",
       "footprint": [
         [
@@ -303166,120 +303109,7 @@
       "material": "naval"
     },
     {
-      "id": "bulwark-11-1",
-      "name": "Bulwark sec-6 1",
-      "footprint": [
-        [
-          7.822,
-          21.139
-        ],
-        [
-          8.862,
-          18.728
-        ],
-        [
-          9.034,
-          18.162
-        ],
-        [
-          9.095,
-          17.575
-        ],
-        [
-          9.033,
-          17.164
-        ],
-        [
-          8.532,
-          15.812
-        ],
-        [
-          8.424,
-          15.649
-        ],
-        [
-          7.641,
-          14.987
-        ],
-        [
-          7.233,
-          14.782
-        ],
-        [
-          6.667,
-          14.611
-        ],
-        [
-          6.07,
-          14.55
-        ],
-        [
-          5.483,
-          14.611
-        ],
-        [
-          4.92,
-          14.782
-        ],
-        [
-          4.94,
-          14.848
-        ],
-        [
-          5.497,
-          14.679
-        ],
-        [
-          6.07,
-          14.62
-        ],
-        [
-          6.653,
-          14.679
-        ],
-        [
-          7.207,
-          14.848
-        ],
-        [
-          7.599,
-          15.043
-        ],
-        [
-          8.376,
-          15.701
-        ],
-        [
-          8.468,
-          15.838
-        ],
-        [
-          8.967,
-          17.186
-        ],
-        [
-          9.025,
-          17.575
-        ],
-        [
-          8.966,
-          18.148
-        ],
-        [
-          8.798,
-          18.702
-        ],
-        [
-          7.758,
-          21.111
-        ]
-      ],
-      "baseY": 6.551,
-      "height": 1.07,
-      "material": "naval"
-    },
-    {
-      "id": "bulwark-12-1",
+      "id": "bulwark-10-1",
       "name": "Bulwark aa1-1 1",
       "footprint": [
         [
@@ -303576,7 +303406,7 @@
       "material": "naval"
     },
     {
-      "id": "bulwark-13-1",
+      "id": "bulwark-11-1",
       "name": "Bulwark aa1-2 1",
       "footprint": [
         [
@@ -303801,112 +303631,7 @@
       "material": "naval"
     },
     {
-      "id": "bulwark-14-1",
-      "name": "Bulwark aa1-2 1",
-      "footprint": [
-        [
-          7.652,
-          -26.57
-        ],
-        [
-          7.366,
-          -26.579
-        ],
-        [
-          7.455,
-          -26.78
-        ],
-        [
-          7.495,
-          -27.377
-        ],
-        [
-          7.383,
-          -27.976
-        ],
-        [
-          7.119,
-          -28.514
-        ],
-        [
-          6.723,
-          -28.971
-        ],
-        [
-          6.226,
-          -29.316
-        ],
-        [
-          5.657,
-          -29.509
-        ],
-        [
-          5.06,
-          -29.56
-        ],
-        [
-          4.843,
-          -29.501
-        ],
-        [
-          2.805,
-          -31.58
-        ],
-        [
-          2.755,
-          -31.53
-        ],
-        [
-          4.797,
-          -29.449
-        ],
-        [
-          5.06,
-          -29.49
-        ],
-        [
-          5.643,
-          -29.441
-        ],
-        [
-          6.194,
-          -29.254
-        ],
-        [
-          6.677,
-          -28.919
-        ],
-        [
-          7.061,
-          -28.476
-        ],
-        [
-          7.317,
-          -27.954
-        ],
-        [
-          7.425,
-          -27.373
-        ],
-        [
-          7.385,
-          -26.79
-        ],
-        [
-          7.314,
-          -26.531
-        ],
-        [
-          7.648,
-          -26.5
-        ]
-      ],
-      "baseY": 14.895,
-      "height": 1.07,
-      "material": "naval"
-    },
-    {
-      "id": "bulwark-15-1",
+      "id": "bulwark-12-1",
       "name": "Bulwark aa1-3 1",
       "footprint": [
         [
@@ -304091,7 +303816,7 @@
       "material": "naval"
     },
     {
-      "id": "bulwark-16-1",
+      "id": "bulwark-13-1",
       "name": "Bulwark aa1-4 1",
       "footprint": [
         [
@@ -304893,23 +304618,15 @@
         "topExtensionM": 0
       },
       {
-        "structureId": "bulwark-14-1",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "bulwark-15-1",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "bulwark-16-1",
-        "topExtensionM": 0
-      },
-      {
         "structureId": "bulwark-2-1",
         "topExtensionM": 0
       },
       {
         "structureId": "bulwark-2-2",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "bulwark-9-1",
         "topExtensionM": 0
       },
       {
@@ -305077,11 +304794,11 @@
         "topExtensionM": 0
       },
       {
-        "structureId": "bulwark-8-1",
+        "structureId": "bulwark-7-1",
         "topExtensionM": 0
       },
       {
-        "structureId": "bulwark-9-1",
+        "structureId": "bulwark-8-1",
         "topExtensionM": 0
       },
       {
@@ -305102,10 +304819,6 @@
       },
       {
         "structureId": "midships-13",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "bulwark-7-1",
         "topExtensionM": 0
       },
       {
@@ -307034,5 +306747,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "2094f05e41b9b52fdd38e2a5be350a4a9e3731628c98b0c4d4ef7fb6030842e1"
+  "contentHash": "9ef3de5904800763a3b0981f32bc34c2624079b03038eafdd83f3d3aefec555d"
 }
