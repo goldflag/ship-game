@@ -121,10 +121,14 @@ for key in ['deck', 'roof']:
     hull.data.materials.append(materials[key])
 for face in hull.data.polygons:
     if face.normal.z > .96 and face.center.z > 0:
-        # Planked weather decks; the narrow casemate ledge outboard of the forecastle wall is steel
-        # from its forward end (reference z -73, where the hull is narrower) to the forecastle's end.
+        # Planked weather decks. The narrow casemate ledge outboard of the forecastle wall is steel from its
+        # forward end (reference z -73, where the hull is narrower) to reference z -13, where it widens into
+        # the planked upper deck beside the forecastle's V-shaped end; from there to the after tower the
+        # plating over the hull's widest steps, outboard of the upper deck's planking, is steel as well.
         ref_z = -face.center.x + ZC
-        ledge = face.center.z < 4.6 and abs(face.center.y) > (7.5 if ref_z < -56.0 else 9.0) and -73.0 < ref_z < 10.0
+        y = abs(face.center.y)
+        ledge = face.center.z < 4.6 and ((-73.0 < ref_z < -13.0 and y > (7.5 if ref_z < -56.0 else 9.0))
+                                         or (-13.0 <= ref_z < 45.0 and y > 13.9))
         face.material_index = 3 if ledge else 2
 
 # ---------------------------------------------------------------- superstructure
