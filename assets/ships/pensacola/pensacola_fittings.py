@@ -176,25 +176,26 @@ def crane(D, kit):
     # Plan cuts of the reference crane every 1.5-2 m: king post at z 8.94 (0.52 m across), two braces
     # splayed aft to the deck, jib chords 1.3 m apart at the heel closing to 0.5 m at the head.
     foot = kit.below(*V(0, 0, 8.94)[:2], 8.0, 6.3)
-    taper(kit, aid, col, 'king post', (0, foot, 8.94), (0, 16.7, 8.9), .27, .25, 'naval', 18)
+    taper(kit, aid, col, 'king post', (0, foot, 8.94), (0, 16.35, 8.9), .27, .25, 'naval', 18)
     kit.cylz(aid, col, 'post collar', V(0, 0, 8.94)[:2] + (foot,), .6, .45, 'naval', 20, r2=.34)
-    kit.cylz(aid, col, 'post cap', V(0, 0, 8.9)[:2] + (16.7,), .34, .3, 'edge', 16)
+    kit.cylz(aid, col, 'post cap', V(0, 0, 8.9)[:2] + (16.35,), .34, .25, 'edge', 16)
     for s in (-1, 1):
         brace_foot = kit.below(*V(s * 3.45, 0, 13.75)[:2], 8.0, 6.3)
-        kit.member(aid, col, V(s * .25, 16.3, 9.3), V(s * 3.45, brace_foot, 13.75), .11, 'naval', 10)
+        kit.member(aid, col, V(s * .25, 16.1, 9.3), V(s * 3.45, brace_foot, 13.75), .11, 'naval', 10)
         kit.cylz(aid, col, 'brace foot', V(s * 3.45, 0, 13.75)[:2] + (brace_foot,), .22, .12, 'edge', 10)
-    # Cranked jib: heel at the post foot, knee over the catapult deck, head with the hook.
+    # Cranked jib (side overlay of the reference crane): heel at the post foot, knee at 17.65 m over the catapult deck,
+    # head at 22.25 m with the hook.
     pivot = V(0, 7.2, 9.0)
-    knee = V(0, 16.7, 3.5)
-    head = V(0, 23.0, -6.3)
+    knee = V(0, 17.65, 3.4)
+    head = V(0, 22.25, -5.4)
     kit.lattice(aid, col, pivot, knee, 1.25, .5, 10, .06, .035)
     kit.lattice(aid, col, knee, head, .9, .4, 10, .05, .03)
     kit.boxc(aid, col, 'jib heel', pivot, (.7, 1.4, .45), 'edge')
     kit.boxc(aid, col, 'jib head', head, (.7, .35, .4), 'edge')
     for s in (-.2, .2):
-        kit.wire(aid, col, V(s, 16.6, 8.9), V(s, 16.9, 3.6), .025, False)
-    kit.wire(aid, col, V(0, 22.8, -6.35), V(0, 21.2, -6.4), .015, False)
-    kit.boxc(aid, col, 'hook', V(0, 21.05, -6.4), (.2, .12, .3), 'black')
+        kit.wire(aid, col, V(s, 16.5, 8.9), V(s, 17.85, 3.5), .025, False)
+    kit.wire(aid, col, V(0, 22.05, -5.45), V(0, 21.1, -5.5), .015, False)
+    kit.boxc(aid, col, 'hook', V(0, 20.95, -5.5), (.2, .12, .3), 'black')
 
 
 # ---------------------------------------------------------------- aviation
