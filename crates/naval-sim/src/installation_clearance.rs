@@ -294,6 +294,7 @@ fn capsule_body(c: Capsule, m: &MountDefinition, p: Angles, e: &Entry, margin: f
     )
     .is_some()
 }
+#[allow(clippy::too_many_arguments)]
 fn bodies(
     a: &MountDefinition,
     ap: Angles,
@@ -302,13 +303,17 @@ fn bodies(
     bp: Angles,
     be: &Entry,
     margin: f64,
+    stop: f64,
 ) -> bool {
     let (Some(ab), Some(bb)) = (&ae.body, &be.body) else {
         return false;
     };
     let (af, bf) = (frame(a, ap), frame(b, bp));
     let (ac, bc) = (local_to_world(ab.center, af), local_to_world(bb.center, bf));
-    if (ac[1] - bc[1]).abs() > (ab.size[1] + bb.size[1]) / 2.0 + margin {
+    // Bodies turn only about their vertical axes, so no motion changes their
+    // heights: the vertical gap needs the stop line, not motion padding.
+    // Superfiring gunhouses pass a few centimetres over the lower roofs.
+    if (ac[1] - bc[1]).abs() > (ab.size[1] + bb.size[1]) / 2.0 + stop {
         return false;
     }
     let axis = |h: f64| [[h.cos(), h.sin()], [-h.sin(), h.cos()]];
@@ -323,7 +328,8 @@ fn bodies(
             <= projection(aa, ab.size) + projection(ba, bb.size) + margin
     })
 }
-fn pose_clear(
+/// One installation pose against a profile the caller has already validated.
+pub(crate) fn pose_clear(
     d: &ShipDefinition,
     index: usize,
     pose: Angles,
@@ -395,7 +401,7 @@ fn pose_clear(
         }) || their
             .iter()
             .any(|c| capsule_body(*c, m, pose, entry, margin))
-            || bodies(m, pose, entry, other, op, oe, margin)
+            || bodies(m, pose, entry, other, op, oe, margin, profile.margin_m)
         {
             return false;
         }
@@ -441,29 +447,40 @@ pub fn move_mount_with_clearance(
         Ok(_) => false,
         Err(_) => return false,
     };
-    if installation
-        && (index >= d.mounts.len()
-            || !target.0.is_finite()
-            || !target.1.is_finite()
-            || validate_profile(d).is_err())
-    {
+    if installation && validate_profile(d).is_err() {
         return false;
     }
-    if !installation
-        || !d
-            .mount_clearance
-            .as_ref()
-            .unwrap()
-            .mounts
-            .as_deref()
-            .unwrap()
-            .iter()
-            .any(|e| e.mount_id == d.mounts[index].id)
-    {
+    if !installation {
         s.train = target.0;
         s.elevation = target.1;
         return true;
     }
+    move_validated(d, index, s, target, states)
+}
+
+/// `move_mount_with_clearance` on an installation profile the caller has
+/// already validated. A compiled ship's obstructions validate theirs once,
+/// which spares every gun movement of every battle tick doing it again.
+pub(crate) fn move_validated(
+    d: &ShipDefinition,
+    index: usize,
+    s: &mut MountState,
+    target: Angles,
+    states: &[MountState],
+) -> bool {
+    if index >= d.mounts.len() || !target.0.is_finite() || !target.1.is_finite() {
+        return false;
+    }
+    let Some(entry) = d
+        .mount_clearance
+        .as_ref()
+        .and_then(|p| p.mounts.as_deref())
+        .and_then(|entries| entries.iter().find(|e| e.mount_id == d.mounts[index].id))
+    else {
+        s.train = target.0;
+        s.elevation = target.1;
+        return true;
+    };
     let w = &d.mounts[index].weapon;
     let (train, elevation) = (target.0 - s.train, target.1 - s.elevation);
     // Roundoff at exact quarter-degree boundaries must not add a subdivision:
@@ -477,37 +494,55 @@ pub fn move_mount_with_clearance(
         .gunhouse_size
         .iter()
         .fold(w.muzzle_forward.abs() + w.recoil_m + 1.0, |a, b| a.max(*b));
-    if let Some(entry) = d
-        .mount_clearance
-        .as_ref()
-        .and_then(|p| p.mounts.as_ref())
-        .and_then(|entries| entries.iter().find(|e| e.mount_id == d.mounts[index].id))
-    {
-        for c in entry.fittings.as_deref().unwrap_or_default() {
-            for v in [c.a, c.b] {
-                reach = reach.max(
-                    norm2(v).sqrt()
-                        + c.radius_m
-                        + if c.joint == "elevation" {
-                            w.trunnion_forward.abs() + w.pivot_height
-                        } else {
-                            0.0
-                        },
-                );
-            }
+    for c in entry.fittings.as_deref().unwrap_or_default() {
+        for v in [c.a, c.b] {
+            reach = reach.max(
+                norm2(v).sqrt()
+                    + c.radius_m
+                    + if c.joint == "elevation" {
+                        w.trunnion_forward.abs() + w.pivot_height
+                    } else {
+                        0.0
+                    },
+            );
         }
     }
-    let margin = reach * (train.abs() + elevation.abs()) / steps as f64;
-    for i in 1..=steps {
+    // The profile margin is a stop line, as for swept bodies: every accepted
+    // pose keeps it, but a step may spend up to half of it on the arc between
+    // poses, so the padding beyond it only has to cover the rest. Where even
+    // that padding reaches an envelope, fall back to the smallest step, whose
+    // padding the spare half covers, and grow again from there. A mount
+    // resting at the stop line (a turret over its neighbour's roof, a light
+    // mount beside a deckhouse) can then move, and it moves away from the
+    // envelope, where full padding froze it in every direction; a mount hard
+    // against one costs a second check, not a search. The grid is in 1/SPLIT
+    // parts of a full step, and less padding never refuses a pose that more
+    // accepted, so moves whose full steps were clear take exactly the poses
+    // they always did.
+    const SPLIT: usize = 16;
+    let spare = d.mount_clearance.as_ref().unwrap().margin_m / 2.0;
+    let total = steps * SPLIT;
+    let sweep = reach * (train.abs() + elevation.abs());
+    let (mut at, mut size) = (0, SPLIT);
+    while at < total {
+        let to = (at + size).min(total);
         let next = (
-            start.0 + train * i as f64 / steps as f64,
-            start.1 + elevation * i as f64 / steps as f64,
+            start.0 + train * to as f64 / total as f64,
+            start.1 + elevation * to as f64 / total as f64,
         );
-        if !pose_clear(d, index, next, states, margin) {
+        let padding = sweep * (to - at) as f64 / total as f64;
+        if pose_clear(d, index, next, states, (padding - spare).max(0.0)) {
+            s.train = next.0;
+            s.elevation = next.1;
+            at = to;
+            if size < SPLIT && at % (size * 2) == 0 {
+                size *= 2;
+            }
+        } else if size > 1 {
+            size = 1;
+        } else {
             return false;
         }
-        s.train = next.0;
-        s.elevation = next.1;
     }
     true
 }

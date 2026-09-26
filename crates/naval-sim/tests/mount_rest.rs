@@ -8,7 +8,7 @@ use naval_sim::{
     definition::{MountDefinition, ShipDefinition},
     geometry::{radians, wrap_angle},
     motion::ShipState,
-    mount_clearance::{ClearancePose, mount_pose_clear},
+    mount_clearance::{ClearancePose, mount_pose_clear, move_mount_with_clearance},
     mount_rest::{
         IDLE_REST_SECONDS, end_train, midship_z, rest_elevation, rests_toward_end, train_limits,
     },
@@ -230,20 +230,56 @@ fn every_preset_rest_is_clear_of_its_interlocks() {
     assert!(covered >= 60, "only {covered} side secondaries covered");
 }
 
-/// Presets whose main battery is known to stop short of a beam: Mogami's No. 2
-/// turret depresses onto No. 1's roof while both train and wedges the pair;
-/// Takao's turrets rest inside their interlock envelopes.
-const BEAM_BLOCKED: [&str; 2] = ["mogami", "takao"];
+#[test]
+fn every_preset_mount_can_leave_its_rest() {
+    // A pose the interlocks cannot leave in any direction freezes the mount for
+    // the whole battle: Kongō's superfiring pair and Takao's Nos. 2 and 3 once
+    // rested inside, or at the edge of, each other's envelopes.
+    let catalog = Catalog::installed();
+    let mut frozen = Vec::new();
+    for id in catalog.definitions.keys() {
+        let compiled = Arc::new(catalog.compile(id).unwrap());
+        let ship = Vessel::new("rest", TeamId::A, compiled.clone());
+        let d = ship.definition();
+        let swept = compiled.obstructions.clearance.as_ref();
+        let poses: Vec<ClearancePose> = ship.mounts.iter().map(ClearancePose::from).collect();
+        for (i, m) in d.mounts.iter().enumerate() {
+            let s = &ship.mounts[i];
+            let moves = [(0.5, 0.0), (-0.5, 0.0), (0.0, 0.5), (0.0, -0.5)]
+                .map(|(t, e)| (s.train + radians(t), s.elevation + radians(e)));
+            let free = if let Some(c) = swept.filter(|c| c.enabled(i)) {
+                moves.iter().any(|&(train, elevation)| {
+                    let requested = ClearancePose {
+                        train,
+                        elevation,
+                        recoil: 0.0,
+                    };
+                    !c.resolve(d, i, &poses, requested).blocked
+                })
+            } else {
+                moves.iter().any(|&target| {
+                    let mut moved = s.clone();
+                    move_mount_with_clearance(d, i, &mut moved, target, &ship.mounts)
+                })
+            };
+            if !free {
+                frozen.push(format!("{id} {}", m.id));
+            }
+        }
+    }
+    assert!(frozen.is_empty(), "frozen at rest: {frozen:?}");
+}
 
 #[test]
 fn every_preset_main_battery_trains_from_rest_to_either_beam() {
     // Every turret trains at once, as for a broadside, so neighbours' interlocks
-    // meet as they do in battle. Kongō's superfiring pair once froze at rest.
+    // meet as they do in battle. Kongō's superfiring pair once froze at rest,
+    // Mogami's No. 2 turret laid down onto No. 1's roof and pinned them both,
+    // and Takao's No. 1 barrels caught on the 25 mm mount beside it.
     let catalog = Catalog::installed();
     let mut failures = Vec::new();
     for id in catalog.definitions.keys() {
         let compiled = Arc::new(catalog.compile(id).unwrap());
-        let mut blocked = false;
         for side in [-1.0, 1.0] {
             let mut ship = Vessel::new("beam", TeamId::A, compiled.clone());
             let d = ship.definition().clone();
@@ -277,24 +313,16 @@ fn every_preset_main_battery_trains_from_rest_to_either_beam() {
                     continue;
                 }
                 if !matches!(s.status, MountStatus::Ready | MountStatus::Reloading) {
-                    blocked = true;
-                    if !BEAM_BLOCKED.contains(&id.as_str()) {
-                        failures.push(format!(
-                            "{id} {} toward {} beam: {:?} at {:.1} deg train, {:.1} deg elevation",
-                            m.id,
-                            if side > 0.0 { "starboard" } else { "port" },
-                            s.status,
-                            degrees(s.train),
-                            degrees(s.elevation),
-                        ));
-                    }
+                    failures.push(format!(
+                        "{id} {} toward {} beam: {:?} at {:.1} deg train, {:.1} deg elevation",
+                        m.id,
+                        if side > 0.0 { "starboard" } else { "port" },
+                        s.status,
+                        degrees(s.train),
+                        degrees(s.elevation),
+                    ));
                 }
             }
-        }
-        if BEAM_BLOCKED.contains(&id.as_str()) && !blocked {
-            failures.push(format!(
-                "{id} now reaches both beams: remove it from BEAM_BLOCKED"
-            ));
         }
     }
     assert!(failures.is_empty(), "{failures:#?}");

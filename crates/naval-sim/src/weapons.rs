@@ -1,3 +1,4 @@
+use crate::installation_clearance::{move_validated, pose_clear};
 use crate::mount_clearance::move_mount_with_clearance;
 use crate::{
     ballistics::{Arc, GRAVITY, solve_drag_arc, travel_factor},
@@ -365,6 +366,9 @@ pub struct Obstructions {
     entries: Vec<Obstruction>,
     carried: Vec<(usize, Vec<Obstruction>)>,
     pub clearance: Option<crate::mount_clearance::MountClearance>,
+    /// The definition carries an installation profile, validated here once
+    /// (`MountClearance::new_runtime` refuses an invalid one).
+    installation: bool,
 }
 impl Obstructions {
     pub fn new(d: &ShipDefinition) -> Self {
@@ -427,6 +431,10 @@ impl Obstructions {
             carried,
             clearance: crate::mount_clearance::MountClearance::new_runtime(d)
                 .expect("validated original mount clearance geometry"),
+            installation: d.mount_clearance.as_ref().is_some_and(|p| {
+                crate::mount_clearance::clearance_mode(p)
+                    == Ok(crate::mount_clearance::ClearanceMode::Installation)
+            }),
         }
     }
     /// Whether a barrel of mount `index`, breech to muzzle, runs through the
@@ -863,15 +871,86 @@ fn slew_mount(
         } else {
             0
         };
-        let mut motion_clear = move_mount_with_clearance(d, index, s, next, mounted_states);
+        let installation = obstructions.installation;
+        let step = |s: &mut MountState, target| {
+            if installation {
+                move_validated(d, index, s, target, mounted_states)
+            } else {
+                move_mount_with_clearance(d, index, s, target, mounted_states)
+            }
+        };
+        let mut motion_clear = step(s, next);
         if !motion_clear {
-            move_mount_with_clearance(d, index, s, (next.0, s.elevation), mounted_states);
-            move_mount_with_clearance(d, index, s, (s.train, next.1), mounted_states);
+            step(s, (next.0, s.elevation));
+            if !(installation
+                && elevate_past(
+                    d,
+                    index,
+                    s,
+                    next,
+                    train_rate,
+                    elevation_rate,
+                    mounted_states,
+                ))
+            {
+                step(s, (s.train, next.1));
+            }
             motion_clear = (s.train - next.0).abs() < 1e-9 && (s.elevation - next.1).abs() < 1e-9;
         }
         mechanically_blocked = !motion_clear;
     }
     ([lo, hi], mechanically_blocked)
+}
+
+/// A mount still short of its train stays on the elevation that lets it keep
+/// training, rather than laying its guns back onto what stops it. It trains on
+/// with the guns rising, as a crew lifts them over what lies in their path:
+/// Mogami's No. 2 turret, laying down onto No. 1's roof while both trained,
+/// otherwise pinned itself and No. 1 there. Already touching (Takao's No. 1
+/// barrels on the 25 mm mount beside it, Enterprise's 5-inch under a gallery),
+/// it steps in place toward the nearest elevation, above or below, at which the
+/// next train step clears and toward which it can step. A gunhouse against a
+/// stop, which no elevation clears, keeps its guns where they are. Returns
+/// whether the guns moved.
+fn elevate_past(
+    d: &ShipDefinition,
+    index: usize,
+    s: &mut MountState,
+    next: (f64, f64),
+    train_rate: f64,
+    elevation_rate: f64,
+    mounted_states: &[MountState],
+) -> bool {
+    let before = (s.train, s.elevation);
+    if (before.0 - next.0).abs() < 1e-9 {
+        return false;
+    }
+    let w = &d.mounts[index].weapon;
+    let (floor, ceiling) = (radians(w.elevation_min_deg), radians(w.elevation_max_deg));
+    let raised = (before.1 + elevation_rate).min(ceiling);
+    move_validated(d, index, s, (next.0, raised), mounted_states);
+    if (s.train, s.elevation) != before {
+        return true;
+    }
+    let toward = before.0 + (next.0 - before.0).clamp(-train_rate, train_rate);
+    let mut tried = [false; 2];
+    for offset in [2.0, 10.0, 90.0]
+        .iter()
+        .flat_map(|&offset: &f64| [offset, -offset])
+    {
+        let side = usize::from(offset < 0.0);
+        let e = (before.1 + radians(offset)).clamp(floor, ceiling);
+        if tried[side] || e == before.1 || !pose_clear(d, index, (toward, e), mounted_states, 0.0) {
+            continue;
+        }
+        tried[side] = true;
+        let shifted = before.1 + (e - before.1).clamp(-elevation_rate, elevation_rate);
+        move_validated(d, index, s, (before.0, shifted), mounted_states);
+        if (s.train, s.elevation) != before {
+            return true;
+        }
+    }
+    false
 }
 
 /// Between surface decisions a laid gun keeps its line of fire. The world
@@ -1046,6 +1125,7 @@ mod tests {
             entries: vec![],
             carried: vec![],
             clearance: None,
+            installation: false,
         };
         let blocked = Obstructions {
             hull: None,
@@ -1056,6 +1136,7 @@ mod tests {
             }],
             carried: vec![],
             clearance: None,
+            installation: false,
         };
         let aim = Some([
             m.position[0],
