@@ -240,19 +240,19 @@ def director_mk19(kit, aid, col, hp, face, pivot_name=None):
     pivot = kit.empty((pivot_name or aid) + '.yaw', (bx, by, bz), assembly=pivot_name or aid, col=col)
     s = 1 if face == 0 else -1
     local(kit.cylz(aid, col, 'director base', (bx, by, bz - .12), 1.25, .42, 'naval', 32), pivot)
-    house = [(1.55, -1.4), (1.55, 1.4), (-1.75, 1.45), (-1.75, -1.45)]
+    # The house in plan: square-fronted with its four vertical edges chamfered (the reference's rounded corners),
+    # 3.6 m long and 2.9 m wide, and a low hood along the roof's front edge over the sighting ports.
+    house = [(1.95, -1.05), (1.95, 1.05), (1.6, 1.45), (-1.35, 1.45), (-1.65, 1.15), (-1.65, -1.15), (-1.35, -1.45), (1.6, -1.45)]
     pts = [(bx + s * x, by + y) for x, y in house]
     local(kit.prism(aid, col, 'director house', pts, bz + .3, bz + 2.05, 'naval', 'roof'), pivot)
-    # Sloped face and the brow over the sighting ports.
-    face_pts = [(bx + s * 1.55, by - 1.4), (bx + s * 1.55, by + 1.4), (bx + s * 1.95, by + 1.3), (bx + s * 1.95, by - 1.3)]
-    local(kit.prism(aid, col, 'director face', face_pts, bz + .3, bz + 1.45, 'naval'), pivot)
-    local(kit.boxc(aid, col, 'sight brow', (bx + s * 1.62, by, bz + 2.0), (.6, 2.9, .1), 'roof'), pivot)
+    hood = [(1.95, -1.0), (1.95, 1.0), (1.35, 1.3), (1.35, -1.3)]
+    local(kit.prism(aid, col, 'sight hood', [(bx + s * x, by + y) for x, y in hood], bz + 2.05, bz + 2.28, 'naval', 'roof'), pivot)
     for side in (-1, 1):
         local(kit.part('rod', aid, col, 'rangefinder arm', (bx - s * .2, by + side * 1.4, bz + 1.55), (bx - s * .2, by + side * 2.45, bz + 1.55), .26, 'naval', vertices=14), pivot)
         local(kit.boxc(aid, col, 'rangefinder hood', (bx - s * .2, by + side * 2.4, bz + 1.55), (.62, .3, .62), 'naval'), pivot)
         local(kit.part('rod', aid, col, 'rangefinder window', (bx - s * .2 + s * .3, by + side * 2.4, bz + 1.55), (bx - s * .2 + s * .34, by + side * 2.4, bz + 1.55), .12, 'glass', vertices=10), pivot)
         for k in (-1, 1):
-            local(kit.boxc(aid, col, 'sight port', (bx + s * 1.97, by + side * .55 + k * .18, bz + 1.12), (.05, .26, .2), 'glass'), pivot)
+            local(kit.boxc(aid, col, 'sight port', (bx + s * 1.96, by + side * .55 + k * .18, bz + 1.75), (.05, .26, .2), 'glass'), pivot)
         local(kit.boxc(aid, col, 'roof hatch', (bx - s * .6, by + side * .75, bz + 2.09), (.8, .7, .08), 'edge'), pivot)
     return pivot
 
