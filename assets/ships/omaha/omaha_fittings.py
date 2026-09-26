@@ -219,6 +219,9 @@ def torpedo_mounts(D, kit):
 
 
 # ---------------------------------------------------------------- funnel caps
+FUNNEL_GUYS = {'funnel-2': ((-17.2, 3.6), (-8.65, 2.8)), 'funnel-3': ((1.0, 3.6), (10.36, 3.6)), 'funnel-4': ((6.25, 3.6), (19.1, 3.6))}
+
+
 def funnel_caps(D, kit):
     """Each funnel's rain cap: an eight-sided hood on four stays over the rim (reference: the cap's eave 0.33 m
     above the rim, 3.5 m across, rising to its crown)."""
@@ -254,6 +257,16 @@ def funnel_caps(D, kit):
         for hgt in (base + 2.0, (base + rim) / 2, rim - 1.0):
             qx, qy = wall(math.pi, -.02)
             kit.member(s['id'] + '-pipe', col, (qx, qy, hgt), (px, py, hgt), .03, 'naval', 5)
+        # Guys from eyeplates at 17.25 m, fore and aft either side, to the deck (Nos. 3 and 4 crossing between
+        # them) and No. 2's after pair to the midships deckhouse roof (reference side and top views; reference x,
+        # z of each landing). No. 1's wires lead to the foremast in the reference and are left out.
+        for (zl, xl), fore in zip(FUNNEL_GUYS.get(s['id'], ()), (True, False)):
+            for side in (-1, 1):
+                gx, gy = wall(-side * (math.pi / 4 if fore else 3 * math.pi / 4), .02)
+                foot = V(side * xl, 0, zl)
+                foot.z = kit.below(foot.x, foot.y, 11.0, 6.0)
+                kit.wire(s['id'] + '-guys', col, (gx, gy, 17.25), foot + Vector((0, 0, .03)), .012, False)
+                kit.cylz(s['id'] + '-guys', col, 'guy plate', foot - Vector((0, 0, .01)), .07, .07, 'naval', 8)
 
 
 # ---------------------------------------------------------------- masts
@@ -702,7 +715,8 @@ def catapults(D, kit):
 # ---------------------------------------------------------------- searchlights
 def searchlights(D, kit):
     """Five 600 mm searchlights (reference AM038): one on the foremast's lower top and four on lattice towers abreast
-    Nos. 3 and 4 funnels with platforms 14.36 m up; each on a pedestal with its yoke, barrel, lens and ventilator."""
+    Nos. 3 and 4 funnels with platforms 14.36 m up against the funnels' sides; each on a pedestal with its yoke,
+    barrel, lens and ventilator."""
     col = kit.collections['Sensors and masts']
     lights = [('searchlight-foremast', (0, 23.52, -43.40)), ('searchlight-1', (-3.17, 14.36, 4.74)), ('searchlight-2', (3.17, 14.36, 4.74)),
               ('searchlight-3', (-3.17, 14.36, 14.34)), ('searchlight-4', (3.17, 14.36, 14.34))]
@@ -721,8 +735,14 @@ def searchlights(D, kit):
                 for i in range(4):
                     kit.member(aid, col, r0[i], r0[(i + 1) % 4], .035, 'naval', 5)
                     kit.member(aid, col, r0[i], r1[(i + 1) % 4], .028, 'naval', 5)
-            kit.boxc(aid, col, 'platform', Vector((c.x, c.y, y - .04)), (2.2, 2.2, .08), 'roof')
-            kit.rail(aid, col, [(c.x + i * 1.08, c.y + j * 1.08) for i, j in corners], y, .95, 1.1, True, False)
+            # The platform reaches in to the funnel's side and is chamfered outboard (reference top view: 3.1 m
+            # across from the funnel to x 4.65, 2.9 m long); the rail leaves open the end the walkway joins.
+            sx = 1 if x > 0 else -1
+            ring = [(1.50, -1.45), (4.15, -1.45), (4.65, -.95), (4.65, .95), (4.15, 1.45), (1.50, 1.45)]
+            outline = [V(sx * px, 0, z + pz)[:2] for px, pz in ring]
+            kit.prism(aid, col, 'platform', outline, y - .08, y, 'naval')  # light grey, as the reference paints them
+            railed = ring[:5] if z < 10 else ring[1:]
+            kit.rail(aid, col, [V(sx * (px - .06 if px > 4 else px), 0, z + pz * .96)[:2] for px, pz in railed], y, .95, 1.1, False, False)
         kit.cylz(aid, col, 'pedestal', c, .22, .52, 'naval', 12)
         kit.boxc(aid, col, 'yoke', c + Vector((0, 0, .60)), (.30, .95, .14), 'naval')
         for t in (-1, 1):
@@ -738,7 +758,9 @@ def searchlights(D, kit):
         kit.beam(aid, col, 'walkway', a, b, .55, .08, 'roof')
         for t in (-1, 1):
             kit.member(aid, col, a + Vector((0, t * .26, -.08)), b + Vector((0, t * .26, -.08)), .035, 'naval', 5)
-        kit.wire(aid, col, V(s * 3.44, 15.25, 13.30), V(s * 3.44, 15.25, 5.78), .012, False)
+        for zz in (12.95, 9.54, 6.13):
+            kit.member(aid, col, V(s * 3.40, 14.30, zz), V(s * 3.40, 15.27, zz), .022, 'naval', 5)
+        kit.wire(aid, col, V(s * 3.40, 15.25, 12.95), V(s * 3.40, 15.25, 6.13), .014, False)
 
 
 # ---------------------------------------------------------------- casemate hoods
