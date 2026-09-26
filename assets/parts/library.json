@@ -1341,6 +1341,14 @@
       "limitations": "Original cylindrical casemate against approved Kong\u014d model; visual, installation and articulation review pending. Performance provisional."
     },
     {
+      "partId": "type3-140-hyuga-casemate",
+      "nation": "Japan",
+      "family": "14 cm/50 3rd Year Type casemate",
+      "builder": "ijn-152",
+      "review": "unreviewed",
+      "limitations": "Hy\u016bga installation of the original cylindrical casemate (ijn-152, built against the approved Kong\u014d model) carrying the 14 cm/50 3rd Year Type gun's catalog values and the barrel reach of the approved GameModels3D pjsb517 jgs197 visual (muzzle 6.19 m ahead of the training axis); drum, seat, canvas curtain, sight hood and barrel taper are the 15.2 cm recipe's. Visual, installation and articulation review pending. Performance provisional."
+    },
+    {
       "partId": "type96-25-kongo-3",
       "nation": "Japan",
       "family": "Type 96 25 mm",

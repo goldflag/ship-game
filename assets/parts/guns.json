@@ -23599,6 +23599,59 @@
       "barrelCount": 1
     },
     {
+      "id": "type3-140-hyuga-casemate",
+      "name": "14 cm/50 3rd Year Type Hyūga casemate",
+      "kind": "gun",
+      "massKg": 16000,
+      "barbetteRadius": 1.23,
+      "gunhouseSize": [
+        2.5,
+        2.5,
+        2.66
+      ],
+      "pivotHeight": 1.4,
+      "trunnionForward": 0,
+      "muzzleForward": 6.19,
+      "barrelSpacing": 0.3,
+      "caliberM": 0.14,
+      "traverseDeg": 65,
+      "traverseRateDeg": 6,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 20,
+      "elevationRateDeg": 8,
+      "reloadSeconds": 10,
+      "muzzleSpeed": 850,
+      "projectileMassKg": 38,
+      "penetrationMm": 128,
+      "damage": 24,
+      "recoilM": 0.4,
+      "ammoPerBarrel": 150,
+      "armorMm": 152,
+      "barrelBaseRadius": 0.25,
+      "ballistics": {
+        "dragPerSecond": 0.05273,
+        "dispersionRad": 0.0012,
+        "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (586.592 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 586.592068
+      },
+      "ap": {
+        "armingResistanceMm": 23.3333,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 0.95,
+        "fragmentPenetrationMm": 11.2,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 3.04,
+        "fragmentPenetrationMm": 23.3333,
+        "damage": 48,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+      },
+      "barrelCount": 1
+    },
+    {
       "id": "type96-25-kongo-3",
       "name": "25 mm Type 96 low triple",
       "kind": "gun",
