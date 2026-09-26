@@ -28,10 +28,14 @@ def build(D, kit):
     main_director(kit, masts)
     rangefinder_10m(kit, masts)
     type22_radars(kit, masts)
-    for id, ref, width in [('rf-bridge-port', (-1.21, 25.862, -31.438), 1.5), ('rf-bridge-starboard', (1.26, 25.86, -31.432), 1.5),
-                           ('rf-secondary-port', (-4.488, 23.049, -28.212), 3.5), ('rf-secondary-starboard', (4.512, 23.045, -28.227), 3.5),
-                           ('rf-upper-port', (-3.879, 30.876, -27.454), 3.5), ('rf-upper-starboard', (3.869, 30.875, -27.543), 3.5)]:
-        kit.rangefinder(id, ref, width, 0, masts)
+    for id, ref in [('rf-bridge-port', (-1.21, 25.862, -31.438)), ('rf-bridge-starboard', (1.26, 25.86, -31.432))]:
+        kit.rangefinder(id, ref, 1.5, 0, masts)
+    # The 3.5 m rangefinders (jf016) are enclosed: a round house 1.96 m across with the tube's arms through its sides
+    # out to 3.76 m, 1.42 m high over all with its sighting dome.
+    for id, ref in [('rf-secondary-port', (-4.488, 23.049, -28.212)), ('rf-secondary-starboard', (4.512, 23.045, -28.227)),
+                    ('rf-upper-port', (-3.879, 30.876, -27.454)), ('rf-upper-starboard', (3.869, 30.875, -27.543))]:
+        kit.rangefinder_house(id, ref, 3.76, 0, masts, radius=.98, height=1.17, tube=.6)
+    # The Type 91 directors (jd008) stand in wells 0.8 m deep in their platforms (reference 22.14-23.89 m).
     for id, rx in [('ha-director-port', -5.182), ('ha-director-starboard', 5.199)]:
         type91_director(kit, id, (rx, 22.94, -21.4), masts)
     bridge_gear(kit, masts)
@@ -119,18 +123,36 @@ def type22_radars(kit, col):
             kit.part('rod', id, col, 'waveguide', (x + .1, y + dy, base + .7), tuple(throat), .04, 'edge', vertices=6)
 
 
-def type91_director(kit, id, ref, col):
-    """Type 91 high-angle director (reference HP_JD_2/3): a round seat, a squared house with sighting ports and
-    its rangefinder arms."""
+def type91_director(kit, id, ref, col, facing=0.0, well=.8):
+    """Type 91 high-angle director (reference jd008, HP_JD_2-4): a round hood 2.37 m across and 1.75 m high over its
+    seat, its walls rising 1.5 m to a low domed roof, the sighting opening and rangefinder ports on its face; it stands
+    `well` below the datum in a well sunk into its platform, the well's dark rim round it at the platform. `facing` is
+    the bearing its face looks along (0 forward). Returns the parts that train."""
     x, y, z = P(*ref)
-    moving = []
-    moving.append(kit.cylz(id, col, 'seat', (x, y, z - .02), .95, .22, 'naval', 28))
-    moving.append(kit.part('box', id, col, 'house', (x, y, z + 1.05), (2.05, 1.7, 1.66), 'naval'))
-    moving.append(kit.part('box', id, col, 'house roof', (x, y, z + 1.9), (2.12, 1.78, .06), 'roof'))
-    moving.append(kit.part('rod', id, col, 'rangefinder', (x - .5, y - 1.2, z + 1.45), (x - .5, y + 1.2, z + 1.45), .12, 'naval', vertices=12))
+    base = z - well
+    a = math.radians(facing)
+    f = Vector((math.cos(a), -math.sin(a), 0))
+    side = Vector((-f.y, f.x, 0))
+    moving = [kit.cylz(id, col, 'seat', (x, y, base), .95, .12, 'naval', 28)]
+    moving.append(kit.cylz(id, col, 'hood', (x, y, base + .1), 1.185, 1.4, 'naval', 32))
+    moving.append(kit.cylz(id, col, 'hood roof', (x, y, base + 1.5), 1.2, .25, 'roof', 32, r2=.85))
+    # The hood is open over the director's sights: a dark opening in the roof, reaching the face.
+    moving.append(kit.beam(id, col, 'roof opening', Vector((x, y, base + 1.755)) - f * .15, Vector((x, y, base + 1.755)) + f * .9, .7, .012, 'dark'))
+    c = Vector((x, y, base + 1.28))
+    moving.append(kit.beam(id, col, 'sighting opening', c + f * 1.17, c + f * 1.2, 1.1, .34, 'dark'))
     for s in (-1, 1):
-        moving.append(kit.part('box', id, col, 'rangefinder hood', (x - .5, y + s * 1.2, z + 1.45), (.35, .3, .32), 'naval'))
-        moving.append(kit.part('box', id, col, 'port', (x + 1.03, y + s * .45, z + 1.3), (.03, .38, .24), 'glass'))
+        port = c + f * .95 + side * s * .72 + Vector((0, 0, -.25))
+        moving.append(kit.beam(id, col, 'rangefinder port', port, port + f * .02, .28, .16, 'dark'))
+    # The well's dark rim at the platform, round the hood.
+    vv, ff = [], []
+    n = 32
+    for r in (1.2, 1.36):
+        for i in range(n):
+            t = math.tau * i / n
+            vv.append((x + r * math.cos(t), y + r * math.sin(t), z + .006))
+    ff = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)]
+    kit.tag(kit.mesh(id + '.well rim', vv, ff, 'dark', col), id)
+    return moving
 
 
 def bridge_gear(kit, col):
@@ -140,6 +162,29 @@ def bridge_gear(kit, col):
             continue
         A = f'pagoda-{kind.replace(" ", "-")}-{n}'
         x, y, z = P(rx, ry, rz)
+        if kind == 'signal lamp':
+            # Day lights stand on the yard arms (34.25 m), on shelves or on the floor under them.
+            if ry > 33.8 and abs(rx) > 3:
+                kit.cylz(A, col, 'lamp foot', (x, y, 34.25), .1, .07, 'naval', 12)
+                kit.cylz(A, col, 'lamp lens', (x, y, 34.32), .12, h * .55, 'glass', 12)
+                kit.cylz(A, col, 'lamp cap', (x, y, 34.32 + h * .55), .135, h * .22, 'naval', 12, r2=.055)
+            else:
+                kit.lamp(A, col, x, y, ry, h, .12)
+            continue
+        if kind == 'running light':
+            # The side lights' screens on the bridge wings' outer faces, red to port and green to starboard.
+            side = 1 if rx > 0 else -1           # starboard is authoring -y
+            hit = kit.hit((x, y - side * 2.0, ry + h / 2), (0, side, 0), 3.0)
+            if hit is not None and abs(hit[0].y - y) < .8:
+                cy = hit[0].y - side * (w / 2 - .02)
+            else:
+                cy = y
+                floor = kit.floor(x, y, ry + .3)
+                if floor is not None and ry - floor > .02:
+                    kit.cylz(A, col, 'post', (x, y, floor), .06, ry - floor + .02, 'naval', 8)
+            kit.part('box', A, col, 'screen', (x, cy, ry + h / 2), (l, w, h), 'naval')
+            kit.part('box', A, col, 'lens', (x + l * .2, cy - side * (w / 2 + .01), ry + h * .5), (l * .45, .03, h * .55), 'lens-red' if rx < 0 else 'lens-green')
+            continue
         floor = kit.floor(x, y, ry + .3)
         if floor is None or abs(floor - ry) > .6:
             continue
@@ -155,9 +200,8 @@ def bridge_gear(kit, col):
                 kit.part('box', A, col, 'binocular', (x, y, top + .09), (.28, .34, .18), 'edge')
                 kit.part('rod', A, col, 'objective', (x + .14, y - .09, top + .1), (x + .17, y - .09, top + .1), .06, 'glass', vertices=8)
                 kit.part('rod', A, col, 'objective', (x + .14, y + .09, top + .1), (x + .17, y + .09, top + .1), .06, 'glass', vertices=8)
-        elif kind in ('signal lamp', 'deck lamp', 'running light'):
-            kit.part('box', A, col, 'lamp', (x, y, base + h / 2), (max(.2, l * .8), max(.2, w * .8), h), 'naval')
-            kit.part('box', A, col, 'lens', (x + max(.1, l * .4) + .01, y, base + h * .6), (.02, max(.14, w * .6), h * .4), 'glass')
+        elif kind == 'deck lamp':
+            kit.lamp(A, col, x, y, base, h, .15)
         elif kind == 'flag locker':
             kit.part('box', A, col, 'locker', (x, y, base + h / 2), (l, w, h), 'naval')
 
@@ -178,27 +222,46 @@ def forestay(kit, col):
 
 
 def signal_yards(kit, col):
-    """The signal yard: a railed walkway 1.2 m wide at 34.2 m across the tower's after face (reference level cut at
-    34.25 m, 15.5 m across) with yard arms out to the flag hardpoints (HP_flag_1-4) and signal halyards."""
+    """The signal yard (reference plan cuts at 33.9-34.5 m): one narrow railed yard 0.3 m wide at 34.05-34.25 m,
+    straight across the tower's after face within 1.75 m of the centreline and swept 25 degrees aft from there to
+    its tips 10.8 m out; a brace under each arm's inner half; signal halyards from the arms down to the flag
+    lockers on the 22 m platform."""
     A = 'signal-yards'
-    y0, z0, z1 = 34.15, -24.6, -22.1
-    kit.part('box', A, col, 'walkway', P(0, y0, (z0 + z1) / 2), (z1 - z0, 15.6, .1), 'roof')
-    kit.rail(A, col, [P(-7.8, 0, z1)[:2], P(7.8, 0, z1)[:2]], y0 + .05, 1.0, 1.4, check=False)
+    y = 34.15
+    kit.beam(A, col, 'yard', P(-1.8, y, -24.8), P(1.8, y, -24.8), .3, .2, 'naval')
+    locker = {}
+    for kind, rx, ry, rz, (w, l, h) in SMALL_FITTINGS:
+        if kind == 'flag locker':
+            locker[1 if rx > 0 else -1] = (rx, ry + h, rz)
     for s in (-1, 1):
-        kit.rail(A, col, [P(s * 7.8, 0, z0 + 1.2)[:2], P(s * 7.8, 0, z1)[:2]], y0 + .05, 1.0, 1.4, check=False)
-        kit.part('rod', A, col, 'yard arm', P(s * 6.8, y0 - .09, -22.3), P(s * 10.45, 33.72, -20.78), .07, 'naval', vertices=8, r2=.045)
-        kit.member(A, col, P(s * 3.5, y0 - .05, -22.4), P(s * 6.8, y0 - .05, -22.3), .06, 'naval', 6)
-        for t in (0.35, 0.65, 0.95):
-            a = Vector(P(s * 6.8, y0 - .09, -22.3)).lerp(Vector(P(s * 10.45, 33.72, -20.78)), t)
-            kit.wire(A, col, tuple(a), (a.x, a.y, a.z - 1.2), .012, check=False)
+        root, tip = Vector(P(s * 1.75, y, -24.9)), Vector(P(s * 10.8, y, -20.7))
+        kit.beam(A, col, 'yard arm', root, tip, .3, .2, 'naval')
+        kit.member(A, col, P(s * .5, 33.93, -25.6), P(s * 4.65, 33.93, -23.65), .06, 'naval', 6)
+        # A rail along the arm's forward edge and round its tip.
+        edge = (tip - root).normalized().cross(Vector((0, 0, 1))) * .13
+        if edge.x < 0:
+            edge = -edge
+        start = root.lerp(tip, .18)
+        pts = [(start + edge).to_2d(), (tip + edge).to_2d(), (tip - edge).to_2d()]
+        kit.rail(A, col, [tuple(q) for q in pts], y + .1, .8, 1.4, check=False)
+        # Halyards from the arm down to the flag locker on this side.
+        if s in locker:
+            lx, ly, lz = locker[s]
+            to = Vector(P(lx, ly, lz))
+            for t in (.3, .45, .6, .75, .9):
+                a = root.lerp(tip, t)
+                kit.wire(A, col, (a.x, a.y, a.z - .1), tuple(to), .012, check=False)
 
 
 def glazing(kit, col):
-    """Bridge windows the reference paints in three bands (orthographic front and side renders): panes cast
-    onto this model's own walls, forward faces and the forward ends of the sides."""
+    """Bridge windows the reference paints in three bands (orthographic front and side renders): panes cast onto this
+    model's own walls. The forward faces carry the front runs; each side carries its run of panes between the measured
+    forward and after ends (reference textured side render: 7 panes at 20 m, 5 at 23.2 m and 5 at 28.85 m)."""
     rows = []
-    bands = [(20.0, 20.6, -34.4, 3.0, -30.8), (23.2, 23.9, -33.4, 1.6, -31.2), (28.85, 29.5, -33.1, 2.5, -30.8)]
-    for y0, y1, zfront, half, zside in bands:
+    # (bottom, top, front face z, front half-width, side run from z, to z, side panes)
+    bands = [(20.0, 20.6, -34.4, 3.0, -34.4, -30.8, 7), (23.2, 23.9, -33.4, 1.6, -33.25, -31.18, 5), (28.85, 29.5, -33.1, 2.5, -32.86, -30.73, 5)]
+    guns = [(m['position'][0], m['position'][1], m['position'][2]) for m in kit.D['mounts'] if m['id'].startswith('aa25-')]
+    for y0, y1, zfront, half, zs0, zs1, m in bands:
         yc, h = (y0 + y1) / 2, y1 - y0
         n = max(2, round(2 * half / .52))
         for i in range(n):
@@ -206,28 +269,78 @@ def glazing(kit, col):
             hit = kit.hit(P(xr, yc, zfront - 6), (-1, 0, 0), 8)
             if hit:
                 loc, nrm = hit
-                rows.append(('window', -loc.y, yc, -loc.x, 2 * half / n - .08, h, -nrm.y, -nrm.x))
+                row = ('window', -loc.y, yc, -loc.x, 2 * half / n - .08, h, -nrm.y, -nrm.x)
+                # No front pane inside a light gun's working circle (the tower's walls are cut back round those guns).
+                if not any(math.hypot(row[1] - gx, row[3] - gz) < 1.9 and -.5 < yc - gy < 3 for gx, gy, gz in guns):
+                    rows.append(row)
         for s in (-1, 1):
-            m = max(1, round((zside - zfront) / .52))
+            side = []
             for i in range(m):
-                zr = zfront + (i + .5) * (zside - zfront) / m
+                zr = zs0 + (i + .5) * (zs1 - zs0) / m
                 hit = kit.hit(P(s * 9, yc, zr), (0, s, 0), 8)
-                if hit:
+                if hit and abs(hit[1].y) > .7:
                     loc, nrm = hit
-                    rows.append(('window', -loc.y, yc, -loc.x, (zside - zfront) / m - .08, h, -nrm.y, -nrm.x))
-    # No pane inside a light gun's working circle (the tower's walls are cut back round those guns).
-    guns = [(m['position'][0], m['position'][1], m['position'][2]) for m in kit.D['mounts'] if m['id'].startswith('aa25-')]
-    rows = [r for r in rows if not any(math.hypot(r[1] - gx, r[3] - gz) < 1.9 and -.5 < r[2] - gy < 3 for gx, gy, gz in guns)]
+                    side.append(('window', -loc.y, yc, -loc.x, (zs1 - zs0) / m - .08, h, -nrm.y, -nrm.x))
+            if side:
+                # Keep the panes on the band's outer wall, not in a notch cut back behind it.
+                outer = sorted(abs(r[1]) for r in side)[len(side) // 2]
+                rows += [r for r in side if abs(r[1]) > outer - .5]
     kit.windows('bridge-glazing', col, rows)
 
 
 def rear_legs(kit, col):
-    """The tower's rear legs and the struts under its after platforms (reference plan cuts every 1.5 m: two legs
-    0.55 m across from the base roof at 9.2 m up to the 21.7 m platform, leaning 2 m aft, and a strut pair from the
-    base roof to the 16.5 m platform's after corners), in runtime-frame datums."""
+    """The tower's rear legs, raked struts and their web plates (reference plan cuts every 0.6 m, starboard side,
+    mirrored). Each leg is a 0.38 m by 0.22 m member standing on the base roof at the base's after corner (3.12 m out,
+    9.3 m), nearly upright to a knee at 13.2 m and raked aft from there to the 21.4 m platform. Outboard of it a raked
+    strut 0.65 m square rises from the base roof 2.4 m ahead of the base's after face, raked 25 degrees aft and outward
+    to the same platform's after corner; a brace leans forward from the strut at 12 m to the tower at 20 m, and a web
+    plate fills the angle between strut and brace from 12.4 to 15.4 m. Runtime-frame datums (reference z + 1.095)."""
+    A = 'pagoda-legs'
+
+    def pt(x, y, z):
+        return Vector((-z, -x, y))
+
     for s in (-1, 1):
-        for a, b, r in [((s * 2.6, 9.0, -23.0), (s * 1.97, 21.4, -21.0), .28), ((s * 5.0, 9.0, -22.8), (s * 3.9, 16.62, -22.9), .2)]:
-            pa, pb = (-a[2], -a[0], a[1]), (-b[2], -b[0], b[1])
-            foot = kit.floor(pa[0], pa[1], a[1] + .4)
-            pa = (pa[0], pa[1], foot - .03 if foot is not None else pa[2])
-            kit.part('rod', 'pagoda-legs', col, 'leg', pa, pb, r, 'naval', vertices=14)
+        # Leg: foot on the base roof, knee, head under the platform.
+        fx, fz = s * 3.12, -23.425
+        foot = kit.floor(-fz, -fx, 9.8)
+        if foot is None or foot < 8.9:
+            raise ValueError(f'pagoda leg foot at ({fx}, {fz}) misses the base roof: {foot}')
+        knee = pt(s * 2.70, 13.2, -23.28)
+        head = pt(s * 1.86, 21.5, -20.55)
+        kit.beam(A, col, 'leg', pt(fx, foot - .03, fz), knee + Vector((0, 0, .1)), .22, .38, 'naval')
+        kit.beam(A, col, 'leg', knee - (head - knee).normalized() * .1, head, .22, .38, 'naval')
+        # Strut: along the measured line (x 2.83 at 10 m to 4.76 at 21.4 m) down to the roof it stands on.
+        top = pt(s * 4.76, 21.5, -20.6)
+        d = Vector((s * .1693, 1, .4272))
+        a = Vector((s * 2.83, 10.0, -25.505))
+        fy = kit.floor(-(a.z - d.z * .9), -(a.x - d.x * .9), 11.0)
+        if fy is None or fy < 8.9:
+            raise ValueError(f'pagoda strut foot misses the base roof: {fy}')
+        b = a + d * (fy - a.y - .05)
+        kit.beam(A, col, 'strut', pt(b.x, b.y, b.z), top, .62, .62, 'naval')
+        # Brace from the strut forward and up to the tower, and the web between them.
+        c0 = a + d * (12.0 - a.y)
+        brace_top = pt(s * 2.38, 20.1, -26.1)
+        kit.beam(A, col, 'brace', pt(c0.x, c0.y, c0.z), brace_top, .6, .6, 'naval')
+        bd = (brace_top - pt(c0.x, c0.y, c0.z))
+        web = []
+        for y in (12.4, 15.4):
+            sp = a + d * (y - a.y)
+            t = (y - 12.0) / (20.1 - 12.0)
+            bp = pt(c0.x, c0.y, c0.z) + bd * t
+            web.append((pt(sp.x, sp.y, sp.z), bp))
+        (s0, b0), (s1, b1) = web
+        n = (s1 - s0).cross(b0 - s0).normalized() * .05
+        vv = [tuple(v + n * k) for k in (-1, 1) for v in (s0, s1, b1, b0)]
+        ff = [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+        ob = kit.mesh(A + '.web', vv, ff, 'naval', col)
+        import bmesh
+        bm = bmesh.new(); bm.from_mesh(ob.data)
+        bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces)); bm.to_mesh(ob.data); bm.free()
+        kit.tag(ob, A)
+        # The pipe outboard of the strut from the base roof to the 16 m platform.
+        pf = kit.floor(-(-24.565), -(s * 3.45), 10.5)
+        if pf is None or pf < 8.9:
+            raise ValueError(f'pagoda strut pipe misses the base roof: {pf}')
+        kit.part('rod', A, col, 'pipe', pt(s * 3.44, pf - .02, -24.565), pt(s * 4.22, 16.25, -25.375), .14, 'naval', vertices=10)

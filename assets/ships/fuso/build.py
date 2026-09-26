@@ -22,7 +22,7 @@ from blender_rig import create_flagstaffs
 sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
-from fuso_kit import Kit, P
+from fuso_kit import Kit, P, LINOLEUM_EDGE, linoleum_edge
 import fuso_pagoda
 import fuso_midships
 import fuso_aft
@@ -54,7 +54,8 @@ for name in ['Hull and decks', 'Superstructure', 'Main and secondary batteries',
 colors = {'naval': (.090, .095, .112), 'hullgray': (.090, .095, .112), 'roof': (.076, .080, .094), 'deck': (.128, .095, .060),
           'linoleum': (.090, .046, .036), 'edge': (.038, .038, .040), 'painted-edge': (.074, .078, .090), 'dark': (.012, .013, .014),
           'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.092, .058, .038), 'bronze': (.36, .27, .12),
-          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12)}
+          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12),
+          'lens-red': (.42, .02, .02), 'lens-green': (.02, .30, .07)}
 materials = {}
 for key, color in colors.items():
     m = bpy.data.materials.new('Fusō ' + key)
@@ -120,15 +121,30 @@ hull = authored_hull(H, mesh, collections['Hull and decks'], [materials['hullgra
 for key in ['deck', 'roof', 'linoleum']:
     hull.data.materials.append(materials[key])
 ZC = -1.095
+# The linoleum's chevron edge splits the quarterdeck's faces (as the waterline splits the sides), so the paint
+# boundary follows it rather than the loft's stations.
+import bmesh
+bm = bmesh.new()
+bm.from_mesh(hull.data)
+for (x0, z0), (x1, z1) in zip(LINOLEUM_EDGE, LINOLEUM_EDGE[1:]):
+    for side in (-1, 1):
+        a, b = Vector((-z0, -side * x0, 0)), Vector((-z1, -side * x1, 0))
+        normal = (b - a).cross(Vector((0, 0, 1))).normalized()
+        deck = [f for f in bm.faces if f.normal.z > .96 and 3.5 < f.calc_center_median().z < 4.3 and -86 < f.calc_center_median().x < -75]
+        if deck:
+            geom = list({e for f in deck for e in f.edges}) + list({v for f in deck for v in f.verts}) + deck
+            bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-6, plane_co=a, plane_no=normal)
+bm.to_mesh(hull.data)
+bm.free()
 for face in hull.data.polygons:
     if face.normal.z > .96 and face.center.z > 0:
         zref = -face.center.x + ZC
         face.material_index = 2
-        # The casemate ledge outboard of the forecastle wall is steel; the quarterdeck abaft No. 6 turret's
-        # barbette is the linoleum aircraft deck.
+        # The casemate ledge outboard of the forecastle wall is steel; the quarterdeck abaft the linoleum's chevron
+        # edge is the linoleum aircraft deck.
         if face.center.z < 4.3 and zref < 52.5:
             face.material_index = 3
-        elif face.center.z < 4.3 and zref > 70.2:
+        elif face.center.z < 4.3 and -face.center.x > linoleum_edge(face.center.y):
             face.material_index = 4
 
 # ---------------------------------------------------------------- superstructure

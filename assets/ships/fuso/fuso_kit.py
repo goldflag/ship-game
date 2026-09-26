@@ -16,6 +16,23 @@ def P(x, y, z):
     return (-(z - ZC), -x, y)
 
 
+# The linoleum aircraft deck's forward edge on the quarterdeck (the reference's textured top render): a chevron whose
+# flat middle stands at runtime z 83.25 within 2.37 m of the centreline, running forward to z 77.45 at 7.25 m out and
+# square across from there to the deck edge. Runtime (x, z) corners, starboard; mirrored to port.
+LINOLEUM_EDGE = [(0.0, 83.25), (2.37, 83.25), (7.25, 77.45), (20.0, 77.45)]
+# Brass strips across the linoleum every 1.393 m from runtime z 79.3 to the stern (the same render).
+BRASS_STRIPS = [79.3 + 1.393 * k for k in range(20)]
+
+
+def linoleum_edge(x):
+    """Runtime z of the linoleum's forward edge at half-breadth |x|."""
+    x = abs(x)
+    for (x0, z0), (x1, z1) in zip(LINOLEUM_EDGE, LINOLEUM_EDGE[1:]):
+        if x0 <= x <= x1:
+            return z0 + (z1 - z0) * (x - x0) / (x1 - x0)
+    return LINOLEUM_EDGE[-1][1]
+
+
 class Kit:
     def __init__(self, D, helpers, materials, collections, support):
         self.D, self.h, self.m, self.cols, self.support = D, helpers, materials, collections, support
@@ -347,12 +364,12 @@ class Kit:
             pts = [(px, y + s * max(.01, w - .01), g - drop) for px, w, k, g in (station(i / 16) for i in range(17))]
             self.polyline(id, col, pts, r, material, 5)
 
-    def motor_boat(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.28, .44, .63, .85), wheelhouse=1.2, mast=True):
+    def motor_boat(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.28, .44, .63, .85), wheelhouse=1.2, mast=True, bow=1):
         """Decked 15 m motor boat: grey hull, wood deck, forward trunk, wheelhouse and after cabin with windows.
-        ref_center: reference (centre x, centre z); the keel rests at keel_y."""
+        ref_center: reference (centre x, centre z); the keel rests at keel_y; bow=-1 stows it with its stem aft."""
         col = col or self.cols['Boats and aviation']
         x, y, _ = P(ref_center[0], 0, ref_center[1])
-        hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, 2.2, 'naval', 'wood', 1, .72, .45, (.25, .05))
+        hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, 2.2, 'naval', 'wood', bow, .72, .45, (.25, .05))
         self.tag(hull, id)
         self.gunwale_band(id, col, st, y, 'naval', .05)
         self.cradles(id, col, st, y, chocks, .95)
@@ -363,7 +380,7 @@ class Kit:
             self.part('box', id, col, label, ((a + b) / 2, y, deck + height / 2 - .02), (abs(b - a), width, height + .04), 'naval')
             self.part('box', id, col, label + ' roof', ((a + b) / 2, y, deck + height + .02), (abs(b - a) + .1, width + .1, .05), 'roof')
         wx = st(.54)[0]
-        self.part('box', id, col, 'wheelhouse glass', (wx + .01, y, g + wheelhouse - .25), (.03, 1.4, .32), 'glass')
+        self.part('box', id, col, 'wheelhouse glass', (wx + .01 * bow, y, g + wheelhouse - .25), (.03, 1.4, .32), 'glass')
         for s in (-1, 1):
             for i in range(4):
                 px = st(.23 + i * .055)[0]
@@ -437,6 +454,67 @@ class Kit:
         for s in (-1, 1):
             self.part('box', id, col, 'hood', tuple(c + Vector((px, py, 0)) * s * width / 2), (.45, .45, .5), 'naval')
         self.part('box', id, col, 'operator shield', tuple(c - Vector((fx, fy, 0)) * .45 + Vector((0, 0, -.1))), (.8, .9, .9), 'naval')
+
+    def nearest_wall(self, x, y, z, reach=1.6):
+        """Nearest authored surface round (x, y) at height z by horizontal rays: (distance, hit point, direction)."""
+        best = None
+        for ang in range(0, 360, 20):
+            d = Vector((math.cos(math.radians(ang)), math.sin(math.radians(ang)), 0))
+            hit = self.hit((x, y, z), d, reach)
+            if hit:
+                dist = (Vector(hit[0]) - Vector((x, y, z))).length
+                if best is None or dist < best[0]:
+                    best = (dist, Vector(hit[0]), d)
+        return best
+
+    def lamp(self, assembly, col, x, y, base, height=.6, radius=.12, lens='glass', bracket=True):
+        """A signal lamp (the reference's jm011 day lights): a round lantern with its cap, on the floor under it or on
+        a shelf bracket from the nearest wall. Returns False when it has neither."""
+        floor = self.floor(x, y, base + .3)
+        if floor is None or abs(floor - base) > .45:
+            wall = self.nearest_wall(x, y, base + .1) if bracket else None
+            if wall is None:
+                return False
+            dist, loc, d = wall
+            self.beam(assembly, col, 'shelf', Vector((x, y, base - .02)) - d * .16, Vector((loc.x, loc.y, base - .02)) + d * .04, .3, .04, 'naval')
+            self.beam(assembly, col, 'shelf knee', Vector((loc.x, loc.y, base - .3)) + d * .02, Vector((x, y, base - .04)) - d * .05, .04, .04, 'naval')
+        else:
+            base = floor
+        self.cylz(assembly, col, 'lamp foot', (x, y, base), radius * .85, .07, 'naval', 12)
+        self.cylz(assembly, col, 'lamp lens', (x, y, base + .07), radius, height * .55, lens, 12)
+        self.cylz(assembly, col, 'lamp cap', (x, y, base + .07 + height * .55), radius * 1.12, height * .22, 'naval', 12, r2=radius * .45)
+        self.part('rod', assembly, col, 'lamp vent', (x, y, base + .07 + height * .77), (x, y, base + height), .03, 'naval', vertices=6)
+        return True
+
+    def rangefinder_house(self, id, ref, width, bearing, col=None, radius=.98, pedestal=0.0, height=1.17, tube=.6, arm=(.45, .48)):
+        """Enclosed rangefinder (the reference's jf016 and jf009): a round house on the datum or on a short pedestal,
+        its flat roof with a small sighting dome, the tube through its sides in armoured arms out to the full
+        `width`, with dark objective ports on their faces; bearing 0 faces the bow (the tube athwartships)."""
+        col = col or self.cols['Sensors and masts']
+        x, y, z = P(*ref)
+        if pedestal > 0:
+            self.cylz(id, col, "pedestal", (x, y, z), radius * .55, pedestal + .02, "naval", 20)
+        z0 = z + pedestal
+        self.cylz(id, col, 'house', (x, y, z0), radius, height, 'naval', 24)
+        self.cylz(id, col, 'roof', (x, y, z0 + height), radius + .03, .05, 'roof', 24)
+        self.cylz(id, col, 'sighting dome', (x, y, z0 + height + .05), .22, .18, 'naval', 12, r2=.12)
+        a = math.radians(bearing)
+        fx, fy = math.cos(a), -math.sin(a)
+        px, py = -fy, fx
+        along, facing = Vector((px, py, 0)), Vector((fx, fy, 0))
+        c = Vector((x, y, z0 + tube))
+        aw, ah = arm
+        for s in (-1, 1):
+            a0 = c + along * s * (radius - .1)
+            a1 = c + along * s * (width / 2)
+            self.beam(id, col, 'arm', a0, a1, aw, ah, 'naval')
+            end = c + along * s * (width / 2 - .04)
+            self.beam(id, col, 'arm end', end, end + along * s * .06, aw + .06, ah + .06, 'naval')
+            port = c + along * s * (width / 2 - .25) + facing * (aw / 2 + .01)
+            self.beam(id, col, 'objective port', port - along * .1, port + along * .1, .02, ah * .45, 'dark')
+        # Sighting port and door on the house.
+        sp = c + facing * (radius + .005) + Vector((0, 0, .2))
+        self.beam(id, col, 'sighting port', sp - facing * .005, sp + facing * .015, .5, .18, 'dark')
 
     # ------------------------------------------------------------ measured windows, roof rails and knees
     def windows(self, assembly, col, rows, zone=None):

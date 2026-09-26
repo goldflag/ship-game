@@ -49,8 +49,9 @@ Superstructure blocks were grouped from plan cuts of the reference every 5 cm (`
 bands, wall kinks) are absorbed into the block they touch, hull below each station's deck and the barbettes are taken
 out first, and a light gun's working circle is cut out of any block standing round it (a tub whose walls the cuts
 filled in), opened to the block's edge where the gun stood inside it. `author-blueprint.py` records the edits
-(`STRUCTURE_EDITS`): the funnel's layers become one measured exhaust stadium (4.68 m by 6.64 m, 12.3 to 23.9 m) with a
-forward casing, and fragments without support go (the forecastle's ground tackle and the quarterdeck capstan, which the
+(`STRUCTURE_EDITS`): the funnel's layers become one casing on its measured oval (3.96 m by 5.86 m, the same from the
+base blocks at 12.3 m to the rim at 23.9 m; the steam pipes up its sides stand outside it) with a forward casing whose
+block takes the taper's mean breadth, and fragments without support go (the forecastle's ground tackle and the quarterdeck capstan, which the
 recipe draws; barbette lugs; a stepped walkway; the tower's leg pieces, which the recipe draws whole). The port quarter's
 crane sponson is its own block, as the symmetric loft cannot carry it. Firing obstructions are boxes in fore-and-aft
 strips of each block, halved until no box stands more than 0.35 m outside the block's walls: the pagoda base's after
@@ -73,16 +74,25 @@ Fittings follow reference datums: `fuso_fittings.py` lists the reference's 272 v
 bollards, winches and reels with their sizes, its bridge gear (searchlights, controls, binoculars, lamps, lockers) and
 55 portholes read off orthographic renders of its painted hull sides (drawn on both sides). The recipe draws the
 pagoda's main director (which trains) on the top platform, the 10 m rangefinder through the tower behind it with the
-radar mattress on the tower's face, the Type 22 radars, 3.5 m and 1.5 m rangefinders, Type 91 high-angle directors,
-the tower's rear legs, the signal-yard walkway with its yard arms, bridge glazing in the three bands the reference
-paints (panes cast onto this model's walls), the funnel's cap band, cage grill, steam and waste pipes and ladder, the
-Type 13 antennas on its sides, the after director (which trains), periscopes and 4.5 m rangefinders on the after
-tower, the lookout top's web, the pole mainmast with its topmast, trucks, pole, yard, gaff and stays, the aerials the
+radar mattress on the tower's face, the Type 22 radars, the enclosed 3.5 m rangefinders (round houses with the tube
+through their sides) and open 1.5 m ones, the Type 91 high-angle directors in wells sunk 0.8 m into their platforms,
+the tower's rear legs (upright to a knee at 13.2 m, then raked aft) with the raked struts, braces and web plates
+outboard of them, the signal yard (narrow and railed, straight across the tower's after face and swept 25 degrees aft
+to its tips) with its halyards to the flag lockers, the day lights, the red and green side lights, bridge glazing in
+the three bands the reference paints (panes cast onto this model's walls), the funnel's cap band, cage grill, the five
+steam pipes up each side and the tall pipe at each forward quarter, the tapered forward casing, the lattice tower
+under the after searchlight platform, the Type 13 antennas on the funnel's sides, the after director (which trains)
+in its well, the three periscope houses and the enclosed 4.5 m rangefinders (tubes fore and aft) on the after tower
+with the two large windows on each side of its upper deckhouse, the lookout top's star plate on six radial webs, the
+pole mainmast with its topmast, trucks, pole, yard, gaff and stays, the aerials the
 reference's side render traces (the forestay with its bridle and insulator, the long aerial from the mainmast to the
 pagoda top, the vee over the funnel and the backstay to the stern's ensign staff), the catapult, the stowed aircraft
-crane, the linoleum deck's brass strips and trolley rails, boats (two 9 m cutters and four open 12 m motor launches
-canted bow inboard as the reference's top view and part bounds show them, two 15 m motor boats), stowed radial
-davits, ground tackle and housed anchors, the stem's chrysanthemum and jackstaff, rails, knees under overhangs, and
+crane, the linoleum aircraft deck (its forward edge the reference's chevron, flat at z 83.25 within 2.4 m of the
+centreline and square across at z 77.45 outboard of 7.25 m) with its brass strips every 1.39 m, brass edging and
+trolley rails, boats at their reference parts' centres and long axes (two 9 m cutters and four open 12 m motor launches
+canted bow inboard, two 15 m motor boats stowed stem aft), the paravanes on the forecastle, life buoys and buoy boxes,
+stowed radial davits, ground tackle and housed anchors, the stem's chrysanthemum and jackstaff, rails, knees under
+overhangs, and
 below the waterline the centreline skeg, four three-bladed screws on shafts in bossings with struts and twin rudders
 behind the inner screws (reference x 2.8 m).
 
@@ -112,10 +122,11 @@ sampled from station cuts of that model. Hull and superstructure plating are 26 
   mast, so the gunhouse and barrels turn over them. The after capstan stands 0.6 m lower and the stowed crane's jib
   tapers to 0.3 m at its outer end, under No. 6 turret's barrels at full depression; ventilators and other deck
   fittings under a gunhouse or the main barrels' depression are cut down to clear them.
-- Boat cants (the cutters 24.5 degrees, the forward launches 20 and 10, the after launches 5.5 and 4, the starboard
-  motor boat 6) are read from the reference's top view and part bounds, not measured on the hulls.
 - Rigging is the mainmast's stays and the aerials the reference's side render shows, as straight runs between the
-  points it traces (the long aerial in seven segments along its sag); signal halyards under the yards are omitted.
+  points it traces (the long aerial in seven segments along its sag); the signal halyards run straight from the yard
+  arms to the flag lockers.
+- The pagoda's top platform, which the reference paints as linoleum with brass strips, stays grey steel, as the
+  approved brief lists its platforms.
 - The shared 25 mm single's ring sight hangs 8 cm clear of its rail; the recipe joins it with three spokes rather
   than editing the shared part.
 - Windows and portholes come from the reference's painted textures, so painted vents and grilles read as glazing too.

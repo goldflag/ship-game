@@ -21,6 +21,7 @@ def build(D, kit):
     under = cols['Underwater fittings']
     ground_tackle(kit, deck)
     deck_fittings(kit, deck)
+    weather_deck_gear(kit, deck)
     crest_and_staffs(kit, deck)
     portholes(kit, cols['Hull and decks'])
     screws_and_rudders(kit, under)
@@ -223,6 +224,73 @@ def deck_fittings(kit, col):
                 kit.part('rod', A, col, 'reel flange', (p[0] - .02, p[1], floor + r + .05) if along_x else (p[0], p[1] - .02, floor + r + .05),
                          (p[0] + .02, p[1], floor + r + .05) if along_x else (p[0], p[1] + .02, floor + r + .05), r, 'naval', vertices=16)
                 kit.part('box', A, col, 'reel stand', (p[0], p[1], floor + (r + .05) / 2), (.08, .08, r + .05), 'naval')
+
+
+# The paravanes, life buoys and buoy boxes on the weather decks: reference part centres and long axes (principal-axis
+# fits of jm002, cm008 and jm007), angle of the long axis to the centreline (x per z, degrees).
+PARAVANES = [(-4.632, -49.471, -49.8), (3.274, -50.802, 68.6), (-2.813, -52.888, 70.0), (4.399, -54.008, -8.5)]
+LIFE_BUOYS = [(-8.992, 5.78, 46.156), (8.904, 5.69, 46.338)]
+BUOY_BOXES = [(-11.717, 3.62, 61.317, 5.5), (9.293, 3.64, 78.271, -10.3)]
+
+
+def weather_deck_gear(kit, col):
+    """Paravanes on chocks on the forecastle beside Nos. 1 and 2 turrets (4.05 m long over their planes, 1.3 m
+    high), life buoys hung on the forecastle wall's after end and the life-buoy boxes at the quarterdeck's edge."""
+    import bpy
+    for n, (rx, rz, ang) in enumerate(PARAVANES):
+        A = f'paravane-{n}'
+        cx, cy, _ = P(rx, 0, rz)
+        floor = kit.floor(cx, cy, 7.5)
+        if floor is None:
+            continue
+        # Under a turning gunhouse (No. 1's sole passes 0.15 m over the reference's paravanes) the paravane sits lower.
+        kit._last_floor = floor
+        u = Vector((math.cos(math.radians(ang + 180)), math.sin(math.radians(ang + 180)), 0))
+        ceilings = [c for c in (kit.sweep_ceiling(cx + u.x * t, cy + u.y * t) for t in (-2, 0, 2)) if c is not None]
+        room = min(ceilings) - floor if ceilings else 9
+        if room < .6:
+            continue
+        # Body along authoring X before turning (nose forward, tail planes aft); turned so the nose lies aft, as the
+        # reference parts' narrow ends do. Where No. 1 turret's barrels at full depression pass low over it, the
+        # body rests low in its chocks and the tail fin is cut down (as the deck fittings under them are).
+        y0 = floor + (.55 if room > 1.35 else .3)
+        kit.part('rod', A, col, 'body', (cx - 1.5, cy, y0), (cx + 1.35, cy, y0), .26, 'naval', vertices=14, r2=.22)
+        kit.part('rod', A, col, 'nose', (cx + 1.35, cy, y0), (cx + 1.75, cy, y0), .22, 'naval', vertices=14, r2=.05)
+        kit.part('box', A, col, 'plane', (cx + .2, cy, y0), (.75, 2.4, .05), 'naval')
+        fin = min(.8, floor + room - .05 - y0 + .05)
+        if fin > .2:
+            kit.part('box', A, col, 'tail fin', (cx - 1.65, cy, y0 - .05 + fin / 2), (.7, .05, fin), 'naval')
+        kit.part('box', A, col, 'tail plane', (cx - 1.65, cy, y0), (.6, 1.2, .05), 'naval')
+        for dx in (-.9, .8):
+            kit.part('box', A, col, 'chock', (cx + dx, cy, floor + .15), (.2, .7, .3), 'naval')
+        kit.build_wires()
+        bpy.context.view_layer.update()
+        turn = Matrix.Translation((cx, cy, 0)) @ Matrix.Rotation(math.radians(ang + 180), 4, 'Z') @ Matrix.Translation((-cx, -cy, 0))
+        for ob in [o for o in bpy.data.objects if o.get('assemblyId') == A and o.parent is None]:
+            ob.matrix_world = turn @ ob.matrix_world
+    for n, (rx, ry, rz) in enumerate(LIFE_BUOYS):
+        A = f'life-buoy-{n}'
+        s = 1 if rx > 0 else -1
+        x, y, z = P(rx, ry, rz)
+        hit = kit.hit((x, y - s * 1.5, z), (0, s, 0), 3.0)
+        if hit is None:
+            continue
+        loc, nrm = hit
+        nrm = Vector(nrm)
+        if nrm.y * s > 0:
+            nrm = -nrm
+        c = Vector(loc) + nrm * .14
+        ring = kit.part('rod', A, col, 'ring', tuple(c - nrm * .06), tuple(c + nrm * .06), .38, 'white', vertices=20)
+        kit.part('rod', A, col, 'ring bore', tuple(c - nrm * .07), tuple(c + nrm * .07), .22, 'dark', vertices=16)
+        kit.part('rod', A, col, 'hook', tuple(Vector(loc) + Vector((0, 0, .36)) - nrm * .02), tuple(c + Vector((0, 0, .36))), .03, 'edge', vertices=6)
+    for n, (rx, ry, rz, ang) in enumerate(BUOY_BOXES):
+        A = f'buoy-box-{n}'
+        x, y, _ = P(rx, 0, rz)
+        box = kit.part('box', A, col, 'box', (x, y, ry + .725), (.95, 1.07, 1.45), 'naval')
+        box.rotation_euler = (0, 0, math.radians(ang))
+        kit.part('box', A, col, 'lid', (x, y, ry + 1.47), (1.0, 1.12, .05), 'roof').rotation_euler = (0, 0, math.radians(ang))
+        s = 1 if rx > 0 else -1
+        kit.part('rod', A, col, 'buoy', (x, y - s * .5, ry + 1.0), (x, y - s * .56, ry + 1.0), .3, 'white', vertices=16)
 
 
 def crest_and_staffs(kit, col):

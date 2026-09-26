@@ -211,22 +211,26 @@ STRUCTURE_EDITS.update({sid: None for sid in ['deckhouse-048', 'deckhouse-049', 
 # The cuts slice the tower's rear legs into short pieces; the recipe draws the legs whole (fuso_pagoda.rear_legs).
 STRUCTURE_EDITS.update({sid: None for sid in ['deckhouse-108', 'deckhouse-111', 'platform-112', 'platform-113', 'deckhouse-114', 'deckhouse-115',
                                               'platform-116', 'platform-117']})
+# The funnel's base layers leave a 0.15 m slit between 11.68 and 11.83 m where the thin plate between them stops
+# short of the funnel: the plate above it reaches down to close it (the funnel itself starts on its top, 12.23 m).
+STRUCTURE_EDITS['platform-133'] = dict(baseY=11.675, height=.55)
 if opts.structures:
     structures = [s for s in structures if not any(z0 <= centre(s)[1] <= z1 for z0, z1 in DROP_BOXES)]
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
-# Funnel: a stadium measured on plan cuts 16-23.5 m (4.68 m by 6.64 m about reference z 9.67), from the top of
-# the casing at 12.28 m to the cap at 23.88 m; the casing ahead of it carries the forward searchlight platform.
-if not any(s['id'] == 'funnel' for s in structures):
-    half, length, zc = 2.34, 6.64, rz(9.67)
-    straight = length / 2 - half
-    ring = []
-    for i in range(40):
-        a = i * math.tau / 40
-        ring.append([round(half * math.cos(a), 3), round(zc + math.copysign(straight, math.sin(a)) + half * math.sin(a), 3)])
-    structures.append(dict(id='funnel', name='Funnel', footprint=ring, baseY=12.28, height=11.6, material='naval',
-                           exhaust=dict(position=[0, 23.88, round(zc, 3)], width=2 * half, length=length)))
-    structures.append(dict(id='funnel-casing', name='Funnel forward casing 12.3-15.4 m', footprint=[[-2.4, rz(3.5)], [2.4, rz(3.5)], [2.4, rz(6.5)], [-2.4, rz(6.5)]],
-                           baseY=12.28, height=3.15, material='naval'))
+# Funnel: the casing's outline on the reference's plan cuts from 12.4 m to its rim (the same oval all the way up,
+# 3.96 m by 5.86 m about reference z 9.76; the black cap band is paint on its top), from the funnel base blocks at
+# 12.23 m to the rim at 23.88 m. The steam pipes up its sides stand outside it and the recipe draws them. The
+# forward casing tapers from 4.2 m across at its foot to 2.7 m under the forward searchlight platform (reference
+# 3.59-6.4 m aft); its block takes the mean breadth and the midships region draws the taper.
+FUNNEL_HALF = [(0, 6.83), (.37, 6.91), (.74, 7.0), (1.06, 7.22), (1.38, 7.44), (1.59, 7.75), (1.81, 8.06), (1.89, 8.44), (1.98, 8.82),
+               (1.975, 9.965), (1.97, 10.715), (1.905, 11.09), (1.84, 11.47), (1.62, 11.78), (1.4, 12.09), (1.07, 12.32), (.74, 12.54),
+               (.37, 12.61), (0, 12.687)]
+structures = [s for s in structures if s['id'] not in ('funnel', 'funnel-casing')]
+ring = [[x, rz(z)] for x, z in FUNNEL_HALF] + [[-x, rz(z)] for x, z in reversed(FUNNEL_HALF[1:-1])]
+structures.append(dict(id='funnel', name='Funnel', footprint=ring, baseY=12.225, height=11.655, material='naval',
+                       exhaust=dict(position=[0, 23.88, rz(9.76)], width=3.96, length=5.86)))
+structures.append(dict(id='funnel-casing', name='Funnel forward casing 12.3-15.4 m', footprint=[[-1.75, rz(3.59)], [1.75, rz(3.59)], [1.75, rz(6.45)], [-1.75, rz(6.45)]],
+                       baseY=12.28, height=3.15, material='naval'))
 # The port quarter's sponson under the stowed aircraft crane (reference plan cut at 3.9 m, z 88.4-96.6): the
 # loft is symmetric, so this one-sided shelf is its own block, reaching into the hull on its inboard side.
 if not any(s['id'] == 'crane-sponson' for s in structures):
@@ -235,11 +239,14 @@ if not any(s['id'] == 'crane-sponson' for s in structures):
 # The 15 m motor boats stand beside No. 4 turret with their wheelhouses above its barrels' depression: blocks at
 # the boats' bounds let the turret's interlock stop the barrels at them. The midships region claims them (draws the
 # boats, not the blocks).
-for side, sign, zc in [('port', -1, 25.695), ('starboard', 1, 23.595)]:
-    if not any(s['id'] == f'motor-boat-{side}' for s in structures):
-        x0, x1 = sorted((sign * 5.75, sign * 9.1))
-        structures.append(dict(id=f'motor-boat-{side}', name=f'{side.title()} 15 m motor boat', baseY=6.669, height=3.34, material='naval',
-                               footprint=[[round(x0, 3), round(zc - 7.6, 3)], [round(x1, 3), round(zc - 7.6, 3)], [round(x1, 3), round(zc + 7.6, 3)], [round(x0, 3), round(zc + 7.6, 3)]]))
+# Each block is the boat's 15.0 m by 2.9 m plan, turned to its cant (the reference jm041 parts' long axes: the after
+# ends 4.7 degrees outboard to port and 13.3 to starboard).
+structures = [s for s in structures if not s['id'].startswith('motor-boat-')]
+for side, (bx, bz), cant in [('port', (-7.499, 24.632), -4.7), ('starboard', (7.686, 22.597), 13.3)]:
+    ax, az = math.sin(math.radians(cant)), math.cos(math.radians(cant))
+    corners = [(bx + u * 7.5 * ax + v * 1.45 * az, rz(bz) + u * 7.5 * az - v * 1.45 * ax) for u, v in ((-1, -1), (-1, 1), (1, 1), (1, -1))]
+    structures.append(dict(id=f'motor-boat-{side}', name=f'{side.title()} 15 m motor boat', baseY=6.669, height=3.34, material='naval',
+                           footprint=[[round(x, 3), round(z, 3)] for x, z in corners]))
 structures.sort(key=lambda s: (s['id'] != 'funnel', s['id']))
 b['structures'] = structures
 

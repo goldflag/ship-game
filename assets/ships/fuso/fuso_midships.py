@@ -1,6 +1,7 @@
 """Fusō midships region: the funnel and its fittings, the boats and the davits (reference z -40 to 34).
 
-Owns the funnel's black cap band, cage grill and steam pipes, the Type 13 radar antennas on the funnel's sides,
+Owns the funnel's black cap band, cage grill and steam pipes, the tapered forward casing, the lattice tower under the
+after searchlight platform, the Type 13 radar antennas on the funnel's sides,
 the midships searchlights on their platforms, the two 9 m cutters beside the pagoda, four 12 m motor launches and
 two 15 m motor boats on the forecastle deck with their chocks, and the stowed radial davits on the casemate ledge.
 Datums are reference-frame measurements converted by `P`.
@@ -11,63 +12,168 @@ from fuso_kit import P, ZC
 from fuso_fittings import SMALL_FITTINGS
 
 # Blocks at the motor boats' bounds give No. 4 turret's interlock something to stop at; this module draws the boats.
-CLAIMED_STRUCTURES = {'motor-boat-port', 'motor-boat-starboard'}
-FUNNEL_Z = 9.67          # reference z of the funnel's centre; stadium 4.68 m by 6.64 m, 12.28 m to 23.88 m
-FUNNEL_TOP = 23.88
+# The forward casing's block takes its mean breadth; this module draws its taper.
+CLAIMED_STRUCTURES = {'motor-boat-port', 'motor-boat-starboard', 'funnel-casing'}
+FUNNEL_TOP = 23.88       # the casing's rim; the casing is the blueprint's 'funnel' block (3.96 m by 5.86 m about z 9.76)
+# Steam pipes up the after half of each side (reference plan cuts from the deck to 23 m): x, z and radius, starboard.
+STEAM_PIPES = [(2.2, 9.97, .125), (2.2, 10.44, .13), (2.19, 10.97, .13), (2.055, 11.445, .125), (1.915, 11.84, .115)]
+SIREN_PIPE = (1.99, 7.91, .115)       # the tall pipe at each forward quarter, to its T head at 24.6 m
 
 
 def build(D, kit):
     cols = kit.cols
     funnel(kit, cols['Superstructure'])
+    forward_casing(kit, cols['Superstructure'])
+    searchlight_tower(kit, cols['Superstructure'])
     type13_radars(kit, cols['Sensors and masts'])
     searchlights(kit, cols['Sensors and masts'])
     boats(kit, cols['Boats and aviation'])
     davits(kit, cols['Boats and aviation'])
 
 
-def stadium_ring(cx, cz, half, length, r_extra=0.0, n=40):
-    """Reference-frame points round the funnel's stadium grown by r_extra."""
-    straight = length / 2 - half
-    pts = []
-    for i in range(n):
-        a = i * math.tau / n
-        pts.append((cx + (half + r_extra) * math.cos(a), cz + math.copysign(straight, math.sin(a)) + (half + r_extra) * math.sin(a)))
-    return pts
+def outline(kit, grow=0.0):
+    """The funnel casing's plan outline, reference frame (x, z), grown outward by `grow` metres."""
+    s = next(s for s in kit.D['structures'] if s['id'] == 'funnel')
+    pts = [(x, z + ZC) for x, z in s['footprint']]
+    area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(pts, pts[1:] + pts[:1]))
+    turn = 1 if area > 0 else -1
+    out = []
+    n = len(pts)
+    for i, (x, z) in enumerate(pts):
+        (ax, az), (bx, bz) = pts[i - 1], pts[(i + 1) % n]
+        normals = []
+        for (px, pz), (qx, qz) in (((ax, az), (x, z)), ((x, z), (bx, bz))):
+            L = math.hypot(qx - px, qz - pz) or 1
+            normals.append(((qz - pz) / L * turn, -(qx - px) / L * turn))
+        nx, nz = normals[0][0] + normals[1][0], normals[0][1] + normals[1][1]
+        L = math.hypot(nx, nz) or 1
+        # Keep the offset distance square to the edges at a corner.
+        k = grow / max(.5, (nx * normals[0][0] + nz * normals[0][1]) / L)
+        out.append((x + nx / L * k, z + nz / L * k))
+    return out
+
+
+def chord(poly, axis, value):
+    """Where the line x = value (axis 0) or z = value (axis 1) crosses a convex outline: (lo, hi) of the other
+    coordinate, or None."""
+    hits = []
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        a, b = (ax, bx) if axis == 0 else (az, bz)
+        if (a - value) * (b - value) <= 0 and a != b:
+            t = (value - a) / (b - a)
+            hits.append(az + (bz - az) * t if axis == 0 else ax + (bx - ax) * t)
+    return (min(hits), max(hits)) if len(hits) >= 2 else None
+
+
+def wall_x(kit, z):
+    """Half-breadth of the casing at reference z."""
+    span = chord(outline(kit), 1, z)
+    return span[1] if span else 1.9
 
 
 def funnel(kit, col):
+    """The casing's black cap band, rim, uptake and cage grill; the steam pipes up the after half of each side and the
+    tall pipe at each forward quarter, on brackets; rungs up the after end."""
     A = 'funnel-fittings'
-    half, length = 2.34, 6.64
-    # Black cap band over the top 1.9 m, a rolled rim and the cage grill over the uptake.
-    ring = [P(x, 0, z)[:2] for x, z in stadium_ring(0, FUNNEL_Z, half, length, .025)]
-    kit.prism(A, col, 'cap band', ring, FUNNEL_TOP - 1.9, FUNNEL_TOP + .02, 'black')
-    rim = [P(x, 0, z)[:2] for x, z in stadium_ring(0, FUNNEL_Z, half, length, .08)]
-    inner = [P(x, 0, z)[:2] for x, z in stadium_ring(0, FUNNEL_Z, half, length, -.12)]
-    kit.prism(A, col, 'cap rim', rim, FUNNEL_TOP - .06, FUNNEL_TOP + .06, 'black')
-    kit.prism(A, col, 'uptake', inner, FUNNEL_TOP - .5, FUNNEL_TOP + .03, 'dark')
-    straight = length / 2 - half
+    band = [P(x, 0, z)[:2] for x, z in outline(kit, .025)]
+    kit.prism(A, col, 'cap band', band, FUNNEL_TOP - 1.8, FUNNEL_TOP + .02, 'black')
+    kit.prism(A, col, 'cap rim', [P(x, 0, z)[:2] for x, z in outline(kit, .08)], FUNNEL_TOP - .06, FUNNEL_TOP + .06, 'black')
+    inner = outline(kit, -.12)
+    kit.prism(A, col, 'uptake', [P(x, 0, z)[:2] for x, z in inner], FUNNEL_TOP - .5, FUNNEL_TOP + .03, 'dark')
+    # Cage grill: bars fore and aft and athwartships over the uptake, with posts from the rim.
+    grill = FUNNEL_TOP + .45
     for i in range(-3, 4):
-        x = i * .6
-        reach = straight + math.sqrt(max(0, (half - .08) ** 2 - x * x))
-        kit.member(A, col, P(x, FUNNEL_TOP + .45, FUNNEL_Z - reach), P(x, FUNNEL_TOP + .45, FUNNEL_Z + reach), .04, 'black', 6)
-    for zz in (FUNNEL_Z - 2.2, FUNNEL_Z - 1.1, FUNNEL_Z, FUNNEL_Z + 1.1, FUNNEL_Z + 2.2):
-        kit.member(A, col, P(-half + .1, FUNNEL_TOP + .45, zz), P(half - .1, FUNNEL_TOP + .45, zz), .04, 'black', 6)
-    for a in range(0, 360, 45):
-        c, s = math.cos(math.radians(a)), math.sin(math.radians(a))
-        straight = length / 2 - half
-        px, pz = (half - .05) * c, FUNNEL_Z + math.copysign(straight, s) + (half - .05) * s
-        kit.member(A, col, P(px, FUNNEL_TOP, pz), P(px * .96, FUNNEL_TOP + .45, FUNNEL_Z + (pz - FUNNEL_Z) * .97), .04, 'black', 6)
-    # Steam and waste pipes up the forward face and the quarters, standing proud of the casing on brackets.
-    for x, r in [(-1.5, .12), (-.9, .15), (-.3, .12), (.3, .12), (.9, .15), (1.5, .12)]:
-        zf = FUNNEL_Z - length / 2 + half - math.sqrt(max(0, (half + .2) ** 2 - x * x)) - .02
-        kit.part('rod', A, col, 'steam pipe', P(x, 12.3, zf), P(x, FUNNEL_TOP + .7, zf), r, 'naval', vertices=10)
-        for y in (15.0, 18.5, 22.0):
-            kit.member(A, col, P(x, y, zf), P(x * .95, y, zf + .25), .03, 'naval', 4)
+        span = chord(inner, 0, i * .55)
+        if span:
+            kit.member(A, col, P(i * .55, grill, span[0] + .05), P(i * .55, grill, span[1] - .05), .04, 'black', 6)
+    zs = [z for _, z in inner]
+    for k in range(1, 6):
+        zz = min(zs) + (max(zs) - min(zs)) * k / 6
+        span = chord(inner, 1, zz)
+        if span:
+            kit.member(A, col, P(span[0] + .05, grill, zz), P(span[1] - .05, grill, zz), .04, 'black', 6)
+    ring = outline(kit, -.05)
+    cx, cz = sum(x for x, _ in ring) / len(ring), sum(z for _, z in ring) / len(ring)
+    for x, z in ring[::max(1, len(ring) // 8)]:
+        kit.member(A, col, P(x, FUNNEL_TOP, z), P(cx + (x - cx) * .93, grill, cz + (z - cz) * .95), .04, 'black', 6)
+    # Steam pipes: from the base blocks up the after half of each side into the cap band, flared at the mouth.
     for s in (-1, 1):
-        for dz in (-1.8, 1.8):
-            kit.part('rod', A, col, 'waste pipe', P(s * (half + .18), 12.3, FUNNEL_Z + dz), P(s * (half + .18), FUNNEL_TOP + .35, FUNNEL_Z + dz), .1, 'naval', vertices=8)
-    # Rungs up the after face.
-    kit.ladder(A, col, P(0, 12.35, FUNNEL_Z + length / 2 + .12), P(0, FUNNEL_TOP - .1, FUNNEL_Z + length / 2 + .12), (0, 1, 0), .42, .35, .03, .02, 'naval')
+        for x, z, r in STEAM_PIPES:
+            px, py, _ = P(s * x, 0, z)
+            foot = kit.floor(px, py, 12.3)
+            foot = 12.2 if foot is None else foot
+            top = 23.1
+            kit.part('rod', A, col, 'steam pipe', (px, py, foot), P(s * x, top, z), r, 'naval', vertices=10)
+            kit.part('rod', A, col, 'steam pipe mouth', P(s * x, top - .02, z), P(s * x, top + .22, z), r, 'dark', vertices=10, r2=r * 1.35)
+            for y in (15.2, 18.6, 21.9):
+                kit.member(A, col, P(s * x, y, z), P(s * (wall_x(kit, z) - .03), y, z), .03, 'naval', 4)
+        # The tall pipe at the forward quarter, with its T head above the rim.
+        x, z, r = SIREN_PIPE
+        px, py, _ = P(s * x, 0, z)
+        foot = kit.floor(px, py, 12.3)
+        foot = 12.2 if foot is None else foot
+        kit.part('rod', A, col, 'siren pipe', (px, py, foot), P(s * x, 24.45, z), r, 'naval', vertices=10)
+        kit.part('rod', A, col, 'siren head', P(s * x, 24.45, z - .3), P(s * x, 24.45, z + .3), r * 1.15, 'naval', vertices=10)
+        for y in (15.2, 18.6, 21.9):
+            kit.member(A, col, P(s * x, y, z), P(s * (wall_x(kit, z) - .03), y, z), .03, 'naval', 4)
+    # Rungs up the after end.
+    aft = max(z for _, z in outline(kit))
+    kit.ladder(A, col, P(0, 12.35, aft + .12), P(0, FUNNEL_TOP - .1, aft + .12), (0, 1, 0), .42, .35, .03, .02, 'naval')
+
+
+def forward_casing(kit, col):
+    """The casing ahead of the funnel under the forward searchlight platform (reference plan cuts 12.4-15.0 m): 4.2 m
+    across at its foot tapering to 2.7 m at 15.43 m, from 3.59 m aft to the funnel's forward end."""
+    A = 'funnel-casing'
+    y0, y1, z0, z1 = 12.22, 15.43, 3.59, 6.95
+    vv = []
+    for y, half in ((y0, 2.11), (y1, 1.34)):
+        for x, z in ((-half, z0), (half, z0), (half, z1), (-half, z1)):
+            vv.append(P(x, y, z))
+    ff = [(3, 2, 1, 0), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
+    ob = kit.mesh(A + '.casing', vv, ff, 'naval', col)
+    import bmesh
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces)); bm.to_mesh(ob.data); bm.free()
+    ob.data.materials.append(kit.m['roof'])
+    for poly in ob.data.polygons:
+        if poly.normal.z > .8:
+            poly.material_index = 1
+    kit.tag(ob, A)
+
+
+def searchlight_tower(kit, col):
+    """The tapered lattice tower under the after searchlight platform (reference plan cuts 9.8-15.2 m: flat-bar legs
+    x 2.5 m out at the deck closing to 1.25 m under the platform at 15.43 m, the forward pair at reference z 13.0 to
+    13.25 and the after pair at 14.75, X-braced on its sides and after face)."""
+    A = 'searchlight-tower'
+    top = 15.42
+    legs = []
+    for s in (-1, 1):
+        for zb, zt in ((13.0, 13.25), (14.75, 14.75)):
+            bx, by, _ = P(s * 2.5, 0, zb)
+            foot = kit.floor(bx, by, 10.5)
+            foot = 9.03 if foot is None else foot
+            legs.append((s, zb, zt, Vector((bx, by, foot)), Vector(P(s * 1.25, top, zt))))
+            kit.beam(A, col, 'leg', (bx, by, foot - .02), P(s * 1.25, top + .02, zt), .3, .1, 'naval')
+
+    def at(s, zb, zt, y):
+        leg = next(l for l in legs if l[0] == s and l[1] == zb)
+        a, b = leg[3], leg[4]
+        t = (y - a.z) / (b.z - a.z)
+        return a.lerp(b, max(0, min(1, t)))
+    base = min(l[3].z for l in legs)
+    levels = [base + .3 + (top - base - .5) * k / 3 for k in range(4)]
+    for s in (-1, 1):
+        for y0, y1 in zip(levels, levels[1:]):
+            kit.xbrace(A, col, at(s, 13.0, 13.25, y0), at(s, 14.75, 14.75, y0), at(s, 14.75, 14.75, y1), at(s, 13.0, 13.25, y1), .035)
+        for y in levels:
+            kit.member(A, col, at(s, 13.0, 13.25, y), at(s, 14.75, 14.75, y), .045, 'naval', 6)
+    for y0, y1 in zip(levels, levels[1:]):
+        kit.xbrace(A, col, at(-1, 14.75, 14.75, y0), at(1, 14.75, 14.75, y0), at(1, 14.75, 14.75, y1), at(-1, 14.75, 14.75, y1), .035)
+    for y in levels:
+        for zb, zt in ((13.0, 13.25), (14.75, 14.75)):
+            kit.member(A, col, at(-1, zb, zt, y), at(1, zb, zt, y), .045, 'naval', 6)
 
 
 def type13_radars(kit, col):
@@ -82,10 +188,11 @@ def type13_radars(kit, col):
         for i in range(n):
             yy = y0 + .3 + (top - y0 - .5) * i / (n - 1)
             kit.part('rod', id, col, 'dipole', P(x, yy, z - .98), P(x, yy, z + .98), .025, 'edge', vertices=6)
+        wall = wall_x(kit, z) - .02
         for yy in (y0 + .4, top - .6):
-            kit.part('rod', id, col, 'bracket', P(x, yy, z), P(s * 2.3, yy, z), .06, 'naval', vertices=8)
+            kit.part('rod', id, col, 'bracket', P(x, yy, z), P(s * wall, yy, z), .06, 'naval', vertices=8)
         kit.part('box', id, col, 'feed box', P(x, y0 - .15, z), (.5, .4, .35), 'naval')
-        kit.part('rod', id, col, 'feed strut', P(x, y0 - .35, z), P(s * 2.3, y0 - 1.2, z), .06, 'naval', vertices=8)
+        kit.part('rod', id, col, 'feed strut', P(x, y0 - .35, z), P(s * wall, y0 - 1.2, z), .06, 'naval', vertices=8)
 
 
 def searchlights(kit, col):
@@ -106,32 +213,27 @@ def searchlights(kit, col):
 
 
 def boats(kit, col):
-    """Boats at the reference boat datums: cutters on the boat deck beside the pagoda, motor launches and motor
-    boats on chocks on the forecastle deck."""
-    # The cutters lie canted 24.5 degrees, bow inboard, as their 5.3 m by 8.2 m reference bounds show, clear of
-    # the 25 mm single outboard of each; grey outside and wood inside, as the reference paints them.
+    """Boats at the reference boat parts' centres and principal axes (cants read as the angle of each part's long axis
+    to the centreline): cutters on the boat deck beside the pagoda, motor launches and motor boats on chocks on the
+    forecastle deck. Positive cants turn the bow to port; all but the motor boats lie with their stems forward."""
+    # The 9 m cutters (jm037) lie 30 degrees bow inboard, clear of the 25 mm single outboard of each; grey outside and
+    # wood inside, as the reference paints them.
     import bpy
-    for id, (x, z), s in [('cutter-port', (-6.07, -34.83), -1), ('cutter-starboard', (6.07, -34.83), 1)]:
-        kit.open_boat(id, (x, z), 8.2, 2.2, 9.62, .95, col, bow=1, outer='naval', inner='wood', chocks=(.25, .5, .75))
-        kit.build_wires()
-        bpy.context.view_layer.update()
-        cx, cy, _ = P(x, 0, z)
-        turn = Matrix.Translation((cx, cy, 0)) @ Matrix.Rotation(math.radians(24.5 * s), 4, 'Z') @ Matrix.Translation((-cx, -cy, 0))
-        for ob in [o for o in bpy.data.objects if o.get('assemblyId') == id and o.parent is None]:
-            ob.matrix_world = turn @ ob.matrix_world
-    # The 12 m motor launches are open boats with thwarts and an engine casing, canted bow inboard as the reference's
-    # top view and part bounds show: the forward pair 20 and 10 degrees, the after pair 5.5 and 4.
-    for id, (x, z), keel, cant in [('launch-port-forward', (-7.19, 2.42), 6.93, 20), ('launch-starboard-forward', (7.26, 2.44), 6.98, 10),
-                                   ('launch-port-after', (-5.89, 31.0), 7.02, 5.5), ('launch-starboard-after', (6.49, 31.7), 6.95, 4)]:
-        kit.open_launch(id, (x, z), 11.9, 2.9, keel, col, chocks=(.2, .4, .62, .84))
-        cant_boat(kit, id, (x, z), cant * (1 if x > 0 else -1))
-    for id, (x, z), cant in [('motor-boat-port', (-7.43, 24.6), 0), ('motor-boat-starboard', (7.40, 22.5), 6)]:
-        # Seated low with a 0.95 m wheelhouse and no mast, so No. 4 turret's gunhouse turns over them (its sole is at
-        # 10.1 m; the reference's boats stand 0.8 m higher, into the gunhouse's sweep). The starboard boat lies 6
-        # degrees bow inboard.
-        kit.motor_boat(id, (x, z), 15.2, 3.4, 6.78, col, chocks=(.25, .43, .62, .82), wheelhouse=.95, mast=False)
-        if cant:
-            cant_boat(kit, id, (x, z), cant)
+    for id, (x, z), cant in [('cutter-port', (-5.585, -34.702), -30.0), ('cutter-starboard', (5.874, -34.869), 30.0)]:
+        kit.open_boat(id, (x, z), 9.15, 2.4, 9.62, .95, col, bow=1, outer='naval', inner='wood', chocks=(.25, .5, .75))
+        cant_boat(kit, id, (x, z), cant)
+    # The 12 m motor launches (jm039) are open boats with thwarts and an engine casing: the forward pair canted 29.6
+    # and 17.3 degrees bow inboard, the after pair 11.2 and 8.9.
+    for id, (x, z), keel, cant in [('launch-port-forward', (-6.901, 2.34), 6.93, -29.6), ('launch-starboard-forward', (7.083, 2.459), 6.98, 17.3),
+                                   ('launch-port-after', (-5.815, 31.003), 7.02, -11.2), ('launch-starboard-after', (6.463, 31.692), 6.95, 8.9)]:
+        kit.open_launch(id, (x, z), 12.0, 2.85, keel, col, chocks=(.2, .4, .62, .84))
+        cant_boat(kit, id, (x, z), cant)
+    for id, (x, z), cant in [('motor-boat-port', (-7.499, 24.632), -4.7), ('motor-boat-starboard', (7.686, 22.597), 13.3)]:
+        # The 15 m motor boats (jm041) lie with their stems aft, their after ends 4.7 and 13.3 degrees outboard. They
+        # are seated low with a 0.95 m wheelhouse and no mast, so No. 4 turret's gunhouse turns over them (its sole is at
+        # 10.1 m; the reference's boats stand 0.8 m higher, into the gunhouse's sweep).
+        kit.motor_boat(id, (x, z), 15.0, 2.8, 6.78, col, chocks=(.25, .43, .62, .82), wheelhouse=.95, mast=False, bow=-1)
+        cant_boat(kit, id, (x, z), cant)
 
 
 def cant_boat(kit, id, ref_center, degrees):
