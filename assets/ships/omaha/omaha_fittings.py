@@ -124,37 +124,53 @@ def torpedo_mounts(D, kit):
 
 # ---------------------------------------------------------------- funnel caps
 def funnel_caps(D, kit):
-    """Each funnel's rain cap: a shallow dished disc on four stays over the rim (reference: the cap's plate
-    0.33-0.41 m above the rim, 3.5 m across)."""
+    """Each funnel's rain cap: an eight-sided hood on four stays over the rim (reference: the cap's eave 0.33 m
+    above the rim, 3.5 m across, rising to its crown)."""
     col = kit.collections['Superstructure']
     for s in D['structures']:
         ex = s.get('exhaust')
         if not ex:
             continue
         aid = s['id'] + '-cap'
-        x, y, z = R(ex['position'])
-        rim = y
+        x, y, rim = R(ex['position'])  # authoring (fore-aft, athwart, up): the exhaust datum stands at the rim
         hx, hz = ex['length'] / 2, ex['width'] / 2
-        ring0 = kit.disc_ring(24, hz + .12, (x, y, rim + .33), rx=hx + .12)
-        ring1 = kit.disc_ring(24, hz * .35, (x, y, rim + .52), rx=hx * .35)
-        kit.loft(aid, col, 'cap', [ring0, [(p[0], p[1], p[2] + .06) for p in ring0], ring1], 'black', True, True, True)
+        ring0 = kit.disc_ring(8, hz + .14, (x, y, rim + .30), rx=hx + .14, phase=math.pi / 8)
+        ring1 = kit.disc_ring(8, hz * .30, (x, y, rim + .62), rx=hx * .30, phase=math.pi / 8)
+        kit.loft(aid, col, 'cap', [ring0, [(p[0], p[1], p[2] + .06) for p in ring0], ring1], 'black', True, True, False)
         for k in range(4):
             ang = math.tau * (k + .5) / 4
             px, py = x + (hx - .06) * math.cos(ang), y + (hz - .06) * math.sin(ang)
             kit.member(aid, kit.collections['Superstructure'], (px, py, rim - .25), (px, py, rim + .34), .05, 'black', 6)
+        # A ladder up the forward face and a steam pipe up the after side, as the reference shows them.
+        base = s['baseY']
+        ang = 0.0
+        wall = lambda a, off: (x + (hx + off) * math.cos(a), y + (hz + off) * math.sin(a))
+        lx, ly = wall(ang, .16)
+        across = (-math.sin(ang), math.cos(ang), 0)
+        kit.ladder(s['id'] + '-ladder', col, (lx, ly, base + .9), (lx, ly, rim - .15), across, .40, .32, .03, .02)
+        for a in (ang - .12, ang + .12):
+            for hgt in (base + 1.5, (base + rim) / 2, rim - .6):
+                px, py = wall(a, 0)
+                qx, qy = wall(a, .17)
+                kit.member(s['id'] + '-ladder', col, (px, py, hgt), (qx, qy, hgt), .025, 'naval', 5)
+        px, py = wall(math.pi, .14)
+        kit.part('rod', s['id'] + '-pipe', col, 'steam pipe', (px, py, base + .3), (px, py, rim + .22), .085, 'naval', vertices=10)
+        for hgt in (base + 2.0, (base + rim) / 2, rim - 1.0):
+            qx, qy = wall(math.pi, -.02)
+            kit.member(s['id'] + '-pipe', col, (qx, qy, hgt), (px, py, hgt), .03, 'naval', 5)
 
 
 # ---------------------------------------------------------------- masts
 def foremast(D, kit):
     """Tripod foremast: the lower pole from the pilot house to the spotting top, two raked legs from the bridge
-    deck, the lower top (a Y-shaped platform at 23.5 m with the signal yard at 25.45 m), the spotting top round the
-    Mk 7 director (floor 27.85 m), the topmast 1.7 m abaft the lower pole to the truck at 59.5 m, a lookout box and
-    the upper yard (reference cuts every 2-5 m; 0.08 m of rake aft per metre)."""
+    deck, the lower top (a Y-shaped platform at 23.5 m with a lookout house), the signal truss and the spotting
+    top round the Mk 7 director (floor 27.85 m), the topmast 1.7 m abaft the lower pole to the truck at 59.5 m, a
+    lookout box and the upper yard (reference cuts every 2-5 m)."""
     col = kit.collections['Sensors and masts']
     aid = 'foremast'
-    lower = lambda y: -42.30 + (y - 15.7) * .082
+    lower = lambda y: -41.90 + (y - 15.7) * .052
     upper = lambda y: -40.12 + (y - 27.3) * .078
-    taper(kit, aid, col, 'lower pole', (0, 15.65, lower(15.65)), (0, 27.30, lower(27.30)), .34, .32)
+    taper(kit, aid, col, 'lower pole', (0, 15.65, lower(15.65)), (0, 27.30, lower(27.30)), .44, .38)
     taper(kit, aid, col, 'topmast', (0, 27.25, upper(27.25)), (0, 45.0, upper(45.0)), .31, .19)
     taper(kit, aid, col, 'topgallant', (0, 45.0, upper(45.0)), (0, 59.55, -37.60), .19, .07)
     kit.part('cyl', aid, col, 'truck', V(0, 59.62, -37.6), .10, .14, 'naval', vertices=10)
@@ -170,19 +186,58 @@ def foremast(D, kit):
     kit.rail(aid, col, pts, 23.52, .95, 1.1, True, False)
     for s in (-1, 1):
         kit.member(aid, col, V(s * 1.8, 23.40, -38.8), V(s * .2, 22.2, -41.9), .06)
-    # Signal yard under the spotting top and the spotting top itself: a floor at 27.85 m and a bulwark to 29.0 m round
-    # the director (reference 3.2 by 4.8 m), with a light canopy frame over it.
-    kit.part('rod', aid, col, 'signal yard', V(-5.6, 25.45, -40.35), V(5.6, 25.45, -40.35), .08, 'naval', r2=.05, vertices=8)
+    # The lookout house on the lower top abaft the pole (reference 23.49-25.49 m, 5.2 m across, pointed forward to the
+    # pole), its window band under the roof and a rail round the roof.
+    house = [(-.55, -41.85), (.55, -41.85), (2.45, -40.1), (2.6, -39.6), (1.3, -38.8), (-1.3, -38.8), (-2.6, -39.6), (-2.45, -40.1)]
+    kit.prism(aid, col, 'lower top house', [V(x, 0, z)[:2] for x, z in house], 23.50, 25.49, 'naval', 'roof')
+    centre = sum((V(xx, 0, zz) for xx, zz in house), Vector()) / len(house)
+    faces = [(s * x0, z0, s * x1, z1) for (x0, z0), (x1, z1) in zip(house[1:4], house[2:5]) for s in (1, -1)]
+    faces.append((1.3, -38.8, -1.3, -38.8))  # the after face, once
+    for x0, z0, x1, z1 in faces:
+        a, b = V(x0, 25.1, z0), V(x1, 25.1, z1)
+        n = Vector((-(b - a).y, (b - a).x, 0)).normalized()
+        if n.dot((a + b) / 2 - Vector((centre.x, centre.y, 25.1))) < 0:
+            n = -n
+        d = (b - a).normalized()
+        q = [a + d * .15 + n * .012 + Vector((0, 0, -.2)), b - d * .15 + n * .012 + Vector((0, 0, -.2)),
+             b - d * .15 + n * .012 + Vector((0, 0, .2)), a + d * .15 + n * .012 + Vector((0, 0, .2))]
+        kit.solid(kit.tag(kit.mesh('foremast.lower top house window', [tuple(p) for p in q] + [tuple(p - n * .02) for p in q],
+                                   [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], 'glass', col), aid))
+    kit.rail(aid, col, [V(x, 0, z)[:2] for x, z in house[1:] + house[:1]], 25.49, .9, 1.0, False, False)
+    # Signal truss under the spotting top's after part and the spotting top itself: a floor at 27.85 m on knees from
+    # the pole, a plated wall to 29.0 m round the director (reference 3.2 by 4.8 m), open windows between posts to the
+    # roof at 30.3-30.45 m and a raised centre over the director to 30.9 m. The truss (reference 27.31-27.43 m, chords
+    # 0.92 m apart, 14.1 m across) is laced like the mainmast's.
+    ys = 27.37
+    for zc in (-40.20, -39.28):
+        kit.member(aid, col, V(-7.06, ys, zc), V(7.06, ys, zc), .06, 'naval', 6)
+    xs = [-7.06 + 14.12 * k / 16 for k in range(17)]
+    for k, x in enumerate(xs):
+        kit.member(aid, col, V(x, ys, -40.20), V(x, ys, -39.28), .035, 'naval', 5)
+        if k < 16:
+            a, b = (-40.20, -39.28) if k % 2 == 0 else (-39.28, -40.20)
+            kit.member(aid, col, V(x, ys, a), V(xs[k + 1], ys, b), .03, 'naval', 5)
     top = [V(x, 0, z)[:2] for x, z in [(-1.6, -39.2), (1.6, -39.2), (1.6, -44.0), (-1.6, -44.0)]]
     kit.prism(aid, col, 'spotting top floor', top, 27.25, 27.85, 'naval', 'roof')
-    for (x0, z0), (x1, z1) in [((-1.6, -39.2), (1.6, -39.2)), ((1.6, -39.2), (1.6, -44.0)), ((1.6, -44.0), (-1.6, -44.0)), ((-1.6, -44.0), (-1.6, -39.2))]:
+    for s in (-1, 1):
+        knee = [V(s * .8, 27.26, lower(27.2) - .3), V(s * .8, 27.26, -43.9), V(s * .8, 26.2, lower(26.2) - .3)]
+        kit.solid(kit.tag(kit.mesh(aid + '.knee', [tuple(p + Vector((0, d, 0))) for d in (-.03, .03) for p in knee],
+                                   [(0, 1, 2), (5, 4, 3), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)], 'naval', col), aid))
+    edges = [((-1.6, -39.2), (1.6, -39.2)), ((1.6, -39.2), (1.6, -44.0)), ((1.6, -44.0), (-1.6, -44.0)), ((-1.6, -44.0), (-1.6, -39.2))]
+    for (x0, z0), (x1, z1) in edges:
         a, b = V(x0, 27.85, z0), V(x1, 27.85, z1)
         mid = (a + b) / 2
         length = (b - a).length
-        kit.boxc(aid, col, 'bulwark', Vector((mid.x, mid.y, 28.43)), (length if abs(a.y - b.y) < 1e-6 else .05, .05 if abs(a.y - b.y) < 1e-6 else length, 1.15), 'naval')
-    for x, z in [(-1.55, -39.25), (1.55, -39.25), (1.55, -43.95), (-1.55, -43.95)]:
-        kit.member(aid, col, V(x, 29.0, z), V(x * .7, 30.55, z * .5 + -41.0 * .5), .035)
-    kit.boxc(aid, col, 'canopy frame', V(0, 30.6, -41.1), (2.0, 2.2, .06), 'edge')
+        along_x = abs(a.y - b.y) < 1e-6
+        kit.boxc(aid, col, 'bulwark', Vector((mid.x, mid.y, 28.43)), (length if along_x else .05, .05 if along_x else length, 1.15), 'naval')
+        n = max(2, round(length / .8))
+        for k in range(n + 1):
+            p = a.lerp(b, k / n)
+            kit.boxc(aid, col, 'window post', Vector((p.x, p.y, 29.66)), (.07, .07, 1.32), 'naval')
+    kit.prism(aid, col, 'spotting top roof', [V(x, 0, z)[:2] for x, z in [(-1.68, -39.12), (1.68, -39.12), (1.68, -44.08), (-1.68, -44.08)]],
+              30.32, 30.45, 'naval', 'roof')
+    kit.prism(aid, col, 'spotting top cupola', [V(x, 0, z)[:2] for x, z in [(-1.0, -39.6), (1.0, -39.6), (1.0, -42.2), (-1.0, -42.2)]],
+              30.44, 30.90, 'naval', 'roof')
     # Lookout box forward of the topmast and the upper yard with its blocks.
     kit.boxc(aid, col, 'lookout', V(0, 45.2, -40.25), (.72, .72, 1.25), 'naval')
     kit.member(aid, col, V(0, 44.6, -39.9), V(0, 44.6, upper(44.6)), .05)
@@ -196,7 +251,7 @@ def foremast(D, kit):
     for s in (-1, 1):
         for zz in (-40.0, -37.0, -34.0):
             kit.wire(aid, col, V(0, 43.5, upper(43.5)), V(s * 7.3, 8.1, zz), .012, False)
-        kit.wire(aid, col, V(s * 5.3, 25.45, -40.35), V(s * 7.2, 8.2, -31.0), .012, False)
+        kit.wire(aid, col, V(s * 6.9, 27.37, -39.74), V(s * 7.2, 8.2, -31.0), .012, False)
     kit.wire(aid, col, V(0, 58.0, upper(58.0)), V(0, 10.3, -85.0), .014, False)
     kit.wire(aid, col, V(0, 55.0, upper(55.0)), V(0, 56.0, 35.9), .012, False)
     kit.wire(aid, col, V(0, 50.0, upper(50.0)), V(0, 51.0, 35.3), .012, False)
@@ -272,7 +327,9 @@ def directors(D, kit):
     col = kit.collections['Sensors and masts']
     for did, (x, y, z), face in [('main-director', (0, 27.869, -42.476), 0), ('after-director', (0, 10.320, 45.524), 180)]:
         bx, by, bz = P(x, y, z)
-        floor = kit.below(bx, by, bz + .3, bz)
+        # The foremast director stands on the spotting top's floor (27.85 m, drawn by foremast(), not a support
+        # surface); the after one on the structure under it.
+        floor = 27.85 if did == 'main-director' else kit.below(bx, by, bz + .3, bz)
         if bz - floor > .03:
             kit.cylz(did, col, 'director stand', (bx, by, floor - .02), .40, bz - floor + .03, 'naval', 20)
         pivot = kit.empty(did + '.yaw', (bx, by, bz), assembly=did, col=col)
