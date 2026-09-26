@@ -183,7 +183,7 @@ def bridge_gear(kit, col):
                 if floor is not None and ry - floor > .02:
                     kit.cylz(A, col, 'post', (x, y, floor), .06, ry - floor + .02, 'naval', 8)
             kit.part('box', A, col, 'screen', (x, cy, ry + h / 2), (l, w, h), 'naval')
-            kit.part('box', A, col, 'lens', (x + l * .2, cy - side * (w / 2 + .01), ry + h * .5), (l * .45, .03, h * .55), 'lens-red' if rx < 0 else 'lens-green')
+            kit.part('box', A, col, 'lens', (x + l * .2, cy - side * (w / 2 + .01), ry + h * .5), (l * .45, .03, h * .55), 'sidelight-red' if rx < 0 else 'sidelight-green')
             continue
         floor = kit.floor(x, y, ry + .3)
         if floor is None or abs(floor - ry) > .6:

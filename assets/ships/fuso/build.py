@@ -55,7 +55,7 @@ colors = {'naval': (.090, .095, .112), 'hullgray': (.090, .095, .112), 'roof': (
           'linoleum': (.090, .046, .036), 'edge': (.038, .038, .040), 'painted-edge': (.074, .078, .090), 'dark': (.012, .013, .014),
           'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.092, .058, .038), 'bronze': (.36, .27, .12),
           'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12),
-          'lens-red': (.42, .02, .02), 'lens-green': (.02, .30, .07), 'lens': (.16, .18, .20)}
+          'sidelight-red': (.42, .02, .02), 'sidelight-green': (.02, .30, .07), 'searchlight-face': (.16, .18, .20)}
 materials = {}
 for key, color in colors.items():
     m = bpy.data.materials.new('Fusō ' + key)
