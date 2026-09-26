@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "id": "atlanta-1942-plain-v1",
+  "basis": "Approved GameModels3D pasc006 default (plain) scheme: haze-grey hull and upperworks, deck-blue painted-steel weather decks and roofs, red-oxide bottom, no boot topping; the same plain US scheme as Alaska's reference. Swatches are linear-RGB medians of the reference's diffuse texture (hull side, deck, bottom), not measured historical paint.",
+  "wear": "in-commission",
+  "palette": {
+    "atlanta-reference-haze-gray": [0.127, 0.165, 0.175],
+    "atlanta-reference-deck-blue": [0.023, 0.034, 0.042],
+    "atlanta-reference-red-oxide": [0.150, 0.058, 0.030],
+    "atlanta-reference-black": [0.012, 0.012, 0.013],
+    "atlanta-authored-dark-fittings": [0.07, 0.085, 0.095],
+    "atlanta-authored-mid-fittings": [0.105, 0.13, 0.145],
+    "atlanta-authored-canvas": [0.2, 0.21, 0.2],
+    "atlanta-authored-fitting-wood": [0.19, 0.13, 0.075],
+    "atlanta-authored-white-light": [0.62, 0.64, 0.62],
+    "atlanta-authored-red-light": [0.40, 0.03, 0.02],
+    "atlanta-authored-green-light": [0.02, 0.30, 0.05],
+    "atlanta-authored-raft": [0.30, 0.31, 0.30]
+  },
+  "materials": {
+    "naval": { "paint": "atlanta-reference-haze-gray", "finish": "painted-steel" },
+    "hullgray": { "paint": "atlanta-reference-haze-gray", "finish": "painted-steel" },
+    "deck": { "paint": "atlanta-reference-deck-blue", "finish": "painted-deck" },
+    "roof": { "paint": "atlanta-reference-deck-blue", "finish": "painted-deck" },
+    "antifouling": { "paint": "atlanta-reference-red-oxide", "finish": "underwater-coating" },
+    "black": { "paint": "atlanta-reference-black", "finish": "painted-steel" },
+    "edge": { "paint": "atlanta-authored-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "atlanta-authored-mid-fittings", "finish": "painted-steel" },
+    "canvas": { "paint": "atlanta-authored-canvas", "finish": "painted-steel" },
+    "wood": { "paint": "atlanta-authored-fitting-wood", "finish": "wood", "fittings": true },
+    "white": { "paint": "atlanta-authored-white-light", "finish": "painted-steel" },
+    "red": { "paint": "atlanta-authored-red-light", "finish": "painted-steel" },
+    "green": { "paint": "atlanta-authored-green-light", "finish": "painted-steel" },
+    "raft": { "paint": "atlanta-authored-raft", "finish": "painted-steel" }
+  }
+}
