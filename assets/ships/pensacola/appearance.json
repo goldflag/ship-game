@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "id": "pensacola-starter-v1",
+  "basis": "Scaffold placeholder: one grey for hull and upperworks, dark painted-steel decks and a red-oxide bottom. Replace with the approved paint scheme (docs/ship-appearance.md); swatches are the recipe's linear-RGB material colors.",
+  "wear": "in-commission",
+  "materials": {
+    "naval": { "paint": "pensacola-hull-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "pensacola-hull-grey", "finish": "painted-steel" },
+    "antifouling": { "paint": "pensacola-red-oxide", "finish": "underwater-coating" },
+    "deck": { "paint": "pensacola-deck-grey", "finish": "painted-deck" },
+    "roof": { "paint": "pensacola-deck-grey", "finish": "painted-deck" },
+    "edge": { "paint": "pensacola-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "pensacola-mid-fittings", "finish": "painted-steel" }
+  }
+}
