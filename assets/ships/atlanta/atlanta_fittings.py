@@ -634,19 +634,63 @@ def mk37(kit, did, x, y, z, face):
 
 
 def mk44(kit, did, x, y, z, bearing):
-    """Mk 44 director for a 1.1-inch quad: a pedestal and an open sight head with its handles."""
+    """Mk 44 director for a 1.1-inch quad as the reference's ad075 (1.73 m across, 1.38 m deep, 1.89 m tall, read off
+    orthographic renders): an octagonal plinth and a column, the sight head leaning back on a yoke with its dark
+    lens, the 1.73 m sight bar across the top behind the head with a sight at each end, and the two operators'
+    bucket seats either side of the column on brackets, with foot rails and pedals under them."""
     col = kit.collections['Sensors and masts']
     c = V(x, y, z)
     floor = kit.below(c.x, c.y, c.z + .2, c.z)
-    kit.cylz(did, col, 'pedestal', Vector((c.x, c.y, floor - .01)), .22, c.z + .75 - floor, 'naval', 14)
-    kit.cylz(did, col, 'base', Vector((c.x, c.y, c.z + .72)), .34, .12, 'edge', 16)
+    rot = Matrix.Rotation(math.radians(-bearing), 3, 'Z')
     yaw = math.radians(-bearing)
-    head = kit.boxc(did, col, 'sight head', Vector((c.x, c.y, c.z + 1.18)), (.7, .55, .72), 'naval', yaw)
-    for t in (-1, 1):
-        off = Matrix.Rotation(yaw, 3, 'Z') @ Vector((.1, t * .26, 1.18))
-        kit.part('rod', did, col, 'handle', c + off, c + off + Matrix.Rotation(yaw, 3, 'Z') @ Vector((-.35, 0, -.25)), .025, 'edge', vertices=6)
-        off2 = Matrix.Rotation(yaw, 3, 'Z') @ Vector((.36, t * .15, 1.32))
-        kit.part('rod', did, col, 'eyepiece', c + off2, c + off2 + Matrix.Rotation(yaw, 3, 'Z') @ Vector((.12, 0, 0)), .06, 'glass', vertices=8)
+
+    def at(f, a, h):
+        """A point in the director's frame: f toward its facing, a across (to its left), h over the floor."""
+        return Vector((c.x, c.y, floor)) + rot @ Vector((f, a, h))
+
+    def box(label, f, a, h, size, material='naval'):
+        kit.boxc(did, col, label, at(f, a, h), size, material, yaw)
+
+    kit.cylz(did, col, 'plinth', at(0, 0, -.01), .42, .21, 'edge', 8)
+    kit.cylz(did, col, 'plinth top', at(0, 0, .2), .42, .06, 'edge', 8, r2=.34)
+    kit.cylz(did, col, 'collar', at(0, 0, .26), .3, .12, 'naval', 12)
+    box('column foot', 0, 0, .44, (.46, .64, .16))
+    box('column', 0, 0, .87, (.4, .4, 1.0))
+    box('column back', -.2, 0, .78, (.2, .3, .7))
+    # The step plate raked down behind the column.
+    kit.beam(did, col, 'step plate', at(-.2, 0, .5), at(-.72, 0, .4), .45, .04, 'naval')
+    # The yoke: a cross-head on the column and two arms up either side of the head.
+    box('cross-head', 0, 0, 1.12, (.3, .84, .1))
+    for s in (-1, 1):
+        kit.beam(did, col, 'yoke arm', at(0, s * .38, 1.1), at(-.04, s * .38, 1.52), .08, .1, 'naval')
+    # The sight head, leaning back, its lens on the forward face and the round sight behind.
+    kit.beam(did, col, 'sight head', at(.02, 0, 1.3), at(-.14, 0, 1.86), .34, .3, 'naval')
+    kit.beam(did, col, 'lens', at(.16, .05, 1.52), at(.1, .05, 1.76), .2, .03, 'dark')
+    kit.part('rod', did, col, 'round sight', at(-.16, 0, 1.72), at(-.36, 0, 1.72), .09, 'naval', vertices=10)
+    kit.part('rod', did, col, 'round sight lens', at(-.36, 0, 1.72), at(-.38, 0, 1.72), .07, 'dark', vertices=10)
+    # The sight bar across the top, 0.25 m behind the column, with dark end plates and a sight at each end, the
+    # upper bar over it and the braces down to the yoke.
+    kit.part('rod', did, col, 'sight bar', at(-.25, -.83, 1.645), at(-.25, .83, 1.645), .065, 'naval', vertices=10)
+    box('upper bar', -.25, 0, 1.78, (.06, 1.2, .05))
+    for s in (-1, 1):
+        kit.part('rod', did, col, 'bar end', at(-.25, s * .8, 1.645), at(-.25, s * .865, 1.645), .085, 'dark', vertices=10)
+        box('bar sight', -.25, s * .75, 1.77, (.1, .1, .1), 'dark')
+        kit.beam(did, col, 'bar brace', at(-.25, s * .55, 1.6), at(-.04, s * .38, 1.46), .05, .05, 'naval')
+        kit.beam(did, col, 'upper brace', at(-.25, s * .6, 1.78), at(-.14, 0, 1.86), .04, .04, 'naval')
+        kit.beam(did, col, 'bar post', at(-.25, s * .2, 1.58), at(-.25, s * .2, 1.78), .05, .05, 'naval')
+        # The operator's bucket seat on a bracket from the column, its foot rail and pedals under it.
+        kit.beam(did, col, 'seat bracket', at(.1, s * .2, .78), at(.18, s * .6, .7), .3, .08, 'naval')
+        rings = []
+        for h, half_f, half_a in ((.72, .2, .2), (1.15, .15, .11)):
+            rings.append([tuple(at(.2 + df * half_f, s * .63 + da * half_a, h)) for df, da in ((1, 1), (-1, 1), (-1, -1), (1, -1))])
+        kit.loft(did, col, 'seat', rings, 'naval', True, True, False)
+        kit.beam(did, col, 'hand rail', at(.2, s * .52, 1.12), at(.05, s * .38, 1.24), .03, .03, 'naval')
+        for aa in (.45, .82):
+            kit.part('rod', did, col, 'rail post', at(.3, s * aa, .72), at(.45, s * aa, .38), .015, 'naval', vertices=5)
+        kit.part('rod', did, col, 'foot rail', at(.45, s * .44, .38), at(.45, s * .83, .38), .015, 'naval', vertices=5)
+        for aa in (.52, .72):
+            box('pedal', .5, s * aa, .33, (.2, .1, .12), 'edge')
+            kit.part('rod', did, col, 'pedal post', at(.5, s * aa, 0), at(.5, s * aa, .28), .02, 'naval', vertices=5)
 
 
 def directors(D, kit):
