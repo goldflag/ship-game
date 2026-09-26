@@ -310,6 +310,13 @@ WAIST_SHIELD = [(3.95, 2.84), (5.16, 2.33), (5.82, 2.15), (6.59, 2.36), (7.15, 2
 
 
 # ---------------------------------------------------------------- funnels
+# Steam pipes (reference frame points, radius): from each funnel's base up to the reference's pipe ends.
+STEAM_PIPES = {
+    'forward-funnel': ([(-.22, 15.18, -7.72), (-.22, 18.3, -7.41), (-.22, 18.62, -7.12)], .11),
+    'after-funnel': ([(1.085, 15.62, 8.54), (1.085, 20.26, 8.99)], .19),
+}
+
+
 def funnels(D, kit):
     """Clinker screens, rims, a ladder and a top gallery on each funnel's measured cap."""
     col = kit.collections['Superstructure']
@@ -366,12 +373,15 @@ def funnels(D, kit):
         for h in (.5, 1.0):
             for i in range(n):
                 kit.member(aid, col, outer[i] + Vector((0, 0, h)), outer[(i + 1) % n] + Vector((0, 0, h)), .016, 'naval', 4)
-        # A steam pipe up the forward starboard face of the casing to above the rim.
-        fore = max(range(n), key=lambda i: bottom[i].x - .6 * abs(bottom[i].y + .6))
-        pb, pt = bottom[fore], top[fore]
-        out = Vector((pb.x - cx, pb.y - cy, 0)).normalized() * .22
-        kit.part('rod', aid, col, 'steam pipe', pb + out + Vector((0, 0, .1)), pt + out + Vector((0, 0, .45)), .11, 'naval', vertices=10)
-        kit.part('rod', aid, col, 'pipe mouth', pt + out + Vector((0, 0, .45)), pt + out + Vector((0, 0, .6)), .15, 'black', vertices=10)
+        # The steam pipe where the reference runs it (reference frame): up the after face of the forward casing, a
+        # little to port, to a short bend aft at 18.6 m; on the after funnel, clear of the casing's starboard quarter
+        # to just above the rim.
+        points, r = STEAM_PIPES[aid]
+        for a, b in zip(points, points[1:]):
+            kit.part('rod', aid, col, 'steam pipe', V(*a), V(*b), r, 'naval', vertices=10)
+        end = V(*points[-1])
+        d = (end - V(*points[-2])).normalized()
+        kit.part('rod', aid, col, 'pipe mouth', end - d * .02, end + d * .08, r + .03, 'black', vertices=10)
 
 
 # ---------------------------------------------------------------- masts and the SC-1 aerial
