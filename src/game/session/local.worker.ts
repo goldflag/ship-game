@@ -5,6 +5,7 @@ import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelop
 import type { Command } from '../../multiplayer/generated/Command';
 import { assetUrl } from '../../assetUrl';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
+import type { ScenarioRequest } from '../../multiplayer/generated/ScenarioRequest';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { LocalConstructionInput, TrialAction } from './localConstruction';
@@ -113,6 +114,7 @@ self.onmessage = (
     | { type: 'validate'; placements: Placement[] }
     | { type: 'init'; setup: BattleSetup; profile?: boolean; construction?: LocalConstructionInput }
     | { type: 'plan'; request: PveRequest; profile?: boolean }
+    | { type: 'scenario'; request: ScenarioRequest; mapId: string; profile?: boolean }
     | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> }
     | { type: 'restart' }
     | { type: 'trial-reset' }
@@ -123,7 +125,7 @@ self.onmessage = (
   chain = chain.then(async () => {
     try {
       const message = event.data;
-      if (message.type === 'init' || message.type === 'plan') profile = message.profile === true;
+      if (message.type === 'init' || message.type === 'plan' || message.type === 'scenario') profile = message.profile === true;
       const started = performance.now();
       if (message.type === 'options') {
         self.postMessage({ type: 'options', options: JSON.parse(PvePlanner.options(await loadContent())) });
@@ -135,6 +137,13 @@ self.onmessage = (
         return;
       } else if (message.type === 'plan') {
         const next = new PvePlanner(await loadContent(undefined, message.request.mapId), JSON.stringify(message.request));
+        planner?.free();
+        planner = next;
+        self.postMessage({ type: 'briefing', briefing: JSON.parse(planner.briefing()) });
+        return;
+      } else if (message.type === 'scenario') {
+        // The raid's ships are hidden from the page, so the planner reads every design, as a generated mission does.
+        const next = PvePlanner.scenario(await loadContent(undefined, message.mapId), JSON.stringify(message.request));
         planner?.free();
         planner = next;
         self.postMessage({ type: 'briefing', briefing: JSON.parse(planner.briefing()) });

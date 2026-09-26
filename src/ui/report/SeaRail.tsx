@@ -6,6 +6,8 @@ import type { ReportAction } from './AfterActionReport';
 import type { XpReadout } from './battleAward';
 import { XpProgress } from './XpAward';
 import './SeaRail.css';
+import { pointSources, scenarioInfo, scenarioReason, type ScenarioInfo } from '../battle/scenarios';
+import type { ScenarioDebrief } from '../../game/session/BattleSession';
 
 interface Props {
   mode: string;
@@ -35,10 +37,12 @@ export function SeaRail({ mode, result, outcome, debrief, own, xp, actions, busy
   ];
   const losses = debrief.ships.filter(ship => ship.status === 'sunk' && ship.report.lostTick !== undefined).sort((a, b) => a.report.lostTick! - b.report.lostTick!);
   const [primary, ...others] = actions;
+  const scenario = debrief.scenario && scenarioInfo(debrief.scenario.id);
   return <aside className="aar-rail" aria-label="Battle result">
     <span className="aar-eyebrow">{mode} · <span className="aar-num">{battleTime(outcome.finalTick)}</span></span>
     <h1>{resultTitle(result)}</h1>
-    <p className="aar-rail-reason">{reasonText(result, outcome)}</p>
+    <p className="aar-rail-reason">{(scenario && debrief.scenario && scenarioReason(scenario, debrief.scenario, outcome.reason)) || reasonText(result, outcome)}</p>
+    {scenario && debrief.scenario && <ScenarioPoints scenario={scenario} debrief={debrief.scenario} />}
     {xp && <XpProgress xp={xp} presetId={own.presetId} />}
     <div className="aar-rail-ship">
       <div className="aar-rail-name"><strong>{titles.get(own.id)}</strong>{own.isPlayer && <em>You</em>}<span>{state}</span></div>
@@ -67,4 +71,20 @@ export function SeaRail({ mode, result, outcome, debrief, own, xp, actions, busy
       <button type="button" className="aar-link" onClick={onReport}>Full report ›<small>Your battle, fleets, battle plot, hits</small></button>
     </div>
   </aside>;
+}
+
+/** A scenario is judged on points: both totals, where they came from, and the raid's plan revealed. */
+function ScenarioPoints({ scenario, debrief }: { scenario: ScenarioInfo; debrief: ScenarioDebrief }) {
+  return <div className="aar-points">
+    <span className="aar-eyebrow">Victory points</span>
+    {(['friendly', 'enemy'] as const).map((team, index) => {
+      const sources = pointSources(debrief, team);
+      return <div key={team} data-team={team}>
+        <strong className="aar-num">{debrief.points[index]}</strong>
+        <span>{team === 'friendly' ? 'You' : scenario.enemyName}</span>
+        <small>{sources.length ? sources.map(source => `${source.label} ${source.points}`).join(' · ') : 'Nothing scored'}</small>
+      </div>;
+    })}
+    {scenario.plans[debrief.plan] && <p>{scenario.plans[debrief.plan]}</p>}
+  </div>;
 }

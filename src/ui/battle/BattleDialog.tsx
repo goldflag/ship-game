@@ -10,6 +10,7 @@ import {
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
+import type { ScenarioRequest } from '../../multiplayer/generated/ScenarioRequest';
 import { shipPresets } from '../../ships/presets';
 import { availableShipIds, isHistoricalShip, localShips, resolveShip, shipTitle, subscribeLocalShips } from '../../ships/localShips';
 import { useSyncExternalStore } from 'react';
@@ -32,6 +33,8 @@ import { DEFAULT_MAP, MISSION_TERRAIN_OFFSET, customTerrainOffset, isOceanMapId,
 import { DuelLanes, DuelRail, duelBrief } from './DuelMode';
 import { customTransferShip, duelBudget, parseCustomUnit, type FleetTransfer } from './fleetTransfer';
 import { missionSeed, PveLanes, PveRail, pveBrief, pveInvalid, pveRefused } from './PveMode';
+import { defaultScenarioRequest, ScenarioBoard, scenarioBrief, ScenarioRail } from './ScenarioMode';
+import { SCENARIOS, scenarioInfo } from './scenarios';
 import { useProgress } from '../useProgress';
 import {
   ACCESS_LABEL,
@@ -137,10 +140,18 @@ export function BattleDialog({
   const connection = useRef<MatchConnection | undefined>(undefined);
   const transferred = useRef(false);
   const active = useRef(true);
+  // Scenario state. Its draft is prepared as soon as an action is chosen, so the chart shows the real dispositions.
+  const [scenarioRequest, setScenarioRequest] = useState<ScenarioRequest>(defaultScenarioRequest);
+  const [scenarioDraft, setScenarioDraft] = useState<PveDraft>();
+  const scenarioDraftRef = useRef<PveDraft | undefined>(undefined);
+  const [scenarioBusy, setScenarioBusy] = useState(false);
+  const [scenarioError, setScenarioError] = useState('');
+  const [scenarioRetry, setScenarioRetry] = useState(0);
+  const scenarioMap = (scenarioInfo(scenarioRequest.scenarioId) ?? SCENARIOS[0]).mapId;
   // The waters on the chart: choosing them starts charting the coast, which placement waits for.
   const pveMap = isOceanMapId(request.mapId) ? request.mapId : DEFAULT_MAP;
-  const chartMap = mode === 'pve' ? pveMap : mode === 'custom' ? (setup.mapId ?? DEFAULT_MAP) : DEFAULT_MAP;
-  const chart = useChartTerrain(chartMap, mode === 'pve' ? MISSION_TERRAIN_OFFSET : customTerrainOffset(setup.spawnDistance));
+  const chartMap = mode === 'pve' ? pveMap : mode === 'scenario' ? scenarioMap : mode === 'custom' ? (setup.mapId ?? DEFAULT_MAP) : DEFAULT_MAP;
+  const chart = useChartTerrain(chartMap, mode === 'pve' || mode === 'scenario' ? MISSION_TERRAIN_OFFSET : customTerrainOffset(setup.spawnDistance));
   /** A chart whose coast could not load says so instead of waiting. */
   const charted = (deployment: Deployment): Deployment =>
     !deployment.terrain && chart.error
@@ -154,6 +165,7 @@ export function BattleDialog({
       if (!transferred.current) connection.current?.cancel();
       controller.current?.abort();
       draftRef.current?.dispose();
+      scenarioDraftRef.current?.dispose();
       PveDraft.release();
     };
   }, []);
@@ -201,6 +213,53 @@ export function BattleDialog({
     return () => abort.abort();
   }, [mode, options, optionsRetry, initialShipId]);
 
+  // A scenario's briefing comes from its own worker; any change to the request prepares a fresh one.
+  useEffect(() => {
+    if (mode !== 'scenario') return;
+    const abort = new AbortController();
+    setScenarioError('');
+    setScenarioBusy(true);
+    const charting = loadMapTerrain(scenarioMap);
+    charting.catch(() => {});
+    void PveDraft.scenario(scenarioRequest, scenarioMap, abort.signal)
+      .then(async (prepared) => {
+        await charting.catch(() => {});
+        if (abort.signal.aborted) {
+          prepared.dispose();
+          return;
+        }
+        scenarioDraftRef.current = prepared;
+        setScenarioDraft(prepared);
+      })
+      .catch((error) => {
+        if (!abort.signal.aborted) setScenarioError(String(error.message ?? error));
+      })
+      .finally(() => {
+        if (!abort.signal.aborted) setScenarioBusy(false);
+      });
+    return () => {
+      abort.abort();
+      scenarioDraftRef.current?.dispose();
+      scenarioDraftRef.current = undefined;
+      setScenarioDraft(undefined);
+    };
+  }, [mode, scenarioRequest, scenarioRetry, scenarioMap]);
+  const launchScenario = async () => {
+    const prepared = scenarioDraft;
+    if (!prepared || scenarioBusy || !prepared.usable) return;
+    setScenarioBusy(true);
+    setMessage({ text: '', error: false });
+    try {
+      await onLaunchPve(prepared, prepared.authoredPlacements);
+      scenarioDraftRef.current = undefined;
+    } catch (error) {
+      notice(error instanceof Error ? error.message : String(error));
+      // The failed launch may have consumed the draft: prepare the same night again.
+      setScenarioRetry((value) => value + 1);
+    } finally {
+      setScenarioBusy(false);
+    }
+  };
   const changeRequest = (next: PveRequest) => {
     draftRef.current?.dispose();
     draftRef.current = undefined;
@@ -233,7 +292,7 @@ export function BattleDialog({
       if (fixed.request === request) return;
       changeRequest(fixed.request);
       notice(removalNotice(fixed.removed, titleOf), false);
-    } else {
+    } else if (mode === 'duel') {
       const fixed = openDuelFleet(fleet, rule, fallback);
       if (fixed.fleet === fleet) return;
       setFleet(fixed.fleet);
@@ -246,7 +305,9 @@ export function BattleDialog({
     const ids = fleetForCarry(mode, { setup, request: options ? request : pveRequest, duel: fleet }).filter((id) => rule(id) === 'open');
     if (next === 'custom') onSetupChange(carryToCustom(setup, ids));
     else if (next === 'duel') setFleet((current) => carryToDuel(current, initialShipId, ids));
-    else if (options) {
+    else if (next === 'scenario') {
+      // A scenario sails history's fleet; the one being built stays where it is.
+    } else if (options) {
       const carried = carryToPve(request, ids, options.eligiblePresets, options.rules.budget, newId);
       if (carried !== request) changeRequest(carried);
     } else pendingCarry.current = ids;
@@ -375,7 +436,7 @@ export function BattleDialog({
     if (!loading) onClose();
   };
 
-  const busy = pveBusy || duelBusy,
+  const busy = pveBusy || duelBusy || (mode === 'scenario' && scenarioBusy),
     catalogDisabled = busy || step === 'deploy';
   const startCatalogDrag = (id: string, event: DragEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -426,7 +487,14 @@ export function BattleDialog({
   const customOpen = ownFleetOpen(customOwnFleet(setup), rule),
     duelOpen = ownFleetOpen(fleet, rule);
   const pveInvalidText = mode === 'pve' ? pveInvalid(request, options) : '';
-  const brief = mode === 'custom' ? customBrief(setup) : mode === 'pve' ? pveBrief(request) : duelBrief(fleet);
+  const brief =
+    mode === 'custom'
+      ? customBrief(setup)
+      : mode === 'pve'
+        ? pveBrief(request)
+        : mode === 'scenario'
+          ? scenarioBrief(scenarioRequest, scenarioDraft?.briefing)
+          : duelBrief(fleet);
   const primary = (() => {
     if (mode === 'custom')
       return step === 'fleet'
@@ -456,6 +524,12 @@ export function BattleDialog({
             disabled: pveBusy || !pvePlacement?.terrain || !!pvePlacement.error || pveRefused(request, rule),
             run: () => void launchPve(),
           };
+    if (mode === 'scenario')
+      return {
+        label: scenarioBusy ? 'Preparing…' : 'Start battle',
+        disabled: scenarioBusy || !scenarioDraft || !chart.terrain || loading,
+        run: () => void launchScenario(),
+      };
     return { label: 'Find opponent', disabled: duelBusy || !!duelBudget(fleet).error || !duelOpen, run: () => void join('queue') };
   })();
   const canResume = (() => {
@@ -484,7 +558,9 @@ export function BattleDialog({
     (busy
       ? pveBusy
         ? 'Preparing your mission…'
-        : status.message
+        : mode === 'scenario'
+          ? 'Preparing the action…'
+          : status.message
       : transfer
         ? transferText
         : ownFleetText
@@ -561,7 +637,27 @@ export function BattleDialog({
           onFormation={chooseFormation}
         />
       )}
-      {step === 'fleet' && (
+      {step === 'fleet' && mode === 'scenario' && (
+        <div className="battle-body scenario-body">
+          <ScenarioBoard
+            request={scenarioRequest}
+            onChange={setScenarioRequest}
+            briefing={scenarioDraft?.briefing}
+            terrain={chart.terrain}
+            preparing={scenarioBusy}
+            error={scenarioError || (chart.error ? `The ${oceanMap(scenarioMap).name} chart did not load.` : '')}
+            onRetry={() => {
+              chart.retry();
+              setScenarioRetry((value) => value + 1);
+            }}
+            disabled={loading}
+          />
+          <aside className="battle-rail" aria-label="Battle settings">
+            <ScenarioRail request={scenarioRequest} onChange={setScenarioRequest} briefing={scenarioDraft?.briefing} disabled={loading} />
+          </aside>
+        </div>
+      )}
+      {step === 'fleet' && mode !== 'scenario' && (
         <div className="battle-body">
           <ShipCatalog
             ships={

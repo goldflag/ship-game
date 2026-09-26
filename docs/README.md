@@ -37,6 +37,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Develop Rust multiplayer | [Setup, architecture and validation](rust-multiplayer-implementation.md), [crates guide](../crates/AGENTS.md) | Authoritative Rust simulation, generated wire types and server settings |
 | Deploy and operate the public game | [Ships host deployment](deployment.md) | Separate Docker Compose stack, HTTPS routing, persistent results, deploy and rollback commands |
 | Develop PvE fleet command | [Current contracts](pve-implementation-status.md), [selected UI D](pve-ui-studies/README.md) | Rust orders, observation, mission and air rules |
+| Author or tune a scenario | [Scenarios](scenarios.md) | `assets/gameplay/scenarios/`, the raid script and victory points in Rust, the headless `scenario_soak` |
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
 | Measure fleet-command speed | [Fleet command speed](pve-speed-performance.md) | Actual 1×/2×/4× progress, fixed fleet scenarios and worker throughput |
 | Profile custom battles | [Custom battle performance](custom-battle-performance.md) | Actual application, Rust worker, frame intervals and graphics warmup |

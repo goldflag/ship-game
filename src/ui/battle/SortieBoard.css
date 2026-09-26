@@ -1,7 +1,7 @@
 /* Sortie board: the mode chooser shown over the port when Battle is pressed. Shares the
    battle dialog's instrument palette so the board reads as the first page of battle setup. */
 .sortie-board { --sortie-line:#cfdfdf35; --sortie-line-strong:#c0d4d26e; --sortie-muted:#bacbd0; --sortie-muted2:#93a7ad; --sortie-field:#0e2530; --sortie-mint:#86e4c5; --sortie-brass:#e0c58d; --sortie-ink:#152b32;
-  width:min(calc(100vw - 48px),880px); max-height:calc(100dvh - 48px); margin:auto; padding:0; border:1px solid var(--sortie-line-strong); border-radius:3px; background:#0b1c25; color:#edf1ec;
+  width:min(calc(100vw - 48px),1120px); max-height:calc(100dvh - 48px); margin:auto; padding:0; border:1px solid var(--sortie-line-strong); border-radius:3px; background:#0b1c25; color:#edf1ec;
   font:400 13px/1.35 'Barlow',sans-serif; font-variant-numeric:tabular-nums; box-shadow:0 30px 80px #00000088; overflow:auto; }
 .sortie-board[open] { display:grid; grid-template-rows:auto 1fr auto; }
 .sortie-board::backdrop { background:#06131980; backdrop-filter:blur(3px); }
@@ -15,7 +15,7 @@
 .sortie-head p { color:var(--sortie-muted); font-size:12px; min-width:0; }
 .sortie-close { margin-left:auto; align-self:center; width:28px; height:28px; flex-shrink:0; }
 
-.sortie-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-bottom:1px solid var(--sortie-line); }
+.sortie-cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-bottom:1px solid var(--sortie-line); }
 .sortie-card { position:relative; display:grid; grid-template-rows:auto auto auto 1fr auto; gap:12px; min-width:0; padding:18px 18px 16px; border:0; border-right:1px solid var(--sortie-line); border-radius:0; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
 .sortie-card:last-child { border-right:0; }
 .sortie-card:hover { background:#d9eeed0a; }
@@ -42,6 +42,11 @@
 .sortie-foot input:focus-visible { outline:2px solid var(--sortie-mint); outline-offset:2px; }
 .sortie-keys { margin-left:auto; color:var(--sortie-muted2); white-space:nowrap; }
 
+@media (max-width:1060px) {
+  .sortie-cards { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .sortie-card:nth-child(2n) { border-right:0; }
+  .sortie-card:nth-child(-n+2) { border-bottom:1px solid var(--sortie-line); }
+}
 @media (max-width:820px) {
   .sortie-cards { grid-template-columns:1fr; }
   .sortie-card { border-right:0; border-bottom:1px solid var(--sortie-line); }

@@ -52,6 +52,9 @@ export interface FullCombatTelemetry {
   contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; speed: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean; physicalLost: boolean }[];
   battle: boolean; result: BattleResult; playerSunk: boolean;
   remainingSeconds: number | null; afloatKg: [number | null, number | null]; outcome?: BattleOutcome;
+  /** A scenario's protected ships (the transports at Savo Island): how many of the owner's are still afloat.
+   * `missionId` names the scenario, whose words the HUD looks up. */
+  objective?: { missionId: string; protectedAfloat: number; protectedTotal: number };
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
   mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded?: Ammunition; queued?: Ammunition }[];
   modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
@@ -77,7 +80,7 @@ export function hasFullTarget(combat: CombatTelemetry): combat is FullCombatTele
 /** What a session must hold for the sight's lead: the helm ship and its target. */
 export type AimView = Pick<BattleSession, 'player' | 'definition' | 'ship'> & { target?: FleetActor; targetContact?: ContactTrack };
 /** What a session must hold for the instruments: the frame's elements plus the session's own scores and selection. */
-export type TelemetryView = Pick<BattleSession, 'player' | 'definition' | 'ship' | 'actors' | 'events' | 'aircraft' | 'shellHistory' | 'result' | 'isBattle' | 'tick' | 'outcome' | 'targetUnderway'> & {
+export type TelemetryView = Pick<BattleSession, 'player' | 'definition' | 'ship' | 'actors' | 'events' | 'aircraft' | 'shellHistory' | 'result' | 'isBattle' | 'tick' | 'outcome' | 'targetUnderway'> & Partial<Pick<BattleSession, 'missionRules'>> & {
  target?: FleetActor; targetContact?: ContactTrack; remainingSeconds?: number | null;
  ammunitionSelection: Readonly<Record<string, Ammunition>>;
  playerDamageDealt: number; playerArmorBlocked: number; playerFrags: number; damageLog: DamageLogEntry[]; afloatKg: [number | null, number | null];
@@ -169,6 +172,10 @@ export function presentationTelemetry(view: TelemetryView, battery: Battery, aim
       battle: view.isBattle, result: view.result, playerSunk: !!physicalLoss(view.player),
       remainingSeconds: view.remainingSeconds === undefined ? Math.max(0, BATTLE_RULES.durationSeconds - view.tick / BATTLE_RULES.tickRate) : view.remainingSeconds,
       afloatKg: view.outcome?.afloatKg ?? view.afloatKg, outcome: view.outcome,
+      ...(view.missionRules?.objective ? { objective: (() => {
+        const ids = view.missionRules.objective.protectedShipIds, own = view.actors.filter(actor => ids.includes(actor.motion.id));
+        return { missionId: view.missionRules.id, protectedTotal: own.length, protectedAfloat: own.filter(actor => !physicalLoss(actor)).length };
+      })() } : {}),
       contacts: view.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
         targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, speed: actor.motion.speed, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost, physicalLost: !!physicalLoss(actor) })),
       playerStatus: subject.damage.stability.status,

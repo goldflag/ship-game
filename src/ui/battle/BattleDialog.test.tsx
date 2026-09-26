@@ -16,7 +16,7 @@ import { CustomLanes } from './CustomMode';
 import { fleetRule } from './fleetAccess';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: [{ shipId: 'fletcher', aiLevel: 'hard' }], enemies: ['mogami'], spawnDistance: 5000, mapId: 'north-atlantic', timeHours: 14.5, cloudCover: 40, windSpeed: 8 };
-const render = (mode: 'custom' | 'pve' | 'duel') => renderToStaticMarkup(<BattleDialog initialMode={mode} initialShipId="bismarck" loading={false} onClose={() => {}} setup={setup} onSetupChange={() => {}} onLaunchCustom={() => {}} customError="" onLaunchPve={async () => {}} onOnlineBattle={async () => {}}/>);
+const render = (mode: 'custom' | 'pve' | 'scenario' | 'duel') => renderToStaticMarkup(<BattleDialog initialMode={mode} initialShipId="bismarck" loading={false} onClose={() => {}} setup={setup} onSetupChange={() => {}} onLaunchCustom={() => {}} customError="" onLaunchPve={async () => {}} onOnlineBattle={async () => {}}/>);
 
 test('ship cards name the class and the nation, and carriers show their aircraft', () => {
   const card = renderToStaticMarkup(<ul><ShipCatalogCard presetId="mogami"/></ul>);
@@ -38,6 +38,12 @@ test('every mode renders inside one board with mode tabs, the shared catalog and
   expect(duel).toContain('43,978 / 200,000 t'); expect(duel).not.toContain('Enemy team');
   const pve = render('pve');
   expect(pve).toContain('Loading mission content'); expect(pve).toContain('Mission seed'); expect(pve).toContain('Difficulty'); expect(pve).not.toContain('Enemy team');
+  // A scenario has no catalog to build from: the action's briefing, its fixed forces and the night's conditions.
+  const scenario = render('scenario');
+  expect(scenario).toContain('Scenarios'); expect(scenario).not.toContain('battle-catalog');
+  expect(scenario).toContain('Savo Island'); expect(scenario).toContain('9 August 1942'); expect(scenario).toContain('Southern group');
+  expect(scenario).toContain('BALTIMORE'); expect(scenario).toContain('Keep the transports afloat'); expect(scenario).toContain('Another night');
+  expect(scenario).toMatch(/<button[^>]*disabled=""[^>]*>Start battle/);
 });
 
 test('the waters are the open Atlantic and four battle sites, each tile naming its action and date', () => {

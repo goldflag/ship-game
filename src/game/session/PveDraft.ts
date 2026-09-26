@@ -1,5 +1,6 @@
 import { LocalWorkerOperation } from './LocalWorkerOperation';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
+import type { ScenarioRequest } from '../../multiplayer/generated/ScenarioRequest';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import { LocalBattleSession } from './LocalBattleSession';
@@ -33,7 +34,8 @@ export class PveDraft {
   /** Cruising formation chosen for each task group on the deployment screen.
    * Groups left out sail in column, the mission's default. */
   readonly formations: Record<string, Formation> = {};
-  private constructor(private worker: LocalWorkerOperation, readonly briefing: PveBriefing, readonly request: PveRequest) {}
+  /** `request` is the generated mission's; a scenario carries `scenario` instead and deploys its authored spawns. */
+  private constructor(private worker: LocalWorkerOperation, readonly briefing: PveBriefing, readonly request?: PveRequest, readonly scenario?: ScenarioRequest) {}
   setFormation(groupId: string, formation: Formation): void { this.formations[groupId] = formation; }
   get usable(): boolean { return !this.transferred && this.worker.usable; }
   static async options(signal?: AbortSignal): Promise<PveOptions> {
@@ -53,6 +55,20 @@ export class PveDraft {
       if (briefing.generationVersion !== 1 || !briefing.setup.ships.length || briefing.setup.ships.some(s => s.team !== 'a')) throw new Error('Invalid mission briefing.');
       return new PveDraft(worker, briefing, structuredClone(request));
     } catch (error) { worker.terminate(); throw error; }
+  }
+  /** A hand-authored action: fixed fleets on `mapId`'s chart. Only owned ships, conditions and orders come back. */
+  static async scenario(request: ScenarioRequest, mapId: string, signal?: AbortSignal): Promise<PveDraft> {
+    const worker = takeWorker();
+    try {
+      const briefing = await worker.request({ type: 'scenario', request, mapId }, data => data.type === 'briefing' ? data.briefing as PveBriefing : undefined,
+        120000, 'Scenario preparation took too long.', signal);
+      if (briefing.generationVersion !== 1 || !briefing.scenario || !briefing.setup.ships.length || briefing.setup.ships.some(s => s.team !== 'a' || !s.spawn)) throw new Error('Invalid scenario briefing.');
+      return new PveDraft(worker, briefing, undefined, structuredClone(request));
+    } catch (error) { worker.terminate(); throw error; }
+  }
+  /** A scenario's ships start where history put them: the briefing's own spawns. */
+  get authoredPlacements(): Placement[] {
+    return this.briefing.setup.ships.flatMap(ship => ship.spawn ? [{ id: ship.id, spawn: ship.spawn }] : []);
   }
   async deploy(placements: Placement[]): Promise<LocalBattleSession> {
     if (!this.usable) throw new Error('This mission has already left deployment.');

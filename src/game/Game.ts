@@ -691,7 +691,9 @@ export class Game {
       const simulation = await draft.deploy(placements);
       simulation.onFailure = message => this.callbacks.error(message);
       await this.replaceFleet(simulation, shipPreset(simulation.definition.id), progress);
-      this.environment.setBattle({ timeOfDay: 'noon', weather: draft.briefing.setup.weather as import('../maps/conditions').WeatherId, conditions: {} });
+      // A scenario sets its hour (Savo Island is fought at night); a generated mission sails at noon.
+      this.environment.setBattle({ timeOfDay: (draft.briefing.setup.timeOfDay ?? 'noon') as import('../maps/conditions').TimeOfDayId,
+        weather: draft.briefing.setup.weather as import('../maps/conditions').WeatherId, conditions: {} });
       briefingControlGroups(draft.briefing, draft.formations).forEach((group, slot) => this.controlGroups.set(slot, group));
       this.pveStartingGroups = new Map([...this.controlGroups].map(([slot, group]) => [slot, { name: group.name, shipIds: [...group.shipIds], formation: group.formation }]));
       progress?.('Preparing fleet command', .9);

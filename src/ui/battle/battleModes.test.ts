@@ -12,7 +12,9 @@ test('the commanded ship leads the fleet that carries between modes', () => {
   expect(fleetForCarry('pve', { setup, request: { ...request(), ships: [{ id: 'u1', presetId: 'iowa', groupId: 'front' }] }, duel: [] })).toEqual(['iowa']);
   expect(fleetForCarry('pve', { setup, duel: ['x'] })).toEqual([]);
   expect(fleetForCarry('duel', { setup, duel: ['iowa', 'fletcher'] })).toEqual(['iowa', 'fletcher']);
-  expect(isBattleMode('duel')).toBe(true); expect(isBattleMode('online')).toBe(false);
+  // A scenario sails history's fleet, so nothing carries out of it.
+  expect(fleetForCarry('scenario', { setup, duel: ['iowa'] })).toEqual([]);
+  expect(isBattleMode('duel')).toBe(true); expect(isBattleMode('scenario')).toBe(true); expect(isBattleMode('online')).toBe(false);
 });
 
 test('a fleet only carries into an untouched mode, trimmed to that mode\'s rules', () => {

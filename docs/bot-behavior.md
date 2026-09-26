@@ -41,6 +41,7 @@ The AI is not only `bots.rs`, `captain.rs`, `admiral.rs` and `pve.rs`. All paths
 | Routes, stations, escorts, formation speed | `navigation.rs`: `command_observed`, `formation_report`; `formations.rs` |
 | PvE group movement and focus targets | `admiral.rs`: `PvePlan::initial_directives`, `PvePlan::enemy_directives` |
 | PvE enemy air doctrine | `aviation/pve_air.rs`: `PvePlan::enemy_air_directives` |
+| Scenario raid: route, silent approach, strike, withdrawal | `scenario.rs`: `RaidScript::directives`, reached through `PvePlan::enemy_directives` (see [scenarios](scenarios.md)) |
 | Custom/online bot carrier launches | `aviation/step.rs`: the `Controller::Bot` launch block |
 | Mission generation and crew levels | `pve.rs` (your fleet sails at Normal, the enemy at the mission difficulty) |
 
