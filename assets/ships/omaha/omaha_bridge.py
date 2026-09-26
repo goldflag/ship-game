@@ -178,6 +178,14 @@ def after_station(D, kit):
     foot = V(.85, 0, 36.30)
     foot.z = kit.below(foot.x, foot.y, floor - .5, 5.5)
     kit.ladder(aid, col, foot, top, (0, 1, 0), .6, .28)
+    # The rangefinder's round platform (reference 12.14-12.27 m, 1.46 m radius) on a flared pedestal from the
+    # station's roof, railed round.
+    c = V(0, 12.14, 40.184)
+    base = structure(D, 'aft-09')['baseY'] + structure(D, 'aft-09')['height']
+    kit.cylz('after-station-platform', col, 'pedestal', Vector((c.x, c.y, base - .02)), .75, 12.15 - base, 'naval', 24, r2=1.2)
+    kit.cylz('after-station-platform', col, 'platform', c, 1.46, .13, 'naval', 32)
+    pts = [(c.x + 1.42 * math.cos(math.tau * k / 16), c.y + 1.42 * math.sin(math.tau * k / 16)) for k in range(16)]
+    kit.rail('after-station-platform', col, pts[2:] + pts[:1], 12.27, .95, .9, False, False)
     # Roof rails of the after superstructure (9.25 m), kept out of the 1.1-inch mounts' reach.
     s = structure(D, 'aft-04')
     top = s['baseY'] + s['height']

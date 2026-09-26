@@ -157,8 +157,13 @@ def bad(i):
             if abs(w - (width_at(pa, y) * (1 - t) + width_at(pc, y) * t)) > .35:
                 return True
         return False
+    def edge_off(a, c):
+        # The deck edge 0.6 m inside its neighbours' has caught an anchor recess, not the shell.
+        t = (r['zr'] - a['zr']) / (c['zr'] - a['zr'])
+        return a['points'][-1][0] * (1 - t) + c['points'][-1][0] * t - r['points'][-1][0] > .6
     # A station is an outlier only when it stands off both its near and its next neighbours.
-    return deviates(rows[i - 1], rows[i + 1]) and deviates(rows[i - 2], rows[i + 2])
+    return (deviates(rows[i - 1], rows[i + 1]) and deviates(rows[i - 2], rows[i + 2])) or \
+        (edge_off(rows[i - 1], rows[i + 1]) and edge_off(rows[i - 2], rows[i + 2]))
 
 
 flags = [bad(i) for i in range(len(rows))]
@@ -354,7 +359,7 @@ if opts.structures:
             s['baseY'] = round(top, 3)
     structures = [s for s in structures if not s['id'].startswith('mid-')]
 else:
-    structures = [s for s in previous['structures'] if not s['id'].startswith(('funnel', 'after-house-low', 'midships', 'fwd-shelter'))] if previous else []
+    structures = [s for s in previous['structures'] if not s['id'].startswith(('funnel', 'after-house-low', 'midships', 'fwd-shelter', 'casemate-sponson'))] if previous else []
 
 # The forward superstructure's lowest tier reaches down to the forecastle deck under it.
 for s in structures:
@@ -362,6 +367,44 @@ for s in structures:
         low = min(deck_y(p[1]) for p in s['footprint'])
         s['height'] = round(s['baseY'] + s['height'] - (low - .05), 3)
         s['baseY'] = round(low - .05, 3)
+# Beside the lower forward 6-inch drums the traced tier runs out over the ship's side. There it is the drums'
+# sponson, a shelf under the drum's sole on a bowl-shaped fairing (drawn by the recipe) that meets the side at
+# 8.5 m, as in the reference's cuts and side view; the tier itself stops at the side.
+SPONSON_Y = 9.835
+for s in [s for s in structures if s['id'] == 'fwd-00']:
+    poly = s['footprint']
+    # (0.25 m under the deck line: at the deck itself a station's neighbour may already have ended.)
+    side = lambda z: min(half_breadth(z, deck_y(z) - d) for d in (1.5, .8, .25)) - .02
+    out = [abs(x) > side(z) + .05 for x, z in poly]
+    n = len(poly)
+    start = next(i for i in range(n) if not out[i])
+    runs, cur = [], None
+    for k in range(1, n + 1):
+        i = (start + k) % n
+        if out[i]:
+            if cur is None:
+                cur = [(i - 1) % n]
+            cur.append(i)
+        elif cur is not None:
+            runs.append(cur + [i])
+            cur = None
+    over = lambda run: max(abs(poly[i][0]) - side(poly[i][1]) for i in run)
+    # Each side's sponson is the run standing furthest over the side (the drum's); elsewhere the tier stops at the side.
+    runs = [max((r for r in runs if (poly[r[1]][0] < 0) == port), key=over) for port in (True, False)
+            if any((poly[r[1]][0] < 0) == port for r in runs)]
+    for run in runs:
+        if over(run) < 1.0:
+            continue
+        pts = []
+        for j, i in enumerate(run):
+            x, z = poly[i]
+            if j in (0, len(run) - 1):
+                x = math.copysign(side(z) - .4, x)
+            pts.append([round(x, 3), round(z, 3)])
+        sign = 'p' if pts[1][0] < 0 else 's'
+        structures.append(dict(id=f'casemate-sponson-{sign}', name='Forward casemate sponson', footprint=ccw(pts), baseY=SPONSON_Y,
+                               height=round(10.035 - SPONSON_Y, 3), material='naval'))
+    s['footprint'] = ccw([[round(math.copysign(min(abs(x), side(z)), x), 3), z] for x, z in poly])
 # After superstructure, lowest tier: quarterdeck to the upper-deck level, open to the side over the lower after
 # casemates (measured plan cut at 5.2 m, reference frame x, z; mirrored).
 HALF = [(41.0, round(half_breadth(rz(41.0), 5.0) - .03, 3)), (42.17, 7.57), (44.17, 7.23), (43.40, 5.57), (47.70, 4.23), (48.27, 5.93), (50.33, 5.17)]

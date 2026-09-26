@@ -316,7 +316,8 @@ def rangefinders(D, kit):
 
 # ---------------------------------------------------------------- boats and davits
 def boat(kit, aid, col, c, length, beam, depth, heading=0.0, cabin=None, colour='white'):
-    """Original lofted boat hull on its keel point c (authoring frame), bow toward +X; `cabin` = (length, height)."""
+    """Original lofted boat hull on its keel point c (authoring frame), bow toward +X; `cabin` = (length, height),
+    painted `colour` (the reference's white canopies) over a ship-grey hull."""
     rings = []
     n = 13
     for i in range(n):
@@ -333,7 +334,7 @@ def boat(kit, aid, col, c, length, beam, depth, heading=0.0, cabin=None, colour=
         rings.append(ring)
     rot = Matrix.Rotation(heading, 3, 'Z')
     rings = [[tuple(Vector(c) + rot @ Vector(p)) for p in ring] for ring in rings]
-    hull = kit.loft(aid, col, 'boat hull', rings, colour, True, True, True)
+    hull = kit.loft(aid, col, 'boat hull', rings, 'naval', True, True, True)  # grey hulls, as the reference paints them
     kit.boxc(aid, col, 'gunwale', Vector(c) + rot @ Vector((0, 0, depth * 1.0)), (length * .78, beam * 1.0, .05), 'wood', heading)
     if cabin:
         cl, ch = cabin
@@ -461,12 +462,38 @@ def searchlights(D, kit):
 
 # ---------------------------------------------------------------- casemate hoods
 def casemates(D, kit):
-    """Roof plates over the forward lower casemates' drums (reference 11.74-11.81 m)."""
+    """Roof plates over the forward lower casemates' drums (reference 11.74-11.81 m) and the bowl-shaped fairings
+    under their sponsons, from the shelf's outboard edge down to the ship's side at 8.5 m (reference side view and
+    cuts at 8.85-9.6 m)."""
     col = kit.collections['Superstructure']
     for s in (-1, 1):
         aid = 'casemate-hood-' + ('port' if s < 0 else 'starboard')
         c = V(s * 5.502, 11.795, -49.467)
         kit.cylz(aid, col, 'hood', c, 1.95, .07, 'naval', 32)
+    for st in D['structures']:
+        # Forward drums' sponsons meet the side at 8.5 m, the after lower drums' shelves at 2.6 m (reference cuts and side view).
+        if st['id'].startswith('casemate-sponson'):
+            foot_y = 8.5
+        elif st['id'].startswith('aftlow-'):
+            foot_y = 2.6
+        else:
+            continue
+        y0 = st['baseY']
+        pts = [(x, z - ZSHIFT) for x, z in st['footprint']]
+        sign = -1 if sum(p[0] for p in pts) < 0 else 1
+        arc = sorted((p for p in pts if abs(p[0]) > hull_half(kit, p[1], y0) + .03), key=lambda p: p[1])
+        rings = []
+        for x, z in arc:
+            ring = []
+            for k in range(6):
+                a = math.pi / 2 * k / 5
+                y = y0 + .01 - (y0 + .01 - foot_y) * math.sin(a)
+                side = hull_half(kit, z, y) - .05
+                ring.append(tuple(V(sign * (side + (abs(x) - side) * math.cos(a)), y, z)))
+            ring.append(tuple(V(sign * (hull_half(kit, z, y0) - .05), y0 + .01, z)))
+            rings.append(ring)
+        if len(rings) >= 2:
+            kit.loft(st['id'], col, 'fairing', rings, 'naval', True, True, True)
 
 
 # ---------------------------------------------------------------- deck gear
