@@ -136,10 +136,10 @@ def type91_director(kit, id, ref, col, facing=0.0, well=.8):
     moving = [kit.cylz(id, col, 'seat', (x, y, base), .95, .12, 'naval', 28)]
     moving.append(kit.cylz(id, col, 'hood', (x, y, base + .1), 1.185, 1.4, 'naval', 32))
     moving.append(kit.cylz(id, col, 'hood roof', (x, y, base + 1.5), 1.2, .25, 'roof', 32, r2=.85))
-    # The hood is open over the director's sights: a dark opening in the roof, reaching the face.
-    moving.append(kit.beam(id, col, 'roof opening', Vector((x, y, base + 1.755)) - f * .15, Vector((x, y, base + 1.755)) + f * .9, .7, .012, 'dark'))
+    # The hood is cut open over the director's sights: the opening runs up the face into the roof's edge.
+    moving.append(kit.beam(id, col, 'roof opening', Vector((x, y, base + 1.755)) + f * .35, Vector((x, y, base + 1.755)) + f * .9, 1.0, .012, 'dark'))
     c = Vector((x, y, base + 1.28))
-    moving.append(kit.beam(id, col, 'sighting opening', c + f * 1.17, c + f * 1.2, 1.3, .5, 'dark'))
+    moving.append(kit.beam(id, col, 'sighting opening', c + f * 1.17 + Vector((0, 0, .08)), c + f * 1.2 + Vector((0, 0, .08)), 1.3, .56, 'dark'))
     for s in (-1, 1):
         port = c + f * .95 + side * s * .72 + Vector((0, 0, -.25))
         moving.append(kit.beam(id, col, 'rangefinder port', port, port + f * .02, .28, .16, 'dark'))
