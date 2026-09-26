@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-410-guns/type3_410.py",
+    "assets/parts/gun_bloomers.py",
+    "assets/ships/nagato/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}
