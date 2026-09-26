@@ -149,9 +149,9 @@ for mount in D['mounts']:
     col = light if kind.startswith(('type96', 'type93')) else arm
     radius = mount['weapon']['barbetteRadius']
     if mount['battery'] == 'main':
-        # The turret bears on a shallow roller ring 3.14 m above its yaw datum; the ship owns the
-        # barbette from the supporting deck up to that plane.
-        top = z + 3.14
+        # The turret bears on a shallow roller ring 0.25 m below its yaw datum (the gunhouse floor);
+        # the ship owns the barbette from the supporting deck up to that plane.
+        top = z - .25
         floor = support.below(x, y, top - .05)
         ob = cyl(mount['id'] + '.barbette', (x, y, (floor + top) / 2), 4.79, top - floor + .02, 'naval', arm, 72)
         ob['assemblyId'] = mount['id']

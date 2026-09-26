@@ -130,9 +130,10 @@ b = dict(schemaVersion=1, id='hyuga', name='IJN Hyūga',
 # ---------------------------------------------------------------- mounts (reference datums, HP_*)
 FIRE_MAIN = dict(fuelSeconds=90, ignitionHeat=.5, heatPerDamage=.014)
 FIRE_LIGHT = dict(fuelSeconds=45, ignitionHeat=.5, heatPerDamage=.014)
-MAIN_PART = 'type41-356-kongo-1942-twin'
-# The Kongō turret recipe carries its yaw datum 3.326 m below the reference gunhouse floor (HP_JGM).
-MAIN_DY = -3.326
+MAIN_PART = 'type41-356-hyuga-twin'
+# The Ise-class turret's yaw datum is the reference gunhouse floor (HP_JGM); the recipe raises each
+# barbette to the bearing plane 0.25 m below it.
+MAIN_DY = 0.0
 MAIN = [('main-1', 'No. 1 turret', (8.078, -61.497), 0), ('main-2', 'No. 2 turret', (11.147, -48.649), 0),
         ('main-3', 'No. 3 turret', (9.143, 9.498), 180), ('main-4', 'No. 4 turret', (6.074, 22.049), 180),
         ('main-5', 'No. 5 turret', (8.898, 52.88), 180), ('main-6', 'No. 6 turret', (6.074, 65.43), 180)]
@@ -263,9 +264,9 @@ for m in b['mounts']:
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
-        # The Ise-class gunhouse in the yaw frame (x across, y up, z aft): 12.3 m long from 5.5 m ahead of the
-        # pivot, 8.5 m wide, from its floor to the roof crown.
-        entry['body'] = dict(center=[0, 1.3, .7], size=[8.5, 2.5, 12.3])
+        # The Ise-class gunhouse in the yaw frame (x across, y up, z aft): 10.8 m long from 3.95 m ahead of the
+        # pivot, 8.6 m wide, from its floor to the roof ridge.
+        entry['body'] = dict(center=[0, 1.32, 1.45], size=[8.6, 2.64, 10.8])
     clear_mounts.append(entry)
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
 nearby = []
