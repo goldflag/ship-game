@@ -391,11 +391,22 @@ def masts(D, kit):
         for x in (4.52, 7.30):
             kit.cylz(aid, col, 'signal lamp', V(s * x, 31.05, axis(31.0)), .08, .2, 'dark', 8)
     kit.boxc(aid, col, 'wind vane', V(1.54, 31.25, axis(31.0)), (.4, .1, .6), 'edge')
-    # Outriggers: aft to z -9.4 near the masthead, forward to z -16.2 for the forestay, each on a strut.
-    kit.beam(aid, col, 'after outrigger', V(0, 32.4, axis(32.4)), V(0, 32.1, -9.4), .1, .12, 'naval')
-    kit.member(aid, col, V(0, 30.4, axis(30.4)), V(0, 32.05, -9.5), .04, 'naval', 5)
-    kit.beam(aid, col, 'forward outrigger', V(0, 31.5, axis(31.5)), V(0, 30.6, -16.2), .1, .12, 'naval')
-    kit.member(aid, col, V(0, 32.5, axis(32.5)), V(0, 30.65, -16.1), .04, 'naval', 5)
+    # Outriggers where the reference has them and its wires end: aft level at 30.92 m to z -9.45 on a strut from the
+    # mast at 28.9 m, forward from the mast at 30.75 m down to the forestay's end (29.62 m, z -16.22), held by a lift
+    # from the masthead platform.
+    kit.beam(aid, col, 'after outrigger', V(0, 30.92, axis(30.92)), V(0, 30.92, -9.45), .1, .12, 'naval')
+    kit.member(aid, col, V(0, 28.91, axis(28.91)), V(0, 30.9, -10.01), .04, 'naval', 5)
+    for s in (-1, 1):
+        kit.member(aid, col, V(s * .3, 30.75, axis(30.75) - .05), V(0, 29.62, -16.22), .045, 'naval', 6)
+        kit.member(aid, col, V(s * .3, 29.72, axis(29.72) - .05), V(0, 29.62, -16.22), .04, 'naval', 6)
+    kit.member(aid, col, V(0, 29.66, -16.2), V(0, 32.8, -13.17), .014, 'edge', 4)
+    # Masthead platform under the SC-1 (reference: 2.5 m square at 32.8 to 32.9 m, centred at z -13.01) on four
+    # braces down to the pole at 31.92 m.
+    kit.boxc(aid, col, 'masthead platform', V(0, 32.85, -13.01), (2.5, 2.5, .1), 'naval')
+    for x, z in ((-.88, -13.88), (.88, -13.88), (-.88, -12.14), (.88, -12.14)):
+        kit.member(aid, col, V(x * .1, 31.92, axis(31.92)), V(x, 32.8, z), .035, 'naval', 5)
+    for s in (-1, 1):
+        kit.cylz(aid, col, 'fighting light', V(s * 1.32, 32.4, -13.0), .1, .6, 'dark', 8)
     kit.boxc(aid, col, 'signal plate', V(0, 27.6, axis(27.6) - .55), (.4, .12, 2.9), 'naval')
     for y in (19.4, 20.6, 22.1, 25.1):
         c = V(0, y, axis(y) - .35)
@@ -407,8 +418,6 @@ def masts(D, kit):
     kit.cylz(aid, col, 'ships bell', V(0, 16.9, axis(16.9) + .5), .2, .45, 'brass', 12, r2=.12)
     kit.member(aid, col, V(0, 17.35, axis(17.35) + .5), V(0, 17.35, axis(17.35) + .3), .03)
     kit.ladder(aid, col, V(0, 15.3, axis(15.3) - .5), V(0, 30.7, axis(30.7) - .28), (0, 1, 0), .38)
-    # Masthead plate carrying the aerial's turntable.
-    kit.cylz(aid, col, 'masthead plate', V(0, 32.8, axis(32.8)), .36, .1, 'naval', 12)
     # SC-1 air-search aerial on the masthead, trained by the rig (HP_ARS_1): a bedspring on a yoke.
     rid = 'radar-sc1'
     bx, by, bz = P(0, 32.9, -12.966)
@@ -432,12 +441,14 @@ def masts(D, kit):
     taper(kit, aid, col, 'pole', (0, 14.6, axis_m(14.6)), (0, 27.4, axis_m(27.4)), .18, .11, 'naval', 6)
     taper(kit, aid, col, 'topmast', (0, 27.3, axis_m(27.3)), (0, 28.75, axis_m(28.75)), .07, .04, 'naval', 8)
     kit.cylz(aid, col, 'foot collar', V(0, 14.6, axis_m(14.6)), .28, .3, 'naval', 6)
-    # The reference's wire ends: the yard at 25.15 m across 9.1 m, a 1.15 m masthead platform at 27.37 m, a small
-    # crosstree at 23.4 m and the gaff level at 24.8 m to z 13.14.
+    # The reference's wire ends: the yard at 25.15 m across 9.1 m, a 1.88 m square masthead platform at 27.29 to
+    # 27.39 m on four braces from 26.46 m, a small crosstree at 23.4 m and the gaff level at 24.8 m to z 13.14.
     for s in (-1, 1):
         taper(kit, aid, col, 'yard', (s * .06, 25.15, axis_m(25.15) + .1), (s * 4.57, 25.15, axis_m(25.15) + .1), .08, .04, 'naval', 8)
         kit.member(aid, col, V(s * .1, 23.42, 9.78), V(s * 1.04, 23.42, 9.78), .03, 'naval', 5)
-    kit.boxc(aid, col, 'masthead platform', V(0, 27.37, 9.97), (1.3, 1.15, .06), 'naval')
+    kit.boxc(aid, col, 'masthead platform', V(0, 27.34, 9.97), (1.88, 1.88, .1), 'naval')
+    for x, z in ((-.64, 9.3), (.64, 9.3), (-.64, 10.65), (.64, 10.65)):
+        kit.member(aid, col, V(x * .05, 26.46, axis_m(26.46)), V(x, 27.3, z), .03, 'naval', 5)
     taper(kit, aid, col, 'gaff', (0, 24.8, axis_m(24.8) + .1), (0, 24.8, 13.14), .07, .04, 'naval', 8)
     kit.member(aid, col, V(0, 23.07, axis_m(23.07) + .1), V(0, 24.8, 12.54), .03, 'naval', 5)
     kit.boxc(aid, col, 'speed light', V(0, 18.0, axis_m(18.0) + .3), (.8, .28, .6), 'edge')
