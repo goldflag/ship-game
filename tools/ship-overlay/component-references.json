@@ -2229,5 +2229,20 @@
       "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsa508",
       "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/uk/gun/aaircraft/bga097_40mm_bofors_mk1/bga097_40mm_bofors_mk1.model"
     ]
+  },
+  {
+    "partId": "us-5in25-mk19-single",
+    "category": "gun",
+    "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc106",
+    "sourceVehicle": "pasc106",
+    "resource": "common/visual/usa/gun/secondary/ags007_5in25_mk19_mod6/ags007_5in25_mk19_mod6",
+    "sourceName": "ags007_5in25_mk19_mod6",
+    "match": "exact",
+    "notes": "Pensacola A_ATBA/B_ATBA and New Orleans (pasc107) AB_ATBA fit this one visual at all eight HP_AGS hardpoints, with identical skeleton transforms. Visual-source equivalence only.",
+    "evidence": [
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc106",
+      "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasc107",
+      "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/usa/gun/secondary/ags007_5in25_mk19_mod6/ags007_5in25_mk19_mod6.model"
+    ]
   }
 ]

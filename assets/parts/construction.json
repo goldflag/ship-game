@@ -11856,6 +11856,44 @@
           ]
         }
       ]
+    },
+    {
+      "id": "us-5in25-mk19-single",
+      "name": "5-inch/25 Mk 19 open mount",
+      "kind": "gun",
+      "size": [
+        2.985,
+        2.4403,
+        4.8137
+      ],
+      "boundsCenter": [
+        -0.0575,
+        1.2201,
+        -0.6608
+      ],
+      "centerOfGravity": [
+        0,
+        0.95,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in25-mk19-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
     }
   ]
 }

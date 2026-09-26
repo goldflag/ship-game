@@ -103259,6 +103259,60 @@
         "penetrationReferenceSpeedMps": 692.757864,
         "basis": "Provisional game calibration scaled from the us-40mm-bofors-mk1-iowa sibling (same 40 mm/56 Bofors round, 120 rounds per minute per barrel); not historical firing data."
       }
+    },
+    {
+      "kind": "gun",
+      "barrelSpacing": 0.3,
+      "traverseDeg": 160,
+      "traverseRateDeg": 15,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 15,
+      "armorMm": 6,
+      "ammoPerBarrel": 360,
+      "penetrationMm": 52,
+      "damage": 10,
+      "recoilM": 0.38,
+      "id": "us-5in25-mk19-single",
+      "name": "5-inch/25 Mk 19 open mount",
+      "massKg": 9000,
+      "barrelCount": 1,
+      "mountingStyle": "open-pedestal",
+      "barbetteRadius": 0.7,
+      "gunhouseSize": [
+        2.55,
+        2.9,
+        2.2
+      ],
+      "pivotHeight": 1.7,
+      "trunnionForward": 0,
+      "muzzleForward": 3.065,
+      "barrelBaseRadius": 0.158,
+      "caliberM": 0.127,
+      "reloadSeconds": 3.4,
+      "muzzleSpeed": 657,
+      "projectileMassKg": 24.5,
+      "ballistics": {
+        "dragPerSecond": 0.052017,
+        "dispersionRad": 0.0013,
+        "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Sigmas estimated, capped at 3 sigma. penetrationMm at 5000 m, 10 m launch/sea target, nominal speed (397.477 m/s): mean of the us-5in38-mk21-single and us-5in51-mk7-open-single budgets scaled to this shell by mass^0.7 and reference speed^1.4; see assets/parts/us-5in25-mk19/README.md. Armor resistance paid separately.",
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 397.476694
+      },
+      "ap": {
+        "armingResistanceMm": 21.1667,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 0.6125,
+        "fragmentPenetrationMm": 10.16,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 20 ms below 200 mm; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 1.96,
+        "fragmentPenetrationMm": 21.1667,
+        "damage": 20,
+        "stockFraction": 0.6,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. The AA common shell is the main load: 60% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+      }
     }
   ],
   "torpedoes": [
