@@ -304,6 +304,55 @@ def tubs(D, kit):
             kit.member(aid, col, V(a[0], 7.33, a[1]), V(b[0], 7.33, b[1]), .025, 'naval', 6)
 
 
+def offset_line(line, d):
+    """A reference-frame (x, z) polyline pushed `d` to the right of its direction of travel."""
+    out = []
+    for i, (x, z) in enumerate(line):
+        normals = []
+        for a, b in ((line[i - 1] if i > 0 else None, (x, z)), ((x, z), line[i + 1] if i + 1 < len(line) else None)):
+            if a is None or b is None:
+                continue
+            dx, dz = b[0] - a[0], b[1] - a[1]
+            k = math.hypot(dx, dz)
+            normals.append((dz / k, -dx / k))
+        nx, nz = sum(n[0] for n in normals), sum(n[1] for n in normals)
+        k = math.hypot(nx, nz) or 1
+        out.append((x + nx / k * d, z + nz / k * d))
+    return out
+
+
+def bridge_bulwark(kit):
+    """The open navigating bridge as the reference has it (plan cut at 15.7 m, sections at x 0.5 to 2.6): a 1 m
+    bulwark from the bridge deck at 15.18 m round its forward part, the front at reference z -25.33, the sides
+    stepping in from x 2.85 at z -24.7 to 2.0 at z -22.3 and running aft to z -20.2 where the deck stays open round
+    the Mk 37 tower, with a capping bar 8 cm proud of its face; inside, the four sky-lookout chairs (am532) facing
+    outboard with their binoculars and foot rails."""
+    col = kit.collections['Superstructure']
+    aid = 'bridge-bulwark'
+    # Outer face, from the starboard after end forward, across and aft to port, so the wall thickens inboard.
+    line = [(2.02, -20.2), (2.02, -22.3), (2.83, -24.66), (2.86, -25.33), (-2.86, -25.33), (-2.83, -24.66), (-2.02, -22.3), (-2.02, -20.2)]
+    kit.wall(aid, col, 'bulwark', plan(line), 15.18, 16.08, .12, 'naval', closed=False)
+    kit.wall(aid, col, 'capping', plan(offset_line(line, -.08)), 16.06, 16.18, .2, 'naval', closed=False)
+    lid = 'sky-lookouts'
+    for x, z in ((1.43, -23.45), (1.09, -22.24)):
+        for s in (-1, 1):
+            c = V(s * x, 15.2, z)
+            floor = kit.below(c.x, c.y, c.z + .3, c.z)
+            out = Vector((0, -s, 0))                      # authoring +Y is port: outboard of a starboard chair is -Y
+            kit.cylz(lid, col, 'column', Vector((c.x, c.y, floor - .01)), .06, 1.0, 'naval', 8)
+            kit.boxc(lid, col, 'seat', Vector((c.x, c.y, floor + .62)) - out * .12, (.36, .34, .05), 'naval')
+            kit.boxc(lid, col, 'backrest', Vector((c.x, c.y, floor + .86)) - out * .3, (.34, .04, .42), 'naval')
+            kit.boxc(lid, col, 'binocular mount', Vector((c.x, c.y, floor + 1.02)), (.18, .18, .1), 'edge')
+            for t in (-.07, .07):
+                kit.part('rod', lid, col, 'binocular', Vector((c.x + t, c.y, floor + 1.1)) - out * .12, Vector((c.x + t, c.y, floor + 1.1)) + out * .2, .045, 'dark', vertices=8)
+            # The foot rail: a frame round the chair, 0.93 m along and 0.62 m across, 0.3 m over the deck.
+            rail = [Vector((c.x + dx, c.y, floor + .3)) + out * dy for dx, dy in ((-.46, -.31), (.46, -.31), (.46, .31), (-.46, .31))]
+            for a, b in zip(rail, rail[1:] + rail[:1]):
+                kit.member(lid, col, a, b, .02, 'naval', 5)
+            for q in rail:
+                kit.member(lid, col, Vector((q.x, q.y, floor - .01)), q, .02, 'naval', 5)
+
+
 # Outer face of the port waist shield (reference x, z), from its inboard end aft round both tubs to the forward end.
 WAIST_SHIELD = [(3.95, 2.84), (5.16, 2.33), (5.82, 2.15), (6.59, 2.36), (7.15, 2.92), (7.36, 3.69), (7.15, 4.46), (6.59, 5.03), (5.82, 5.24),
                 (5.82, 6.48), (6.59, 6.69), (7.15, 7.25), (7.36, 8.02), (7.15, 8.79), (6.59, 9.36), (5.82, 9.56), (5.16, 9.38), (3.98, 8.64)]
@@ -1242,6 +1291,7 @@ def railings(D, kit):
 
 def build(D, kit):
     bow_bulwark(kit)
+    bridge_bulwark(kit)
     tubs(D, kit)
     funnels(D, kit)
     masts(D, kit)
