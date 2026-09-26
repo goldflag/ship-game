@@ -233,7 +233,10 @@ export class Game {
     return this.weaponGroups.find(g => g.id === this.selectedWeaponGroupId)?.id
       ?? this.weaponGroups.find(g => g.battery === this.battery)?.id;
   }
-  get selectedAmmunition(): Ammunition { return this.ammunition[this.weaponGroupId ?? this.battery] ?? 'ap'; }
+  get selectedAmmunition(): Ammunition {
+    const first = this.definition.mounts.findIndex(m => selectedWeapon(m.battery, m.weapon, this.battery, this.weaponGroupId));
+    return this.ammunition[this.weaponGroupId ?? this.battery] ?? this.simulation.player.mounts[first]?.loaded ?? 'ap';
+  }
   selectWeaponGroup(id: string): void {
     const group = this.weaponGroups.find(g => g.id === id);
     if (!group) return;

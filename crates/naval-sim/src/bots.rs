@@ -446,17 +446,7 @@ pub(crate) fn ammunition(
         } else {
             Ammunition::Ap
         };
-    let count = mount.weapon.barrel_count;
-    if state.available(preferred) >= count {
-        preferred
-    } else if preferred == Ammunition::Ap
-        && mount.weapon.he.is_some()
-        && state.available(Ammunition::He) >= count
-    {
-        Ammunition::He
-    } else {
-        Ammunition::Ap
-    }
+    state.stocked(mount, preferred)
 }
 fn damage_aware_aim_points(
     actor: &Combatant,
