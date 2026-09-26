@@ -89,6 +89,95 @@ def torpedo_pockets(D, kit, hull):
     return names
 
 
+# ---------------------------------------------------------------- anchor recesses
+# Each bower anchor lies in a recess let into the forecastle's deck edge (reference top and quarter views: 3.9 m long
+# from z -76.35 to -72.45, its inboard wall slanting from x 2.30 forward to 1.65 aft, its floor sloping down
+# outboard to about 0.95 m under the deck edge, where the anchor's lowest point stands at 8.58 m).
+RECESS = dict(z0=-76.35, z1=-72.45, inboard=(2.30, 1.65), floor=9.05, slope=.265)
+
+
+def recess_floor(x):
+    """Height of the recess floor at reference |x| (a plane falling outboard)."""
+    return RECESS['floor'] - (abs(x) - RECESS['inboard'][1]) * RECESS['slope']
+
+
+def anchor_recesses(D, kit, hull):
+    for sign in (-1, 1):
+        (xf, xa), top = RECESS['inboard'], 11.5
+        corners = [(xf, RECESS['z0']), (6.0, RECESS['z0']), (6.0, RECESS['z1']), (xa, RECESS['z1'])]
+        vv = [tuple(V(sign * x, recess_floor(x) if level == 0 else top, z)) for level in (0, 1) for x, z in corners]
+        ff = [(3, 2, 1, 0), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
+        cutter = kit.solid(kit.mesh('anchor recess cutter', vv, ff, 'hullgray', kit.collections['Hull and decks']))
+        mod = hull.modifiers.new('anchor recess', 'BOOLEAN')
+        mod.operation = 'DIFFERENCE'
+        mod.object = cutter
+        mod.solver = 'EXACT'
+        bpy.context.view_layer.objects.active = hull
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+        bpy.data.objects.remove(cutter, do_unlink=True)
+    # The cut must leave floor vertices on the recess's plane inside its length; a failed boolean leaves none.
+    floor = [v for v in hull.data.vertices if -(RECESS['z1'] + ZSHIFT) - .01 <= v.co.x <= -(RECESS['z0'] + ZSHIFT) + .01
+             and abs(v.co.z - recess_floor(-v.co.y)) < .02 and 1.6 < abs(v.co.y) < 3.8]
+    if len(floor) < 4:
+        raise RuntimeError(f'anchor recesses: the boolean left {len(floor)} floor vertices; the recesses were not cut')
+
+
+def links(kit, aid, col, pts, material='black', pitch=.30):
+    """A chain cable as alternate flat and upright links along a polyline (authoring points), merged into one mesh."""
+    vv, ff = [], []
+    path = [Vector(p) for p in pts]
+    total = sum((b - a).length for a, b in zip(path, path[1:]))
+    k, along = 0, 0.0
+    while along <= total:
+        rest, i = along, 0
+        while i < len(path) - 2 and rest > (path[i + 1] - path[i]).length:
+            rest -= (path[i + 1] - path[i]).length
+            i += 1
+        a, b = path[i], path[i + 1]
+        d = (b - a).normalized()
+        c = a + d * min(rest, (b - a).length)
+        side = d.cross(Vector((0, 0, 1)))
+        side = side.normalized() if side.length > 1e-6 else Vector((0, 1, 0))
+        up = side.cross(d).normalized()
+        w, h = (.20, .06) if k % 2 == 0 else (.06, .20)
+        base = len(vv)
+        for du in (-.19, .19):
+            for sv, sw in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+                vv.append(tuple(c + d * du + side * (sv * w / 2) + up * (sw * h / 2 + h / 2 - .03)))
+        ff += [(base + 3, base + 2, base + 1, base), (base + 4, base + 5, base + 6, base + 7), (base, base + 1, base + 5, base + 4),
+               (base + 1, base + 2, base + 6, base + 5), (base + 2, base + 3, base + 7, base + 6), (base + 3, base, base + 4, base + 7)]
+        k += 1
+        along += pitch
+    return kit.solid(kit.tag(kit.mesh(aid + '.chain cable', vv, ff, material, col), aid))
+
+
+def anchor(kit, aid, col, sign):
+    """A stockless bower anchor lying crown aft on its recess floor (reference CM036: 1.69 m across the flukes,
+    3.2 m long): the crown, two flukes, the tapered shank and its shackle, in a frame tilted with the floor."""
+    n = Vector((sign * RECESS['slope'], 1, 0)).normalized()        # floor normal, reference frame
+    v = Vector((sign * 1, -RECESS['slope'], 0)).normalized()       # outboard along the floor
+    u = Vector((0, 0, -1))                                         # forward
+    ox = 2.80
+    origin = Vector((sign * ox, recess_floor(ox), -72.90))
+    at = lambda uu, vs, ww: Vector(P(*(origin + u * uu + v * vs + n * ww)))
+    def block(label, u0, u1, v0, v1, w0, w1, material='naval'):
+        pts = [at(uu, vs, ww) for ww in (w0, w1) for uu, vs in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))]
+        return kit.solid(kit.tag(kit.mesh(aid + '.' + label, [tuple(p) for p in pts],
+                                          [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)], material, col), aid))
+    block('crown', -.18, .40, -.64, .64, 0, .30)
+    for t in (-1, 1):
+        root = [at(.35, t * vs, ww) for vs, ww in ((.16, 0), (.82, 0), (.82, .20), (.16, .20))]
+        tip = [at(1.60, t * vs, ww) for vs, ww in ((.30, .04), (.64, .04), (.64, .14), (.30, .14))]
+        kit.loft(aid, col, 'fluke', [[tuple(p) for p in root], [tuple(p) for p in tip]], 'naval', True, True, False)
+    shank0 = [at(.30, vs, ww) for vs, ww in ((-.15, .04), (.15, .04), (.15, .32), (-.15, .32))]
+    shank1 = [at(2.72, vs, ww) for vs, ww in ((-.11, .08), (.11, .08), (.11, .28), (-.11, .28))]
+    kit.loft(aid, col, 'shank', [[tuple(p) for p in shank0], [tuple(p) for p in shank1]], 'naval', True, True, False)
+    ring = [at(2.93 + .21 * math.cos(math.tau * k / 10), .13 * math.sin(math.tau * k / 10), .18) for k in range(10)]
+    for a, b in zip(ring, ring[1:] + ring[:1]):
+        kit.member(aid, kit.collections['Deck fittings'], a, b, .045, 'naval', 6)
+    return at(3.14, 0, .12)
+
+
 # ---------------------------------------------------------------- torpedo mounts
 def torpedo_mounts(D, kit):
     """Triple 21-inch mounts (reference agt042): a pedestal and saddle carrying three tubes 8.0 m long, 0.69 m across
@@ -547,9 +636,21 @@ def boats(D, kit):
 
 
 # ---------------------------------------------------------------- aviation
+def side_plate(kit, aid, col, label, c, rot, x, y, z, length, height, t, material):
+    """An octagonal plate in a vertical fore-and-aft plane (local frame of centre c and rotation rot), t thick."""
+    a, b = length / 2, height / 2
+    k = min(a, b) * .45
+    pts = [(-a + k, -b), (a - k, -b), (a, -b + k), (a, b - k), (a - k, b), (-a + k, b), (-a, b - k), (-a, -b + k)]
+    vv = [tuple(c + rot @ Vector((x + px, y + dy, z + pz))) for dy in (-t / 2, t / 2) for px, pz in pts]
+    ff = [tuple(range(8)), tuple(8 + i for i in reversed(range(8)))] + [(i, (i + 1) % 8, 8 + (i + 1) % 8, 8 + i) for i in range(8)]
+    return kit.solid(kit.tag(kit.mesh(aid + '.' + label, vv, ff, material, col), aid))
+
+
 def catapults(D, kit):
-    """Two catapults on turntables abreast No. 4 funnel (reference ac001 at HP_AC): a plated girder 16.6 m long with
-    lightening holes and tapered ends, the launching car and its rails, on a pedestal and a 3.4 m turntable; empty."""
+    """Two catapults on turntables abreast No. 4 funnel (reference ac001 at HP_AC): a plated box girder 16.6 m long,
+    1.14 m wide and 0.84 m deep, its ends tapered up, pierced by oval lightening holes and lying on a 3.7 m
+    turntable; the launching car and its rails on top, a training handwheel at the side; empty. Heights from the
+    reference's orthographic side and top views, over the turntable's datum."""
     col = kit.collections['Boats and aviation']
     for s, (px, py, pz, brg) in ((1, (6.576, 6.992, 20.668, 1)), (-1, (-6.556, 6.987, 20.672, -1))):
         aid = 'catapult-' + ('port' if s < 0 else 'starboard')
@@ -557,24 +658,31 @@ def catapults(D, kit):
         floor = kit.below(c.x, c.y, c.z + .3, c.z)
         yaw = math.radians(-brg)
         rot = Matrix.Rotation(yaw, 3, 'Z')
-        kit.cylz(aid, col, 'turntable', Vector((c.x, c.y, floor - .01)), 1.7, c.z - floor + .10, 'naval', 28)
-        kit.cylz(aid, col, 'roller path', Vector((c.x, c.y, c.z + .09)), 1.6, .06, 'edge', 28)
-        kit.boxc(aid, col, 'pedestal', c + Vector((0, 0, .45)), (1.4, .9, .70), 'naval', yaw)
-        prof = [(-6.96, .75, .95), (-5.5, .72, 1.05), (-1.0, .70, 1.20), (2.5, .70, 1.20), (8.0, .72, 1.0), (9.66, .80, .88)]
+        kit.cylz(aid, col, 'turntable', Vector((c.x, c.y, floor - .01)), 1.85, c.z - floor + .08, 'naval', 32)
+        kit.cylz(aid, col, 'roller path', Vector((c.x, c.y, c.z + .06)), 1.75, .03, 'edge', 32)
+        top, half = .92, .57
+        prof = [(-6.95, .47), (-3.45, .08), (8.85, .08), (9.30, .30), (9.66, .58)]
         rings = []
-        for x, bottom, top in prof:
-            ring = [(x, -.36, bottom), (x, .36, bottom), (x, .36, top), (x, -.36, top)]
+        for x, bottom in prof:
+            ring = [(x, -half, bottom), (x, half, bottom), (x, half, top), (x, -half, top)]
             rings.append([tuple(c + rot @ Vector(p)) for p in ring])
         kit.loft(aid, col, 'girder', rings, 'naval', True, True, False)
-        for x in [-6.0, -4.9, -3.8, -2.4, -1.3, 1.6, 3.1, 4.3, 5.6, 6.9]:
+        bottom_at = lambda x: next(b0 + (b1 - b0) * (x - x0) / (x1 - x0) for (x0, b0), (x1, b1) in zip(prof, prof[1:]) if x0 <= x <= x1)
+        for k in range(15):
+            x = -6.30 + 1.08 * k
+            depth = top - bottom_at(x)
+            if depth < .40:
+                continue
             for t in (-1, 1):
-                p = c + rot @ Vector((x, t * .365, 1.02))
-                kit.part('rod', aid, col, 'lightening hole', p - rot @ Vector((0, t * .01, 0)), p + rot @ Vector((0, t * .01, 0)), .18, 'dark', vertices=10)
+                side_plate(kit, aid, col, 'lightening hole', c, rot, x, t * (half + .003), (top + bottom_at(x)) / 2, .80, min(.36, depth * .45), .012, 'dark')
         for t in (-1, 1):
-            kit.member(aid, col, c + rot @ Vector((-6.9, t * .24, 1.24)), c + rot @ Vector((9.6, t * .24, 1.24)), .03, 'edge', 4)
-        kit.boxc(aid, col, 'launching car', c + rot @ Vector((2.9, 0, 1.36)), (1.9, .95, .22), 'edge', yaw)
-        kit.boxc(aid, col, 'car cradle', c + rot @ Vector((2.9, 0, 1.55)), (1.4, .10, .30), 'edge', yaw)
-        kit.boxc(aid, col, 'breech housing', c + rot @ Vector((-5.8, 0, 1.40)), (1.2, .80, .40), 'naval', yaw)
+            kit.member(aid, col, c + rot @ Vector((-6.9, t * .24, top + .03)), c + rot @ Vector((9.2, t * .24, top + .03)), .03, 'edge', 4)
+            kit.part('rod', aid, col, 'handwheel', c + rot @ Vector((-.15, t * (half + .02), .80)), c + rot @ Vector((-.15, t * (half + .08), .80)), .16, 'brass', vertices=12)
+        # Launching car on the rails (reference 7.91-8.19 m, uprights to 8.6 m), 2.2 m long, amidships of the girder.
+        kit.boxc(aid, col, 'launching car', c + rot @ Vector((2.49, 0, top + .13)), (2.2, 1.0, .14), 'edge', yaw)
+        for dx in (-1.0, 1.0):
+            for t in (-1, 1):
+                kit.boxc(aid, col, 'car upright', c + rot @ Vector((2.49 + dx, t * .42, top + .43)), (.08, .08, .46), 'edge', yaw)
 
 
 # ---------------------------------------------------------------- searchlights
@@ -652,16 +760,27 @@ def deck_gear(D, kit):
     and the accommodation ladders at the reference positions (misc parts AM/CM datums)."""
     col = kit.collections['Deck fittings']
     for s in (-1, 1):
-        c = V(s * 2.66, 9.16, -74.12)
-        c.z = kit.below(c.x, c.y, 10.5, 9.0)
-        kit.boxc('ground-tackle', col, 'anchor shank', c + Vector((0, 0, .18)), (2.6, .32, .30), 'black', math.radians(4 * s))
-        kit.boxc('ground-tackle', col, 'anchor crown', c + Vector((-1.2, 0, .22)), (.35, 1.5, .36), 'black')
-        kit.part('cyl', 'ground-tackle', col, 'hawse pipe', c + Vector((1.45, 0, .06)), .34, .14, 'naval', vertices=14)
+        # The bower anchor in its deck-edge recess, its cable led forward into a hawse in the recess's forward wall;
+        # on deck the cable comes up through a deck pipe inboard of the recess and runs aft to the capstan, as the
+        # reference lays them.
+        side = 'port' if s < 0 else 'starboard'
+        shackle = anchor(kit, f'anchor-{side}', col, s)
+        hawse = V(s * 2.95, recess_floor(2.95) + .32, RECESS['z0'])
+        kit.part('rod', f'anchor-{side}', col, 'hawse lip', hawse + Vector((-.06, 0, 0)), hawse + Vector((.03, 0, 0)), .30, 'naval', vertices=14)
+        kit.part('rod', f'anchor-{side}', col, 'hawse', hawse + Vector((-.075, 0, 0)), hawse + Vector((-.058, 0, 0)), .21, 'dark', vertices=14)
+        links(kit, f'anchor-{side}', col, [shackle, shackle.lerp(hawse, .5) + Vector((0, 0, .02)), hawse + Vector((-.12, 0, 0))])
+        pipe = V(s * 1.62, 0, -76.05)
+        pipe.z = kit.below(pipe.x, pipe.y, 10.5, 9.0)
+        kit.cylz('ground-tackle', col, 'deck pipe', pipe - Vector((0, 0, .01)), .34, .18, 'naval', 16)
+        kit.cylz('ground-tackle', col, 'deck pipe mouth', pipe + Vector((0, 0, .16)), .22, .03, 'dark', 14)
         cap = V(s * 3.0, 9.12, -67.01)
         cap.z = kit.below(cap.x, cap.y, 10.5, 9.0)
-        for i in range(8):
-            a, b = c.lerp(cap, i / 8), c.lerp(cap, (i + 1) / 8)
-            kit.member('ground-tackle', col, Vector((a.x, a.y, a.z + .06)), Vector((b.x, b.y, b.z + .06)), .05, 'black', 5)
+        path = []
+        for x, z in ((1.62, -75.75), (1.45, -73.0), (1.55, -70.6), (2.30, -68.6), (2.80, -67.30)):
+            q = V(s * x, 0, z)
+            q.z = kit.below(q.x, q.y, 10.5, 9.0) + .01
+            path.append(q)
+        links(kit, 'ground-tackle', col, path)
         kit.cylz('capstans', col, 'capstan', cap, .34, .55, 'naval', 16, r2=.30)
         kit.cylz('capstans', col, 'capstan head', cap + Vector((0, 0, .55)), .42, .16, 'edge', 16)
     for x, z in [(0, -81.2), (4.25, -65.2), (-4.25, -65.2), (-6.87, -21.3), (7.52, 5.0), (-7.52, 5.0), (5.35, 56.8), (-5.35, 56.8), (0, 75.9)]:
@@ -786,14 +905,21 @@ def railings(D, kit):
     rails no part of the upper deck's edge between the superstructures, where the after torpedo mounts swing their
     tubes out over the side."""
     col = kit.collections['Deck fittings']
+    r0, r1 = RECESS['z0'] - .15, RECESS['z1'] + .15
+    inboard = lambda z: RECESS['inboard'][0] + (RECESS['inboard'][1] - RECESS['inboard'][0]) * (z - RECESS['z0']) / (RECESS['z1'] - RECESS['z0'])
     for s in (-1, 1):
         for z0, z1 in ((-84.6, -55.0), (42.2, 83.4)):
             n = max(2, int(abs(z1 - z0) / 1.6))
+            zs = [z0 + (z1 - z0) * i / n for i in range(n + 1)]
+            if z0 < r0 and r1 < z1:
+                # Round the anchor recess along its inboard edge, as the reference's stanchions stand.
+                zs = sorted([z for z in zs if not r0 - .5 < z < r1 + .5] + [r0 - .5, r0, r1, r1 + .5])
             pts = []
-            for i in range(n + 1):
-                z = z0 + (z1 - z0) * i / n
+            for z in zs:
                 y = deck(kit, z)
                 x = hull_half(kit, z, y - .02) - .1
+                if r0 <= z <= r1:
+                    x = min(x, inboard(min(max(z, RECESS['z0']), RECESS['z1'])) - .12)
                 pts.append(V(s * x, y, z))
             for a, b in zip(pts, pts[1:]):
                 for h in (.5, 1.0):

@@ -46,6 +46,7 @@ materials, collections, helpers = kit.materials, kit.collections, kit.helpers
 hull = authored_hull(D['hull'], kit.mesh, collections['Hull and decks'], [materials['hullgray'], materials['antifouling']], False)
 hull.data.materials.append(materials['deck'])
 omaha_fittings.torpedo_pockets(D, kit, hull)
+omaha_fittings.anchor_recesses(D, kit, hull)
 for face in hull.data.polygons:
     if face.normal.z > .96 and face.center.z > 0:
         face.material_index = 2
