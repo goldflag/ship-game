@@ -52,6 +52,7 @@ export const suggestedVehicles: Record<string, string> = {
   'liberty-cargo': 'pasx003', 'liberty-collier': 'pasx003',
   cleveland: 'pasc208',
   fuso: 'pjsb006',
+  hyuga: 'pjsb517',
 };
 export const vehicleUrl = (id: string) => `https://gamemodels3d.com/en/games/worldofwarships/vehicles/${id}`;
 export function vehicleId(input: string): string {

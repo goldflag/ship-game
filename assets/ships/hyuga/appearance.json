@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "id": "hyuga-1942-default-v1",
+  "basis": "Approved GameModels3D pjsb517 default scheme: one grey over hull and upperworks, grey steel roofs, the casemate ledge and the stern, natural wood weather decks, a linoleum aircraft deck with brass strips on the quarterdeck, black funnel cap and upper mainmast and a red-oxide bottom without boot topping. Swatches are linear-RGB interpretations of the reference's texture, not measured historical paint.",
+  "wear": "in-commission",
+  "palette": {
+    "hyuga-reference-grey": [0.118, 0.124, 0.140],
+    "hyuga-reference-steel-roof": [0.100, 0.104, 0.117],
+    "hyuga-reference-wood": [0.100, 0.076, 0.054],
+    "hyuga-reference-linoleum": [0.072, 0.040, 0.031],
+    "hyuga-reference-red-oxide": [0.118, 0.062, 0.040],
+    "hyuga-reference-black": [0.012, 0.012, 0.013],
+    "hyuga-authored-dark-fittings": [0.038, 0.038, 0.040],
+    "hyuga-authored-mid-fittings": [0.090, 0.094, 0.106],
+    "hyuga-authored-canvas": [0.55, 0.53, 0.44],
+    "hyuga-authored-fitting-wood": [0.19, 0.13, 0.075]
+  },
+  "materials": {
+    "naval": { "paint": "hyuga-reference-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "hyuga-reference-grey", "finish": "painted-steel" },
+    "roof": { "paint": "hyuga-reference-steel-roof", "finish": "painted-deck" },
+    "deck": { "paint": "hyuga-reference-wood", "finish": "wood" },
+    "linoleum": { "paint": "hyuga-reference-linoleum", "finish": "linoleum" },
+    "antifouling": { "paint": "hyuga-reference-red-oxide", "finish": "underwater-coating" },
+    "black": { "paint": "hyuga-reference-black", "finish": "painted-steel" },
+    "edge": { "paint": "hyuga-authored-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "hyuga-authored-mid-fittings", "finish": "painted-steel" },
+    "canvas": { "paint": "hyuga-authored-canvas", "finish": "painted-steel" },
+    "wood": { "paint": "hyuga-authored-fitting-wood", "finish": "wood", "fittings": true }
+  },
+  "decking": {
+    "deck": { "plankWidth": 0.15, "plankLength": 6.0, "seamWidth": 0.004, "coating": "bare" }
+  }
+}
