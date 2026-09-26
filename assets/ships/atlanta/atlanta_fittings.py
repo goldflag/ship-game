@@ -245,8 +245,9 @@ def leaf(kit, aid, col, label, s, root, tip, width, lift0, lift1, thickness=.12,
 # Walled tubs round light guns and directors (reference frame): centre (x, z) and radius, or a traced outline;
 # floor and shield top heights from the reference's plan cuts and probes.
 TUBS = [
-    ('mk44-tub-port', (-5.61, -24.02, 1.2), 7.06, 8.095),
-    ('mk44-tub-starboard', (5.61, -24.02, 1.2), 7.06, 8.095),
+    ('mk44-tub-port', (-5.61, -24.02, 1.2, 12), 7.06, 8.095),
+    ('mk44-tub-starboard', (5.61, -24.02, 1.2, 12), 7.06, 8.095),
+    ('mk44-tub-after', (0.0, 22.03, 1.2, 12), 11.12, 12.14),
     ('aa-tub-stern-port', (-3.4, 69.43, 1.6), 4.248, 5.245),
     ('aa-tub-stern-starboard', (3.4, 69.43, 1.6), 4.248, 5.245),
     ('quad-tub-after', (0.0, 26.79, 2.42), 10.011, 10.995),
@@ -259,8 +260,8 @@ TUBS = [
 
 def tub_outline(shape):
     if isinstance(shape, tuple):
-        cx, cz, r = shape
-        return ring_pts(cx, cz, r, 32)
+        cx, cz, r, *n = shape
+        return ring_pts(cx, cz, r, n[0] if n else 32)
     return shape
 
 
@@ -333,24 +334,72 @@ def bridge_bulwark(kit):
     line = [(2.02, -20.2), (2.02, -22.3), (2.83, -24.66), (2.86, -25.33), (-2.86, -25.33), (-2.83, -24.66), (-2.02, -22.3), (-2.02, -20.2)]
     kit.wall(aid, col, 'bulwark', plan(line), 15.18, 16.08, .12, 'naval', closed=False)
     kit.wall(aid, col, 'capping', plan(offset_line(line, -.08)), 16.06, 16.18, .2, 'naval', closed=False)
-    lid = 'sky-lookouts'
     for x, z in ((1.43, -23.45), (1.09, -22.24)):
         for s in (-1, 1):
-            c = V(s * x, 15.2, z)
-            floor = kit.below(c.x, c.y, c.z + .3, c.z)
-            out = Vector((0, -s, 0))                      # authoring +Y is port: outboard of a starboard chair is -Y
-            kit.cylz(lid, col, 'column', Vector((c.x, c.y, floor - .01)), .06, 1.0, 'naval', 8)
-            kit.boxc(lid, col, 'seat', Vector((c.x, c.y, floor + .62)) - out * .12, (.36, .34, .05), 'naval')
-            kit.boxc(lid, col, 'backrest', Vector((c.x, c.y, floor + .86)) - out * .3, (.34, .04, .42), 'naval')
-            kit.boxc(lid, col, 'binocular mount', Vector((c.x, c.y, floor + 1.02)), (.18, .18, .1), 'edge')
-            for t in (-.07, .07):
-                kit.part('rod', lid, col, 'binocular', Vector((c.x + t, c.y, floor + 1.1)) - out * .12, Vector((c.x + t, c.y, floor + 1.1)) + out * .2, .045, 'dark', vertices=8)
-            # The foot rail: a frame round the chair, 0.93 m along and 0.62 m across, 0.3 m over the deck.
-            rail = [Vector((c.x + dx, c.y, floor + .3)) + out * dy for dx, dy in ((-.46, -.31), (.46, -.31), (.46, .31), (-.46, .31))]
-            for a, b in zip(rail, rail[1:] + rail[:1]):
-                kit.member(lid, col, a, b, .02, 'naval', 5)
-            for q in rail:
-                kit.member(lid, col, Vector((q.x, q.y, floor - .01)), q, .02, 'naval', 5)
+            lookout_chair(kit, s * x, 15.2, z)
+
+
+def lookout_chair(kit, x, y, z):
+    """A sky-lookout chair (reference am532, 0.93 x 1.24 x 0.62 m) at a reference-frame datum, facing outboard: a
+    column with the seat and backrest, the binocular on its mount and a foot-rail frame round it."""
+    col = kit.collections['Superstructure']
+    lid = 'sky-lookouts'
+    c = V(x, y, z)
+    floor = kit.below(c.x, c.y, c.z + .3, c.z)
+    out = Vector((0, -1 if x > 0 else 1, 0))           # authoring +Y is port: outboard of a starboard chair is -Y
+    kit.cylz(lid, col, 'column', Vector((c.x, c.y, floor - .01)), .06, 1.0, 'naval', 8)
+    kit.boxc(lid, col, 'seat', Vector((c.x, c.y, floor + .62)) - out * .12, (.34, .36, .05), 'naval')
+    kit.boxc(lid, col, 'backrest', Vector((c.x, c.y, floor + .86)) - out * .3, (.34, .04, .42), 'naval')
+    kit.boxc(lid, col, 'binocular mount', Vector((c.x, c.y, floor + 1.02)), (.18, .18, .1), 'edge')
+    for t in (-.07, .07):
+        kit.part('rod', lid, col, 'binocular', Vector((c.x + t, c.y, floor + 1.1)) - out * .12, Vector((c.x + t, c.y, floor + 1.1)) + out * .2, .045, 'dark', vertices=8)
+    rail = [Vector((c.x + dx, c.y, floor + .3)) + out * dy for dx, dy in ((-.31, -.46), (.31, -.46), (.31, .46), (-.31, .46))]
+    for a, b in zip(rail, rail[1:] + rail[:1]):
+        kit.member(lid, col, a, b, .02, 'naval', 5)
+    for q in rail:
+        kit.member(lid, col, Vector((q.x, q.y, floor - .01)), q, .02, 'naval', 5)
+
+
+def station_wall(kit, aid, col, pts, inside, y0, y1, thickness=.08):
+    """A splinter wall on a runtime-frame (x, z) polyline, its outer face on the line and thickened toward the
+    `inside` point, with a rolled lip along its top."""
+    a = [Vector((-z, -x)) for x, z in pts]
+    q = Vector((-inside[1], -inside[0]))
+    d = a[1] - a[0]
+    if d.x * (q.y - a[0].y) - d.y * (q.x - a[0].x) < 0:     # keep the inside on the left of travel
+        a.reverse()
+    kit.wall(aid, col, 'splinter wall', [tuple(v) for v in a], y0, y1, thickness, 'naval', closed=False)
+    for u, v in zip(a, a[1:]):
+        kit.member(aid, col, (u.x, u.y, y1), (v.x, v.y, y1), .03, 'naval', 6)
+
+
+# The two lookout stations' walls (runtime frame x, z): the level tracing measured them as solid blocks, and the
+# blueprint now keeps only their floors (author-blueprint.py).
+BRIDGE_STATION = [(-1.4, -18.58), (-2.44, -17.94), (-2.48, -17.78), (-2.44, -15.38), (-2.38, -15.32), (2.38, -15.32), (2.44, -15.38),
+                  (2.48, -17.38), (2.44, -17.94), (1.54, -18.48), (1.4, -18.62)]
+AFTER_STATION = [(-2.23, 18.21), (-2.23, 14.77), (-2.31, 14.53), (-2.55, 14.25), (-2.55, 14.05), (-2.33, 13.71), (-2.05, 13.63), (-1.29, 12.99),
+                 (-1.13, 12.99), (-.77, 13.39), (-.53, 13.47), (.55, 13.47), (.79, 13.39), (1.11, 13.03), (1.35, 13.03), (2.15, 13.71),
+                 (2.35, 13.75), (2.57, 14.05), (2.57, 14.25), (2.29, 14.57), (2.21, 14.81), (2.21, 18.25)]
+
+
+def lookout_stations(kit):
+    """The bridge's aft lookout station (reference: walls x 2.35-2.45 from its 15.4 m floor to 16.4 m round the
+    forward Mk 37 tower) and the after superstructure's (walls from its 11.5 m floor to 12.49 m forward of the after
+    tower, and from the 02 deck to 12.14 m abaft it, stepping in to the after Mk 44's tub), each with its sky-lookout
+    chairs: four on the bridge, two aft (am532 datums)."""
+    col = kit.collections['Superstructure']
+    station_wall(kit, 'bridge-lookout-station', col, BRIDGE_STATION, (0, -16.5), 15.395, 16.395)
+    station_wall(kit, 'after-lookout-station', col, AFTER_STATION, (0, 16.0), 11.5, 12.495)
+    for s in (-1, 1):
+        # The station's after wall down to the 02 deck (1 cm abaft the floor's edge, so the two faces do not fight),
+        # and the lower walls abaft it round to the tub.
+        station_wall(kit, 'after-lookout-station', col, [(s * 2.23, 18.222), (s * 1.46, 18.742)], (0, 16.0), 11.035, 12.495)
+        station_wall(kit, 'after-lookout-station', col, [(s * 2.21, 18.25), (s * 2.21, 21.05), (s * 1.19, 21.89)], (0, 20.5), 11.035, 12.14)
+    for x, z in ((1.87, -16.0), (1.87, -17.77)):
+        for s in (-1, 1):
+            lookout_chair(kit, s * x, 15.4, z)
+    for s in (-1, 1):
+        lookout_chair(kit, s * 1.53, 11.5, 15.82)
 
 
 # Outer face of the port waist shield (reference x, z), from its inboard end aft round both tubs to the forward end.
@@ -1336,6 +1385,7 @@ def railings(D, kit):
 def build(D, kit):
     bow_bulwark(kit)
     bridge_bulwark(kit)
+    lookout_stations(kit)
     tubs(D, kit)
     funnels(D, kit)
     masts(D, kit)

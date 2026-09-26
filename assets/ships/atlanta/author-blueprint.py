@@ -293,6 +293,22 @@ if opts.structures:
         structures.append(entry)
 else:
     structures = previous['structures']
+# The two lookout stations are open wells in the reference (sections and plan cuts), not the solid blocks the level
+# tracing made of their walls: the bridge's aft station floored at 15.4 m round the forward Mk 37 tower, and the after
+# superstructure's floored at 11.5 m forward of the after tower, with the after Mk 44's tub on the 02 deck abaft it.
+# Their walls are drawn by atlanta_fittings.lookout_stations; the towers stand on the floors.
+AFTER_STATION_FLOOR = [(-1.29, 12.99), (-2.05, 13.63), (-2.33, 13.71), (-2.55, 14.05), (-2.55, 14.25), (-2.31, 14.53), (-2.23, 14.77), (-2.23, 18.21),
+                       (-1.47, 18.73), (1.45, 18.73), (2.21, 18.25), (2.21, 14.81), (2.29, 14.57), (2.57, 14.25), (2.57, 14.05), (2.35, 13.75),
+                       (2.15, 13.71), (1.35, 13.03), (1.11, 13.03), (.79, 13.39), (.55, 13.47), (-.53, 13.47), (-.77, 13.39), (-1.13, 12.99)]
+structures = [s for s in structures if s['id'] not in ('bridge-23', 'bridge-24', 'after-superstructure-09', 'after-superstructure-10')]
+for s in structures:
+    top = s['baseY'] + s['height']
+    if s['id'] == 'bridge-25':
+        s['name'], s['baseY'], s['height'] = 'Forward Mk 37 tower 15.4-18.3 m', 15.395, round(top - 15.395, 3)
+    elif s['id'] == 'after-superstructure-12':
+        s['name'], s['baseY'], s['height'] = 'After Mk 37 tower 11.0-13.8 m', 11.045, round(top - 11.045, 3)
+    elif s['id'] == 'after-superstructure-08':
+        s['name'], s['footprint'], s['height'] = 'After lookout station floor 11.0-11.5 m', [list(p) for p in AFTER_STATION_FLOOR], round(11.5 - s['baseY'], 3)
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, cut into fore-and-aft strips of
