@@ -30,6 +30,7 @@ def build(D, kit):
         kit.rangefinder(id, ref, 4.5, 0, masts)
     periscopes(kit, masts)
     tower_gear(kit, masts)
+    lookout_top(kit, sup)
     mainmast(kit, masts)
     catapult(kit, air)
     crane(kit, air)
@@ -72,7 +73,9 @@ def tower_gear(kit, col):
         A = f'after-{kind.replace(" ", "-")}-{n}'
         x, y, z = P(rx, ry, rz)
         floor = kit.floor(x, y, ry + .3)
-        base = ry if floor is None or abs(floor - ry) > .6 else floor
+        if floor is None or abs(floor - ry) > .6:
+            continue
+        base = floor
         if kind == 'searchlight':
             kit.searchlight(A, (rx, base, rz), col)
         elif kind in ('binocular', 'binocular pair', 'searchlight control'):
@@ -134,10 +137,11 @@ def catapult(kit, col):
         a = aft + (fwd - aft) * i / 16
         kit.member(A, col, (a, y - .55, top - .1), (a, y + .55, top - .1), .035, 'naval', 4)
         kit.member(A, col, (a, y - .55, top - .8), (a, y + .55, top - .8), .03, 'naval', 4)
-    kit.part('box', A, col, 'girder deck', ((aft + fwd) / 2, y, top + .03), (fwd - aft, .5, .06), 'naval')
+    # The deck plate spans the chords (it tapers with them, so it is laid on the after, higher half).
+    kit.part('box', A, col, 'girder deck', (aft + (fwd - aft) * .3, y, top + .02), ((fwd - aft) * .6, 1.2, .08), 'naval')
     for s in (-1, 1):
-        kit.part('box', A, col, 'rail', ((aft + fwd) / 2, y + s * .22, top + .1), (fwd - aft - .2, .06, .08), 'edge')
-    kit.part('box', A, col, 'launching cradle', (aft + 2.2, y, top + .35), (1.6, 1.0, .45), 'naval')
+        kit.part('box', A, col, 'rail', (aft + (fwd - aft) * .3, y + s * .22, top + .1), ((fwd - aft) * .6 - .2, .06, .08), 'edge')
+    kit.part('box', A, col, 'launching cradle', (aft + 2.2, y, top + .36), (1.6, 1.0, .45), 'naval')
     kit.part('box', A, col, 'cradle chocks', (aft + 2.2, y, top + .62), (.9, 1.2, .1), 'edge')
     # Struts from the pedestal to the girder.
     for dx in (-1.2, 1.6):
@@ -157,25 +161,30 @@ def crane(kit, col):
     kit.cylz(A, col, 'heel cap', (heel.x, heel.y, base + .9), .5, .12, 'naval', 20)
     u = (tip - heel).normalized()
     v = Vector((-u.y, u.x, 0))
-    lo, hi = base + .15, base + .85
+    # The jib tapers in depth from 0.6 m at the heel to 0.3 m at its outer end, where No. 6 turret's barrels at
+    # full depression pass over it.
+    lo = base + .12
     start = heel + u * .3
     length = (tip - start).length
     n = 14
+
+    def hi(t):
+        return base + .6 - .3 * t
 
     def at(t, side, width, zz):
         p = start + u * (length * t) + v * (side * width)
         return (p.x, p.y, zz)
     for s in (-1, 1):
-        for zz in (lo, hi):
-            kit.member(A, col, at(0, s, .5, zz), at(1, s, .18, zz), .045, 'naval', 6)
+        kit.member(A, col, at(0, s, .5, lo), at(1, s, .18, lo), .045, 'naval', 6)
+        kit.member(A, col, at(0, s, .5, hi(0)), at(1, s, .18, hi(1)), .045, 'naval', 6)
     for i in range(n):
         t0, t1 = i / n, (i + 1) / n
         w0, w1 = .5 - .32 * t0, .5 - .32 * t1
         for s in (-1, 1):
-            kit.member(A, col, at(t0, s, w0, lo), at(t1, s, w1, hi), .025, 'naval', 4)
-        kit.member(A, col, at(t0, -1, w0, hi), at(t0, 1, w0, hi), .025, 'naval', 4)
-    tx, ty, _ = at(1, 0, 0, 0)
-    kit.part('rod', A, col, 'hook block', (tx, ty, hi), (tx, ty, lo - .15), .14, 'black', vertices=10)
+            kit.member(A, col, at(t0, s, w0, lo), at(t1, s, w1, hi(t1)), .025, 'naval', 4)
+        kit.member(A, col, at(t0, -1, w0, hi(t0)), at(t0, 1, w0, hi(t0)), .025, 'naval', 4)
+    tx, ty, _ = at(.97, 0, 0, 0)
+    kit.part('rod', A, col, 'hook block', (tx, ty, hi(.97) - .02), (tx, ty, lo - .1), .12, 'black', vertices=10)
     # Chocks holding the jib on the deck.
     for t in (.25, .6, .92):
         cx, cy, _ = at(t, 0, 0, 0)
@@ -205,3 +214,21 @@ def aircraft_deck(kit, col):
         fa, fb = kit.floor(a[0], a[1], 4.3), kit.floor(b[0], b[1], 4.3)
         if fa is not None and fb is not None:
             kit.part('box', A, col, 'trolley rail', ((a[0] + b[0]) / 2, a[1], (fa + fb) / 2 + .03), (abs(b[0] - a[0]), .07, .06), 'edge')
+
+
+def lookout_top(kit, col):
+    """The inverted pyramid carrying the lookout top (plate at 27.98 m, 9.3 m by 6.9 m) down to the mast house
+    (orthographic side render): a solid funnel of plating with lightening holes."""
+    A = 'lookout-top'
+    top, bottom = 27.98, 25.9
+    upper = [(-4.5, 36.2), (4.5, 36.2), (4.5, 42.8), (-4.5, 42.8)]
+    lower = [(-.75, 39.1), (.75, 39.1), (.75, 41.6), (-.75, 41.6)]
+    vv = [P(x, bottom, z) for x, z in lower] + [P(x, top, z) for x, z in upper]
+    ff = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+    ob = kit.mesh(A + '.web', vv, ff, 'naval', col)
+    ob.data.flip_normals() if ob.data.polygons[0].normal.z > 0 else None
+    kit.tag(ob, A)
+    for s in (-1, 1):
+        for zz in (37.6, 39.4, 41.2):
+            x, y, z = P(s * 3.2, 27.2, zz)
+            kit.part('rod', A, col, 'lightening hole', (x, y + s * .02, z), (x, y - s * .06, z), .2, 'dark', vertices=12)

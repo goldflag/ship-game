@@ -79,13 +79,17 @@ def area_below(points, level):
 
 
 def breadth_at(points, level):
+    """Widest half-breadth at a height: the casemate ledge and the closed quarterdeck make the outline step in, so
+    every segment at that height counts."""
     ys = [p[1] for p in points]
     if level < ys[0] or level > ys[-1]:
         return 0
+    best = None
     for (w0, y0), (w1, y1) in zip(points, points[1:]):
         if y0 <= level <= y1:
-            return w0 if y1 - y0 < 1e-9 else w0 + (w1 - w0) * (level - y0) / (y1 - y0)
-    return points[-1][0]
+            w = max(w0, w1) if y1 - y0 < 1e-9 else w0 + (w1 - w0) * (level - y0) / (y1 - y0)
+            best = w if best is None else max(best, w)
+    return points[-1][0] if best is None else best
 
 
 def integrate(fn):
@@ -199,6 +203,14 @@ DROP_BOXES = [(-120, -69.5), (69.5, 120)]          # runtime z ranges of the gro
 FUNNEL_LAYERS = {'deckhouse-141', 'platform-143', 'deckhouse-144', 'deckhouse-145', 'platform-146', 'deckhouse-147', 'deckhouse-148',
                  'platform-150', 'platform-151', 'platform-152', 'deckhouse-153', 'platform-154', 'platform-155', 'deckhouse-156', 'platform-140'}
 STRUCTURE_EDITS = {sid: None for sid in FUNNEL_LAYERS}
+# Fragments the plan cuts left without support: lugs of No. 2 turret's barbette outside the drawn barbette, a
+# plate over the pagoda's after deckhouse, and the stepped plates the cuts made of the sloping walkway from No. 4
+# turret to the after tower (the recipe does not draw that walkway).
+STRUCTURE_EDITS.update({sid: None for sid in ['deckhouse-048', 'deckhouse-049', 'platform-123', 'platform-157', 'platform-158', 'platform-159',
+                                              'platform-160', 'platform-161', 'platform-162', 'platform-165', 'platform-166', 'platform-168']})
+# The cuts slice the tower's rear legs into short pieces; the recipe draws the legs whole (fuso_pagoda.rear_legs).
+STRUCTURE_EDITS.update({sid: None for sid in ['deckhouse-108', 'deckhouse-111', 'platform-112', 'platform-113', 'deckhouse-114', 'deckhouse-115',
+                                              'platform-116', 'platform-117']})
 if opts.structures:
     structures = [s for s in structures if not any(z0 <= centre(s)[1] <= z1 for z0, z1 in DROP_BOXES)]
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
@@ -220,6 +232,14 @@ if not any(s['id'] == 'funnel' for s in structures):
 if not any(s['id'] == 'crane-sponson' for s in structures):
     structures.append(dict(id='crane-sponson', name='Port quarter crane sponson', baseY=3.78, height=.265, material='naval',
                            footprint=[[-5.6, 88.2], [-7.2, 88.37], [-7.8, 89.29], [-8.0, 90.01], [-8.0, 90.45], [-6.84, 95.85], [-6.18, 96.47], [-5.08, 96.61], [-4.4, 96.2]]))
+# The 15 m motor boats stand beside No. 4 turret with their wheelhouses above its barrels' depression: blocks at
+# the boats' bounds let the turret's interlock stop the barrels at them. The midships region claims them (draws the
+# boats, not the blocks).
+for side, sign, zc in [('port', -1, 25.695), ('starboard', 1, 23.595)]:
+    if not any(s['id'] == f'motor-boat-{side}' for s in structures):
+        x0, x1 = sorted((sign * 5.75, sign * 9.1))
+        structures.append(dict(id=f'motor-boat-{side}', name=f'{side.title()} 15 m motor boat', baseY=6.669, height=3.34, material='naval',
+                               footprint=[[round(x0, 3), round(zc - 7.6, 3)], [round(x1, 3), round(zc - 7.6, 3)], [round(x1, 3), round(zc + 7.6, 3)], [round(x0, 3), round(zc + 7.6, 3)]]))
 structures.sort(key=lambda s: (s['id'] != 'funnel', s['id']))
 b['structures'] = structures
 
@@ -257,16 +277,23 @@ for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
 # CPU motion envelopes: main barrels (with the full recoil stroke) and gunhouses may not enter the prisms
 # they can reach, and superfiring pairs may not cross. Game clearance, not verified historical stops.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
+NEIGHBORS = [['main-1', 'main-2'], ['main-5', 'main-6'], ['main-2', 'aa25-1'], ['main-2', 'aa25-4'], ['main-5', 'aa25-24'],
+             ['main-5', 'aa25-25'], ['main-6', 'aa25-26'], ['main-6', 'aa25-27'], ['aa25-2', 'aa25-3']]
+PAIRED = {mid for pair in NEIGHBORS for mid in pair}
 clear_mounts, reach = [], {}
 for m in b['mounts']:
-    if m['battery'] != 'main' and not m['id'].startswith('ha-'):
+    if m['battery'] != 'main' and not m['id'].startswith('ha-') and m['id'] not in PAIRED:
         continue
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
         entry['body'] = dict(center=[0, 4.7, 1.27], size=[10.6 if m['rangefinder'] else 9.0, 2.6, 11.56])
+    elif m['id'].startswith('aa25-'):
+        # The 25 mm carriage with its magazines and seats, so a main barrel passing over stops at it.
+        entry['body'] = dict(center=[0, .85, 0], size=[1.9, 1.5, 1.9] if w['barrelCount'] > 1 else [1.3, 1.6, 1.5])
     clear_mounts.append(entry)
-    reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
+    if m['battery'] == 'main' or m['id'].startswith('ha-'):
+        reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
 nearby = []
 for st in structures:
     xs = [p[0] for p in st['footprint']]
@@ -282,7 +309,7 @@ for st in structures:
 nearby = [sid for _, sid in sorted(nearby)[:128]]
 b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 12.7 cm mounts against the measured superstructure prisms they can reach, including the full recoil stroke, and between the superfiring turret pairs. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
-                           neighbors=[['main-1', 'main-2'], ['main-5', 'main-6']])
+                           neighbors=NEIGHBORS)
 
 # ---------------------------------------------------------------- rooms, machinery, directors
 def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):

@@ -6,11 +6,12 @@ two 15 m motor boats on the forecastle deck with their chocks, and the stowed ra
 Datums are reference-frame measurements converted by `P`.
 """
 import math
-from mathutils import Vector
+from mathutils import Matrix, Vector
 from fuso_kit import P, ZC
 from fuso_fittings import SMALL_FITTINGS
 
-CLAIMED_STRUCTURES = set()
+# Blocks at the motor boats' bounds give No. 4 turret's interlock something to stop at; this module draws the boats.
+CLAIMED_STRUCTURES = {'motor-boat-port', 'motor-boat-starboard'}
 FUNNEL_Z = 9.67          # reference z of the funnel's centre; stadium 4.68 m by 6.64 m, 12.28 m to 23.88 m
 FUNNEL_TOP = 23.88
 
@@ -94,7 +95,9 @@ def searchlights(kit, col):
         A = f'midships-{kind.replace(" ", "-")}-{n}'
         x, y, z = P(rx, ry, rz)
         floor = kit.floor(x, y, ry + .3)
-        base = ry if floor is None or abs(floor - ry) > .6 else floor
+        if floor is None or abs(floor - ry) > .6:
+            continue
+        base = floor
         if kind == 'searchlight':
             kit.searchlight(A, (rx, base, rz), col)
         elif kind in ('binocular', 'binocular pair', 'searchlight control'):
@@ -105,13 +108,24 @@ def searchlights(kit, col):
 def boats(kit, col):
     """Boats at the reference boat datums: cutters on the boat deck beside the pagoda, motor launches and motor
     boats on chocks on the forecastle deck."""
-    for id, (x, z) in [('cutter-port', (-5.9, -34.75)), ('cutter-starboard', (6.0, -34.75))]:
-        kit.open_boat(id, (x, z), 8.2, 2.2, 9.62, .95, col, bow=1, outer='white', inner='wood', chocks=(.25, .5, .75))
+    # The cutters lie canted 24.5 degrees, bow inboard, as their 5.3 m by 8.2 m reference bounds show, clear of
+    # the 25 mm single outboard of each.
+    import bpy
+    for id, (x, z), s in [('cutter-port', (-6.07, -34.83), -1), ('cutter-starboard', (6.07, -34.83), 1)]:
+        kit.open_boat(id, (x, z), 8.2, 2.2, 9.62, .95, col, bow=1, outer='wood', inner='wood', chocks=(.25, .5, .75))
+        kit.build_wires()
+        bpy.context.view_layer.update()
+        cx, cy, _ = P(x, 0, z)
+        turn = Matrix.Translation((cx, cy, 0)) @ Matrix.Rotation(math.radians(24.5 * s), 4, 'Z') @ Matrix.Translation((-cx, -cy, 0))
+        for ob in [o for o in bpy.data.objects if o.get('assemblyId') == id and o.parent is None]:
+            ob.matrix_world = turn @ ob.matrix_world
     for id, (x, z), keel in [('launch-port-forward', (-7.19, 2.42), 6.93), ('launch-starboard-forward', (7.26, 2.44), 6.98),
                              ('launch-port-after', (-5.89, 31.0), 7.02), ('launch-starboard-after', (6.49, 31.7), 6.95)]:
-        kit.covered_launch(id, (x, z), 11.9, 2.9, keel, col, chocks=(.2, .4, .62, .84))
+        kit.covered_launch(id, (x, z), 11.9, 2.9, keel, col, chocks=(.2, .4, .62, .84), hood='wood')
     for id, (x, z) in [('motor-boat-port', (-7.43, 24.6)), ('motor-boat-starboard', (7.40, 22.5))]:
-        kit.motor_boat(id, (x, z), 15.2, 3.4, 6.9, col, chocks=(.25, .43, .62, .82))
+        # Seated low with a 0.95 m wheelhouse and no mast, so No. 4 turret's gunhouse turns over them (its sole is at
+        # 10.1 m; the reference's boats stand 0.8 m higher, into the gunhouse's sweep).
+        kit.motor_boat(id, (x, z), 15.2, 3.4, 6.78, col, chocks=(.25, .43, .62, .82), wheelhouse=.95, mast=False)
 
 
 def davits(kit, col):

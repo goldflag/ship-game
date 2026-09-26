@@ -51,9 +51,9 @@ for name in ['Hull and decks', 'Superstructure', 'Main and secondary batteries',
 # Reference source paint: light blue-grey hull and upperworks, grey steel roofs, the casemate ledge and
 # quarterdeck steel, natural wood weather decks, a linoleum aircraft deck with brass strips, black funnel cap,
 # red-oxide bottom to the waterline. Linear RGB interpretations; appearance.json binds the named paints.
-colors = {'naval': (.118, .124, .142), 'hullgray': (.118, .124, .142), 'roof': (.098, .102, .116), 'deck': (.100, .076, .054),
-          'linoleum': (.072, .040, .031), 'edge': (.038, .038, .040), 'painted-edge': (.090, .094, .108), 'dark': (.012, .013, .014),
-          'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.105, .050, .039), 'bronze': (.36, .27, .12),
+colors = {'naval': (.090, .095, .112), 'hullgray': (.090, .095, .112), 'roof': (.076, .080, .094), 'deck': (.128, .095, .060),
+          'linoleum': (.090, .046, .036), 'edge': (.038, .038, .040), 'painted-edge': (.074, .078, .090), 'dark': (.012, .013, .014),
+          'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.092, .058, .038), 'bronze': (.36, .27, .12),
           'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12)}
 materials = {}
 for key, color in colors.items():
@@ -180,6 +180,17 @@ for mount in D['mounts']:
         elif kind.startswith('type96') and z - floor > .02:
             kit.cylz(mount['id'], col, 'pedestal plate', (x, y, floor), .45, z - floor + .01, 'naval', 16)
     create_mount(mount, col, helpers, materials)
+    if kind == 'type96-25-kongo-single':
+        # The shared single's ring sight hangs 8 cm clear of its rail (a part defect this recipe works round
+        # without editing the shared builder): two spokes join the ring to the rail's end, on the ring's own
+        # elevation node so they follow the gun.
+        ring = bpy.data.objects.get(mount['id'] + '.ring-sight')
+        if ring is not None:
+            hub = Vector((.13, .17, .31))
+            for dy, dz in ((.1, 0), (0, .1), (0, -.1)):
+                spoke = rod(mount['id'] + '.ring-sight spoke', hub, hub + Vector((0, dy, dz)), .008, 'edge', col, vertices=6)
+                spoke.parent = ring.parent
+                spoke['assemblyId'] = mount['id']
 
 # ---------------------------------------------------------------- regions
 for region in REGIONS:

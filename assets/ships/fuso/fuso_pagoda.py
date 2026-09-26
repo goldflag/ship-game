@@ -35,6 +35,7 @@ def build(D, kit):
     for id, rx in [('ha-director-port', -5.182), ('ha-director-starboard', 5.199)]:
         type91_director(kit, id, (rx, 22.94, -21.4), masts)
     bridge_gear(kit, masts)
+    rear_legs(kit, sup)
     signal_yards(kit, sup)
     glazing(kit, sup)
     kit.roof_rails('pagoda-rails', sup, structures, zone)
@@ -136,7 +137,9 @@ def bridge_gear(kit, col):
         A = f'pagoda-{kind.replace(" ", "-")}-{n}'
         x, y, z = P(rx, ry, rz)
         floor = kit.floor(x, y, ry + .3)
-        base = ry if floor is None or abs(floor - ry) > .6 else floor
+        if floor is None or abs(floor - ry) > .6:
+            continue
+        base = floor
         if kind == 'searchlight':
             kit.searchlight(A, (rx, base, rz), col)
         elif kind in ('binocular', 'binocular pair', 'searchlight control'):
@@ -156,16 +159,19 @@ def bridge_gear(kit, col):
 
 
 def signal_yards(kit, col):
-    """Signal yards out to the flag hardpoints (reference HP_flag_1-4) with braces back to the tower."""
+    """The signal yard: a railed walkway 1.2 m wide at 34.2 m across the tower's after face (reference level cut at
+    34.25 m, 15.5 m across) with yard arms out to the flag hardpoints (HP_flag_1-4) and signal halyards."""
+    A = 'signal-yards'
+    y0, z0, z1 = 34.15, -24.6, -22.1
+    kit.part('box', A, col, 'walkway', P(0, y0, (z0 + z1) / 2), (z1 - z0, 15.6, .1), 'roof')
+    kit.rail(A, col, [P(-7.8, 0, z1)[:2], P(7.8, 0, z1)[:2]], y0 + .05, 1.0, 1.4, check=False)
     for s in (-1, 1):
-        root = P(s * 2.6, 33.7, -21.9)
-        outer = P(s * 10.45, 33.7, -20.78)
-        kit.part('rod', 'signal-yards', col, 'yard', root, outer, .07, 'naval', vertices=8, r2=.045)
-        kit.member('signal-yards', col, P(s * 2.6, 31.2, -22.4), P(s * 7.3, 33.66, -21.3), .04, 'naval', 6)
-        kit.member('signal-yards', col, P(s * 7.3, 33.7, -21.3), P(s * 7.3, 33.7, -22.17), .03, 'naval', 5)
-        for t in (0.35, 0.6, 0.85):
-            a = Vector(root).lerp(Vector(outer), t)
-            kit.wire('signal-yards', col, tuple(a), (a.x, a.y, a.z - 1.1), .012, check=False)
+        kit.rail(A, col, [P(s * 7.8, 0, z0 + 1.2)[:2], P(s * 7.8, 0, z1)[:2]], y0 + .05, 1.0, 1.4, check=False)
+        kit.part('rod', A, col, 'yard arm', P(s * 6.8, y0 - .09, -22.3), P(s * 10.45, 33.72, -20.78), .07, 'naval', vertices=8, r2=.045)
+        kit.member(A, col, P(s * 3.5, y0 - .05, -22.4), P(s * 6.8, y0 - .05, -22.3), .06, 'naval', 6)
+        for t in (0.35, 0.65, 0.95):
+            a = Vector(P(s * 6.8, y0 - .09, -22.3)).lerp(Vector(P(s * 10.45, 33.72, -20.78)), t)
+            kit.wire(A, col, tuple(a), (a.x, a.y, a.z - 1.2), .012, check=False)
 
 
 def glazing(kit, col):
@@ -190,4 +196,19 @@ def glazing(kit, col):
                 if hit:
                     loc, nrm = hit
                     rows.append(('window', -loc.y, yc, -loc.x, (zside - zfront) / m - .08, h, -nrm.y, -nrm.x))
+    # No pane inside a light gun's working circle (the tower's walls are cut back round those guns).
+    guns = [(m['position'][0], m['position'][1], m['position'][2]) for m in kit.D['mounts'] if m['id'].startswith('aa25-')]
+    rows = [r for r in rows if not any(math.hypot(r[1] - gx, r[3] - gz) < 1.9 and -.5 < r[2] - gy < 3 for gx, gy, gz in guns)]
     kit.windows('bridge-glazing', col, rows)
+
+
+def rear_legs(kit, col):
+    """The tower's rear legs and the struts under its after platforms (reference plan cuts every 1.5 m: two legs
+    0.55 m across from the base roof at 9.2 m up to the 21.7 m platform, leaning 2 m aft, and a strut pair from the
+    base roof to the 16.5 m platform's after corners), in runtime-frame datums."""
+    for s in (-1, 1):
+        for a, b, r in [((s * 2.6, 9.0, -23.0), (s * 1.97, 21.4, -21.0), .28), ((s * 5.0, 9.0, -22.8), (s * 3.9, 16.62, -22.9), .2)]:
+            pa, pb = (-a[2], -a[0], a[1]), (-b[2], -b[0], b[1])
+            foot = kit.floor(pa[0], pa[1], a[1] + .4)
+            pa = (pa[0], pa[1], foot - .03 if foot is not None else pa[2])
+            kit.part('rod', 'pagoda-legs', col, 'leg', pa, pb, r, 'naval', vertices=14)

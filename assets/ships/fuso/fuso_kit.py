@@ -24,7 +24,7 @@ class Kit:
         self.arcs = []
         for m in D['mounts']:
             w = m['weapon']
-            if m['battery'] != 'main' and not m['id'].startswith(('ha-', 'aa25-', 'mg13-')):
+            if m['battery'] != 'main' and not m['id'].startswith(('ha-', 'aa25-', 'mg13-', 'casemate-')):
                 continue
             mx, my, mz = -m['position'][2], -m['position'][0], m['position'][1]
             if w.get('gunhouseMesh'):
@@ -32,6 +32,31 @@ class Kit:
             else:
                 house = max(w['gunhouseSize'][:2]) * .6
             self.arcs.append((mx, my, mz, house, w))
+
+    def sweep_ceiling(self, x, y):
+        """Height a fitting at authoring (x, y) must stay under to clear the gunhouses turning over it and the main
+        barrels at full depression (None where no main mount reaches), and whether it stands in a light gun's working
+        circle (where it cannot stand at all)."""
+        ceiling = None
+        for m in self.D['mounts']:
+            w = m['weapon']
+            mx, my, mz = -m['position'][2], -m['position'][0], m['position'][1]
+            d = math.hypot(x - mx, y - my)
+            if m['battery'] == 'main':
+                house = max((v[0] ** 2 + v[1] ** 2) ** .5 for v in w['gunhouseMesh']['vertices']) + .2 if w.get('gunhouseMesh') else max(w['gunhouseSize'][:2]) * .6
+                top = None
+                if d < house:
+                    top = mz + w.get('gunhouseBaseHeight', 0) - .06
+                if d < w['muzzleForward'] + .6:
+                    low = mz + w['pivotHeight'] + math.sin(math.radians(w['elevationMinDeg'])) * max(0, d - w['trunnionForward']) - w.get('barrelBaseRadius', .4) - .15
+                    top = low if top is None else min(top, low)
+                if top is not None:
+                    ceiling = top if ceiling is None else min(ceiling, top)
+            elif m['id'].startswith(('aa25-', 'ha-')) and d < (3.1 if m['id'].startswith('ha-') else 1.45) and abs(mz - self._last_floor) < 1.0:
+                return -1e9
+        return ceiling
+
+    _last_floor = 0.0
 
     def floor(self, x, y, ceiling):
         """Support height under (x, y) below `ceiling`, or None where nothing authored stands there."""
@@ -322,7 +347,7 @@ class Kit:
             pts = [(px, y + s * max(.01, w - .01), g - drop) for px, w, k, g in (station(i / 16) for i in range(17))]
             self.polyline(id, col, pts, r, material, 5)
 
-    def motor_boat(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.28, .44, .63, .85)):
+    def motor_boat(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.28, .44, .63, .85), wheelhouse=1.2, mast=True):
         """Decked 15 m motor boat: grey hull, wood deck, forward trunk, wheelhouse and after cabin with windows.
         ref_center: reference (centre x, centre z); the keel rests at keel_y."""
         col = col or self.cols['Boats and aviation']
@@ -332,13 +357,13 @@ class Kit:
         self.gunwale_band(id, col, st, y, 'naval', .05)
         self.cradles(id, col, st, y, chocks, .95)
         g = st(.5)[3]
-        for label, t0, t1, width, height in [('forward trunk', .62, .84, 1.9, .45), ('wheelhouse', .47, .54, 1.6, 1.2), ('after cabin', .2, .43, 2.2, .85)]:
+        for label, t0, t1, width, height in [('forward trunk', .62, .84, 1.9, .45), ('wheelhouse', .47, .54, 1.6, wheelhouse), ('after cabin', .2, .43, 2.2, .85)]:
             a, b = st(t0)[0], st(t1)[0]
             deck = min(st(t0)[3], st(t1)[3])
             self.part('box', id, col, label, ((a + b) / 2, y, deck + height / 2 - .02), (abs(b - a), width, height + .04), 'naval')
             self.part('box', id, col, label + ' roof', ((a + b) / 2, y, deck + height + .02), (abs(b - a) + .1, width + .1, .05), 'roof')
         wx = st(.54)[0]
-        self.part('box', id, col, 'wheelhouse glass', (wx + .01, y, g + .95), (.03, 1.4, .32), 'glass')
+        self.part('box', id, col, 'wheelhouse glass', (wx + .01, y, g + wheelhouse - .25), (.03, 1.4, .32), 'glass')
         for s in (-1, 1):
             for i in range(4):
                 px = st(.23 + i * .055)[0]
@@ -346,11 +371,12 @@ class Kit:
             for i in range(3):
                 px = st(.65 + i * .07)[0]
                 self.part('rod', id, col, 'trunk port', (px, y + s * .94, g + .25), (px, y + s * .97, g + .25), .09, 'glass', vertices=10)
-        self.part('rod', id, col, 'mast', (st(.47)[0], y, g + 1.2), (st(.47)[0], y, g + 2.0), .04, 'naval', vertices=6)
-        self.part('rod', id, col, 'ensign staff', (st(.01)[0], y, g), (st(.01)[0], y, g + 1.7), .03, 'naval', vertices=6)
+        if mast:
+            self.part('rod', id, col, 'mast', (st(.47)[0], y, g + wheelhouse), (st(.47)[0], y, g + 2.0), .04, 'naval', vertices=6)
+            self.part('rod', id, col, 'ensign staff', (st(.01)[0], y, g), (st(.01)[0], y, g + 1.7), .03, 'naval', vertices=6)
 
-    def covered_launch(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.19, .39, .63, .85)):
-        """12 m motor launch under a canvas hood with a row of windows each side."""
+    def covered_launch(self, id, ref_center, length, beam, keel_y, col=None, chocks=(.19, .39, .63, .85), hood='canvas'):
+        """12 m motor launch under a canvas hood (or a varnished cabin top) with a row of windows each side."""
         col = col or self.cols['Boats and aviation']
         x, y, _ = P(ref_center[0], 0, ref_center[1])
         hull, st = self.boat_hull(id + '.hull', col, x, y, keel_y, length, beam, 1.42, 'naval', 'wood', 1, .72, .35, (.4, .05))
@@ -371,7 +397,7 @@ class Kit:
         vv = [p for r in rings for p in r]
         ff = [(i * k + j + 1, i * k + j, (i + 1) * k + j, (i + 1) * k + j + 1) for i in range(m) for j in range(k - 1)]
         ff += [tuple(range(k)), tuple(reversed(range(m * k, m * k + k)))]
-        self.tag(self.mesh(id + '.hood', vv, ff, 'canvas', col, True), id)
+        self.tag(self.mesh(id + '.hood', vv, ff, hood, col, True), id)
         for s in (-1, 1):
             for i in range(6):
                 px, w, k_, g = st(.2 + i * .115)

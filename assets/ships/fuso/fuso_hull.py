@@ -9,7 +9,7 @@ twin rudders. Datums are reference-frame measurements converted by `P`.
 import math
 from mathutils import Vector
 from fuso_kit import P, ZC
-from fuso_fittings import DECK_FITTINGS
+from fuso_fittings import DECK_FITTINGS, PORTHOLES
 
 # Measured prisms this module draws itself (build.py skips their generic extrusion).
 CLAIMED_STRUCTURES = set()
@@ -22,6 +22,7 @@ def build(D, kit):
     ground_tackle(kit, deck)
     deck_fittings(kit, deck)
     crest_and_staffs(kit, deck)
+    portholes(kit, cols['Hull and decks'])
     screws_and_rudders(kit, under)
     deck_edge_rails(D, kit, deck)
 
@@ -63,28 +64,50 @@ def chain(kit, assembly, col, path, pitch=.3):
     kit.tag(kit.mesh(assembly + '.cable', vv, ff, 'black', col), assembly)
 
 
+def seat_on_hull(kit, s, ref, standoff):
+    """Point on the hull plating at a reference (y, z), found by a ray from outboard, moved `standoff` out along the
+    plating's normal; returns (point, outward normal) in the authoring frame."""
+    origin = Vector(P(s * 20, ref[1], ref[2]))
+    direction = Vector((0, s, 0))
+    hit = kit.hit(origin, direction, 22)
+    if hit is None:
+        return Vector(P(*ref)), Vector((0, -s, 0))
+    loc, nrm = hit
+    nrm = Vector(nrm)
+    if nrm.dot(direction) > 0:
+        nrm = -nrm
+    return loc + nrm * standoff, nrm
+
+
 def anchor(kit, assembly, col, s, hawse, crown, scale=1.0):
-    """Stockless anchor housed against the hull: shank from the hawse to the crown, arms and palms."""
-    h, c = Vector(P(*hawse)), Vector(P(*crown))
+    """Stockless anchor housed flat against the plating: the shank from the hawse down to the crown, the arms and
+    palms spread in the plating's plane, the hawse pipe's bolster round the shank's head."""
+    h, nh = seat_on_hull(kit, s, hawse, .2 * scale)
+    c, nc = seat_on_hull(kit, s, crown, .24 * scale)
     kit.part('rod', assembly, col, 'shank', h, c, .15 * scale, 'black', vertices=10, r2=.13 * scale)
+    kit.part('rod', assembly, col, 'shackle', h - nh * .05, h + (h - c).normalized() * .3 * scale, .11 * scale, 'black', vertices=8)
     axis = (c - h).normalized()
-    across = axis.cross(Vector((0, s, 0))).normalized()
+    across = axis.cross(nc).normalized()
     for t in (-1, 1):
-        tip = c + across * t * 1.05 * scale - axis * .75 * scale
-        kit.part('rod', assembly, col, 'arm', c, tip, .13 * scale, 'black', vertices=8)
-        kit.part('box', assembly, col, 'palm', tuple(tip - axis * .1 * scale), (.55 * scale, .22 * scale, .55 * scale), 'black')
-    kit.part('box', assembly, col, 'crown', tuple(c), (.6 * scale, .4 * scale, .6 * scale), 'black')
+        tip = c + across * t * 1.2 * scale - axis * .9 * scale
+        kit.part('rod', assembly, col, 'arm', c, tip, .14 * scale, 'black', vertices=8, r2=.1 * scale)
+        palm = kit.part('box', assembly, col, 'palm', tuple(tip - axis * .12 * scale), (.62 * scale, .62 * scale, .2 * scale), 'black')
+        palm.rotation_euler = (across.cross(nc)).to_track_quat('Z', 'Y').to_euler()
+    kit.part('box', assembly, col, 'crown', tuple(c), (.62 * scale, .62 * scale, .62 * scale), 'black')
+    # Bolster: a thick ring on the plating round the hawse, touching the shank.
+    b, nb = seat_on_hull(kit, s, hawse, .0)
+    kit.part('rod', assembly, col, 'hawse bolster', b - nb * .05, b + nb * .22 * scale, .38 * scale, 'naval', vertices=16, r2=.3 * scale)
 
 
-def capstan(kit, C, col, rx, rz, ry, r):
+def capstan(kit, C, col, rx, rz, ry, r, height=.55):
     x, y, _ = P(rx, 0, rz)
     floor = kit.support.below(x, y, ry + .6)
     kit.part('box', C, col, 'bed plate', (x, y, floor + .03), (r * 3.1, r * 3.1, .06), 'naval')
-    kit.cylz(C, col, 'barrel', (x, y, floor), r, .55, 'naval', 8, r2=r * .88)
-    kit.cylz(C, col, 'head', (x, y, floor + .55), r * 1.08, .13, 'naval', 16)
+    kit.cylz(C, col, 'barrel', (x, y, floor), r, height, 'naval', 8, r2=r * .88)
+    kit.cylz(C, col, 'head', (x, y, floor + height), r * 1.08, .13 * height / .55, 'naval', 16)
     for i in range(8):
         a = math.tau * (i + .5) / 8
-        kit.part('box', C, col, 'whelp', (x + math.cos(a) * r * .95, y + math.sin(a) * r * .95, floor + .27), (.12, .12, .5), 'naval')
+        kit.part('box', C, col, 'whelp', (x + math.cos(a) * r * .95, y + math.sin(a) * r * .95, floor + height / 2), (.12, .12, height - .05), 'naval')
 
 
 def ground_tackle(kit, col):
@@ -122,14 +145,14 @@ def ground_tackle(kit, col):
         hx, hy, hz = P(s * 3.45, 0, -73.8)
         kit.part('rod', W, col, 'brake column', (hx, hy, floor), (hx, hy, floor + .55), .06, 'naval', vertices=8)
         kit.part('rod', W, col, 'brake handwheel', (hx - .03, hy, floor + .6), (hx + .03, hy, floor + .6), .22, 'edge', vertices=14)
-        # Bower anchor housed in its hawse on the stem side (reference cm005 at x 3.27, z -99.0).
-        B = f'bower-anchor-{side}'
-        kit.part('rod', B, col, 'hawse lip', P(s * 3.05, 7.2, -98.4), P(s * 3.4, 6.9, -98.9), .3, 'naval', vertices=14)
-        anchor(kit, B, col, s, (s * 3.2, 7.0, -98.7), (s * 3.45, 4.6, -99.35))
-        # Stern anchor in its hawse under the quarterdeck (reference cm005 at x 5.05, z 97.8).
-        anchor(kit, f'stern-anchor-{side}', col, s, (s * 4.9, 3.6, 97.5), (s * 5.2, 1.6, 98.2), .6)
+        # Bower anchor housed in its hawse on the bow (reference cm005: 3.5 m high, 1.25 m across about z -100.1; the
+        # hawse mouth painted at 6 m, z -99.6).
+        anchor(kit, f'bower-anchor-{side}', col, s, (s * 3.2, 6.1, -99.6), (s * 3.35, 4.45, -100.4), 1.25)
+        # Stern anchor in its hawse under the quarterdeck (reference cm005: 2.7 m high about x 5.05, z 96.7).
+        anchor(kit, f'stern-anchor-{side}', col, s, (s * 5.0, 3.55, 96.3), (s * 5.1, 1.45, 97.05), .8)
     capstan(kit, 'capstan-forward', col, 0, -80.83, 6.75, .75)
-    capstan(kit, 'capstan-after', col, 0, 78.5, 4.06, .55)
+    # The after capstan stands under No. 6 turret's barrels at full depression: 0.6 m lower than the reference's.
+    capstan(kit, 'capstan-after', col, 0, 78.5, 4.06, .55, .3)
 
 
 # ---------------------------------------------------------------- weather-deck fittings
@@ -142,6 +165,14 @@ def deck_fittings(kit, col):
         if floor is None or abs(floor - ry) > .6:
             continue
         w, l, h = size
+        # Fittings under a turning gunhouse or the main barrels' full depression are cut down to clear them (as
+        # Takao's ventilators under its gunhouses are); none stands in a light gun's working circle.
+        kit._last_floor = floor
+        ceiling = kit.sweep_ceiling(x, y)
+        if ceiling is not None:
+            if ceiling - floor < .15:
+                continue
+            h = min(h, ceiling - floor)
         rot = math.radians(bearing)
         parts = []
         if kind == 'mushroom vent':
@@ -190,15 +221,34 @@ def deck_fittings(kit, col):
 
 
 def crest_and_staffs(kit, col):
-    # Gold chrysanthemum on the stem head (reference jm306/jm307 at z -105.6, 6.48 m).
-    x, y, z = P(0, 6.48, -105.62)
-    kit.part('rod', 'chrysanthemum', col, 'crest', (x - .1, y, z), (x + .06, y, z), .42, 'gold', vertices=16)
+    # Gold chrysanthemum on the stem at 6.48 m (reference jm306/jm307), seated on this loft's stem by a ray from ahead.
+    hit = kit.hit(P(.01, 6.48, -115), (-1, 0, 0), 12)
+    x, y, z = (hit[0].x, hit[0].y, hit[0].z) if hit else P(0, 6.48, -105.62)
+    kit.part('rod', 'chrysanthemum', col, 'crest', (x - .12, y, z), (x + .07, y, z), .42, 'gold', vertices=16)
     for i in range(16):
         a = math.tau * i / 16
-        kit.part('box', 'chrysanthemum', col, 'petal', (x + .04, y + .33 * math.cos(a), z + .33 * math.sin(a)), (.06, .12, .12), 'gold')
+        kit.part('box', 'chrysanthemum', col, 'petal', (x + .05, y + .33 * math.cos(a), z + .33 * math.sin(a)), (.06, .12, .12), 'gold')
     x, y, z = P(0, 7.5, -106.2)
     kit.part('rod', 'jackstaff', col, 'staff', (x, y, z), (x, y, z + 7.2), .05, 'naval', vertices=8)
     kit.cylz('jackstaff', col, 'step', (x, y, z - .02), .14, .3, 'naval', 12)
+
+
+def portholes(kit, col):
+    """Rimmed portholes the reference paints on its hull sides (fuso_fittings.PORTHOLES), seated on this loft on
+    both sides by a ray from outboard at each datum."""
+    rows = []
+    for z, y, dia in PORTHOLES:
+        for s in (-1, 1):
+            direction = Vector((0, s, 0))
+            hit = kit.hit(P(s * 20, y, z), direction, 22)
+            if not hit:
+                continue
+            loc, nrm = hit
+            nrm = Vector(nrm)
+            if nrm.dot(direction) > 0:
+                nrm = -nrm
+            rows.append(('port', -loc.y, loc.z, -loc.x, dia, dia, -nrm.y, -nrm.x))
+    kit.windows('hull-portholes', col, rows)
 
 
 # ---------------------------------------------------------------- screws, shafts, bossings, brackets and rudders
@@ -244,10 +294,11 @@ def screw(kit, id, col, hub, pitch_hand, R=1.68):
 
 
 def rudder(kit, id, col, rx):
-    """Balanced rudder behind an inner screw: a lofted foil 0.7 m thick at 30 % chord (reference outline at x 2.8)."""
-    zs = [85.1, 85.3, 85.8, 86.5, 87.3, 88.1, 88.7, 89.2, 89.6, 89.9]
+    """Balanced rudder behind an inner screw: a lofted foil 0.7 m thick at 30 % chord over the reference's outline
+    (6.9 m long, 5.2 to 9.3 m deep, the trailing edge raked forward at its foot)."""
+    zs = [85.0, 85.25, 85.9, 86.8, 87.8, 88.8, 89.8, 90.6, 91.3, 91.9]
     top = [-5.3, -5.2, -5.15, -5.1, -5.05, -5.02, -5.0, -5.0, -5.02, -5.1]
-    bot = [-5.3, -8.3, -8.9, -9.15, -9.2, -9.05, -8.7, -8.1, -7.2, -5.9]
+    bot = [-5.3, -8.4, -9.0, -9.25, -9.3, -9.25, -9.1, -8.6, -7.6, -6.0]
     c0, c1 = zs[0], zs[-1]
     vv = []
     for z, yt, yb in zip(zs, top, bot):
@@ -260,7 +311,7 @@ def rudder(kit, id, col, rx):
     ff = [(4 * i + j, 4 * i + (j + 1) % 4, 4 * (i + 1) + (j + 1) % 4, 4 * (i + 1) + j) for i in range(n - 1) for j in range(4)]
     ff += [(3, 2, 1, 0), (4 * (n - 1), 4 * (n - 1) + 1, 4 * (n - 1) + 2, 4 * (n - 1) + 3)]
     kit.tag(kit.mesh(id + '.blade', vv, ff, 'antifouling', col), id)
-    x, y, z = P(rx, -5.2, 86.9)
+    x, y, z = P(rx, -5.2, 87.2)
     hull = kit.support.along((x, y, z), (0, 0, 1), 4.0).z
     kit.part('rod', id, col, 'stock', (x, y, z - .1), (x, y, hull + .2), .2, 'antifouling', vertices=12)
 
@@ -268,8 +319,9 @@ def rudder(kit, id, col, rx):
 def screws_and_rudders(kit, col):
     sup = kit.support
     # Screws at the reference propeller datums; shafts run forward inside tapered bossings to the hull.
-    for id, (rx, ry, rz_), (bz0, bz1) in [('screw-1', (-6.16, -7.30, 79.75), (64.2, 78.4)), ('screw-2', (-2.79, -6.87, 84.28), (68.3, 82.9)),
-                                         ('screw-3', (2.79, -6.87, 84.28), (68.3, 82.9)), ('screw-4', (6.16, -7.30, 79.75), (64.2, 78.4))]:
+    # Reference propeller datums (cm001/cm032 hubs) and the bossings' extent from profile cuts, reference z.
+    for id, (rx, ry, rz_), (bz0, bz1) in [('screw-1', (-6.16, -7.30, 78.66), (63.1, 77.3)), ('screw-2', (-2.79, -6.87, 83.19), (67.2, 81.8)),
+                                         ('screw-3', (2.79, -6.87, 83.19), (67.2, 81.8)), ('screw-4', (6.16, -7.30, 78.66), (63.1, 77.3))]:
         x, y, z = P(rx, ry, rz_)
         screw(kit, id, col, (x, y, z), 1 if rx < 0 else -1)
         tail = P(rx, ry, bz1)
@@ -300,13 +352,19 @@ def deck_edge_rails(D, kit, col):
     L = H['length']
     secs = H['sections']
 
+    def outer(points):
+        # The deck edge: the outermost point at the deck's height (aft of the forecastle the upper points close the
+        # deck to the centreline, so the last point is not the edge).
+        top = points[-1][1]
+        return max((p for p in points if p[1] >= top - .05), key=lambda p: p[0])
+
     def edge(station):
         for a, b in zip(secs, secs[1:]):
             if a['station'] <= station <= b['station']:
                 t = (station - a['station']) / max(1e-9, b['station'] - a['station'])
-                pa, pb = a['points'][-1], b['points'][-1]
+                pa, pb = outer(a['points']), outer(b['points'])
                 return pa[0] + (pb[0] - pa[0]) * t, pa[1] + (pb[1] - pa[1]) * t
-        return secs[-1]['points'][-1]
+        return outer(secs[-1]['points'])
     drums = [(-m['position'][2], -m['position'][0]) for m in D['mounts'] if m['partId'].endswith('casemate')]
     for side in (-1, 1):
         pts = []
