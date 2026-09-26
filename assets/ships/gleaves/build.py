@@ -1139,6 +1139,9 @@ for obj in scene.objects:
             uv.data[li].uv=(co[coords[0]]/5.7,co[coords[1]]/5.7)
 
 scene['definitionHash']=definition['contentHash'];scene['authoringRevision']=2
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(scene)
 sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
 from surface import apply_appearance
 apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))

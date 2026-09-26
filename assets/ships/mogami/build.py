@@ -472,6 +472,9 @@ for sy in (-1,1):
   for k in range(4):f.append((a+k,a+(k+1)%4,b+(k+1)%4,b+k))
  f+=[(0,1,2,3),(len(v)-1,len(v)-2,len(v)-3,len(v)-4)]
  mesh('Bilge keel',v,f,'underwater')
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(scene)
 sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
 from surface import apply_appearance
 apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))
