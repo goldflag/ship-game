@@ -143,22 +143,24 @@ def build(D, kit):
     last = 4 * (len(rings) - 1)
     ff += [(0, 3, 2, 1), (last, last + 1, last + 2, last + 3)]
     recalc(kit.tag(kit.mesh('skeg.plate', vv, ff, 'antifouling', col), 'skeg'))
-    # Bilge keels at the turn of the bilge (reference z -25 to +35), plates standing out and down from the loft.
+    # Bilge keels at the turn of the bilge (reference z -27 to +32; station cuts put the root at 5.5 m under the
+    # waterline and the edge 1.3 m out and down, at (7.4, -6.5) amidships), plates standing out from the loft.
     for s in (-1, 1):
-        zs = [-25.0 + (35.0 + 25.0) * i / 12 for i in range(13)]
+        zs = [-27.0 + (32.0 + 27.0) * i / 14 for i in range(15)]
         for z0, z1 in zip(zs, zs[1:]):
-            ends = []
-            for z in (z0, z1):
-                ends.append(V(s * (hull_half(kit, z, -6.25) - .05), -6.25, z))
-            out = Vector((0, -s * .72, -.72)).normalized()
-            taper0 = 1.0 if z0 > -20 and z1 < 30 else .55
-            mid = [e + out * .42 * taper0 for e in ends]
-            kit.beam('bilge-keels', col, 'bilge keel', mid[0], mid[1], .05, .85 * taper0, 'antifouling', tuple(out))
-    # Propeller guards abreast the outer screws (reference y 1.6 to 1.8 m, out to 9.37 m, z 57 to 61).
+            ends = [V(s * (hull_half(kit, z, -5.5) - .05), -5.5, z) for z in (z0, z1)]
+            out = Vector((0, -s * .74, -.67)).normalized()
+            taper0 = 1.0 if z0 > -22 and z1 < 28 else .6
+            mid = [e + out * .66 * taper0 for e in ends]
+            kit.beam('bilge-keels', col, 'bilge keel', mid[0], mid[1], .05, 1.32 * taper0, 'antifouling', tuple(out))
+    # Propeller guards abreast the outer screws (reference y 1.6 to 1.8 m, out to 9.37 m, z 57 to 61), each held up to
+    # the side by a strut from its outer corners (station cuts: to the shell at 3.1 m).
     for s in (-1, 1):
         root0 = V(s * (hull_half(kit, 57.0, 1.7) - .05), 1.69, 57.0)
         root1 = V(s * (hull_half(kit, 61.3, 1.7) - .05), 1.69, 61.3)
         o0, o1 = V(s * 9.3, 1.69, 58.4), V(s * 9.3, 1.69, 60.2)
         for a, b in ((root0, o0), (o0, o1), (o1, root1)):
             kit.part('rod', 'propeller-guards', col, 'guard rail', a, b, .1, 'naval', vertices=10)
-        kit.boxc('propeller-guards', col, 'guard plate', (o0 + o1) / 2 + Vector((0, s * -.55, 0)), ((o1 - o0).length + .2, 1.1, .05), 'naval')
+        kit.boxc('propeller-guards', col, 'guard plate', (o0 + o1) / 2 + Vector((0, s * .55, 0)), ((o1 - o0).length + .2, 1.1, .05), 'naval')
+        for z, o in ((58.4, o0), (60.2, o1)):
+            kit.part('rod', 'propeller-guards', col, 'guard strut', o, V(s * (hull_half(kit, z, 3.1) - .05), 3.1, z), .06, 'naval', vertices=8)
