@@ -103295,7 +103295,7 @@
       "ballistics": {
         "dragPerSecond": 0.052017,
         "dispersionRad": 0.0013,
-        "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. penetrationMm is the mean of the two open 5-inch siblings (us-5in38-mk21-single 65 mm, us-5in51-mk7-open-single 82 mm) each scaled to this 24.5 kg shell by mass^0.7 and reference speed^1.4 (48.5 and 55.0 mm), at 5000 m, 10 m launch/sea target, nominal speed (397.477 m/s); see assets/parts/us-5in25-mk19/README.md. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+        "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Sigmas estimated, capped at 3 sigma. penetrationMm at 5000 m, 10 m launch/sea target, nominal speed (397.477 m/s): mean of the us-5in38-mk21-single and us-5in51-mk7-open-single budgets scaled to this shell by mass^0.7 and reference speed^1.4; see assets/parts/us-5in25-mk19/README.md. Armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 397.476694
       },
