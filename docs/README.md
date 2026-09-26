@@ -35,7 +35,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Work on port or HUD UI | [Garage design](garage-mockups/README.md), [HUD design](hud-mockups/README.md), [shared controls](../src/ui/components/README.md) | Existing naval instrument styling and current runtime UI |
 | Add or change graphics settings | [Graphics settings study](graphics-settings/README.md) | Renderer knobs, their apply timing and the proposed live-apply Graphics tab |
 | Develop Rust multiplayer | [Setup, architecture and validation](rust-multiplayer-implementation.md), [crates guide](../crates/AGENTS.md) | Authoritative Rust simulation, generated wire types and server settings |
-| Deploy and operate the public game | [Hermes deployment](deployment.md) | Separate Docker Compose stack, HTTPS routing, persistent results, deploy and rollback commands |
+| Deploy and operate the public game | [Ships host deployment](deployment.md) | Separate Docker Compose stack, HTTPS routing, persistent results, deploy and rollback commands |
 | Develop PvE fleet command | [Current contracts](pve-implementation-status.md), [selected UI D](pve-ui-studies/README.md) | Rust orders, observation, mission and air rules |
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
 | Measure fleet-command speed | [Fleet command speed](pve-speed-performance.md) | Actual 1×/2×/4× progress, fixed fleet scenarios and worker throughput |

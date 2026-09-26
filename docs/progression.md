@@ -16,7 +16,7 @@ but not sailed in the player's own fleet. Enemies and bots may be any ship.
 | API | `services/api/progress.ts`, `services/db/migrations/003_progress.sql` | See [accounts](accounts.md#research-progress) |
 
 `techTree.ts`, `rules.ts` and `xp.ts` are shared with the accounts API, which copies exactly those three files into
-its image (`deploy/Dockerfile.api`, `.dockerignore`, `scripts/deploy-hermes.sh`). They must import nothing outside
+its image (`deploy/Dockerfile.api`, `.dockerignore`, `scripts/deploy-ships.sh`). They must import nothing outside
 `src/progression/`.
 
 ## Rules

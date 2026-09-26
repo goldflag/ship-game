@@ -4,6 +4,9 @@ import runpy
 recipe=runpy.run_path(str(Path(__file__).resolve().parents[1]/'convoy/geometry-v2.py'),run_name='__main__')
 
 import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(recipe['scene'])
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
 from surface import apply_appearance
 apply_appearance(recipe['scene'],recipe['materials'],Path(__file__).with_name('appearance.json'))

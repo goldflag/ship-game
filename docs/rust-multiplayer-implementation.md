@@ -1,7 +1,7 @@
 # Rust fleet multiplayer implementation
 
 Current hosting: the frontend and multiplayer backend are deployed together on
-Hermes at **https://ships.tomato.gg**. See [deployment and operations](deployment.md).
+the ships host at **https://ships.tomato.gg**. See [deployment and operations](deployment.md).
 The implementation and measurement record below describes the original local
 validation; its statements about unprovisioned infrastructure are historical.
 

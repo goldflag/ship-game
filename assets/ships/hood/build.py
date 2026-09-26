@@ -1070,6 +1070,9 @@ for group in ['armor', 'modules', 'compartments', 'obstructions']:
 scene['definitionHash'] = D['contentHash']; scene['historicalConfiguration'] = D['configuration']
 scene['accuracyStatus'] = 'Game reconstruction against the approved GameModels3D pbsb507 model; see the ship README.'
 create_flagstaffs(D)
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
+from blender_wall_fittings import seat_wall_fittings
+seat_wall_fittings(scene)
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'appearance'))
 from surface import apply_appearance
 apply_appearance(scene, materials, Path(__file__).with_name('appearance.json'))

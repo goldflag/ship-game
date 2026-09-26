@@ -139,7 +139,7 @@ services:
         condition: service_healthy
     environment:
       # The edge proxy's network and Cloudflare are traversed right-to-left.
-      EDGE_PROXY_CIDR: ${EDGE_PROXY_CIDR:-172.18.0.0/16}
+      EDGE_PROXY_CIDR: ${EDGE_PROXY_CIDR:-172.30.79.0/24}
     networks:
       simulation:
         ipv4_address: 172.30.78.2
@@ -172,7 +172,7 @@ networks:
           ip_range: 172.30.78.128/25
   edge:
     external: true
-    name: ${EDGE_NETWORK:-matcha-watch_private}
+    name: ${EDGE_NETWORK:-ships-edge}
 
 volumes:
   postgres:
