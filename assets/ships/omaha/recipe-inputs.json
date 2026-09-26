@@ -4,6 +4,9 @@
     "assets/parts/library.py",
     "assets/parts/library.json",
     "assets/parts/us-omaha-guns/mk16_twin.py",
+    "assets/parts/us-omaha-guns/mk13_single.py",
+    "assets/parts/us-omaha-guns/browning_m2.py",
+    "assets/parts/us-carrier-guns/geometry.py",
     "assets/ships/omaha/appearance.json",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json"
