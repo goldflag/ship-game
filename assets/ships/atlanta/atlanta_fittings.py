@@ -991,37 +991,30 @@ def underwater(D, kit):
         return [P(*p) for p in right + left]
     kit.loft(aid, col, 'rudder blade', [foil(-6.62, 69.4, 74.9, .22), foil(-2.2, 69.0, 74.9, .3)], 'antifouling', True, True, False)
     kit.part('rod', aid, col, 'rudder stock', V(0, -2.25, 70.3), V(0, -1.3, 70.3), .2, 'antifouling', vertices=12)
-    # Bilge keels along the turn of the bilge (reference z -35 to 30), plates standing out and down.
+    # Bilge keels along the turn of the bilge, measured on the reference's sections: from z -22.5 to 32.5, the tip
+    # 0.9-1.1 m out from the root (z, tip half-breadth, tip height, root height), a wedge 0.24 m thick at the root.
+    KEEL = [(-22.5, None, None, -3.34), (-20, 6.84, -4.34, -3.55), (-16, 7.0, -4.66, -3.88), (-12, 7.02, -4.86, -4.08),
+            (-8, 7.04, -5.05, -4.27), (-4, 7.05, -5.16, -4.38), (6, 7.03, -5.2, -4.42), (10, 7.01, -5.12, -4.34),
+            (14, 6.99, -5.0, -4.22), (18, 6.93, -4.86, -4.07), (22, 6.84, -4.69, -3.89), (26, 6.76, -4.47, -3.71),
+            (30, 6.7, -4.21, -3.55), (32.5, None, None, -3.45)]
     for s in (-1, 1):
-        zs = [-35 + 65 * i / 10 for i in range(11)]
-        pts = []
-        for z in zs:
-            hb = hull_half(kit, z, -4.6)
-            pts.append((V(s * (hb - .05), -4.6, z), V(s * (hb + .45), -5.25, z)))
         vv, ff = [], []
-        for (a, b) in pts:
-            for p in (a, b):
-                vv.append(tuple(p + Vector((0, 0, 0))))
-        n = len(pts)
-        faces = []
-        for i in range(n - 1):
-            faces.append((2 * i, 2 * i + 1, 2 * i + 3, 2 * i + 2))
-        # Thicken by duplicating 3 cm to the fore-and-aft-normal side.
-        off = [tuple(Vector(v) + Vector((0, 0, .03))) for v in vv]
-        allv = vv + off
-        m = len(vv)
-        ff = faces + [tuple(m + k for k in reversed(f)) for f in faces]
-        for i in range(n - 1):
-            for e in ((2 * i, 2 * i + 2), (2 * i + 1, 2 * i + 3)):
-                ff.append((e[0], e[1], m + e[1], m + e[0]))
-        ff += [(0, 1, m + 1, m), (2 * n - 2, m + 2 * n - 2, m + 2 * n - 1, 2 * n - 1)]
-        ob = kit.mesh('bilge keel', allv, ff, 'antifouling', col)
-        kit.tag(ob, 'bilge-keels')
+        for z, tx, ty, ry in KEEL:
+            if tx is None:
+                tx, ty = hull_half(kit, z, ry) + .02, ry
+            vv += [P(s * (hull_half(kit, z, ry + .12) - .04), ry + .12, z), P(s * (hull_half(kit, z, ry - .12) - .04), ry - .12, z), P(s * tx, ty, z)]
+        for i in range(len(KEEL) - 1):
+            u0, l0, t0, u1, l1, t1 = 3 * i, 3 * i + 1, 3 * i + 2, 3 * i + 3, 3 * i + 4, 3 * i + 5
+            ff += [(u0, u1, t1, t0), (l0, t0, t1, l1), (u0, l0, l1, u1)]
+        n = 3 * (len(KEEL) - 1)
+        ff += [(0, 2, 1), (n, n + 1, n + 2)]
+        ob = kit.mesh('bilge-keels.' + ('port' if s < 0 else 'starboard'), vv, ff, 'antifouling', col)
         bm = bmesh.new()
         bm.from_mesh(ob.data)
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
         bm.to_mesh(ob.data)
         bm.free()
+        kit.tag(ob, 'bilge-keels')
 
 
 def railings(D, kit):

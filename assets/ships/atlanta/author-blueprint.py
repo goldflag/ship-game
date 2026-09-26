@@ -85,20 +85,23 @@ STEM = [(-2.0, -80.76), (0.0, -80.79), (1.0, -80.86), (2.0, -80.94), (3.0, -81.0
         (6.0, -81.90), (7.0, -82.24), (7.9, -82.54), (8.0, -82.58)]
 # Two stations through the anchor pockets (reference z -75.3 and -76.3) followed the hawse pipes inboard at the top:
 # a station whose upper half-breadths leave both neighbours' by over 0.3 m takes their mean instead.
-def off_line(i, a, b):
+# One station (reference z 1.7) caught the tip of a bilge keel below the bilge: the same rule on the lower
+# points, at 2 m (that station sits 4.9 m out). The bilge keels themselves are fittings (atlanta_fittings.underwater).
+def off_line(i, a, b, points):
     (za, pa), (z, p), (zb, pb) = measured[a], measured[i], measured[b]
     t = (z - za) / (zb - za)
-    return max(abs(p[k][0] - (pa[k][0] * (1 - t) + pb[k][0] * t)) for k in range(-6, 0))
+    return max(abs(p[k][0] - (pa[k][0] * (1 - t) + pb[k][0] * t)) for k in points)
 
 
-bad = [i for i in range(2, len(measured) - 2) if min(off_line(i, i - 1, i + 1), off_line(i, i - 2, i + 2)) > .3]
-for i in bad:
-    a = max(j for j in range(i) if j not in bad)
-    b = min(j for j in range(i + 1, len(measured)) if j not in bad)
-    (za, pa), (z, p), (zb, pb) = measured[a], measured[i], measured[b]
-    t = (z - za) / (zb - za)
-    measured[i] = (z, [[round(pa[k][0] * (1 - t) + pb[k][0] * t, 4), round(pa[k][1] * (1 - t) + pb[k][1] * t, 4)] for k in range(len(p))])
-    print(f'hull: station at reference z {z:.2f} replaced by its neighbours (anchor pocket)')
+for points, limit, why in ((range(-6, 0), .3, 'anchor pocket'), (range(1, 10), 2.0, 'bilge keel')):
+    bad = [i for i in range(2, len(measured) - 2) if min(off_line(i, i - 1, i + 1, points), off_line(i, i - 2, i + 2, points)) > limit]
+    for i in bad:
+        a = max(j for j in range(i) if j not in bad)
+        b = min(j for j in range(i + 1, len(measured)) if j not in bad)
+        (za, pa), (z, p), (zb, pb) = measured[a], measured[i], measured[b]
+        t = (z - za) / (zb - za)
+        measured[i] = (z, [[round(pa[k][0] * (1 - t) + pb[k][0] * t, 4), round(pa[k][1] * (1 - t) + pb[k][1] * t, 4)] for k in range(len(p))])
+        print(f'hull: station at reference z {z:.2f} replaced by its neighbours ({why})')
 fixed = []
 for zref, pts in measured:
     if zref < -80.78:
