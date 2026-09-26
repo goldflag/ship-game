@@ -659,6 +659,37 @@ def box_overlap(a, c):
     return min(ax) < max(cx) and min(cx) < max(ax) and min(az) < max(cz) and min(cz) < max(az)
 
 
+def poly_distance(poly, x, z):
+    """Distance from (x, runtime z) to a footprint; zero inside it."""
+    inner = False
+    best = 1e9
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        if (az > z) != (bz > z) and x < (bx - ax) * (z - az) / (bz - az) + ax:
+            inner = not inner
+        dx, dz = bx - ax, bz - az
+        t = max(0, min(1, ((x - ax) * dx + (z - az) * dz) / max(1e-12, dx * dx + dz * dz)))
+        best = min(best, math.hypot(x - ax - t * dx, z - az - t * dz))
+    return 0.0 if inner else best
+
+
+# A tub's floor or locker that the plan cuts end a few centimetres over a gun's seat, inside its carriage circle
+# but not under the gun itself, would rub the gun's turning base: it ends 1 cm under the seat, unless something
+# stands on it. Platforms (over 12 m2) and whatever a gun stands on are seats and stay.
+seat_blocks = [s for s in structures + minor_blocks if any(abs(s['baseY'] + s['height'] - gy) < .25 and
+               poly_distance(s['footprint'], gx, gz + ZS) == 0 for gx, gz, gy, *_ in guns)]
+for gx, gz, gy, carriage, reach, _, _ in guns:
+    for s in structures + minor_blocks:
+        top = s['baseY'] + s['height']
+        if not gy - .005 < top <= gy + .2 or s['baseY'] >= gy - .07 or any(s is q for q in seat_blocks) or plan_area(s['footprint']) > 12:
+            continue
+        d = poly_distance(s['footprint'], gx, gz + ZS)
+        if d >= carriage + .05:
+            continue
+        if any(o is not s and abs(o['baseY'] - top) < .07 and box_overlap(o, s) for o in structures + minor_blocks):
+            continue
+        s['height'] = round(gy - .01 - s['baseY'], 3)
+
+
 # Overlapping blocks that end at the same height would share a top plane (z-fighting, doubled plating):
 # the smaller one stops 5 cm short.
 for _ in range(6):
