@@ -97,6 +97,17 @@ for mount in D['mounts']:
     else:
         kit.gun_seat(mount)
     create_mount(mount, col, helpers, materials)
+# The twin Oerlikons' canvas case bags carry twenty elevation shape keys each. Drawn faceted, the exporter splits every
+# vertex per face (590 a bag for 162 points) and the 34 bags' morph targets came to 9.6 MB of a 26 MB model. A canvas bag
+# shades smooth anyway: that shares its vertices and keeps its shape and every key.
+for ob in scene.objects:
+    if ob.type == 'MESH' and ob.data.shape_keys and ob.name.split('.')[1:2] == ['case-bag']:
+        ob.data.shade_smooth()
+# The reference's plain scheme paints the 8-inch barrels haze grey like their gunhouses; the catalog turret draws them
+# in its dark-fittings role.
+for ob in scene.objects:
+    if ob.type == 'MESH' and ob.name.split('.')[0] in ('main-1', 'main-2', 'main-3') and ob.name.split('.')[1:2] == ['barrel']:
+        ob.data.materials[0] = materials['naval']
 
 # ---------------------------------------------------------------- fittings
 new_orleans_fittings.build(D, kit)

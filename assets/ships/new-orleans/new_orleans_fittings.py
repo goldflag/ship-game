@@ -344,6 +344,7 @@ def radars(D, kit):
 
 # ---------------------------------------------------------------- funnel tops
 FUNNELS = [('forward-funnel', -13.852, .1125, 11.0, 20.0, 18.7), ('after-funnel', 3.265, .1046, 9.7, 19.3, 18.0)]
+HOOD_BACK = -13.45  # reference z of the forward funnel cowl's after face
 SECTION = [(-2.87, 0), (-2.8, .30), (-2.6, .87), (-2.4, 1.12), (-2.2, 1.32), (-2.0, 1.41), (-1.8, 1.48), (-1.5, 1.58), (-1.0, 1.66),
            (0, 1.66), (1.0, 1.60), (1.5, 1.43), (1.8, 1.30), (2.0, 1.07), (2.2, .73), (2.4, .30), (2.45, 0)]
 
@@ -369,9 +370,13 @@ def funnels(D, kit):
         inner = [(x, rim, z) for x, z in funnel_ring(zc(rim), -.02)]
         top = [(x, rim + .14, z) for x, z in funnel_ring(zc(rim + .14), .06)]
         kit.loft(aid + '-top', col, 'rim lip', [[P(*p) for p in inner], [P(*p) for p in lip], [P(*p) for p in top]], 'black', False, False, False)
+        # (the forward funnel's cowl covers the forward part of its mouth: no bars under it)
+        clear = HOOD_BACK - zc(rim) + .1 if aid == 'forward-funnel' else -9
         for dz in (-1.6, -.5, .6, 1.6):
-            kit.boxc(aid + '-top', col, 'mouth bar', V(0, rim + .12, zc(rim) + dz), (.08, 3.0, .12), 'black')
-        kit.boxc(aid + '-top', col, 'mouth bar', V(0, rim + .12, zc(rim)), (4.6, .08, .12), 'black')
+            if dz > clear:
+                kit.boxc(aid + '-top', col, 'mouth bar', V(0, rim + .12, zc(rim) + dz), (.08, 3.0, .12), 'black')
+        a0 = max(-2.3, clear)
+        kit.boxc(aid + '-top', col, 'mouth bar', V(0, rim + .12, zc(rim) + (a0 + 2.3) / 2), ((2.3 - a0), .08, .12), 'black')
         # Gallery round the stack with its rail, on brackets.
         ring = funnel_ring(zc(gallery), .62)
         base = funnel_ring(zc(gallery), .02)
@@ -399,18 +404,30 @@ def funnels(D, kit):
             kit.part('rod', aid + '-top', col, 'pipe mouth', V(*b) - Vector((0, 0, .05)), V(*b) + Vector((0, 0, .05)), .13, 'black', vertices=10)
         # Ladder up the side to the gallery.
         kit.ladder(aid + '-top', col, V(1.72, 10.0, zc(10.0) + .6), V(1.72, gallery, zc(gallery) + .6), (-1, 0, 0), .42)
-    # The forward funnel's raked hood over the forward half of its mouth (reference 20.0 to 20.75 m).
+    # The forward funnel's cowl (reference plan and profile cuts): it covers the mouth from the forward rim to a steep
+    # after face 0.61 m forward of the stack's centre at the rim (reference z -13.45), its top rising from 20.45 m at
+    # the forward tip to 22.47 m on the centreline at that face and arched across it, 0.54 m lower 1.3 m out.
     rim = 20.0
     zc = lambda y: -13.852 + .1125 * (y - 11.0)
-    half = [(x, z) for x, z in funnel_ring(zc(rim), .06) if z <= zc(rim) + .2]
-    half.sort(key=lambda p: math.atan2(p[0], -(p[1] - zc(rim))))
-    low = [P(x, rim + .12, z) for x, z in half]
-    high = [P(x, rim + .12 + max(0, (zc(rim) + .2 - z)) * .27, z) for x, z in half]
-    vv = low + high
-    n = len(half)
-    ff = [(i, i + 1, n + i + 1, n + i) for i in range(n - 1)] + [tuple(range(n, 2 * n))]
-    hood = kit.tag(kit.mesh('forward-funnel-top.hood', vv, ff, 'black', col), 'forward-funnel-top')
-    recalc(hood)
+    base, peak, back = rim + .12, 22.47, HOOD_BACK
+
+    def half_width(z):
+        dz = z - zc(rim)
+        for (d0, w0), (d1, w1) in zip(SECTION, SECTION[1:]):
+            if d0 <= dz <= d1:
+                return (w0 + (w1 - w0) * (dz - d0) / (d1 - d0)) + .06
+        return .06
+
+    tip = zc(rim) + SECTION[0][0] + .05
+    rings = []
+    for k in range(11):
+        z = tip + (back - tip) * k / 10
+        crown = 20.45 - base + (peak - 20.45) * k / 10  # centreline height above the lip
+        w = max(half_width(z), .08)
+        top = [(w * (-1 + 2 * j / 10), base + crown * max(.25, 1 - .24 * (w * (-1 + 2 * j / 10) / 1.3) ** 2), z) for j in range(11)]
+        rings.append([P(*q) for q in top + [(w, base, z), (-w, base, z)]])
+    hood = kit.loft('forward-funnel-top', col, 'hood', rings, 'black', True, True, True)
+    hood.data.set_sharp_from_angle(angle=math.radians(35))
 
 
 # ---------------------------------------------------------------- aviation

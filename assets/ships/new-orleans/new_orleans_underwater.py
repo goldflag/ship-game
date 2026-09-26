@@ -62,9 +62,10 @@ def screw(kit, col, aid, c):
         a = math.pi / 4 + k * math.pi / 2
         ca, sa = math.cos(a), math.sin(a)
         sections = []
-        for r, w in ((.28, .6), (.8, .85), (1.3, .8), (1.74, .4)):
-            le = (c.x - w * .15, c.y + r * ca - w * sa * .5, c.z + r * sa + w * ca * .5)
-            te = (c.x + w * .15, c.y + r * ca + w * sa * .5, c.z + r * sa - w * ca * .5)
+        # Broad blades, as the reference's four-bladed screws show them (2 m along the shaft, hub included).
+        for r, w in ((.28, .75), (.8, 1.25), (1.3, 1.3), (1.74, .75)):
+            le = (c.x - w * .3, c.y + r * ca - w * sa * .45, c.z + r * sa + w * ca * .45)
+            te = (c.x + w * .3, c.y + r * ca + w * sa * .45, c.z + r * sa - w * ca * .45)
             sections.append((le, te))
         vv = []
         for le, te in sections:
@@ -92,7 +93,7 @@ def build(D, kit):
             # The inner shafts leave the hull in long bossings (reference z 54.4 to 63.2) and run aft to a
             # two-armed bracket 2.4 m ahead of the screw.
             start = V(x * .8, -3.75, 50.0)
-            kit.part('rod', aid, col, 'shaft', start, c + Vector((.5, 0, 0)), .2, 'bronze', vertices=12)
+            kit.part('rod', aid, col, 'shaft', start, c + Vector((.5, 0, 0)), .2, 'antifouling', vertices=12)
             boss0, boss1 = V(x * .88, -3.95, 53.8), V(x, -4.35, 63.4)
             kit.part('rod', aid, col, 'bossing', boss0, boss1, .5, 'antifouling', r2=.3, vertices=14)
             kit.part('rod', aid, col, 'bossing tail', boss1, boss1 + (boss1 - boss0).normalized() * 1.2, .3, 'antifouling', r2=.2, vertices=14)
@@ -108,7 +109,7 @@ def build(D, kit):
         else:
             # The outer shafts leave the hull just ahead of the screw, on a short bossing and one bracket.
             start = V(x * .85, -4.0, 50.5)
-            kit.part('rod', aid, col, 'shaft', start, c + Vector((.5, 0, 0)), .2, 'bronze', vertices=12)
+            kit.part('rod', aid, col, 'shaft', start, c + Vector((.5, 0, 0)), .2, 'antifouling', vertices=12)
             boss0, boss1 = V(x * .9, -4.1, 51.8), V(x, -4.45, 56.6)
             kit.part('rod', aid, col, 'bossing', boss0, boss1, .45, 'antifouling', r2=.28, vertices=14)
             h = V(x, -4.47, 57.6)

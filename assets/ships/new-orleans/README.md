@@ -51,7 +51,12 @@ over 85% of its height) is a prism; one whose walls taper (the funnel uptakes' f
 straight loft through the few levels its shape needs, each level resampled where its neighbour's points fall on it so
 the facets follow the walls. Cells are kept only under a surface of the reference (so the deck inside a tub or an open
 bridge does not come back solid), the main barbettes and every open gun's working circle are cut out, and small lintels
-are carried to the block they rest on. The funnels are raked extrusions of one measured section with sooted caps.
+are carried to the block they rest on. Two measured blocks are corrected in `author-blueprint.py`: the open
+navigating bridge's deck (bridge-010) runs unbroken to the pilothouse top instead of a sawtoothed U that let the sea show
+through, and the after deckhouse (after-superstructure-079) keeps three of its twelve plan levels (6.2, 8.775 and 9.7 m),
+whose trace noise and small steps had crumpled its sides. The funnels are raked extrusions of one measured section with
+sooted caps; the forward funnel's cowl covers the forward part of its mouth and rises to 22.47 m at its after face, arched
+across, as the reference's does.
 Bulwarks, splinter screens and gun tubs, which the block trace
 drops as too thin, are traced as polylines by `authoring/walls.py` and drawn as 6 cm plating; where one crosses a
 light or secondary gun's working circle (the catalog part's swept rests, shield and platform, measured on the built
@@ -88,7 +93,9 @@ superstructure plating are 25 and 13 mm.
 
 The paint is the reference's plain scheme sampled through its own UVs: one haze grey over hull, upperworks and
 turrets, deck blue over the timber weather decks and steel roofs, a black boot-topping from 0.24 to 0.76 m and a
-fouled olive-brown bottom, black funnel caps (`appearance.json`).
+fouled olive-brown bottom, black funnel caps (`appearance.json`); the 8-inch barrels are haze grey like their gunhouses,
+and the shafts carry the bottom paint. The twin Oerlikons' canvas case bags are shaded smooth: faceted, their twenty
+elevation keys each made 9.6 MB of the model.
 
 ## Accepted approximations
 
@@ -96,16 +103,21 @@ fouled olive-brown bottom, black funnel caps (`appearance.json`).
   class's published full load; the stated mass equals the loft's displacement. The beam (18.48 m) is the
   reference's.
 - Superstructure blocks are measured prisms and straight lofts: small overhangs step and curved faces are faceted,
-  and the reference's open-framed spaces (under the bridge wings, between the pillars of the lower bridge) are closed
-  blocks. Only the bridge's windows and portholes are glazed; doors, scuttles on the hull and other painted texture
-  detail are not modelled, and openings whose wall here stands away from the reference's are left out.
+  neighbouring blocks and screens can leave seams up to about 0.15 m (between bridge-019 and bridge-021, for one), and
+  the reference's glazing bars, pillars and wing brackets in the open spaces under the bridge wings and in the lower
+  bridge are not modelled (the spaces themselves are open). Only the bridge's windows and portholes are glazed; doors,
+  scuttles on the hull and deckhouses and other painted texture detail are not modelled, and openings whose wall here
+  stands away from the reference's are left out. The open bridge carries its binoculars but not the reference's
+  pelorus stands, gyro repeaters or binnacle; the crane beams by No. 2 turret, the davit abreast the bridge, the two
+  forward sky lookouts and the hawser reels are not fitted.
 - The catalog Oerlikon, Bofors and 5-inch parts sweep wider than the reference's own guns, so traced screens and tubs
   bulge round them: up to 0.39 m at the bridge wings' single Oerlikons and 0.33 m on the after control platform, on
   small sponson floors; the two ready-use lockers beside the bridge-wing Oerlikons stand 0.6 m abaft the reference's.
   The forecastle capstans stand 0.44 m high (caps at 7.72 m) under No. 1 turret's overhang, and the chains run from
   them to the hawse pipes without a windlass.
-- The catalog 20 mm mounts' trunnions stand lower against the reference's tub walls than its own guns', so the forward
-  twins and the after control platform's singles rest elevated and cannot depress over the wall ahead of them.
+- The reference poses its 20 mm guns about 30 degrees up. At their trunnion height, which the catalog mounts share (the
+  reference's muzzle datums give 1.17 m for the twins and 1.15 m for the singles), the forward twins and the after
+  control platform's singles cannot depress over the tub wall ahead of them, so they rest at 10 and 5 degrees.
 - Masts, yards, radars, directors, the crane and the catapults are simplified; the catapults are empty, as in the
   reference, and no aircraft are carried. The reference shows no torpedo tubes or depth-charge gear, so none are
   fitted.

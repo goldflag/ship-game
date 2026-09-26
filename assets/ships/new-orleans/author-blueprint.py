@@ -244,6 +244,66 @@ for id, name, z_ref, rake, y_ref, y0, y1 in FUNNELS:
     structures.append(dict(id=id, name=f'{name} {y0:.1f}-{y1:.1f} m', footprint=[[round(x, 4), rz(z)] for x, _, z in widest], baseY=y0, height=round(y1 - y0, 3),
                            material='naval', surface=dict(vertices=verts, triangles=tris),
                            exhaust=dict(position=[0, y1, rz(zc1 - .2)], width=3.3, length=5.2)))
+
+
+# ---------------------------------------------------------------- corrections to the measured blocks
+def block(sid, base=None, top=None):
+    """A measured block these corrections expect, checked so that a re-measurement that moves it fails loudly."""
+    s = next((s for s in structures if s['id'] == sid), None)
+    if s is None or (base is not None and abs(s['baseY'] - base) > .06) or (top is not None and abs(s['baseY'] + s['height'] - top) > .06):
+        sys.exit(f'{sid} is not the block the open-bridge and loft corrections expect; re-check them after re-measuring')
+    return s
+
+
+def rename(s):
+    s['name'] = s['name'].rsplit(' ', 2)[0] + f" {s['baseY']:.1f}-{s['baseY'] + s['height']:.1f} m"
+
+
+# The open navigating bridge. The reference's deck at 17.5 m runs unbroken from the bulwark to the pilothouse top
+# (bridge-018), but the plan trace left bridge-010 a sawtoothed U round it that misses the pilothouse's outline by up to
+# 0.3 m, so the sea showed through the deck, and bridge-025 floated 5 cm over both. The deck takes its outer outline
+# (runtime metres) and meets the pilothouse along the pilothouse's own outline; bridge-025 stands on them.
+OPEN_BRIDGE = [(4.08, -28.09), (4.3, -28.31), (4.3, -30.56), (2.98, -33.34), (-2.92, -33.39), (-3.1, -33.26), (-4.3, -30.56),
+               (-4.3, -28.31), (-4.17, -28.14)]
+deck, house, wheel = block('bridge-010', 17.4, 17.5), block('bridge-018', 14.9, 17.5), block('bridge-025', None, 18.85)
+aft_z = -28.12
+edge = list(zip(house['footprint'], house['footprint'][1:] + house['footprint'][:1]))
+cut = sorted(((ax + (bx - ax) * (aft_z - az) / (bz - az), aft_z) for (ax, az), (bx, bz) in edge if min(az, bz) < aft_z < max(az, bz)))
+if len(cut) != 2:
+    sys.exit('bridge-018 no longer crosses the open-bridge deck’s after edge twice; re-check the open-bridge correction')
+ring = house['footprint']
+start = next(i for i in range(len(ring)) if ring[i][1] < aft_z <= ring[i - 1][1])
+ring = ring[start:] + ring[:start]
+forward = [tuple(p) for p in ring[:next(i for i, p in enumerate(ring) if p[1] >= aft_z)]]
+if forward[0][0] > forward[-1][0]:
+    forward.reverse()
+# outer outline round the bow side from starboard aft to port aft, then the pilothouse's forward outline from port to starboard
+deck['footprint'] = [[x, z] for x, z in OPEN_BRIDGE] + [list(cut[0])] + [list(p) for p in forward] + [list(cut[1])]
+wheel['height'] = round(wheel['baseY'] + wheel['height'] - 17.5, 3)
+wheel['baseY'] = 17.5
+rename(wheel)
+
+# The after deckhouse (6.2 to 9.7 m) was lofted through twelve plan levels whose 5 cm trace noise and small steps
+# crumpled its sides into visible shading ripples. Its walls stand nearly plumb to 8.8 m and flare out to the deck
+# edge above, so the loft keeps three of its levels, all 128 points of each, and rules straight walls between them.
+after = block('after-superstructure-079', 6.2, 9.7)
+keep = [6.2, 8.775, 9.7]
+verts, tris = after['surface']['vertices'], after['surface']['triangles']
+ys = sorted({round(v[1], 4) for v in verts})
+n = len(verts) // len(ys)
+if any(not any(abs(y - k) < 1e-3 for y in ys) for k in keep):
+    sys.exit('after-superstructure-079 no longer has the plan levels its simplification keeps')
+if len(ys) > len(keep):
+    level = {y: i for i, y in enumerate(ys)}
+    rings = [level[next(y for y in ys if abs(y - k) < 1e-3)] for k in keep]
+    side = [t for t in tris if {i // n for i in t} == {0, 1}]
+    bottom = [t for t in tris if {i // n for i in t} == {0}]
+    top_cap = [t for t in tris if {i // n for i in t} == {len(ys) - 1}]
+    new_tris = [[i for i in t] for t in bottom]
+    for a in range(len(rings) - 1):
+        new_tris += [[i % n + (a if i // n == 0 else a + 1) * n for i in t] for t in side]
+    new_tris += [[i % n + (len(rings) - 1) * n for i in t] for t in top_cap]
+    after['surface'] = dict(vertices=[verts[old * n + k] for old in rings for k in range(n)], triangles=new_tris)
 b['structures'] = structures
 
 
@@ -452,9 +512,10 @@ for k, (x, y, z, sx, sy, sz) in enumerate(LOCKERS):
 # historical stops. Carriages in the yaw frame (x across, y up, z aft), measured on the catalog parts.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
 # The CA-32 gunhouse box stops at 2.8 m, under the superfiring turret's barrels at rest over No. 1's roof, and at the
-# gunhouse's 7 m breadth, clear of the 20 mm twins beside No. 3; the rangefinder hoods standing out 4.34 m from the
-# centreline at the back are two capsules each on the training frame.
-BODIES = {'us-8in55-ca32-triple': dict(center=[0, 1.4, 1.69], size=[7.0, 2.8, 9.35]),
+# gunhouse's measured 6.42 m breadth with 9 cm a side (a 7 m box met the carriages of the 20 mm twins abaft No. 1's
+# after corners and shut them out of every bearing abaft their beam); the rangefinder hoods standing out 4.34 m from
+# the centreline at the back are two capsules each on the training frame.
+BODIES = {'us-8in55-ca32-triple': dict(center=[0, 1.4, 1.69], size=[6.6, 2.8, 9.35]),
           'us-5in25-mk19-single': dict(center=[0, 1.0, .35], size=[2.9, 1.66, 3.1]),
           'us-40mm-bofors-mk2-quad': dict(center=[0, .95, .3], size=[3.0, 1.9, 2.4]),
           'us-20mm-oerlikon-mk24-hsienyang': dict(center=[0, .95, .25], size=[1.6, 1.9, 1.4]),
@@ -732,6 +793,8 @@ if 'damageControl' not in b:
 if 'localDamage' not in b:
     b['localDamage'] = dict(version=1, regions=[dict(id='hull-placeholder', name='Hull', kind='hull', durabilityFraction=1, center=[0, 0, 0], size=[round(beam, 3), 30, L])],
                             basis='Placeholder; author-local-damage.ts replaces it.')
+if not ear_clips(deck['footprint']):
+    sys.exit('the corrected open-bridge deck outline does not triangulate; check OPEN_BRIDGE against bridge-018')
 write(HERE / 'blueprint.json', b)
 print(f'Authored new-orleans: {len(sections)} sections, {round(volume * 1.025)} t at the reference waterline, draft {DRAFT} m, beam {round(beam, 2)} m, '
       f'{len(b["mounts"])} mounts, {len(structures)} structures, {len(b["armor"])} armour plates, {len(b["obstructions"])} obstructions. '
