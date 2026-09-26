@@ -106,7 +106,8 @@ describe('XP readout', () => {
 test('XP counts toward the next ship in the line sailed, or the cheapest open one, and nothing when every ship is owned', () => {
   const profile = { ...emptyProfile(), xp: { ...emptyProfile().xp, usa: 1338 }, freeXp: 38 };
   expect(unlockProgress(profile, award, 'gleaves')).toEqual({ name: 'Fletcher', line: 'Destroyers', before: 1000, after: 1376, cost: 1800 });
-  expect(unlockProgress(profile, award, 'local-design')?.name).toBe('Fletcher');
+  // A design outside the tree counts toward the cheapest open ship: New Orleans (1,500 XP) in the cruiser line.
+  expect(unlockProgress(profile, award, 'local-design')?.name).toBe('New Orleans');
   expect(unlockProgress({ ...profile, xp: { ...profile.xp, usa: 5000 } }, award, 'gleaves')).toMatchObject({ after: 1800, cost: 1800 });
   expect(unlockProgress(openProfile(), award, 'gleaves')).toBeUndefined();
 });
