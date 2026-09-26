@@ -91,10 +91,9 @@ signal blocks and the aircraft crane jib; the funnel's black band, rim, domed gr
 slung cutters, davits and the stowed boom; the catapult on its turntable and the aircraft trolleys; four three-bladed
 screws with broad blades, each on a shaft with its hull bossing, bearing housing and A-bracket (plan cuts at the shaft
 heights), the twin rudders with rounded corners hung on their stocks clear of the hull (profile cut x = 2.3) and bilge
-keels. Windows and portholes were located on orthographic
-renders of the reference's painted textures and seated on this model's own walls where they stand within 0.4 m of the
-reference's; the compass bridge's windscreen carries its band of 0.6 m panes every 0.74 m, 0.93 m tall on its face
-and 1.2 m on its sides, measured on the same renders.
+keels. Windows and portholes were located on orthographic renders of the reference's painted textures and seated on
+this model's own walls where they stand within 0.4 m of the reference's; the compass bridge's windscreen carries its
+band of 0.6 m panes every 0.74 m, 0.93 m tall on its face and 1.2 m on its sides, measured on the same renders.
 
 Machinery (four boiler rooms under the funnel, four turbine rooms between the funnel and No. 3 turret, four shafts),
 magazines, flood spaces, stability and damage-control values are game estimates; the visual reference does not
