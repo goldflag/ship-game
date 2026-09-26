@@ -7,13 +7,14 @@ use naval_sim::{
     catalog::Catalog,
     definition::{MountDefinition, ShipDefinition},
     geometry::{radians, wrap_angle},
+    motion::ShipState,
     mount_clearance::{ClearancePose, mount_pose_clear},
     mount_rest::{
         IDLE_REST_SECONDS, end_train, midship_z, rest_elevation, rests_toward_end, train_limits,
     },
     rules::{DT, TeamId},
     vessel::{CompiledShip, Vessel},
-    weapons::MountState,
+    weapons::{MountState, MountStatus, update_mount},
 };
 use std::{collections::BTreeMap, sync::Arc};
 
@@ -227,6 +228,76 @@ fn every_preset_rest_is_clear_of_its_interlocks() {
         }
     }
     assert!(covered >= 60, "only {covered} side secondaries covered");
+}
+
+/// Presets whose main battery is known to stop short of a beam: Mogami's No. 2
+/// turret depresses onto No. 1's roof while both train and wedges the pair;
+/// Takao's turrets rest inside their interlock envelopes.
+const BEAM_BLOCKED: [&str; 2] = ["mogami", "takao"];
+
+#[test]
+fn every_preset_main_battery_trains_from_rest_to_either_beam() {
+    // Every turret trains at once, as for a broadside, so neighbours' interlocks
+    // meet as they do in battle. Kongō's superfiring pair once froze at rest.
+    let catalog = Catalog::installed();
+    let mut failures = Vec::new();
+    for id in catalog.definitions.keys() {
+        let compiled = Arc::new(catalog.compile(id).unwrap());
+        let mut blocked = false;
+        for side in [-1.0, 1.0] {
+            let mut ship = Vessel::new("beam", TeamId::A, compiled.clone());
+            let d = ship.definition().clone();
+            let p = ShipState::new("beam");
+            let mains: Vec<usize> = (0..d.mounts.len())
+                .filter(|&i| d.mounts[i].battery == "main" && d.mounts[i].parent_mount_id.is_none())
+                .collect();
+            for _ in 0..600 {
+                for &i in &mains {
+                    let states = ship.mounts.clone();
+                    update_mount(
+                        &d.mounts[i],
+                        &mut ship.mounts[i],
+                        &d,
+                        &p,
+                        Some([side * 4000.0, 0.0, 0.0]),
+                        0.1,
+                        [0.0; 3],
+                        1.0,
+                        &compiled.obstructions,
+                        &states,
+                    );
+                }
+            }
+            for &i in &mains {
+                let (m, s) = (&d.mounts[i], &ship.mounts[i]);
+                let [lo, hi] = train_limits(m);
+                let beam = wrap_angle(side * radians(90.0) - radians(m.bearing_deg));
+                // Anti-aircraft main batteries carry no surface shell.
+                if beam < lo || beam > hi || s.status == MountStatus::Empty {
+                    continue;
+                }
+                if !matches!(s.status, MountStatus::Ready | MountStatus::Reloading) {
+                    blocked = true;
+                    if !BEAM_BLOCKED.contains(&id.as_str()) {
+                        failures.push(format!(
+                            "{id} {} toward {} beam: {:?} at {:.1} deg train, {:.1} deg elevation",
+                            m.id,
+                            if side > 0.0 { "starboard" } else { "port" },
+                            s.status,
+                            degrees(s.train),
+                            degrees(s.elevation),
+                        ));
+                    }
+                }
+            }
+        }
+        if BEAM_BLOCKED.contains(&id.as_str()) && !blocked {
+            failures.push(format!(
+                "{id} now reaches both beams: remove it from BEAM_BLOCKED"
+            ));
+        }
+    }
+    assert!(failures.is_empty(), "{failures:#?}");
 }
 
 fn duel(enemy_x: f64, enemy_z: f64) -> Battle {

@@ -336,10 +336,11 @@ for m in b['mounts']:
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
-        # Gunhouse from its 3.4 m working floor to the roof, or to the roof guard rails (6.6 m) on the
-        # turrets a superfiring neighbour passes over.
-        top = 6.6 if m['id'] == 'main-1' else 6.0
-        entry['body'] = dict(center=[0, round((3.4 + top) / 2, 3), 1.27], size=[10.6 if m['rangefinder'] else 9.0, round(top - 3.4, 3), 11.56])
+        # Gunhouse from its 3.4 m working floor to the 6.0 m roof. No. 1's roof guard rails (6.6 m) stay out:
+        # No. 2's gunhouse skirt is 0.34 m above No. 1's roof, so a rail-high envelope locked the pair against
+        # each other between 25 and 50 degrees of train, and left No. 2's resting barrels within the
+        # interlock's step padding of it, so neither turret could move from rest.
+        entry['body'] = dict(center=[0, 4.7, 1.27], size=[10.6 if m['rangefinder'] else 9.0, 2.6, 11.56])
     clear_mounts.append(entry)
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
 nearby = []
