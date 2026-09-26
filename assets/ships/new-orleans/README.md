@@ -127,7 +127,8 @@ elevation keys each made 9.6 MB of the model.
   reference's muzzle datums give 1.17 m for the twins and 1.15 m for the singles), the forward twins and the after
   control platform's singles cannot depress over the tub wall ahead of them, so they rest at 10 and 5 degrees.
 - Masts, yards, radars, directors, the crane and the catapults are simplified; the catapults are empty, as in the
-  reference, and no aircraft are carried. The reference shows no torpedo tubes or depth-charge gear, so none are
+  reference, and no aircraft are carried. The funnel mouths are capped black with bars laid over them where the
+  reference's are open over an inner grating, and their rims are level where the reference's fall about 0.7 m aft. The reference shows no torpedo tubes or depth-charge gear, so none are
   fitted.
 - Handling (32.7 kn), stability, mass distribution, flooding compartmentation and weapon values are shared game
   calibration, not historical measurements. Model fidelity and export checks do not certify historical accuracy.
