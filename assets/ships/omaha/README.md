@@ -43,9 +43,10 @@ station and 38/21 mm steering-gear box, all from the reference's armour model fi
 `build.py` draws the loft and the prisms; `omaha_bridge.py` the navigation platform round the pilot house (its
 wings, girder, rails, side-light screens, flag boxes, binnacle, pelorus stands and lockers), the pilot house roof
 and chart-house rails, the after control station's trestle and rangefinder platform and the after superstructure's
-roof rails; `omaha_fittings.py` the casemate hoods and sponson fairings, funnel caps, masts and lookout stations,
-directors, rangefinders, searchlights, catapults, boats and davits, torpedo mounts, deck gear, screws, shafts,
-rudder and bilge keels; `omaha_windows.py` the windows and scuttles the reference paints into its textures, read
+roof rails; `omaha_fittings.py` the casemate hoods and sponson fairings, funnel caps, ladders and steam pipes,
+the tripod foremast with its lower top, lookout house, signal truss and spotting top, the mainmast with its
+lookout stations, yards and truss, directors, rangefinders, searchlights, catapults, boats and davits, torpedo
+mounts, deck gear, screws, shafts, rudder and bilge keels; `omaha_windows.py` the windows and scuttles the reference paints into its textures, read
 off orthographic textured renders and seated on this model's own walls.
 
 Machinery (four shafts, four boiler rooms under the funnels, two turbine rooms), magazines, flood spaces,
@@ -84,7 +85,8 @@ measurements and comparison captures stay in ignored `.build/`.
 - **Paint:** linear-RGB interpretations of the reference's hull texture, not measured paint; its rust streaks are
   left to the runtime long-deployment wear. Boats have ship-grey hulls under white canopies.
 - **Fittings:** boats, davits, cranes, catapults, searchlights, ladders and rigging are simplified original
-  shapes; no aircraft is carried. The mainmast's lookout stations, yards and signal truss are at the reference
-  heights; small deck boxes, lockers and fire-fighting gear are mostly left out.
+  shapes; no aircraft is carried. The masts' tops, lookout stations, yards and trusses are at the reference
+  heights, but the spotting top's pitched roof is flat with a raised centre; small deck boxes, lockers and
+  fire-fighting gear are mostly left out.
 - **Guns:** the four gun parts are original recipes registered for recipe use (`guns.json`, `library.json`);
   they are not in the Shipbuilder construction catalog.
