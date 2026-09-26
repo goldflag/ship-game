@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "id": "new-orleans-starter-v1",
+  "basis": "Scaffold placeholder: one grey for hull and upperworks, dark painted-steel decks and a red-oxide bottom. Replace with the approved paint scheme (docs/ship-appearance.md); swatches are the recipe's linear-RGB material colors.",
+  "wear": "in-commission",
+  "materials": {
+    "naval": { "paint": "new-orleans-hull-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "new-orleans-hull-grey", "finish": "painted-steel" },
+    "antifouling": { "paint": "new-orleans-red-oxide", "finish": "underwater-coating" },
+    "deck": { "paint": "new-orleans-deck-grey", "finish": "painted-deck" },
+    "roof": { "paint": "new-orleans-deck-grey", "finish": "painted-deck" },
+    "edge": { "paint": "new-orleans-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "new-orleans-mid-fittings", "finish": "painted-steel" }
+  }
+}

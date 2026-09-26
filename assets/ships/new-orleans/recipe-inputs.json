@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/us-cruiser-guns/ca32_triple.py",
+    "assets/parts/gun_bloomers.py",
+    "assets/ships/new-orleans/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}
