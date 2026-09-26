@@ -412,7 +412,9 @@ def measured_prisms(cuts, cell=.1, gap=3):
             if len(hull_rows):
                 grid[hull_rows] &= col_x[None, :] > row_half[hull_rows, None]
             on = grid.reshape(-1)
-            done = np.nonzero(~on & (start >= 0) & (k - last > gap))[0]
+            # Above the hull's working decks the towers' open galleries and window bands are bridged up to
+            # 1.2 m; lower down, 15 cm.
+            done = np.nonzero(~on & (start >= 0) & (k - last > (gap if lv['y'] < 12 else 24)))[0]
             if len(done):
                 runs.append(np.stack([done, start[done], last[done]], 1))
                 start[done] = -1
@@ -474,15 +476,20 @@ def measured_prisms(cuts, cell=.1, gap=3):
             if not below:
                 p['base'] = round(p['deck'] - .02, 3)
     structures = []
-    # Blocks under 1.5 m2 in plan (lockers, vents, ladders, posts; 0.8 m2 for anything over 4 m tall) are left
+    # Blocks under 1.5 m2 in plan (lockers, vents, ladders; 0.6 m2 for pillars 2 m tall or more) are left
     # to the recipe's fittings.
-    small = lambda ring, h: abs(sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(ring, ring[1:] + ring[:1]))) / 2 < (.8 if h >= 4 else 1.5)
+    small = lambda ring, h: abs(sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(ring, ring[1:] + ring[:1]))) / 2 < (.6 if h >= 2 else 1.5)
     out = [p for p in out if not small(p['ring'], p['top'] - p['base'])]
     # The blueprint holds at most 256 blocks: keep the ones with the most visible surface (plan area plus wall
     # area), leaving room for the recipe's own.
     wall = lambda p: sum(math.hypot(a[0] - c[0], a[1] - c[1]) for a, c in zip(p['ring'], p['ring'][1:] + p['ring'][:1])) * (p['top'] - p['base'])
-    out = sorted(out, key=lambda p: -(p['area'] + wall(p)))[:MAX_MEASURED]
-    for i, p in enumerate(sorted(out, key=lambda p: (p['bounds']['min'][1], p['base']))):
+    print(f'measured blocks: {len(out)}, the blueprint keeps {MAX_MEASURED}')
+    ranked = sorted(out, key=lambda p: -(p['area'] + wall(p)))
+    for i, p in enumerate(ranked):
+        p["rank"] = i
+    # The rest are drawn by the recipe from ise_blocks.py, as geometry that fittings can stand on.
+    minor = []
+    for i, p in enumerate(sorted(ranked, key=lambda p: (p['bounds']['min'][1], p['base']))):
         ring = regularize(p['ring'], .08)
         tol = .08
         while len(ring) > 160:
@@ -490,8 +497,13 @@ def measured_prisms(cuts, cell=.1, gap=3):
             ring = regularize(p['ring'], tol)
         zc = (p['bounds']['min'][1] + p['bounds']['max'][1]) / 2
         label = 'Forward' if zc < -13.8 else 'Midships' if zc < 42.4 else 'After'
-        structures.append(dict(id=f"block-{i:03d}", name=f"{label} superstructure {p['base']:.1f}-{p['top']:.1f} m",
-                               footprint=[[x, rz(z)] for x, z in ring], baseY=p['base'], height=round(p['top'] - p['base'], 3), material='naval'))
+        block = dict(id=f"block-{i:03d}", name=f"{label} superstructure {p['base']:.1f}-{p['top']:.1f} m",
+                     footprint=[[x, rz(z)] for x, z in ring], baseY=p['base'], height=round(p['top'] - p['base'], 3), material='naval')
+        (structures if p["rank"] < MAX_MEASURED else minor).append(block)
+    table = ',\n'.join('    ' + json.dumps(m) for m in minor)
+    (HERE / 'ise_blocks.py').write_text('"""Measured superstructure blocks beyond the blueprint\'s 256-structure limit, written by\n'
+                                        'author-blueprint.py --plan: visual geometry the recipe draws and fittings stand on."""\n'
+                                        f'BLOCKS = [\n{table}\n]\n')
     return structures
 
 
@@ -514,6 +526,35 @@ def inside_barbette(s):
 
 
 structures = [s for s in structures if not inside_barbette(s)]
+# Measured pieces the column raster splits below its 0.3 m2 component floor, added from single plan cuts
+# (reference x0, x1, z0, z1, base, top): the after tower's cantilevered control platform (plan at 18.5 m).
+EXTRA = [('after-control-platform', 'After tower control platform', (-1.4, 1.4, 44.6, 48.69, 17.72, 19.37))]
+for sid, name, (x0, x1, z0, z1, y0, y1) in EXTRA:
+    structures.append(dict(id=sid, name=name, footprint=[[x0, rz(z0)], [x1, rz(z0)], [x1, rz(z1)], [x0, rz(z1)]], baseY=y0,
+                           height=round(y1 - y0, 3), material='naval'))
+
+
+def contains(poly, x, z):
+    c = False
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        if (az > z) != (bz > z) and x < (bx - ax) * (z - az) / (bz - az) + ax:
+            c = not c
+    return c
+
+
+# The funnel: the blocks standing over its uptake above 21.3 m (the trunk narrows to 5.0 by 6.8 m under a
+# black cap whose open top is at 25.9 m, centred 3.55 m abaft reference midships). Its topmost block carries
+# the exhaust datum the smoke reads.
+FUNNEL = dict(x=0, z=-3.55, base=21.3, width=4.8, length=6.4)
+funnel = sorted((s for s in structures if FUNNEL['base'] < s['baseY'] + s['height'] < 27 and contains(s['footprint'], 0, rz(FUNNEL['z']))),
+                key=lambda s: s['baseY'] + s['height'])
+for s in funnel:
+    s['name'] = 'Funnel ' + s['name'].split('superstructure ')[-1]
+    s['funnel'] = True
+if funnel:
+    top = funnel[-1]
+    top['exhaust'] = dict(position=[0, round(top['baseY'] + top['height'], 3), rz(FUNNEL['z'])], width=FUNNEL['width'], length=FUNNEL['length'])
+structures = [{k: v for k, v in s.items() if k != 'funnel'} | ({'id': s['id'] + '-funnel'} if s.get('funnel') else {}) for s in structures]
 b['structures'] = structures
 print(f'structures: {len(structures)}')
 

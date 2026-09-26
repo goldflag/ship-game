@@ -23,7 +23,9 @@ from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from ise_kit import Kit, P, ZS
 
-REGIONS = []
+import ise_fittings
+
+REGIONS = [ise_fittings]
 CLAIMED = set().union(*(region.CLAIMED_STRUCTURES for region in REGIONS)) if REGIONS else set()
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
@@ -121,6 +123,7 @@ for face in hull.data.polygons:
 
 # ---------------------------------------------------------------- superstructure
 FLIGHT_DECK_Y = (10.5, 10.9)
+FUNNEL_CAP = 23.0      # the funnel is black above this height, as the reference paints it
 shells = []
 for s in D['structures']:
     ob = authored_structure(s, mesh, materials, collections['Superstructure'])
@@ -128,15 +131,69 @@ for s in D['structures']:
     zs = [p[1] - ZS for p in s['footprint']]
     flight = FLIGHT_DECK_Y[0] < top < FLIGHT_DECK_Y[1] and max(zs) > 80
     ob.data.materials.append(materials['flightdeck' if flight else 'roof'])
+    ob.data.materials.append(materials['black'])
+    funnel = s['id'].endswith('-funnel')
     for face in ob.data.polygons:
-        if face.normal.z > .8:
+        if funnel and face.center.z > FUNNEL_CAP:
+            face.material_index = 2
+        elif face.normal.z > .8:
             face.material_index = 1
     shells.append(ob)
-support = SupportSurface([hull, *shells])
+# Measured blocks beyond the blueprint's structure limit: visual geometry, drawn the same way.
+from ise_blocks import BLOCKS
+minor = []
+for s in BLOCKS:
+    pts = [(-z, -x) for x, z in s['footprint']]
+    area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(pts, pts[1:] + pts[:1]))
+    if area < 0:
+        pts.reverse()
+    n = len(pts)
+    z0, z1 = s['baseY'], s['baseY'] + s['height']
+    vv = [(x, y, z) for z in (z0, z1) for x, y in pts]
+    ff = [tuple(reversed(range(n))), tuple(range(n, 2 * n))] + [(i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)]
+    ob = mesh(s['name'], vv, ff, 'naval', collections['Superstructure'])
+    ob['assemblyId'] = 'minor-' + s['id']
+    ob.data.materials.append(materials['roof'])
+    ob.data.polygons[1].material_index = 1
+    minor.append(ob)
+support = SupportSurface([hull, *shells, *minor])
 for ob in [o for o in shells if o['assemblyId'] in CLAIMED]:
     shells.remove(ob)
     bpy.data.objects.remove(ob, do_unlink=True)
 kit = Kit(D, helpers, materials, collections, support)
+
+# Measured blocks resting on nothing (whatever carried them was under the plan cuts' 0.3 m minimum, or a
+# block between was dropped) stand on posts down to the structure or deck below.
+for s in D['structures'] + [dict(b, id='minor-' + b['id']) for b in BLOCKS]:
+    if s['id'] in CLAIMED:
+        continue
+    pts = [(-z, -x) for x, z in s['footprint']]
+    cx, cy = sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)
+    base = s['baseY']
+
+    def gap(x, y):
+        try:
+            return base - support.below(x, y, base - .03)
+        except ValueError:
+            return 99
+    if min(gap(x, y) for x, y in pts + [(cx, cy)]) <= .1:
+        continue
+    far = sorted(pts, key=lambda p: -math.hypot(p[0] - cx, p[1] - cy))
+    feet = []
+    for px, py in far:
+        if all(math.hypot(px - fx, py - fy) > 1.2 for fx, fy in feet):
+            feet.append((px, py))
+        if len(feet) == 4:
+            break
+    area = abs(sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(pts, pts[1:] + pts[:1]))) / 2
+    r = .06 if area < 6 else .09 if area < 30 else .13
+    for fx, fy in feet or [(cx, cy)]:
+        x, y = fx + (cx - fx) * .25, fy + (cy - fy) * .25
+        try:
+            floor = support.below(x, y, base - .03)
+        except ValueError:
+            continue
+        kit.part('rod', s['id'], collections['Superstructure'], 'post', (x, y, floor - .02), (x, y, base + .02), r, 'naval', vertices=10)
 
 # ---------------------------------------------------------------- guns
 arm = collections['Main and secondary batteries']
@@ -154,18 +211,18 @@ for mount in D['mounts']:
         ob['assemblyId'] = mount['id']
         kit.cylz(mount['id'], arm, 'barbette top ring', (x, y, top - .16), 4.9, .12, 'naval', vertices=72)
     create_mount(mount, col, helpers, materials)
+    if kind == 'type96-25-kongo-single':
+        # The shared single's ring sight hangs 8 cm off its rail; the sight's cross-wires, owned by the same
+        # elevating joint, carry it on the rail's end (as on Takao).
+        elev = bpy.data.objects[mount['id'] + '.center.elevation']
+        for a, b in (((.13, .17, .21), (.13, .17, .41)), ((.13, .07, .31), (.13, .27, .31))):
+            wire = rod(mount['id'] + '.sight cross-wire', a, b, .007, 'edge', col, vertices=5)
+            wire.parent = elev
+            wire['assemblyId'] = mount['id']
 
 for region in REGIONS:
     region.build(D, kit)
 
-# ---------------------------------------------------------------- directors (temporary until the region pass)
-from blender_rig import radar_pivot
-sen = collections['Sensors and masts']
-for did, (x, y, z), rf in [('main-director', (0, 36.347, -32.092), 10.0), ('after-director', (0, 20.049, 44.846), 4.5)]:
-    moving = [kit.cylz(did, sen, 'base', P(x, y, z), 1.5, .5, 'naval', 24),
-              kit.part('box', did, sen, 'hood', tuple(Vector(P(x, y + 1.2, z)) + Vector((0, 0, 0))), (3.0, 3.1, 1.6), 'naval'),
-              kit.part('rod', did, sen, 'rangefinder', P(-rf / 2, y + 1.3, z + 3.0), P(rf / 2, y + 1.3, z + 3.0), .3, 'naval', vertices=16)]
-    radar_pivot(did + '.yaw', P(x, y, z), moving)
 kit.build_wires()
 
 scene['definitionHash'] = D['contentHash']
