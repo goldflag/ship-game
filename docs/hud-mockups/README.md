@@ -18,7 +18,7 @@ The fleet report now includes a collapsed damage-control alert with burning loca
 
 The battle score includes **Armor blocked**: potential hostile shell HP prevented by armor stops, ricochets and rejected HE fragments, using the loaded ammunition’s damage value minus any hull damage the same shell ultimately causes. It is recorded once per shell and defended ship after the projectile finishes, survives snapshot/reconnect updates, and resets with the battle. Penetrations, hits on wreckage, friendly fire and non-armor impacts do not earn blocked damage.
 
-Above enemy ships, your damage is gold and damage from other sources is pale blue. Mixed salvos retain separate numbers and colored portions of the hull-loss bar; detailed impact labels use the same ownership colors. Ownership comes from authoritative events, including after the projectile disappears. Sensor-limited fleet command retains its existing restrictions on enemy damage information.
+Above enemy ships, your damage is gold and damage from other sources is pale blue. Mixed salvos retain separate numbers and colored portions of the hull-loss bar. Your total carries a line of hit counts by outcome, and equipment the enemy loses shows on its own lines. Ownership comes from authoritative events, including after the projectile disappears. Sensor-limited fleet command retains its existing restrictions on enemy damage information.
 
 ## References
 

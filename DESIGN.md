@@ -86,7 +86,7 @@ brass commands, mint readiness, fine borders. Rules agents break most:
   shipbuilder's neutral cards; the port's particulars column rests on an edge shade, not a fill.
   Extend the existing instrument styling; keep ship, sea and sight clear.
 - **New DOM HUD layers must join the `--hud-scale` rule** in `src/ui/styles.css`: `.hud-viewport,
-  .ocean-viewport :is(.ship-label-layer, .hit-label-layer, .gun-aim-layer, .torpedo-aim-layer,
+  .ocean-viewport :is(.ship-label-layer, .gun-aim-layer, .torpedo-aim-layer,
   .torpedo-marker-layer), .game-shell > .hit-direction-layer`. It declares `container: hud / size`, so
   HUD breakpoints are `@container hud (...)`, not `@media`. `App.tsx` sets it on `.game-shell`.
 - **`.primary-button` collision.** `styles.css` `.primary-button, .secondary-button` sets `display:flex;

@@ -60,7 +60,6 @@ import { ArmorOverlay } from './ArmorOverlay';
 import { DISPLAY_TONE_MAPPING, DisplayTransform } from './DisplayTransform';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels, type ObservedLabelReport } from './ShipLabels';
-import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { ENGINE_ORDERS, FIXED_DT, shipVelocity } from './session/motion';
@@ -193,7 +192,6 @@ export class Game {
     weathering: { dry: this.shipWeather.dry, gloss: this.shipWeather.gloss, timber: this.shipWeather.timber, scorch: this.scorch } });
   private readonly occlusion: ShipOcclusion;
   private shipLabels: ShipLabels;
-  private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
   private playerDamageFeedback!: HullDamageFeedback;
   private damageFeedbackShipId?: string;
@@ -380,7 +378,6 @@ export class Game {
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
     this.shipLabels = new ShipLabels(this.host, id => this.observedShipViews?.labelAnchor(id), id => this.observedShipViews?.position(id));
-    this.hitLabels = new HitLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
     this.torpedoAim = new TorpedoAimIndicators(this.host);
     this.torpedoMarkers = new TorpedoMarkers(this.host);
@@ -1306,8 +1303,7 @@ export class Game {
         }
       }
       const combatTime = this.simulation.tick * FIXED_DT;
-      this.shipLabels.update(this.camera, combatTime, this.simulation.events, this.simulation.ship.id);
-      this.hitLabels.update(this.simulation, this.fleetViews, this.camera, !this.inPort && !this.inspecting);
+      this.shipLabels.update(this.camera, combatTime, this.simulation.events, this.simulation.ship.id, this.battery);
       const damageSubject = this.simulation.actors.find(actor => actor.motion.id === this.spectatedShipId) ?? this.simulation.player;
       if (this.damageFeedbackShipId !== damageSubject.motion.id) {
         this.damageFeedbackShipId = damageSubject.motion.id;
@@ -2065,7 +2061,6 @@ export class Game {
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
     this.inspectionHover.dispose();
     this.shipLabels.dispose();
-    this.hitLabels.dispose();
     this.torpedoPreview.dispose();
     this.gunAim.dispose();
     this.torpedoAim.dispose();
