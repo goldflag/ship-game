@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "id": "pensacola-1942-plain-v1",
+  "basis": "Approved GameModels3D pasc106 default (plain) scheme: one light blue-grey over hull and upperworks, deck blue over the planked weather deck and the steel roofs and platforms, black funnel caps and a red-oxide bottom without boot topping. Swatches are linear-RGB interpretations of the reference's hull texture (median texels), not measured historical paint.",
+  "wear": "in-commission",
+  "palette": {
+    "pensacola-reference-grey": [0.138, 0.185, 0.203],
+    "pensacola-reference-deck-blue": [0.024, 0.038, 0.048],
+    "pensacola-reference-roof-blue": [0.024, 0.039, 0.050],
+    "pensacola-reference-red-oxide": [0.109, 0.036, 0.018],
+    "pensacola-reference-black": [0.012, 0.012, 0.013],
+    "pensacola-authored-dark-fittings": [0.098, 0.128, 0.140],
+    "pensacola-authored-mid-fittings": [0.118, 0.156, 0.171],
+    "pensacola-authored-canvas": [0.2, 0.21, 0.19],
+    "pensacola-authored-fitting-wood": [0.19, 0.13, 0.075],
+    "pensacola-authored-white-light": [0.52, 0.53, 0.52],
+    "pensacola-authored-red-light": [0.40, 0.03, 0.02],
+    "pensacola-authored-green-light": [0.02, 0.30, 0.04],
+    "pensacola-reference-float-blue": [0.041, 0.067, 0.112]
+  },
+  "materials": {
+    "naval": { "paint": "pensacola-reference-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "pensacola-reference-grey", "finish": "painted-steel" },
+    "roof": { "paint": "pensacola-reference-roof-blue", "finish": "painted-deck" },
+    "deck": { "paint": "pensacola-reference-deck-blue", "finish": "wood" },
+    "antifouling": { "paint": "pensacola-reference-red-oxide", "finish": "underwater-coating" },
+    "black": { "paint": "pensacola-reference-black", "finish": "painted-steel" },
+    "edge": { "paint": "pensacola-authored-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "pensacola-authored-mid-fittings", "finish": "painted-steel" },
+    "canvas": { "paint": "pensacola-authored-canvas", "finish": "painted-steel" },
+    "wood": { "paint": "pensacola-authored-fitting-wood", "finish": "wood", "fittings": true },
+    "white": { "paint": "pensacola-authored-white-light", "finish": "painted-steel" },
+    "red": { "paint": "pensacola-authored-red-light", "finish": "painted-steel" },
+    "green": { "paint": "pensacola-authored-green-light", "finish": "painted-steel" },
+    "floatblue": { "paint": "pensacola-reference-float-blue", "finish": "painted-steel" }
+  },
+  "decking": {
+    "deck": {
+      "plankWidth": 0.127,
+      "plankLength": 3.048,
+      "seamWidth": 0.003,
+      "coating": "blue-gray"
+    }
+  }
+}
