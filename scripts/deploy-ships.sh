@@ -1,10 +1,10 @@
 #!/bin/bash
-# Build and deploy a PostgreSQL-compatible release to Hermes.
+# Build and deploy a PostgreSQL-compatible release to the ships host.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # Shells without rustup on PATH still build the WASM through scripts/multiplayer/toolchain.ts; match its fallback.
 command -v cargo >/dev/null || PATH="$HOME/.cargo/bin:$PATH"
-target="${SHIP_DEPLOY_HOST:-root@5.78.237.254}"
+target="${SHIP_DEPLOY_HOST:-root@64.176.223.30}"
 [[ "$target" =~ ^[a-zA-Z0-9_.@-]+$ ]] || { echo 'Invalid SHIP_DEPLOY_HOST' >&2; exit 1; }
 SHIP_REVIEW_PAGES=0 BASE_PATH=/ bun run build
 # Test here rather than in the server image build, which is slow on the host.
@@ -28,6 +28,16 @@ printf 'SHIP_RELEASE=%s\n' "$release" > .env
 # Never generate replacement secrets on a database volume that already exists.
 test -f /opt/ships/settings.env
 cat /opt/ships/settings.env >> .env
+# The public edge is its own project so deploys never restart it or lose its certificates.
+# Rewrite the Caddyfile in place: its single-file bind mount keeps the original inode.
+mkdir -p /opt/ships-edge
+cp deploy/edge/compose.yml /opt/ships-edge/compose.yml
+edge_changed=
+if ! cmp -s deploy/edge/Caddyfile /opt/ships-edge/Caddyfile; then
+  cat deploy/edge/Caddyfile > /opt/ships-edge/Caddyfile
+  edge_changed=1
+fi
+(cd /opt/ships-edge && docker compose up -d && { [ -z "$edge_changed" ] || docker compose restart caddy; })
 docker compose config --quiet
 COMPOSE_PARALLEL_LIMIT=1 docker compose build
 # Drain first, then recreate the private network to reserve static proxy/server IPs.
@@ -44,6 +54,17 @@ docker compose up -d --wait --wait-timeout 120 compiler api server web
 if [ -L /opt/ships/current ]; then ln -sfn "$(readlink /opt/ships/current)" /opt/ships/previous; fi
 ln -sfn "/opt/ships/releases/$release" /opt/ships/current
 docker compose ps
+# Keep the current and previous releases; each one holds about 2.5 GB of images and a copy of dist.
+keep=" $release $(basename "$(readlink /opt/ships/previous 2>/dev/null || true)") "
+for dir in /opt/ships/releases/*/; do
+  old="$(basename "$dir")"
+  [[ "$keep" == *" $old "* ]] || rm -rf "$dir"
+done
+docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '^ships-(web|server|api|compiler):' | while read -r image; do
+  [[ "$keep" == *" ${image#*:} "* ]] || docker image rm "$image" >/dev/null
+done
+# Week-old layers only, so the cargo cache mounts of recent builds survive.
+docker builder prune -f --filter until=168h >/dev/null
 REMOTE
 NAVAL_TEST_URL=https://ships.tomato.gg bun run multiplayer:smoke
 printf 'Deployed %s to https://ships.tomato.gg\n' "$release"

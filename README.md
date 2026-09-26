@@ -24,7 +24,7 @@ Run the account, compiler and multiplayer services described in [accounts](docs/
 
 Press **M** (or hold Ctrl and choose **Fleet chart** under the battle tally; a carrier keeps M for Air operations) to order your other ships from the fleet chart: select ships, then Move, Hold, Escort, Focus fire or Auto from the wheel, or right-click water or an enemy. Your own ship keeps its last engine and rudder orders while the chart is open, and **Return to helm** or M brings you back to it; Take helm moves you to another surviving owned ship. Carrier orders remain available through Air operations. Menus and tab blur do not pause online matches. Reconnection reserves your side for 90 seconds; explicitly returning to port forfeits an active match. After a reload, choose **Reconnect to previous battle** in the 1v1 online Match panel.
 
-See [Rust multiplayer setup, architecture and validation](docs/rust-multiplayer-implementation.md) for toolchain installation, server settings and content identity. The public frontend and multiplayer backend run at **https://ships.tomato.gg** on Hermes in a separate Docker Compose project; see [deployment and operations](docs/deployment.md).
+See [Rust multiplayer setup, architecture and validation](docs/rust-multiplayer-implementation.md) for toolchain installation, server settings and content identity. The public frontend and multiplayer backend run at **https://ships.tomato.gg** on the ships host in a separate Docker Compose project; see [deployment and operations](docs/deployment.md).
 
 ### Cloning without the asset archive
 
@@ -40,7 +40,7 @@ Aircraft and other non-ship reference/review archives still use Git LFS (see `.g
 
 ### Deploying under a sub-path
 
-The complete Hermes deployment uses `bun run deploy:hermes` at the domain root,
+The complete deployment uses `bun run deploy:ships` at the domain root,
 with separate web/server containers and persistent match storage. See the
 [deployment guide](docs/deployment.md). The following describes the older static-only deployment.
 
