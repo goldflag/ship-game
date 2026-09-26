@@ -197,22 +197,44 @@ if opts.structures:
         r = region(s)
         s['name'] = f"{NAMES[r]} {s['baseY']:.1f}-{s['baseY'] + s['height']:.1f} m"
         s['id'] = r + '-' + s['id'].split('-')[-1]
-    # The top block of each funnel carries its exhaust (the smoke's mouth).
-    for prefix in ['forward-funnel', 'after-funnel']:
-        tops = [s for s in structures if s['id'].startswith(prefix + '-')]
-        if not tops:
-            continue
-        top = max(tops, key=lambda s: s['baseY'] + s['height'])
-        if top.get('surface'):
-            vs = top['surface']['vertices']
-            y1 = max(v[1] for v in vs)
-            ring = [v for v in vs if abs(v[1] - y1) < 1e-6]
-        else:
-            y1 = top['baseY'] + top['height']
-            ring = [[x, y1, z] for x, z in top['footprint']]
-        xs, zs = [v[0] for v in ring], [v[2] for v in ring]
-        top['exhaust'] = dict(position=[round((min(xs) + max(xs)) / 2, 3), round(y1, 3), round((min(zs) + max(zs)) / 2, 3)],
-                              width=round(max(xs) - min(xs), 3), length=round(max(zs) - min(zs), 3))
+    structures = [s for s in structures if not s['id'].startswith(('forward-funnel-', 'after-funnel-'))]
+
+# Funnels: raked extrusions of one measured section (plan cuts of the reference every metre up the stack: the
+# same rounded outline at every height, its centre moving aft with height), from the top of the uptake casing to
+# the rim. Section as (distance aft of the centre, half-breadth); the steam pipes aft are drawn by the recipe.
+FUNNEL_SECTION = [(-2.87, 0), (-2.8, .30), (-2.6, .87), (-2.4, 1.12), (-2.2, 1.32), (-2.0, 1.41), (-1.8, 1.48), (-1.5, 1.58), (-1.0, 1.66),
+                  (0, 1.66), (1.0, 1.60), (1.5, 1.43), (1.8, 1.30), (2.0, 1.07), (2.2, .73), (2.4, .30), (2.45, 0)]
+# (id, name, reference centre z at y_ref, rake per metre of height, y_ref, base y, rim y)
+FUNNELS = [('forward-funnel', 'Forward funnel', -13.852, .1125, 11.0, 7.8, 20.0),
+           ('after-funnel', 'After funnel', 3.265, .1046, 9.7, 8.2, 19.3)]
+
+
+def funnel_ring(zc, y):
+    fore = [(w, y, zc + dz) for dz, w in FUNNEL_SECTION]
+    return fore + [(-w, y, zc + dz) for dz, w in reversed(FUNNEL_SECTION[1:-1])]
+
+
+structures = [s for s in structures if s['id'] not in ('forward-funnel', 'after-funnel')]
+for id, name, z_ref, rake, y_ref, y0, y1 in FUNNELS:
+    # A ring 1.0 m under the rim bounds the sooted cap band the recipe paints black.
+    heights = (y0, y1 - 1.0, y1)
+    rings = [funnel_ring(z_ref + rake * (y - y_ref), y) for y in heights]
+    n = len(rings[0])
+    verts = [[round(x, 4), round(y, 4), rz(z)] for ring in rings for x, y, z in ring]
+    tris = []
+    for r in range(len(rings) - 1):
+        for i in range(n):
+            j = (i + 1) % n
+            a, c = r * n, (r + 1) * n
+            tris += [[a + i, a + j, c + j], [a + i, c + j, c + i]]
+    top = (len(rings) - 1) * n
+    tris += [[0, k + 1, k] for k in range(1, n - 1)]
+    tris += [[top, top + k, top + k + 1] for k in range(1, n - 1)]
+    widest = rings[0]
+    zc1 = z_ref + rake * (y1 - y_ref)
+    structures.append(dict(id=id, name=f'{name} {y0:.1f}-{y1:.1f} m', footprint=[[round(x, 4), rz(z)] for x, _, z in widest], baseY=y0, height=round(y1 - y0, 3),
+                           material='naval', surface=dict(vertices=verts, triangles=tris),
+                           exhaust=dict(position=[0, y1, rz(zc1 - .2)], width=3.3, length=5.2)))
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks. Each outline is cut into

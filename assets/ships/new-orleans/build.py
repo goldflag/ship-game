@@ -66,21 +66,15 @@ for face in hull.data.polygons:
 
 # ---------------------------------------------------------------- superstructure
 shells = []
-FUNNEL_TOPS = {}
-for s in D['structures']:
-    if 'exhaust' in s or s['id'].startswith(('forward-funnel', 'after-funnel')):
-        top = max(v[1] for v in s['surface']['vertices']) if s.get('surface') else s['baseY'] + s['height']
-        key = s['id'].rsplit('-', 1)[0]
-        FUNNEL_TOPS[key] = max(FUNNEL_TOPS.get(key, 0), top)
 for s in D['structures']:
     ob = authored_structure(s, kit.mesh, materials, collections['Superstructure'])
     ob.data.materials.append(materials['deck-blue'])
     ob.data.materials.append(materials['black'])
-    key = s['id'].rsplit('-', 1)[0]
-    funnel = key in FUNNEL_TOPS
+    funnel = 'exhaust' in s
+    rim = s['baseY'] + s['height']
     for face in ob.data.polygons:
-        if funnel and face.center.z > FUNNEL_TOPS[key] - .9:
-            # The funnel caps are sooted black from about 0.9 m below the mouth, as the reference paints them.
+        if funnel and face.center.z > rim - 1.0:
+            # The funnel tops are sooted black for about a metre under the rim, as the reference paints them.
             face.material_index = 2
         elif face.normal.z > .8 and not funnel:
             face.material_index = 1

@@ -24,6 +24,8 @@ from pathlib import Path
 
 import numpy as np
 import shapely
+import shapely.geometry
+import shapely.prepared
 from PIL import Image, ImageDraw
 from scipy import ndimage
 from shapely.geometry import Polygon
@@ -57,14 +59,24 @@ def to_px(x, z):
     return ((x - X0) / CELL, (z - Z0) / CELL)
 
 
-def top_map():
-    """Highest surface of the reference's hull group over each plan cell (reference z)."""
+def hull_triangles():
     meta = json.loads((REFDIR / 'reference.json').read_text())
     raw = (REFDIR / 'mesh.bin').read_bytes()
     _, _, nv, ni = struct.unpack('<4I', raw[:16])
     pos = np.frombuffer(raw, dtype='<f4', count=nv * 3, offset=16).reshape(-1, 3).astype(np.float64)
     idx = np.frombuffer(raw, dtype='<u4', count=ni, offset=16 + nv * 12).reshape(-1, 3)
-    tris = pos[np.concatenate([idx[p['first']:p['first'] + p['count']] for p in meta['parts'] if p['group'] == 'hull'])]
+    return pos[np.concatenate([idx[p['first']:p['first'] + p['count']] for p in meta['parts'] if p['group'] == 'hull'])]
+
+
+HULL_TRIS = hull_triangles()
+# The funnel bodies above their casings are lofted by author-blueprint.py from their measured section and rake:
+# (x0, x1, z0, z1, from y), reference z.
+FUNNELS = [(-2.35, 2.35, -17.6, -9.4, 7.75), (-2.35, 2.35, -.1, 7.7, 8.25)]
+
+
+def top_map():
+    """Highest surface of the reference's hull group over each plan cell (reference z)."""
+    tris = HULL_TRIS
     top = np.full((NZ, NX), -np.inf)
     cx = (tris[:, :, 0] - X0) / CELL - .5
     cz = (tris[:, :, 2] - Z0) / CELL - .5
@@ -129,17 +141,20 @@ def breadth_at(points, y):
     return best
 
 
-def hull_ring(y):
-    """The loft's outline at height y where that height is below its deck (the hull body, not a deckhouse)."""
-    right = []
+def hull_rings(y):
+    """The loft's outline at height y where that height is below its deck (the hull body, not a deckhouse): one ring
+    per run of consecutive sections, so the forecastle and the raised stern are never bridged across the waist."""
+    runs, right = [], []
     for s in SECTIONS:
-        if s['points'][0][1] <= y <= s['points'][-1][1] + 1e-6:
-            w = breadth_at(s['points'], min(y, s['points'][-1][1]))
-            if w is not None:
-                right.append((w + HULL_MARGIN, s['z']))
-    if len(right) < 3:
-        return []
-    return [(x, z) for x, z in right] + [(-x, z) for x, z in reversed(right)]
+        w = breadth_at(s['points'], min(y, s['points'][-1][1])) if s['points'][0][1] <= y <= s['points'][-1][1] + 1e-6 else None
+        if w is not None:
+            right.append((w + HULL_MARGIN, s['z']))
+        elif right:
+            runs.append(right)
+            right = []
+    if right:
+        runs.append(right)
+    return [[(x, z) for x, z in r] + [(-x, z) for x, z in reversed(r)] for r in runs if len(r) >= 2]
 
 
 # Main-battery barbettes (reference HP_AGM datums and the armour model's 2.96 m radius): the recipe draws them.
@@ -158,6 +173,9 @@ def exclusion_rings(y):
     for x, gy, z, r in GUNS:
         if gy - .02 <= y <= gy + 2.6:
             rings.append(circle(x, z, r, 48))
+    for x0, x1, z0, z1, y0 in FUNNELS:
+        if y >= y0:
+            rings.append([(x0, z0), (x1, z0), (x1, z1), (x0, z1)])
     for e in exclude:
         if e['y0'] <= y <= e['y1']:
             if 'circle' in e:
@@ -175,7 +193,7 @@ disk = np.hypot(*np.mgrid[-SMOOTH:SMOOTH + 1, -SMOOTH:SMOOTH + 1]) <= SMOOTH + .
 def level_mask(level):
     m = raster([p['ring'] for p in level['polygons']])
     m &= TOP > level['y'] + .02
-    m &= ~raster([hull_ring(level['y'])])
+    m &= ~raster(hull_rings(level['y']))
     m &= ~raster(exclusion_rings(level['y']))
     if SMOOTH:
         m = ndimage.binary_opening(m, structure=disk)
@@ -361,6 +379,9 @@ for run in runs:
     area = mid.sum() * CELL * CELL
     if area < MIN_AREA or (y1 - y0) * area < float(opts.get('min_volume', .3)):
         continue
+    # A run one level deep is a plane grazing a plate; real platforms come from the horizontal faces below.
+    if len(run.levels) < 2:
+        continue
     per = perimeter(mid)
     spread = 0
     for _, bx, sub in run.levels:
@@ -433,6 +454,67 @@ for run in runs:
     if entry['height'] <= .1 and abs(entry['baseY'] - near['points'][-1][1]) < .3:
         continue
     structures.append(entry)
+
+# ---------------------------------------------------------------- thin platforms
+# Platforms, gun-tub floors and bridge wings are plates a few centimetres thick, often a single face, so most plan
+# levels miss them. Horizontal reference surfaces above the deck that no block's top covers are gathered by height,
+# joined where they touch, and each piece of at least PLATFORM_AREA m2 and 0.3 m across becomes a slab.
+PLATFORM_AREA = float(opts.get('platform_area', .8))
+SLAB = .08
+T = HULL_TRIS
+nrm = np.cross(T[:, 1] - T[:, 0], T[:, 2] - T[:, 0])
+tri_area = np.linalg.norm(nrm, axis=1) / 2
+ny = np.abs(nrm[:, 1]) / np.maximum(2 * tri_area, 1e-12)
+cen = T.mean(1)
+sec_z = np.array([s['z'] for s in SECTIONS])
+sec_deck = np.array([s['points'][-1][1] for s in SECTIONS])
+deck_at = np.interp(cen[:, 2], sec_z, sec_deck)
+cand = np.flatnonzero((ny > .98) & (tri_area > 1e-4) & (cen[:, 1] > deck_at + .25) & (cen[:, 1] < MAX_Y))
+tops = []
+for s in structures:
+    fp = [(x, z - SHIFT) for x, z in s['footprint']]
+    tops.append((shapely.prepared.prep(Polygon(fp).buffer(.05)), s['baseY'] - .1, s['baseY'] + s['height'] + .12))
+free = []
+for i in cand:
+    x, y, z = cen[i]
+    pt = shapely.geometry.Point(x, z)
+    if any(y0 <= y <= y1 and poly.contains(pt) for poly, y0, y1 in tops):
+        continue
+    if any(y <= top + .3 and np.hypot(x, z - mz) < 3.3 for mz, top in MAIN):
+        continue
+    if any(x0 <= x <= x1 and z0 <= z <= z1 and y >= fy for x0, x1, z0, z1, fy in FUNNELS):
+        continue
+    free.append(i)
+levels_y = {}
+for i in free:
+    levels_y.setdefault(round(cen[i, 1] / .04) * .04, []).append(i)
+platforms = []
+for yq in sorted(levels_y):
+    group = levels_y[yq]
+    img = Image.new('L', (NX, NZ), 0)
+    d = ImageDraw.Draw(img)
+    for i in group:
+        d.polygon([to_px(p[0], p[2]) for p in T[i]], fill=255)
+    m = np.array(img) > 0
+    m = ndimage.binary_closing(m, structure=np.ones((5, 5), bool))
+    m = ndimage.binary_opening(m, structure=np.ones((6, 6), bool))   # drops anything under 0.3 m across
+    lab, n = ndimage.label(m)
+    objs = ndimage.find_objects(lab)
+    for k in range(1, n + 1):
+        box = objs[k - 1]
+        sub = lab[box] == k
+        if sub.sum() * CELL * CELL < PLATFORM_AREA:
+            continue
+        poly = mask_polygon(sub, box)
+        if poly is None or poly.area < PLATFORM_AREA:
+            continue
+        y_top = float(np.mean([cen[i, 1] for i in group]))
+        fp = [[round(x, 3), rz(z)] for x, z in list(poly.exterior.coords)[:-1]]
+        a = np.array(fp)
+        platforms.append(dict(baseY=round(y_top - SLAB, 3), height=SLAB, levels=0, kind='platform', footprint=fp,
+                              bounds=[round(a[:, 0].min(), 2), round(a[:, 1].min(), 2), round(a[:, 0].max(), 2), round(a[:, 1].max(), 2)]))
+print(len(platforms), 'thin platforms from', len(free), 'uncovered horizontal faces')
+structures.extend(platforms)
 
 structures.sort(key=lambda s: (s['bounds'][1], s['baseY']))
 for i, s in enumerate(structures):
