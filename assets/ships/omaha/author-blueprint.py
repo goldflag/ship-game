@@ -354,7 +354,7 @@ if opts.structures:
             s['baseY'] = round(top, 3)
     structures = [s for s in structures if not s['id'].startswith('mid-')]
 else:
-    structures = [s for s in previous['structures'] if not s['id'].startswith(('funnel', 'after-house-low', 'midships'))] if previous else []
+    structures = [s for s in previous['structures'] if not s['id'].startswith(('funnel', 'after-house-low', 'midships', 'fwd-shelter'))] if previous else []
 
 # The forward superstructure's lowest tier reaches down to the forecastle deck under it.
 for s in structures:
@@ -378,6 +378,11 @@ for id, name, x0, x1, z0, z1, top in [('midships-house', 'Midships deckhouse', -
     base = round(deck_ref(zc) - .05, 3)
     structures.append(dict(id=id, name=name, footprint=[[x0, rz(z0)], [x1, rz(z0)], [x1, rz(z1)], [x0, rz(z1)]], baseY=base,
                            height=round(top - base, 3), material='naval'))
+# Forward shelter on the 12.5 m deck between the upper 6-inch guns (reference roof 14.73-14.78 m, x +-3.4 to +-3.6,
+# z -53.1 to -51.3): the plan tracks lost it because its walls run on into the guns' screens. Its after face stands
+# 0.8 m forward of the reference's so the upper guns' breeches, trained right aft with full recoil, pass clear.
+structures.append(dict(id='fwd-shelter', name='Forward shelter', footprint=ccw([[-3.4, rz(-53.1)], [3.4, rz(-53.1)], [3.45, rz(-52.1)], [-3.45, rz(-52.1)]]),
+                       baseY=12.5, height=2.28, material='naval'))
 for id, name, zc, rim in FUNNELS:
     base = round(deck_ref(zc) - .05, 3)
     structures.append(dict(id=id + '-boot', name=name + ' boot', footprint=ellipse(0, rz(zc - .335), 1.83, 2.135, 24), baseY=base,
@@ -430,6 +435,7 @@ DRUMS = [(x, y0, y1, z) for x, y0, y1, z in [(-5.502, 10.035, 11.745, -49.467), 
                                                (-4.242, 13.197, 14.907, -49.462), (4.242, 13.197, 14.907, -49.462),
                                                (-6.931, 4.269, 5.979, 45.923), (6.931, 4.269, 5.979, 45.923),
                                                (-5.571, 7.347, 9.057, 45.923), (5.571, 7.347, 9.057, 45.923)]]
+lifted = []
 for s in structures:
     for x, y0, y1, z in DRUMS:
         top = s['baseY'] + s['height']
@@ -444,10 +450,24 @@ for s in structures:
             s['height'] = round(y0 - s['baseY'], 3)
         elif y1 - .06 <= s['baseY'] < y1 + .001 and top > y1 + .12:
             # The block roofs the drum: its floor lifts clear of the drum's top.
+            lifted.append((s, s['baseY'], round(y1 + .05, 3)))
             s['height'] = round(top - (y1 + .05), 3)
             s['baseY'] = round(y1 + .05, 3)
         elif overlap > .02 and len(cut) >= 3:
             s['footprint'] = ccw(cut)
+# The tiers that carried a lifted floor rise with it (their drum recesses keep the drum clear), so no daylight shows
+# between them.
+def box2(s):
+    xs, zs = [p[0] for p in s['footprint']], [p[1] for p in s['footprint']]
+    return min(xs), max(xs), min(zs), max(zs)
+
+
+for roof, old, new in lifted:
+    rx0, rx1, rz0, rz1 = box2(roof)
+    for s in structures:
+        x0, x1, z0, z1 = box2(s)
+        if abs(s['baseY'] + s['height'] - old) < .01 and x0 < rx1 and rx0 < x1 and z0 < rz1 and rz0 < z1:
+            s['height'] = round(new - s['baseY'], 3)
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, cut into fore-and-aft strips of at

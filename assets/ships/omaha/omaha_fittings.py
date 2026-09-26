@@ -222,15 +222,44 @@ def mainmast(D, kit):
     # Derrick boom stowed up against the post, heel on a gooseneck at 12 m.
     kit.part('rod', aid, col, 'derrick boom', V(0, 12.0, 32.1), V(-2.6, 19.6, 30.8), .14, 'naval', r2=.09, vertices=10)
     kit.wire(aid, col, V(-2.6, 19.6, 30.8), V(0, 24.4, 31.96), .015, False)
-    kit.boxc(aid, col, 'lookout', V(0, 44.8, pole(44.8) - .55), (.72, .72, 1.25), 'naval')
-    kit.part('rod', aid, col, 'yard', V(-5.4, 37.0, pole(37.0) + .15), V(5.4, 37.0, pole(37.0) + .15), .07, 'naval', r2=.045, vertices=8)
-    kit.part('rod', aid, col, 'top yard', V(-3.6, 55.0, pole(55.0) + .1), V(3.6, 55.0, pole(55.0) + .1), .05, 'naval', r2=.035, vertices=8)
+    # Lower lookout station abaft the pole (reference 15.71-17.71 m, 1.9 m across, z 33.62 to 34.55) on a floor plate
+    # that reaches forward to the pole, its window band over a sill at 17.0 m.
+    kit.boxc(aid, col, 'lower lookout floor', V(0, 15.77, 33.72), (1.30, 1.95, .12), 'naval')
+    kit.boxc(aid, col, 'lower lookout', V(0, 16.77, 34.085), (.93, 1.90, 1.88), 'naval')
+    kit.boxc(aid, col, 'lower lookout roof', V(0, 17.735, 34.085), (1.01, 1.98, .05), 'edge')
+    kit.boxc(aid, col, 'lower lookout sill', V(0, 17.02, 34.085), (1.03, 2.00, .06), 'naval')
+    for t in (-1, 1):
+        kit.boxc(aid, col, 'lower lookout window', V(t * .955, 17.38, 34.085), (.72, .02, .46), 'glass')
+    kit.boxc(aid, col, 'lower lookout window', V(0, 17.38, 34.555), (.02, 1.5, .46), 'glass')
+    # Upper lookout: a platform either side of the pole at 41.76-41.89 m and a narrow box abaft it to 43.95 m
+    # (reference z 35.25 to 36.05, 0.66 m across) with its window band, the yard under it.
+    kit.boxc(aid, col, 'lookout platform', V(.25, 41.825, 34.40), (2.0, 1.05, .13), 'naval')
+    kit.rail(aid, col, [V(x, 0, z)[:2] for x, z in [(-.26, 35.35), (-.26, 33.42), (.76, 33.42), (.76, 35.35)]], 41.89, .9, .7, False, False)
+    kit.boxc(aid, col, 'lookout', V(0, 42.855, 35.65), (.80, .66, 2.19), 'naval')
+    kit.boxc(aid, col, 'lookout roof', V(0, 43.97, 35.65), (.88, .74, .05), 'edge')
+    for t in (-1, 1):
+        kit.boxc(aid, col, 'lookout window', V(t * .335, 43.48, 35.65), (.56, .02, .55), 'glass')
+    kit.boxc(aid, col, 'lookout window', V(0, 43.48, 36.055), (.02, .5, .55), 'glass')
+    kit.part('rod', aid, col, 'yard', V(-6.7, 41.55, pole(41.55) + .15), V(6.7, 41.55, pole(41.55) + .15), .075, 'naval', r2=.045, vertices=8)
+    kit.part('rod', aid, col, 'top yard', V(-4.1, 58.55, pole(58.55) + .1), V(4.1, 58.55, pole(58.55) + .1), .05, 'naval', r2=.035, vertices=8)
+    # Signal truss at 25.34 m: two chords 0.8 m apart either side of the pole, 13.3 m across, laced (reference 25.26-25.42 m).
+    ys = 25.34
+    for zc in (33.46, 34.27):
+        kit.member(aid, col, V(-6.66, ys, zc), V(6.66, ys, zc), .06, 'naval', 6)
+    xs = [-6.66 + 13.32 * k / 14 for k in range(15)]
+    for k, x in enumerate(xs):
+        kit.member(aid, col, V(x, ys, 33.46), V(x, ys, 34.27), .035, 'naval', 5)
+        if k < 14:
+            a, b = (33.46, 34.27) if k % 2 == 0 else (34.27, 33.46)
+            kit.member(aid, col, V(x, ys, a), V(xs[k + 1], ys, b), .03, 'naval', 5)
+    for s in (-1, 1):
+        kit.wire(aid, col, V(0, 29.0, pole(29.0)), V(s * 6.3, ys + .05, 33.86), .012, False)
     kit.part('rod', aid, col, 'gaff', V(0, 26.0, pole(26.0)), V(0, 27.9, 38.2), .07, 'naval', r2=.045, vertices=8)
     kit.ladder(aid, col, V(0, base + 2.0, pole(base + 2.0) + .4), V(0, 44.0, pole(44.0) + .4), (1, 0, 0), .36)
     for s in (-1, 1):
         for zz in (31.0, 35.0, 38.0):
             kit.wire(aid, col, V(0, 50.0, pole(50.0)), V(s * 8.1, 6.3, zz), .012, False)
-        kit.wire(aid, col, V(s * 5.2, 37.0, pole(37.0) + .15), V(s * 7.9, 6.2, 33.0), .012, False)
+        kit.wire(aid, col, V(s * 6.5, 41.55, pole(41.55) + .15), V(s * 7.9, 6.2, 33.0), .012, False)
     kit.wire(aid, col, V(0, 62.0, pole(62.0)), V(0, 4.2, 82.5), .014, False)
     # Aerial run between the mastheads.
     kit.wire(aid, col, V(0, 57.0, -37.75), V(0, 60.0, 36.10), .01, False)

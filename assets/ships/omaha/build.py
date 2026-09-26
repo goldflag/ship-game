@@ -3,9 +3,10 @@
 Blueprint meters: +Y up, -Z bow. Authoring meters: +X bow, +Y port, +Z up. The shared exporter owns the
 sole basis conversion. Proportions follow the approved GameModels3D pasc005 fit A; no reference geometry or
 texture is loaded. The lofted hull and the measured superstructure blocks come from the blueprint;
-`omaha_kit.py` holds the shared vocabulary, `omaha_fittings.py` draws the torpedo pockets, casemate sponsons,
-funnels' caps, masts, directors, rangefinders, searchlights, aviation, boats, torpedo mounts, deck and
-underwater gear, and `omaha_windows.py` glazes the bridge.
+`omaha_kit.py` holds the shared vocabulary, `omaha_bridge.py` draws the navigation platform, the bridge and
+after-station detail and the upperworks rails, `omaha_fittings.py` the torpedo pockets, casemate hoods, funnels'
+caps, masts, directors, rangefinders, searchlights, aviation, boats, torpedo mounts, deck and underwater gear,
+and `omaha_windows.py` the windows and scuttles the reference paints.
 """
 import bpy
 import math
@@ -23,6 +24,7 @@ sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from omaha_kit import Kit, R
+import omaha_bridge
 import omaha_fittings
 import omaha_windows
 
@@ -76,6 +78,7 @@ for s in D['structures']:
     shells.append(ob)
 support = SupportSurface([hull, *shells])
 kit.support = support
+kit.hull_face_count = len(hull.data.polygons)  # support faces below this index are the hull's
 
 # ---------------------------------------------------------------- guns
 for mount in D['mounts']:
@@ -89,6 +92,7 @@ for mount in D['mounts']:
     create_mount(mount, col, helpers, materials)
 
 # ---------------------------------------------------------------- fittings
+omaha_bridge.build(D, kit)  # before the fittings: their last step merges every rail and wire
 omaha_fittings.build(D, kit)
 omaha_windows.build(D, kit)
 

@@ -77282,12 +77282,12 @@
       "id": "fwd-02-0",
       "center": [
         0.006,
-        11,
+        11.048,
         -51.681
       ],
       "size": [
         9.24,
-        1.4,
+        1.495,
         2.753
       ]
     },
@@ -77295,12 +77295,12 @@
       "id": "fwd-02-1",
       "center": [
         -0.003,
-        11,
+        11.048,
         -48.728
       ],
       "size": [
         7.7,
-        1.4,
+        1.495,
         2.753
       ]
     },
@@ -77308,12 +77308,12 @@
       "id": "fwd-02-2",
       "center": [
         0.002,
-        11,
+        11.048,
         -45.775
       ],
       "size": [
         13.013,
-        1.4,
+        1.495,
         2.753
       ]
     },
@@ -77321,12 +77321,12 @@
       "id": "fwd-02-3",
       "center": [
         0.006,
-        11,
+        11.048,
         -42.821
       ],
       "size": [
         13.16,
-        1.4,
+        1.495,
         2.753
       ]
     },
@@ -77334,12 +77334,12 @@
       "id": "fwd-02-4",
       "center": [
         0.023,
-        11,
+        11.048,
         -39.868
       ],
       "size": [
         4.794,
-        1.4,
+        1.495,
         2.753
       ]
     },
@@ -77347,12 +77347,12 @@
       "id": "fwd-02-5",
       "center": [
         0.014,
-        11,
+        11.048,
         -36.915
       ],
       "size": [
         4.777,
-        1.4,
+        1.495,
         2.753
       ]
     },
@@ -77679,6 +77679,19 @@
         2.16,
         2.237,
         2.1
+      ]
+    },
+    {
+      "id": "fwd-shelter-0",
+      "center": [
+        0,
+        13.64,
+        -51.848
+      ],
+      "size": [
+        6.5,
+        2.28,
+        0.8
       ]
     },
     {
@@ -78811,7 +78824,7 @@
         ]
       ],
       "baseY": 10.3,
-      "height": 1.4,
+      "height": 1.495,
       "material": "naval"
     },
     {
@@ -80404,7 +80417,7 @@
         ]
       ],
       "baseY": 8.85,
-      "height": 0.2,
+      "height": 0.257,
       "material": "naval"
     },
     {
@@ -81356,6 +81369,31 @@
       ],
       "baseY": 6.363,
       "height": 2.237,
+      "material": "naval"
+    },
+    {
+      "id": "fwd-shelter",
+      "name": "Forward shelter",
+      "footprint": [
+        [
+          -3.4,
+          -52.348
+        ],
+        [
+          3.4,
+          -52.348
+        ],
+        [
+          3.45,
+          -51.348
+        ],
+        [
+          -3.45,
+          -51.348
+        ]
+      ],
+      "baseY": 12.5,
+      "height": 2.28,
       "material": "naval"
     },
     {
@@ -83165,6 +83203,10 @@
       },
       {
         "structureId": "aft-05",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "fwd-shelter",
         "topExtensionM": 0
       },
       {
@@ -85197,5 +85239,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "89d45c2a4799d7cfda60c4fc0765eb543d5dc4d3061cf222728fe587e0cd7c9b"
+  "contentHash": "d36b7b03425537e97aa8b921eedbf31a293a8fd630469bc85dc3ca26fe754d53"
 }
