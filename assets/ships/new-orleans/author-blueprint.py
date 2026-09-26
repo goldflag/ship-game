@@ -21,10 +21,13 @@ regions, compartment connections, stability and damage control, for a change tha
 import argparse
 import json
 import math
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
+sys.path.insert(0, str(HERE))
+from new_orleans_walls import WALLS  # noqa: E402
 LINES = json.loads((HERE / 'authoring/lines.json').read_text())
 ZS = LINES['zShift']     # runtime z = reference z + ZS
 L = LINES['length']      # stem head to the stern's after end at the reference waterline datum
@@ -265,13 +268,96 @@ for name, (x0, x1), (y0, y1), (z0, z1) in STOWED:
     for side, sign in [('port', -1), ('starboard', 1)]:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
                                       size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
+# The forecastle ahead of No. 1 turret rises with its sheer into the barrels at full depression: boxes whose tops
+# follow the deck there stop them (reference z; each top at the deck's height at the box's forward end).
+for k, (z0, z1) in enumerate([(-62.0, -59.0), (-65.0, -62.0), (-68.0, -65.0)]):
+    top = deck_y(rz(z0))
+    half = half_breadth(rz(z0), top - .05) * .95
+    b['obstructions'].append(dict(id=f'forecastle-deck-{k + 1}', center=[0, round(top - .3, 3), rz((z0 + z1) / 2)], size=[round(2 * half, 3), .6, round(z1 - z0, 3)]))
+# The boat winch on the quarterdeck (reference bounds), under No. 3 turret's barrels at full depression.
+b['obstructions'].append(dict(id='boat-winch', center=[0.04, 4.1, rz(65.65)], size=[1.6, .5, 2.4]))
+
+
+def ribbon(pts, t=.03):
+    """A wall polyline's outline, `t` either side of it and mitred at its bends (runtime x, z)."""
+    def unit(v):
+        n = math.hypot(*v)
+        return (v[0] / n, v[1] / n) if n > 1e-9 else (1.0, 0.0)
+    left, right = [], []
+    for i, p in enumerate(pts):
+        a = pts[max(0, i - 1)]
+        c = pts[min(len(pts) - 1, i + 1)]
+        if i == 0 or i == len(pts) - 1:
+            d = unit((c[0] - a[0], c[1] - a[1]))
+            nrm, scale = (-d[1], d[0]), 1.0
+        else:
+            d0, d1 = unit((p[0] - a[0], p[1] - a[1])), unit((c[0] - p[0], c[1] - p[1]))
+            n0, n1 = (-d0[1], d0[0]), (-d1[1], d1[0])
+            nrm = unit((n0[0] + n1[0], n0[1] + n1[1]))
+            scale = 1 / max(.5, nrm[0] * n0[0] + nrm[1] * n0[1])
+        left.append([round(p[0] + nrm[0] * t * scale, 4), round(p[1] + nrm[1] * t * scale, 4)])
+        right.append([round(p[0] - nrm[0] * t * scale, 4), round(p[1] - nrm[1] * t * scale, 4)])
+    return left + right[::-1]
+
+
+def seg_dist(p, a, c):
+    dx, dz = c[0] - a[0], c[1] - a[1]
+    L2 = dx * dx + dz * dz
+    t = 0 if L2 < 1e-12 else max(0, min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / L2))
+    return math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dz)
+
+
+def pieces(pts):
+    """A wall split where its ribbon could fold over itself: at bends sharper than 100 degrees, in runs of at most 60
+    points, and a closed tub into halves."""
+    out, run = [], [pts[0]]
+    for i in range(1, len(pts)):
+        run.append(pts[i])
+        if 0 < i < len(pts) - 1:
+            a, p, c = pts[i - 1], pts[i], pts[i + 1]
+            u = (p[0] - a[0], p[1] - a[1])
+            v = (c[0] - p[0], c[1] - p[1])
+            nu, nv = math.hypot(*u), math.hypot(*v)
+            turn = math.degrees(math.acos(max(-1, min(1, (u[0] * v[0] + u[1] * v[1]) / (nu * nv))))) if nu > 1e-9 and nv > 1e-9 else 0
+            if turn > 100 or len(run) >= 60:
+                out.append(run)
+                run = [p]
+    out.append(run)
+    if len(out) == 1 and len(pts) > 3 and math.hypot(pts[0][0] - pts[-1][0], pts[0][1] - pts[-1][1]) < .02:
+        half = len(pts) // 2
+        out = [pts[:half + 1], pts[half:]]
+    return [r for r in out if len(r) >= 2 and sum(math.hypot(q[0] - p[0], q[1] - p[1]) for p, q in zip(r, r[1:])) > .05]
+
+
+# Bulwarks, splinter screens and gun tubs within a gun's reach are structures too, 6 cm ribbons along the traced walls
+# (new_orleans_walls.py, which the recipe draws as plating), so the installation interlocks stop a barrel at them.
+guns = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
+WALL_IDS = []
+for i, w in enumerate(WALLS):
+    for side, sign in ((('', 1), ('-port', -1)) if w['mirror'] else (('', 1),)):
+        pts = [[sign * x, z] for x, z in w['pts']]
+        near = []
+        for m in b['mounts']:
+            part = guns[m['partId']]
+            mx, my, mz = m['position']
+            reach = part['muzzleForward'] + .6
+            d = min(seg_dist((mx, mz), a, c) for a, c in zip(pts, pts[1:]))
+            if d < reach and w['top'] > my and w['base'] < my + part['pivotHeight'] + reach:
+                near.append(d / reach)
+        if not near:
+            continue
+        for k, piece in enumerate(pieces(pts)):
+            sid = f'wall-{i:03d}{side}-{k + 1}'
+            structures.append(dict(id=sid, name=f"Bulwark {w['base']:.1f}-{w['top']:.1f} m", footprint=ribbon(piece), baseY=w['base'],
+                                   height=round(w['top'] - w['base'], 3), material='naval'))
+            WALL_IDS.append((min(near), sid))
 
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: barrels (with the full recoil stroke) and rotating carriages may not enter the blocks they
 # can reach, and neighbouring mounts whose working circles overlap may not cross. Game clearance, not verified
 # historical stops. Carriages in the yaw frame (x across, y up, z aft), measured on the catalog parts.
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
-BODIES = {'us-8in55-ca32-triple': dict(center=[0, 1.4, 1.69], size=[7.0, 2.8, 9.35]),
+BODIES = {'us-8in55-ca32-triple': dict(center=[0, 1.58, 1.69], size=[8.7, 3.16, 9.35]),
           'us-5in25-mk19-single': dict(center=[0, 1.0, .35], size=[2.9, 1.66, 3.1]),
           'us-40mm-bofors-mk2-quad': dict(center=[0, .95, .3], size=[3.0, 1.9, 2.4]),
           'us-20mm-oerlikon-mk24-hsienyang': dict(center=[0, .95, .25], size=[1.6, 1.9, 1.4]),
@@ -289,8 +375,12 @@ for i, a in enumerate(ids):
         if math.hypot(pa[0] - pc[0], pa[2] - pc[2]) < ra + rc - 1.0 and abs(pa[1] - pc[1]) < 3.2:
             pairs.append((math.hypot(pa[0] - pc[0], pa[2] - pc[2]), [a, c]))
 neighbors = [p for _, p in sorted(pairs)[:128]]
-nearby = []
+# Blocks and walls a barrel can reach, nearest first as a share of that barrel's reach, at most 128.
+nearby = list(WALL_IDS)
+wall_ids = {sid for _, sid in WALL_IDS}
 for st in structures:
+    if st['id'] in wall_ids:
+        continue
     xs = [p[0] for p in st['footprint']]
     zs = [p[1] for p in st['footprint']]
     best = None
@@ -298,9 +388,10 @@ for st in structures:
         dx = max(min(xs) - x, 0, x - max(xs))
         dz = max(min(zs) - z, 0, z - max(zs))
         if math.hypot(dx, dz) <= r and st['baseY'] < pivot + r * .8 and st['baseY'] + st['height'] > pivot - 3:
-            best = min(best if best is not None else 1e9, math.hypot(dx, dz))
+            best = min(best if best is not None else 1e9, math.hypot(dx, dz) / r)
     if best is not None:
         nearby.append((best, st['id']))
+print(f'{len(nearby)} blocks and walls within a barrel\'s reach ({len(WALL_IDS)} walls); keeping {min(128, len(nearby))}')
 nearby = [sid for _, sid in sorted(nearby)[:128]]
 b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for every mount (8-inch, 5-inch, 40 mm and 20 mm) against the measured superstructure blocks they can reach, including the full recoil stroke, and between neighbouring mounts whose working circles overlap. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],

@@ -259,6 +259,9 @@ BARBETTES = [-56.506, -41.839, 56.789]
 for g in groups:
     if g['hi_cut'] - g['lo_cut'] < .19 and g['top'] - g['lo'] < .4:
         continue
+    if g['top'] - g['lo'] > 1.9:
+        # faces taller than any bulwark: a deckhouse wall the block outline did not quite follow
+        continue
     if any(all(math.hypot(p[0], p[1] - bz) < 3.4 for p in g['line']) for bz in BARBETTES):
         continue
     pts = simplify(g['line'])
@@ -274,6 +277,16 @@ for g in groups:
         continue
     walls.append(dict(base=round(float(base), 3), top=round(float(top), 3), pts=[[round(float(x), 3), round(float(z) + ZS, 3)] for x, z in pts]))
 
+# The same wall found again after a level where its chain broke: merge it into the first.
+merged = []
+for w in sorted(walls, key=lambda w: -length(w['pts'])):
+    for m in merged:
+        if w['base'] <= m['top'] + .1 and m['base'] <= w['top'] + .1 and mean_dist(w['pts'], m['pts']) < .1:
+            m['base'], m['top'] = min(m['base'], w['base']), max(m['top'], w['top'])
+            break
+    else:
+        merged.append(dict(w))
+walls = sorted(merged, key=lambda w: -min(p[0] for p in w['pts']))
 # Mirror: a starboard wall whose port twin is also found keeps one record marked `mirror`.
 out = []
 used = set()
@@ -293,9 +306,125 @@ for i, w in enumerate(walls):
         out.append(dict(w, mirror=True))
     else:
         out.append(dict(w, mirror=False))
-print('"""Measured thin walls (runtime metres), written by authoring/walls.py from the pasc107-b reference: bulwarks,')
-print('splinter screens and gun tubs as (x, z) polylines with their foot and top; `mirror` walls repeat to port."""')
-print('WALLS = [')
+
+# The walls give way to the guns. The reference's light guns stand closer to their screens and tub walls than the
+# catalog parts' gunners' rests, shields and platforms sweep (mount-envelopes.json, measured on the built model by
+# mount_envelope.py): wherever a wall crosses a light or secondary gun's working circle at the heights that circle
+# reaches, the wall is pushed out radially onto the circle (plus MARGIN), so a straight screen bulges round the gun as a
+# tub would. Where the bulge leaves the deck by more than FLOOR_FROM, a sponson floor fills between the traced line
+# and the bulge at the wall's foot. The barrels are left to the installation interlocks.
+BLUEPRINT = json.loads((HERE.parent / 'blueprint.json').read_text())
+ENVELOPES = json.loads((HERE / 'mount-envelopes.json').read_text())
+MARGIN, FLOOR_FROM = .08, .1
+
+
+def working_radius(part, lo, hi):
+    rows = [r for y, r in ENVELOPES.get(part, []) if lo - .03 <= y <= hi + .03]
+    return max(rows) + MARGIN if rows else 0.0
+
+
+def densify(pts, step=.05):
+    res = [pts[0]]
+    for a, b in zip(pts, pts[1:]):
+        n = max(1, math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / step))
+        res += [[a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n] for k in range(1, n + 1)]
+    return res
+
+
+def carve(pts, c, R):
+    """Push the points of a polyline inside the circle (c, R) out onto it; returns the new points and the runs of
+    (traced, pushed) point pairs that moved."""
+    dense = densify(pts)
+    moved = []
+    res = []
+    for p in dense:
+        dx, dz = p[0] - c[0], p[1] - c[1]
+        d = math.hypot(dx, dz)
+        if d < R - 1e-6 and d > 1e-6:
+            q = [c[0] + dx / d * R, c[1] + dz / d * R]
+            if res and moved and moved[-1] is not None and res[-1] is moved[-1][-1][1]:
+                # both on the circle: fill the arc between them
+                a0 = math.atan2(res[-1][1] - c[1], res[-1][0] - c[0])
+                a1 = math.atan2(dz, dx)
+                da = (a1 - a0 + math.pi) % math.tau - math.pi
+                n = int(abs(da) / math.radians(6))
+                for k in range(1, n + 1):
+                    a = a0 + da * k / (n + 1)
+                    arc = [c[0] + R * math.cos(a), c[1] + R * math.sin(a)]
+                    res.append(arc)
+                    moved[-1].append((None, arc))
+            res.append(q)
+            if not moved or moved[-1] is None:
+                moved.append([])
+            moved[-1].append((p, q))
+        else:
+            res.append(p)
+            if moved and moved[-1] is not None:
+                moved.append(None)
+    return res, [run for run in moved if run]
+
+
+def simplify_line(pts, tol=.01):
+    if len(pts) < 3:
+        return pts
+    a, b = pts[0], pts[-1]
+    dx, dz = b[0] - a[0], b[1] - a[1]
+    L = math.hypot(dx, dz)
+    best, at = 0, 0
+    for i, p in enumerate(pts[1:-1], 1):
+        d = abs((p[0] - a[0]) * dz - (p[1] - a[1]) * dx) / L if L > 1e-9 else math.hypot(p[0] - a[0], p[1] - a[1])
+        if d > best:
+            best, at = d, i
+    if best <= tol:
+        return [a, b]
+    return simplify_line(pts[:at + 1], tol)[:-1] + simplify_line(pts[at:], tol)
+
+
+mounts = [m for m in BLUEPRINT['mounts'] if m['battery'] != 'main']
+expanded = []
 for w in out:
+    for sign in ((1, -1) if w['mirror'] else (1,)):
+        expanded.append(dict(base=w['base'], top=w['top'], pts=[[sign * x, z] for x, z in w['pts']], twin_of=len(expanded) - 1 if sign < 0 else None))
+floors = []
+for w in expanded:
+    pts = w['pts']
+    changed = False
+    for m in mounts:
+        mx, my, mz = m['position']
+        R = working_radius(m['partId'], w['base'] - my, w['top'] - my)
+        if R <= 0 or min(math.hypot(p[0] - mx, p[1] - mz) for p in densify(pts)) >= R:
+            continue
+        pts, runs = carve(pts, (mx, mz), R)
+        changed = True
+        for run in runs:
+            push = max(math.hypot(q[0] - p[0], q[1] - p[1]) for p, q in run if p is not None)
+            traced = [p for p, _ in run if p is not None]
+            if push > FLOOR_FROM and len(traced) >= 2:
+                outline = simplify_line(traced) + simplify_line([q for _, q in run])[::-1]
+                floors.append(dict(y=w['base'], pts=[[round(x, 3), round(z, 3)] for x, z in outline]))
+    if changed:
+        w['pts'] = simplify_line(pts)
+    w['pts'] = [[round(x, 3), round(z, 3)] for x, z in w['pts']]
+final = []
+for i, w in enumerate(expanded):
+    if w['twin_of'] is not None:
+        continue
+    twin = expanded[i + 1] if i + 1 < len(expanded) and expanded[i + 1]['twin_of'] == i else None
+    if twin is not None and len(twin['pts']) == len(w['pts']) and all(abs(a[0] + b[0]) < .002 and abs(a[1] - b[1]) < .002 for a, b in zip(w['pts'], twin['pts'])):
+        final.append(dict(base=w['base'], top=w['top'], pts=w['pts'], mirror=True))
+    else:
+        final.append(dict(base=w['base'], top=w['top'], pts=w['pts'], mirror=False))
+        if twin is not None:
+            final.append(dict(base=twin['base'], top=twin['top'], pts=twin['pts'], mirror=False))
+print('"""Measured thin walls (runtime metres), written by authoring/walls.py from the pasc107-b reference: bulwarks,')
+print('splinter screens and gun tubs as (x, z) polylines with their foot and top; `mirror` walls repeat to port.')
+print('FLOORS are the sponson floors under walls pushed out round a gun\'s working circle (polygons at height y)."""')
+print('WALLS = [')
+for w in final:
     print(f'    {w!r},')
 print(']')
+print('FLOORS = [')
+for f in floors:
+    print(f'    {f!r},')
+print(']')
+print(f'{len(final)} walls ({sum(w["mirror"] for w in final)} mirrored), {len(floors)} sponson floors', file=sys.stderr)

@@ -516,6 +516,52 @@ for yq in sorted(levels_y):
 print(len(platforms), 'thin platforms from', len(free), 'uncovered horizontal faces')
 structures.extend(platforms)
 
+# A small block standing clear of everything (a lintel before a recessed door, a slab off a wall) is carried to the
+# nearest block it faces within 0.4 m: its outline grows by the gap, so the two meet.
+def touches(a, b, gap=.06):
+    if a['baseY'] > b['baseY'] + b['height'] + gap or b['baseY'] > a['baseY'] + a['height'] + gap:
+        return False
+    return Polygon(a['footprint']).buffer(gap).intersects(Polygon(b['footprint']))
+
+
+def on_deck(s):
+    fp = np.array(s['footprint'])
+    zmid = (fp[:, 1].min() + fp[:, 1].max()) / 2 - SHIFT
+    near = min(SECTIONS, key=lambda q: abs(q['z'] - zmid))
+    return s['baseY'] <= near['points'][-1][1] + .3
+
+
+supported = {id(s) for s in structures if on_deck(s)}
+changed = True
+while changed:
+    changed = False
+    for s in structures:
+        if id(s) not in supported and any(id(o) in supported and touches(s, o) for o in structures if o is not s):
+            supported.add(id(s))
+            changed = True
+grown = 0
+for s in sorted(structures, key=lambda s: s['baseY']):
+    if id(s) in supported or s['height'] > 2.0:
+        continue
+    poly = Polygon(s['footprint'])
+    best = None
+    for o in structures:
+        if o is s or id(o) not in supported or o['baseY'] > s['baseY'] + s['height'] or s['baseY'] > o['baseY'] + o['height']:
+            continue
+        d = poly.distance(Polygon(o['footprint']))
+        if d < .4 and (best is None or d < best):
+            best = d
+    if best is not None:
+        # a small loft becomes a prism of its widest ring, which the grown outline then carries
+        s.pop('surface', None)
+        s['kind'] = 'prism'
+        g = poly.buffer(best + .05, join_style=2)
+        g = shapely.geometry.polygon.orient(Polygon(g.exterior).simplify(.02), 1.0)
+        s['footprint'] = [[round(x, 3), round(z, 3)] for x, z in list(g.exterior.coords)[:-1]]
+        supported.add(id(s))
+        grown += 1
+print(grown, 'free-standing small blocks carried to their neighbours')
+
 structures.sort(key=lambda s: (s['bounds'][1], s['baseY']))
 for i, s in enumerate(structures):
     s['id'] = f"{'deckhouse' if s['height'] >= .6 else 'platform'}-{i + 1:03d}"

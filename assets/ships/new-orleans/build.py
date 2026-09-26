@@ -25,6 +25,7 @@ from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from new_orleans_kit import Kit, R
 import new_orleans_fittings
+import new_orleans_windows
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -67,6 +68,9 @@ for face in hull.data.polygons:
 # ---------------------------------------------------------------- superstructure
 shells = []
 for s in D['structures']:
+    if s['id'].startswith('wall-'):
+        # the interlocks' copy of a traced wall near a gun: new_orleans_fittings.walls draws the plating
+        continue
     ob = authored_structure(s, kit.mesh, materials, collections['Superstructure'])
     ob.data.materials.append(materials['deck-blue'])
     ob.data.materials.append(materials['black'])
@@ -96,6 +100,7 @@ for mount in D['mounts']:
 
 # ---------------------------------------------------------------- fittings
 new_orleans_fittings.build(D, kit)
+new_orleans_windows.build(D, kit)
 
 scene['definitionHash'] = D['contentHash']
 scene['historicalConfiguration'] = D['configuration']

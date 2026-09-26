@@ -126,6 +126,23 @@ def build(D, kit):
     top = max(keel_y(kit, 78.8) + .15, -2.95)
     kit.loft(aid, col, 'rudder blade', [foil(-6.8, 75.75, 81.85, .25), foil(top, 75.7, 81.9, .27)], 'antifouling', True, True, False)
     kit.part('rod', aid, col, 'rudder stock', V(0, top - .3, 77.1), V(0, top + 1.2, 77.1), .24, 'antifouling', vertices=12)
+    # Skeg: the reference's centreline keeps its keel at -7.11 m to 64 m aft of amidships, below where the loft's
+    # rising floor closes in, then steps up to meet the cut-up at 66 m; a plate 0.3 m thick at its root.
+    zs = [40.0 + 2.0 * i for i in range(13)] + [64.6, 65.4, 66.0]
+    tops = [keel_y(kit, z) + .25 for z in zs]
+    bots = [-7.11 if z <= 64.0 else -7.11 + (z - 64.0) / 2.0 * (keel_y(kit, 66.0) + 7.11) for z in zs]
+    rings = []
+    for z, top, bot in zip(zs, tops, bots):
+        bot = min(bot, top - .05)
+        rings.append([P(-.15, top, z), P(.15, top, z), P(.04, bot, z), P(-.04, bot, z)])
+    vv = [p for r in rings for p in r]
+    ff = []
+    for i in range(len(rings) - 1):
+        a, b = 4 * i, 4 * (i + 1)
+        ff += [(a, a + 1, b + 1, b), (a + 1, a + 2, b + 2, b + 1), (a + 2, a + 3, b + 3, b + 2), (a + 3, a, b, b + 3)]
+    last = 4 * (len(rings) - 1)
+    ff += [(0, 3, 2, 1), (last, last + 1, last + 2, last + 3)]
+    recalc(kit.tag(kit.mesh('skeg.plate', vv, ff, 'antifouling', col), 'skeg'))
     # Bilge keels at the turn of the bilge (reference z -25 to +35), plates standing out and down from the loft.
     for s in (-1, 1):
         zs = [-25.0 + (35.0 + 25.0) * i / 12 for i in range(13)]
