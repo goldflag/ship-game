@@ -710,6 +710,34 @@
         "scripts/ships/blender_barrels.py"
       ]
     },
+    "us-omaha-mk16-twin": {
+      "path": "assets/parts/us-omaha-guns/mk16_twin.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-omaha-mk13-open-single": {
+      "path": "assets/parts/us-omaha-guns/mk13_single.py",
+      "function": "create_open_single",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-omaha-mk13-casemate": {
+      "path": "assets/parts/us-omaha-guns/mk13_single.py",
+      "function": "create_casemate",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "us-omaha-browning-m2": {
+      "path": "assets/parts/us-omaha-guns/browning_m2.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
     "us-5in25-mk19-single": {
       "path": "assets/parts/us-5in25-mk19/mk19_single.py",
       "function": "create_mount",
@@ -1848,6 +1876,38 @@
       "review": "unreviewed",
       "limitations": "Original reconstruction against GameModels3D bga097_40mm_bofors_mk1. Weapon values are provisional game calibration; installed clearance requires ship review.",
       "builder": "rn-bofors-twin"
+    },
+    {
+      "partId": "us-6in53-mk16-twin",
+      "nation": "United States",
+      "family": "US 6-inch/53",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D agm031_6in53_mk16_twin (Omaha pasc005 A) only. The chin under the gun recess and the roof tubes are recipe detail outside the 25 mm catalog shell; port shields are drawn metal, not canvas. Weapon values are provisional game calibration. Installation review on Omaha.",
+      "builder": "us-omaha-mk16-twin"
+    },
+    {
+      "partId": "us-6in53-mk13-single",
+      "nation": "United States",
+      "family": "US 6-inch/53",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D agm159_6in53_mk13_single (Omaha pasc005 A, upper forward casemates) only: the training drum with its open back over a simplified pedestal, carriage, slide, breech and sights. The rear opening is a declared aperture of the catalog drum. Weapon values are provisional game calibration.",
+      "builder": "us-omaha-mk13-open-single"
+    },
+    {
+      "partId": "us-6in53-mk13-casemate",
+      "nation": "United States",
+      "family": "US 6-inch/53",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D agm160_6in53_mk13_single (Omaha pasc005 A casemates) only: the closed training drum with the chase outside it; nothing inside the drum is drawn but the port shutter. Weapon values are provisional game calibration.",
+      "builder": "us-omaha-mk13-casemate"
+    },
+    {
+      "partId": "us-50cal-browning-m2",
+      "nation": "United States",
+      "family": ".50-calibre Browning M2",
+      "review": "unreviewed",
+      "limitations": "Original recipe measured against GameModels3D aga055_browning_m2_mod2 (Omaha pasc005 A) only, drawn level from the reference's 30-degree pose. Weapon values are provisional game calibration.",
+      "builder": "us-omaha-browning-m2"
     },
     {
       "partId": "us-5in25-mk19-single",

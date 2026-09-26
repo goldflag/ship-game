@@ -6,6 +6,7 @@ export { loadShipPreset, loadShipPresets } from './presetLoading';
 export const shipPresets = {
   'atlanta': preset('atlanta'),
   'new-orleans': preset('new-orleans'),
+  'omaha': preset('omaha'),
   'takao': preset('takao'),
   "valiant": preset("valiant"),
   'resolute': preset('resolute'),

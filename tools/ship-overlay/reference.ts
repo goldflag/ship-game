@@ -53,6 +53,7 @@ export const suggestedVehicles: Record<string, string> = {
   cleveland: 'pasc208',
   atlanta: 'pasc006',
   'new-orleans': 'pasc107',
+  omaha: 'pasc005',
 };
 export const vehicleUrl = (id: string) => `https://gamemodels3d.com/en/games/worldofwarships/vehicles/${id}`;
 export function vehicleId(input: string): string {
