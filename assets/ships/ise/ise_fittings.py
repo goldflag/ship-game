@@ -439,7 +439,31 @@ def rails(D, kit):
                 kit.wire('rails', col, (ax, ay, az), (ax, ay, az + .9), .022)
 
 
+def glazing(D, kit):
+    """Windows and portholes of the pagoda and the after tower (ise_windows.py, read off the reference's painted
+    textures), seated on this model's own walls: a ray from outside along the view finds the wall, and an opening
+    is glazed only where that wall faces the view."""
+    from ise_windows import ROWS
+    tree = kit.support.tree
+    col = kit.cols['Superstructure']
+    rows = []
+    for view, kind, across, y, w, h, wall in ROWS:
+        if view == 'front':
+            starts = [(Vector(P(across, y, -75)), Vector((-1, 0, 0)), Vector(P(across, y, wall)))]
+        else:
+            starts = [(Vector(P(s * 30, y, across)), Vector((0, s, 0)), Vector(P(s * wall, y, across))) for s in (1, -1)]
+        for origin, direction, expected in starts:
+            hit, normal, _, dist = tree.ray_cast(origin, direction, 80)
+            # Our wall must face the view and stand within 0.5 m of the reference's.
+            if hit is None or normal.dot(-direction) < .82 or (hit - expected).length > .5:
+                continue
+            # Runtime frame for Kit.windows: x starboard, z toward the stern, outward normal in x and z.
+            rows.append((kind, round(-hit.y, 3), round(hit.z, 3), round(-hit.x, 3), w, h, round(-normal.y, 3), round(-normal.x, 3)))
+    kit.windows('bridge-glazing', col, rows)
+
+
 def build(D, kit):
+    glazing(D, kit)
     directors(D, kit)
     masts(D, kit)
     searchlights(D, kit)

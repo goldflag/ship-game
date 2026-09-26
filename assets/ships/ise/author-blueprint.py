@@ -436,7 +436,7 @@ def measured_prisms(cuts, cell=.1, gap=3):
             dx, dz = cx[None, :] - gx, cz[:, None] - gz
             r = np.hypot(dx, dz)
             ang = (np.degrees(np.arctan2(dx, -dz)) - bearing + 540) % 360 - 180
-            mask = (r <= carriage) | ((r <= reach) & (np.abs(ang) <= half + 8))
+            mask = (r <= carriage) | ((r <= reach) & (np.abs(ang) <= half + 16))
             carve.append((gy, np.nonzero(mask)))
         for k, lv in enumerate(levels):
             img = Image.new('L', (W, H), 0)
@@ -540,7 +540,11 @@ def measured_prisms(cuts, cell=.1, gap=3):
     # area), leaving room for the recipe's own.
     wall = lambda p: sum(math.hypot(a[0] - c[0], a[1] - c[1]) for a, c in zip(p['ring'], p['ring'][1:] + p['ring'][:1])) * (p['top'] - p['base'])
     print(f'measured blocks: {len(out)}, the blueprint keeps {MAX_MEASURED}')
-    ranked = sorted(out, key=lambda p: -(p['area'] + wall(p)))
+    # Blocks the 12.7 cm barrels can reach come first: their interlocks see only blueprint structures.
+    def by_ha(p):
+        return any(max(p['bounds']['min'][0] - gx, 0, gx - p['bounds']['max'][0]) ** 2 + max(p['bounds']['min'][1] - gz, 0, gz - p['bounds']['max'][1]) ** 2 < 4.9 ** 2
+                   and p['base'] < gy + 4.2 and p['top'] > gy - 1 for gx, gz, gy, carriage, reach, _, _ in guns if not reach)
+    ranked = sorted(out, key=lambda p: (not by_ha(p), -(p['area'] + wall(p))))
     for i, p in enumerate(ranked):
         p["rank"] = i
     # The rest are drawn by the recipe from ise_blocks.py, as geometry that fittings can stand on.
@@ -686,7 +690,7 @@ def surface_below(x, zr, y, skip):
 
 def mount_space(x, zr):
     """True inside a gun's working circle (posts stay out of it)."""
-    return any(math.hypot(x - gx, zr - gz) < (max(carriage, reach) if reach else carriage + 1.3) + .2 for gx, gz, gy, carriage, reach, _, _ in guns) or \
+    return any(math.hypot(x - gx, zr - gz) < (max(carriage, reach) if reach else carriage) + .2 for gx, gz, gy, carriage, reach, _, _ in guns) or \
         any(math.hypot(x, zr - z) < 7.2 for _, _, _, z, _ in MAIN)
 
 
@@ -733,7 +737,7 @@ posts = []
 for s in ALL_BLOCKS:
     fp = [(p[0], p[1] - ZS) for p in s['footprint']]
     cx, cz = sum(p[0] for p in fp) / len(fp), sum(p[1] for p in fp) / len(fp)
-    samples = [(cx, cz)] + [(px + (cx - px) * .15, pz + (cz - pz) * .15) for px, pz in fp]
+    samples = [(cx, cz)] + [(px + (cx - px) * f, pz + (cz - pz) * f) for px, pz in fp for f in (.15, .03)]
     base = s['baseY']
     if any(carried(s, x, z) for x, z in samples) or side_attached(s):
         continue
@@ -748,7 +752,7 @@ for s in ALL_BLOCKS:
         # A thin or hooked outline: any point inside it, on a 0.2 m lattice, nearest its centroid.
         xs, zs = [q[0] for q in fp], [q[1] for q in fp]
         grid = [(min(xs) + .1 + .2 * i, min(zs) + .1 + .2 * j) for i in range(int((max(xs) - min(xs)) / .2) + 1) for j in range(int((max(zs) - min(zs)) / .2) + 1)]
-        grid = [q for q in grid if inside(fp, *q)]
+        grid = [q for q in grid if inside(fp, *q) and not mount_space(*q)]
         if grid:
             feet = [min(grid, key=lambda q: math.hypot(q[0] - cx, q[1] - cz))]
     area = plan_area(fp)
