@@ -28,6 +28,8 @@ REF = ROOT / '.build/references/pasc107-b'
 LINES = json.loads((HERE / 'lines.json').read_text())
 ZS = LINES['zShift']
 BLOCKS = json.loads(Path(sys.argv[1]).read_text())['structures']
+sys.path.insert(0, str(HERE))
+from enclosures import BULWARKS  # noqa: E402
 
 meta = json.loads((REF / 'reference.json').read_text())
 raw = (REF / 'mesh.bin').read_bytes()
@@ -317,6 +319,9 @@ for i, w in enumerate(walls):
         out.append(dict(w, mirror=True))
     else:
         out.append(dict(w, mirror=False))
+# The bulwarks round the open decks that structures.py measured as slabs (enclosures.py drops the slabs), which the
+# trace above sets aside as those slabs' sides.
+out += [dict(w) for w in BULWARKS]
 
 # The walls give way to the guns. The reference's light guns stand closer to their screens and tub walls than the
 # catalog parts' gunners' rests, shields and platforms sweep (mount-envelopes.json, measured on the built model by

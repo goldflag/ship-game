@@ -51,10 +51,16 @@ over 85% of its height) is a prism; one whose walls taper (the funnel uptakes' f
 straight loft through the few levels its shape needs, each level resampled where its neighbour's points fall on it so
 the facets follow the walls. Cells are kept only under a surface of the reference (so the deck inside a tub or an open
 bridge does not come back solid), the main barbettes and every open gun's working circle are cut out, and small lintels
-are carried to the block they rest on. Two measured blocks are corrected in `author-blueprint.py`: the open
-navigating bridge's deck (bridge-010) runs unbroken to the pilothouse top instead of a sawtoothed U that let the sea show
-through, and the after deckhouse (after-superstructure-079) keeps three of its twelve plan levels (6.2, 8.775 and 9.7 m),
-whose trace noise and small steps had crumpled its sides. The funnels are raked extrusions of one measured section with
+are carried to the block they rest on. Keeping cells under a surface also fills an open deck that bulwarks wall in
+under a platform, so `authoring/enclosures.py` drops the slabs that came back over four of them (the lower bridge round
+the pilothouse, the open navigating bridge round the director tower's base, the midships 20 mm tub round its tower,
+and the director platform abaft the tower, where vertical lines through the reference find only the deck and the
+platform above), carries the pilothouse, the tower base and the tub's tower down to their decks, and lists the
+bulwarks those slabs' outlines had hidden from the wall trace; `author-blueprint.py` and `authoring/walls.py` both
+apply it. Two more measured blocks are corrected in `author-blueprint.py`: the open navigating bridge's deck
+(bridge-010) runs unbroken to the pilothouse top instead of a sawtoothed U that let the sea show through, and the after
+deckhouse (after-superstructure-079) keeps three of its twelve plan levels (6.2, 8.775 and 9.7 m), whose trace noise and
+small steps had crumpled its sides. The funnels are raked extrusions of one measured section with
 sooted caps; the forward funnel's cowl covers the forward part of its mouth and rises to 22.47 m at its after face, arched
 across, as the reference's does.
 Bulwarks, splinter screens and gun tubs, which the block trace
@@ -72,8 +78,9 @@ with the recoil stroke, and a carriage box; the CA-32 gunhouse's rangefinder hoo
 blocks it can reach and the bulwarks and tubs within its reach (6 cm thin structures along the traced walls, which the
 recipe does not draw twice), and neighbouring mounts whose working circles overlap are interlocked. Firing obstructions
 are fore-and-aft strips of the deckhouses (each boxing only the runs that lie inside the outline all along the strip),
-the stowed boats and catapults, the ready-use lockers by the guns, the forecastle ahead of No. 1 turret (which its
-barrels would otherwise meet at full depression) and the quarterdeck boat winch. Nos. 1 and 3 turrets train to ±132°
+the stowed boats and catapults, the ready-use lockers by the guns, the four posts under the midships 20 mm platform,
+the forecastle ahead of No. 1 turret (which its barrels would otherwise meet at full depression) and the quarterdeck
+boat winch. Nos. 1 and 3 turrets train to ±132°
 and ±128° at the horizontal and ±141° to ±150° once elevated; the forward 20 mm twins and the after control
 platform's single Oerlikons rest elevated 10° and 5°, over the tub wall ahead of them. The Mk 31, Mk 28 and Mk 51
 directors stand at the reference's director datums; SK, both SG and SM aerials and the four large directors turn,
@@ -107,9 +114,10 @@ elevation keys each made 9.6 MB of the model.
   the reference's glazing bars, pillars and wing brackets in the open spaces under the bridge wings and in the lower
   bridge are not modelled (the spaces themselves are open). Only the bridge's windows and portholes are glazed; doors,
   scuttles on the hull and deckhouses and other painted texture detail are not modelled, and openings whose wall here
-  stands away from the reference's are left out. The open bridge carries its binoculars but not the reference's
-  pelorus stands, gyro repeaters or binnacle; the crane beams by No. 2 turret, the davit abreast the bridge, the two
-  forward sky lookouts and the hawser reels are not fitted.
+  stands away from the reference's are left out. The director platform carries its two binoculars and the lookout
+  platform above it its two sky lookouts, but the open bridge has none of the reference's gyro repeater, pelorus stands,
+  indicator and switch boxes; the crane beams by No. 2 turret, the davit abreast the bridge and the hawser reels are not
+  fitted.
 - The catalog Oerlikon, Bofors and 5-inch parts sweep wider than the reference's own guns, so traced screens and tubs
   bulge round them: up to 0.39 m at the bridge wings' single Oerlikons and 0.33 m on the after control platform, on
   small sponson floors; the two ready-use lockers beside the bridge-wing Oerlikons stand 0.6 m abaft the reference's.

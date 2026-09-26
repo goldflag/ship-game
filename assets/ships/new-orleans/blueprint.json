@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "new-orleans",
   "name": "New Orleans",
-  "configuration": "USS New Orleans (CA-32) · 1944 exterior after the GameModels3D pasc107 B_Hull fit (hull asc014_new_orlean_1944) · reference design waterline",
+  "configuration": "USS New Orleans (CA-32) \u00b7 1944 exterior after the GameModels3D pasc107 B_Hull fit (hull asc014_new_orlean_1944) \u00b7 reference design waterline",
   "coordinates": "meters-y-up-bow-negative-z",
   "modelUrl": "/models/new-orleans.glb",
   "hull": {
@@ -25044,7 +25044,7 @@
       "id": "citadel-deck-0",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -23.03405
       ],
@@ -25090,7 +25090,7 @@
       "id": "citadel-deck-1",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -19.92455
       ],
@@ -25136,7 +25136,7 @@
       "id": "citadel-deck-2",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -16.81505
       ],
@@ -25182,7 +25182,7 @@
       "id": "citadel-deck-3",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -13.70555
       ],
@@ -25228,7 +25228,7 @@
       "id": "citadel-deck-4",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -10.59605
       ],
@@ -25274,7 +25274,7 @@
       "id": "citadel-deck-5",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -7.48655
       ],
@@ -25320,7 +25320,7 @@
       "id": "citadel-deck-6",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -4.37705
       ],
@@ -25366,7 +25366,7 @@
       "id": "citadel-deck-7",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         -1.26755
       ],
@@ -25412,7 +25412,7 @@
       "id": "citadel-deck-8",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         1.84195
       ],
@@ -25458,7 +25458,7 @@
       "id": "citadel-deck-9",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         4.95145
       ],
@@ -25504,7 +25504,7 @@
       "id": "citadel-deck-10",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         8.06095
       ],
@@ -25550,7 +25550,7 @@
       "id": "citadel-deck-11",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         11.17045
       ],
@@ -25596,7 +25596,7 @@
       "id": "citadel-deck-12",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         14.27995
       ],
@@ -25642,7 +25642,7 @@
       "id": "citadel-deck-13",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         17.38945
       ],
@@ -25688,7 +25688,7 @@
       "id": "citadel-deck-14",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         20.49895
       ],
@@ -25734,7 +25734,7 @@
       "id": "citadel-deck-15",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         23.60845
       ],
@@ -25780,7 +25780,7 @@
       "id": "citadel-deck-16",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         26.71795
       ],
@@ -25826,7 +25826,7 @@
       "id": "citadel-deck-17",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         29.82745
       ],
@@ -25872,7 +25872,7 @@
       "id": "citadel-deck-18",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         32.93695
       ],
@@ -25918,7 +25918,7 @@
       "id": "citadel-deck-19",
       "name": "Citadel deck",
       "center": [
-        0,
+        0.0,
         1.57,
         36.04645
       ],
@@ -25964,7 +25964,7 @@
       "id": "forward-deck-0",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -58.9738
       ],
@@ -26010,7 +26010,7 @@
       "id": "forward-deck-1",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -55.9838
       ],
@@ -26056,7 +26056,7 @@
       "id": "forward-deck-2",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -52.9938
       ],
@@ -26102,7 +26102,7 @@
       "id": "forward-deck-3",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -50.0038
       ],
@@ -26148,7 +26148,7 @@
       "id": "forward-deck-4",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -47.0138
       ],
@@ -26194,7 +26194,7 @@
       "id": "forward-deck-5",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -44.0238
       ],
@@ -26240,7 +26240,7 @@
       "id": "forward-deck-6",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -41.0338
       ],
@@ -26286,7 +26286,7 @@
       "id": "forward-deck-7",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -38.0438
       ],
@@ -26332,7 +26332,7 @@
       "id": "forward-deck-8",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -35.0538
       ],
@@ -26378,7 +26378,7 @@
       "id": "forward-deck-9",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -32.0638
       ],
@@ -26424,7 +26424,7 @@
       "id": "forward-deck-10",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -29.0738
       ],
@@ -26470,7 +26470,7 @@
       "id": "forward-deck-11",
       "name": "Forward armoured deck",
       "center": [
-        0,
+        0.0,
         -1.86,
         -26.0838
       ],
@@ -26516,7 +26516,7 @@
       "id": "forward-magazine-crown",
       "name": "Forward magazine crown",
       "center": [
-        0,
+        0.0,
         -1.84,
         -42.5288
       ],
@@ -26562,7 +26562,7 @@
       "id": "after-deck-0",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         38.8682
       ],
@@ -26608,7 +26608,7 @@
       "id": "after-deck-1",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         41.4022
       ],
@@ -26654,7 +26654,7 @@
       "id": "after-deck-2",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         43.9362
       ],
@@ -26700,7 +26700,7 @@
       "id": "after-deck-3",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         46.4702
       ],
@@ -26746,7 +26746,7 @@
       "id": "after-deck-4",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         49.0042
       ],
@@ -26792,7 +26792,7 @@
       "id": "after-deck-5",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         51.5382
       ],
@@ -26838,7 +26838,7 @@
       "id": "after-deck-6",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         54.0722
       ],
@@ -26884,7 +26884,7 @@
       "id": "after-deck-7",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         56.6062
       ],
@@ -26930,7 +26930,7 @@
       "id": "after-deck-8",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         59.1402
       ],
@@ -26976,7 +26976,7 @@
       "id": "after-deck-9",
       "name": "After armoured deck",
       "center": [
-        0,
+        0.0,
         -1.16,
         61.6742
       ],
@@ -27350,7 +27350,7 @@
       "id": "after-magazine-side-aft-port-a",
       "name": "Port after magazine side",
       "center": [
-        -4,
+        -4.0,
         -2.33,
         58.0662
       ],
@@ -27391,7 +27391,7 @@
       "id": "after-magazine-side-aft-port-b",
       "name": "Port after magazine side",
       "center": [
-        -4,
+        -4.0,
         -2.33,
         58.0662
       ],
@@ -27432,7 +27432,7 @@
       "id": "after-magazine-side-aft-starboard-a",
       "name": "Starboard after magazine side",
       "center": [
-        4,
+        4.0,
         -2.33,
         58.0662
       ],
@@ -27473,7 +27473,7 @@
       "id": "after-magazine-side-aft-starboard-b",
       "name": "Starboard after magazine side",
       "center": [
-        4,
+        4.0,
         -2.33,
         58.0662
       ],
@@ -27514,7 +27514,7 @@
       "id": "forward-magazine-end",
       "name": "Forward magazine end bulkhead",
       "center": [
-        0,
+        0.0,
         -4.485,
         -60.4688
       ],
@@ -27560,7 +27560,7 @@
       "id": "forward-citadel-bulkhead",
       "name": "Forward citadel bulkhead",
       "center": [
-        0,
+        0.0,
         -2.515,
         -24.5888
       ],
@@ -27606,7 +27606,7 @@
       "id": "after-citadel-bulkhead",
       "name": "After citadel bulkhead",
       "center": [
-        0,
+        0.0,
         -2.515,
         37.6012
       ],
@@ -27652,7 +27652,7 @@
       "id": "after-magazine-end",
       "name": "After magazine end bulkhead",
       "center": [
-        0,
+        0.0,
         -3.58,
         62.9412
       ],
@@ -27666,12 +27666,12 @@
         "vertices": [
           [
             -0.3955,
-            -6,
+            -6.0,
             62.9412
           ],
           [
             0.3955,
-            -6,
+            -6.0,
             62.9412
           ],
           [
@@ -27698,7 +27698,7 @@
       "id": "citadel-bottom-flat",
       "name": "Citadel bottom",
       "center": [
-        0,
+        0.0,
         -7.02,
         6.5062
       ],
@@ -28156,12 +28156,12 @@
             -53.0357
           ],
           [
-            0,
+            0.0,
             -1.86,
             -52.9348
           ],
           [
-            0,
+            0.0,
             7.78,
             -52.9348
           ],
@@ -28197,7 +28197,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             -1.86,
             -52.9348
           ],
@@ -28212,7 +28212,7 @@
             -53.0357
           ],
           [
-            0,
+            0.0,
             7.78,
             -52.9348
           ]
@@ -28708,12 +28708,12 @@
             -58.7539
           ],
           [
-            0,
+            -0.0,
             -1.86,
             -58.8548
           ],
           [
-            0,
+            -0.0,
             7.78,
             -58.8548
           ],
@@ -28749,7 +28749,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             -1.86,
             -58.8548
           ],
@@ -28764,7 +28764,7 @@
             -58.7539
           ],
           [
-            0,
+            -0.0,
             7.78,
             -58.8548
           ]
@@ -29260,12 +29260,12 @@
             -38.3687
           ],
           [
-            0,
+            0.0,
             -1.86,
             -38.2678
           ],
           [
-            0,
+            0.0,
             9.834,
             -38.2678
           ],
@@ -29301,7 +29301,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             -1.86,
             -38.2678
           ],
@@ -29316,7 +29316,7 @@
             -38.3687
           ],
           [
-            0,
+            0.0,
             9.834,
             -38.2678
           ]
@@ -29812,12 +29812,12 @@
             -44.0869
           ],
           [
-            0,
+            -0.0,
             -1.86,
             -44.1878
           ],
           [
-            0,
+            -0.0,
             9.834,
             -44.1878
           ],
@@ -29853,7 +29853,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             -1.86,
             -44.1878
           ],
@@ -29868,7 +29868,7 @@
             -44.0869
           ],
           [
-            0,
+            -0.0,
             9.834,
             -44.1878
           ]
@@ -30364,12 +30364,12 @@
             60.2593
           ],
           [
-            0,
+            0.0,
             -1.16,
             60.3602
           ],
           [
-            0,
+            0.0,
             4.734,
             60.3602
           ],
@@ -30405,7 +30405,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            0.0,
             -1.16,
             60.3602
           ],
@@ -30420,7 +30420,7 @@
             60.2593
           ],
           [
-            0,
+            0.0,
             4.734,
             60.3602
           ]
@@ -30916,12 +30916,12 @@
             54.5411
           ],
           [
-            0,
+            -0.0,
             -1.16,
             54.4402
           ],
           [
-            0,
+            -0.0,
             4.734,
             54.4402
           ],
@@ -30957,7 +30957,7 @@
       "plate": {
         "vertices": [
           [
-            0,
+            -0.0,
             -1.16,
             54.4402
           ],
@@ -30972,7 +30972,7 @@
             54.5411
           ],
           [
-            0,
+            -0.0,
             4.734,
             54.4402
           ]
@@ -31220,7 +31220,7 @@
       "id": "conning-tower-0",
       "name": "Conning tower",
       "center": [
-        0,
+        0.0,
         13.445,
         -31.8388
       ],
@@ -31450,7 +31450,7 @@
       "id": "conning-tower-5",
       "name": "Conning tower",
       "center": [
-        0,
+        0.0,
         13.445,
         -29.0388
       ],
@@ -31844,7 +31844,7 @@
       "id": "conning-tower-roof-4",
       "name": "Conning tower roof",
       "center": [
-        0,
+        0.0,
         14.73,
         -30.4388
       ],
@@ -32172,7 +32172,7 @@
       "id": "conning-tower-floor-4",
       "name": "Conning tower floor",
       "center": [
-        0,
+        0.0,
         12.16,
         -30.4388
       ],
@@ -32428,7 +32428,7 @@
       "id": "steering-forward",
       "name": "Steering-gear protection",
       "center": [
-        0,
+        0.0,
         -1.15,
         68.9312
       ],
@@ -32474,7 +32474,7 @@
       "id": "steering-after",
       "name": "Steering-gear protection",
       "center": [
-        0,
+        0.0,
         -1.15,
         80.4312
       ],
@@ -32520,7 +32520,7 @@
       "id": "steering-roof",
       "name": "Steering-gear protection",
       "center": [
-        0,
+        0.0,
         -0.05,
         74.4912
       ],
@@ -32956,7 +32956,7 @@
     },
     {
       "id": "flood-strip-port-2-1",
-      "name": "Port outer space 3.2 · estimated",
+      "name": "Port outer space 3.2 \u00b7 estimated",
       "center": [
         -8.202910166496038,
         -1.5,
@@ -32972,7 +32972,7 @@
     },
     {
       "id": "flood-strip-starboard-2-1",
-      "name": "Starboard outer space 3.2 · estimated",
+      "name": "Starboard outer space 3.2 \u00b7 estimated",
       "center": [
         8.202910166496038,
         -1.5,
@@ -32988,7 +32988,7 @@
     },
     {
       "id": "flood-strip-port-2-2",
-      "name": "Port outer space 3.3 · estimated",
+      "name": "Port outer space 3.3 \u00b7 estimated",
       "center": [
         -8.285631115931272,
         1.5,
@@ -33004,7 +33004,7 @@
     },
     {
       "id": "flood-strip-starboard-2-2",
-      "name": "Starboard outer space 3.3 · estimated",
+      "name": "Starboard outer space 3.3 \u00b7 estimated",
       "center": [
         8.285631115931272,
         1.5,
@@ -33020,7 +33020,7 @@
     },
     {
       "id": "flood-strip-port-4-2",
-      "name": "Port outer space 5.3 · estimated",
+      "name": "Port outer space 5.3 \u00b7 estimated",
       "center": [
         -1.8339891691923143,
         1.5,
@@ -33036,7 +33036,7 @@
     },
     {
       "id": "flood-strip-starboard-4-2",
-      "name": "Starboard outer space 5.3 · estimated",
+      "name": "Starboard outer space 5.3 \u00b7 estimated",
       "center": [
         1.8339891691923143,
         1.5,
@@ -33052,7 +33052,7 @@
     },
     {
       "id": "flood-end-bow-0",
-      "name": "Bow end space 1 · estimated",
+      "name": "Bow end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -33068,7 +33068,7 @@
     },
     {
       "id": "flood-end-bow-1",
-      "name": "Bow end space 2 · estimated",
+      "name": "Bow end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -33084,7 +33084,7 @@
     },
     {
       "id": "flood-end-bow-2",
-      "name": "Bow end space 3 · estimated",
+      "name": "Bow end space 3 \u00b7 estimated",
       "center": [
         0,
         -2.25,
@@ -33100,7 +33100,7 @@
     },
     {
       "id": "flood-end-bow-3",
-      "name": "Bow end space 4 · estimated",
+      "name": "Bow end space 4 \u00b7 estimated",
       "center": [
         0,
         -0.75,
@@ -33116,7 +33116,7 @@
     },
     {
       "id": "flood-end-bow-4",
-      "name": "Bow end space 5 · estimated",
+      "name": "Bow end space 5 \u00b7 estimated",
       "center": [
         0,
         0.75,
@@ -33132,7 +33132,7 @@
     },
     {
       "id": "flood-end-bow-5",
-      "name": "Bow end space 6 · estimated",
+      "name": "Bow end space 6 \u00b7 estimated",
       "center": [
         0,
         2.25,
@@ -33148,7 +33148,7 @@
     },
     {
       "id": "flood-end-stern-0",
-      "name": "Stern end space 1 · estimated",
+      "name": "Stern end space 1 \u00b7 estimated",
       "center": [
         0,
         -5.25,
@@ -33164,7 +33164,7 @@
     },
     {
       "id": "flood-end-stern-1",
-      "name": "Stern end space 2 · estimated",
+      "name": "Stern end space 2 \u00b7 estimated",
       "center": [
         0,
         -3.75,
@@ -33180,7 +33180,7 @@
     },
     {
       "id": "flood-end-stern-2",
-      "name": "Stern end space 3 · estimated",
+      "name": "Stern end space 3 \u00b7 estimated",
       "center": [
         0,
         -2.25,
@@ -33196,7 +33196,7 @@
     },
     {
       "id": "flood-end-stern-3",
-      "name": "Stern end space 4 · estimated",
+      "name": "Stern end space 4 \u00b7 estimated",
       "center": [
         0,
         -0.75,
@@ -33212,7 +33212,7 @@
     },
     {
       "id": "flood-end-stern-4",
-      "name": "Stern end space 5 · estimated",
+      "name": "Stern end space 5 \u00b7 estimated",
       "center": [
         0,
         0.75,
@@ -33228,7 +33228,7 @@
     },
     {
       "id": "flood-end-stern-5",
-      "name": "Stern end space 6 · estimated",
+      "name": "Stern end space 6 \u00b7 estimated",
       "center": [
         0,
         2.25,
@@ -33244,7 +33244,7 @@
     },
     {
       "id": "reserve-cell-0-0-0",
-      "name": "Port reserve space 1 · estimated",
+      "name": "Port reserve space 1 \u00b7 estimated",
       "center": [
         -3.4658249999999997,
         1.0384999999999995,
@@ -35086,7 +35086,7 @@
     },
     {
       "id": "reserve-cell-0-1-0",
-      "name": "Starboard reserve space 1 · estimated",
+      "name": "Starboard reserve space 1 \u00b7 estimated",
       "center": [
         3.4658249999999997,
         1.0384999999999995,
@@ -36928,7 +36928,7 @@
     },
     {
       "id": "reserve-cell-1-0-0",
-      "name": "Port reserve space 2 · estimated",
+      "name": "Port reserve space 2 \u00b7 estimated",
       "center": [
         -4.3322812525,
         0.024562500000000043,
@@ -38170,7 +38170,7 @@
     },
     {
       "id": "reserve-cell-1-1-0",
-      "name": "Starboard reserve space 2 · estimated",
+      "name": "Starboard reserve space 2 \u00b7 estimated",
       "center": [
         4.3322812525,
         0.024562500000000043,
@@ -39412,7 +39412,7 @@
     },
     {
       "id": "reserve-cell-2-0-0",
-      "name": "Port reserve space 3 · estimated",
+      "name": "Port reserve space 3 \u00b7 estimated",
       "center": [
         -4.3322812525,
         -0.31341666499999965,
@@ -40486,7 +40486,7 @@
     },
     {
       "id": "reserve-cell-2-1-0",
-      "name": "Starboard reserve space 3 · estimated",
+      "name": "Starboard reserve space 3 \u00b7 estimated",
       "center": [
         4.3322812525,
         -0.31341666499999965,
@@ -41560,7 +41560,7 @@
     },
     {
       "id": "reserve-cell-3-0-0",
-      "name": "Port reserve space 4 · estimated",
+      "name": "Port reserve space 4 \u00b7 estimated",
       "center": [
         -4.0434624975,
         -0.9893750000000001,
@@ -43630,7 +43630,7 @@
     },
     {
       "id": "reserve-cell-3-1-0",
-      "name": "Starboard reserve space 4 · estimated",
+      "name": "Starboard reserve space 4 \u00b7 estimated",
       "center": [
         4.0434624975,
         -0.9893750000000001,
@@ -47898,7 +47898,7 @@
     {
       "id": "bridge-006-1",
       "center": [
-        0,
+        -0.0,
         7.625,
         -36.701
       ],
@@ -47938,12 +47938,12 @@
       "id": "bridge-017-0",
       "center": [
         0.019,
-        13.9,
+        13.425,
         -30.445
       ],
       "size": [
         0.889,
-        1.7,
+        2.65,
         2.588
       ]
     },
@@ -47951,12 +47951,12 @@
       "id": "bridge-017-1",
       "center": [
         0.025,
-        13.9,
+        13.425,
         -27.658
       ],
       "size": [
         4.05,
-        1.7,
+        2.65,
         2.587
       ]
     },
@@ -47964,12 +47964,12 @@
       "id": "bridge-017-2",
       "center": [
         0.025,
-        13.9,
+        13.425,
         -24.87
       ],
       "size": [
         4.05,
-        1.7,
+        2.65,
         2.587
       ]
     },
@@ -47989,12 +47989,12 @@
     {
       "id": "bridge-018-1",
       "center": [
-        0,
+        0.0,
         16.2,
         -27.695
       ],
       "size": [
-        4,
+        4.0,
         2.6,
         2.562
       ]
@@ -48002,12 +48002,12 @@
     {
       "id": "bridge-018-2",
       "center": [
-        0,
+        0.0,
         16.2,
         -24.933
       ],
       "size": [
-        4,
+        4.0,
         2.6,
         2.562
       ]
@@ -48104,42 +48104,81 @@
       ]
     },
     {
-      "id": "bridge-025-0",
+      "id": "bridge-027-0",
       "center": [
-        -0.079,
-        18.175,
-        -29.101
+        -0.004,
+        18.625,
+        -28.706
       ],
       "size": [
-        0.908,
-        1.35,
-        2.275
+        1.42,
+        2.25,
+        1.967
       ]
     },
     {
-      "id": "bridge-025-1",
+      "id": "bridge-027-1",
+      "center": [
+        0.008,
+        18.625,
+        -26.539
+      ],
+      "size": [
+        2.115,
+        2.25,
+        1.967
+      ]
+    },
+    {
+      "id": "bridge-027-2",
       "center": [
         -0.025,
-        18.175,
-        -26.627
+        18.625,
+        -24.372
       ],
       "size": [
-        3.95,
-        1.35,
-        2.275
+        2.0,
+        2.25,
+        1.967
       ]
     },
     {
-      "id": "bridge-025-2",
+      "id": "bridge-030-0",
       "center": [
-        -0.026,
-        18.175,
-        -24.151
+        0.005,
+        21.2,
+        -27.873
       ],
       "size": [
-        3.949,
-        1.35,
-        2.275
+        0.82,
+        1.5,
+        2.732
+      ]
+    },
+    {
+      "id": "bridge-030-1",
+      "center": [
+        -0.699,
+        21.2,
+        -24.941
+      ],
+      "size": [
+        0.282,
+        1.5,
+        2.732
+      ]
+    },
+    {
+      "id": "bridge-030-1-2",
+      "center": [
+        0.652,
+        21.2,
+        -24.941
+      ],
+      "size": [
+        0.307,
+        1.5,
+        2.732
       ]
     },
     {
@@ -48184,13 +48223,13 @@
     {
       "id": "midships-055-0",
       "center": [
-        0,
-        11.325,
+        -0.0,
+        10.825,
         -5.189
       ],
       "size": [
         3.421,
-        1.35,
+        2.35,
         2.8
       ]
     },
@@ -48215,7 +48254,7 @@
         9.411
       ],
       "size": [
-        12,
+        12.0,
         2.55,
         2.4
       ]
@@ -48223,7 +48262,7 @@
     {
       "id": "midships-060-2",
       "center": [
-        0,
+        0.0,
         4.925,
         12.011
       ],
@@ -48405,7 +48444,7 @@
     {
       "id": "after-superstructure-078-7",
       "center": [
-        0,
+        0.0,
         4.975,
         48.489
       ],
@@ -48444,7 +48483,7 @@
     {
       "id": "after-superstructure-079-1",
       "center": [
-        0,
+        0.0,
         7.95,
         32.099
       ],
@@ -48457,7 +48496,7 @@
     {
       "id": "after-superstructure-079-2",
       "center": [
-        0,
+        0.0,
         7.95,
         34.823
       ],
@@ -48548,7 +48587,7 @@
     {
       "id": "after-superstructure-097-0",
       "center": [
-        0,
+        0.0,
         11.225,
         43.153
       ],
@@ -48600,7 +48639,7 @@
     {
       "id": "after-superstructure-098-1",
       "center": [
-        0,
+        0.0,
         14.95,
         46.686
       ],
@@ -48626,7 +48665,7 @@
     {
       "id": "forward-funnel-0",
       "center": [
-        0,
+        0.0,
         13.9,
         -15.141
       ],
@@ -48639,7 +48678,7 @@
     {
       "id": "forward-funnel-1",
       "center": [
-        0,
+        0.0,
         13.9,
         -12.481
       ],
@@ -48652,7 +48691,7 @@
     {
       "id": "after-funnel-0",
       "center": [
-        0,
+        0.0,
         13.75,
         2.179
       ],
@@ -48665,7 +48704,7 @@
     {
       "id": "after-funnel-1",
       "center": [
-        0,
+        -0.0,
         13.75,
         4.839
       ],
@@ -48683,7 +48722,7 @@
         11.9512
       ],
       "size": [
-        2,
+        2.0,
         1.76,
         7.94
       ]
@@ -48696,7 +48735,7 @@
         11.9512
       ],
       "size": [
-        2,
+        2.0,
         1.76,
         7.94
       ]
@@ -48737,7 +48776,7 @@
       "size": [
         9.445,
         0.6,
-        3
+        3.0
       ]
     },
     {
@@ -48750,7 +48789,7 @@
       "size": [
         10.263,
         0.6,
-        3
+        3.0
       ]
     },
     {
@@ -48763,7 +48802,7 @@
       "size": [
         8.371,
         0.6,
-        3
+        3.0
       ]
     },
     {
@@ -48815,7 +48854,7 @@
       "size": [
         0.88,
         1.32,
-        1
+        1.0
       ]
     },
     {
@@ -48841,7 +48880,7 @@
       "size": [
         0.88,
         1.32,
-        1
+        1.0
       ]
     },
     {
@@ -48899,7 +48938,7 @@
     {
       "id": "locker-18",
       "center": [
-        0,
+        0.0,
         10.265,
         50.0512
       ],
@@ -48972,6 +49011,58 @@
         1.51,
         1.05,
         1.18
+      ]
+    },
+    {
+      "id": "platform-post-1",
+      "center": [
+        -2.54,
+        10.825,
+        -7.5488
+      ],
+      "size": [
+        0.2,
+        2.35,
+        0.2
+      ]
+    },
+    {
+      "id": "platform-post-2",
+      "center": [
+        2.54,
+        10.825,
+        -7.5488
+      ],
+      "size": [
+        0.2,
+        2.35,
+        0.2
+      ]
+    },
+    {
+      "id": "platform-post-3",
+      "center": [
+        -2.54,
+        10.825,
+        -2.8288
+      ],
+      "size": [
+        0.2,
+        2.35,
+        0.2
+      ]
+    },
+    {
+      "id": "platform-post-4",
+      "center": [
+        2.54,
+        10.825,
+        -2.8288
+      ],
+      "size": [
+        0.2,
+        2.35,
+        0.2
       ]
     }
   ],
@@ -49744,335 +49835,6 @@
       "material": "naval"
     },
     {
-      "id": "bridge-012",
-      "name": "Bridge 12.2-13.1 m",
-      "footprint": [
-        [
-          0.075,
-          -17.639
-        ],
-        [
-          -0.475,
-          -17.789
-        ],
-        [
-          -2.525,
-          -19.939
-        ],
-        [
-          -3.525,
-          -19.089
-        ],
-        [
-          -3.975,
-          -19.439
-        ],
-        [
-          -4.625,
-          -19.089
-        ],
-        [
-          -4.825,
-          -19.139
-        ],
-        [
-          -4.95,
-          -19.314
-        ],
-        [
-          -4.825,
-          -19.489
-        ],
-        [
-          -4.125,
-          -19.789
-        ],
-        [
-          -3.55,
-          -20.364
-        ],
-        [
-          -3.3,
-          -20.864
-        ],
-        [
-          -3.4,
-          -21.164
-        ],
-        [
-          -3.15,
-          -22.014
-        ],
-        [
-          -3.25,
-          -22.714
-        ],
-        [
-          -3.65,
-          -23.514
-        ],
-        [
-          -3.45,
-          -23.814
-        ],
-        [
-          -3.45,
-          -23.964
-        ],
-        [
-          -3.75,
-          -24.814
-        ],
-        [
-          -3.45,
-          -25.264
-        ],
-        [
-          -3.45,
-          -26.764
-        ],
-        [
-          -3.7,
-          -27.164
-        ],
-        [
-          -3.75,
-          -27.914
-        ],
-        [
-          -4.175,
-          -28.089
-        ],
-        [
-          -4.3,
-          -28.264
-        ],
-        [
-          -4.3,
-          -29.864
-        ],
-        [
-          -3.7,
-          -30.914
-        ],
-        [
-          -3.475,
-          -31.089
-        ],
-        [
-          -3.3,
-          -31.014
-        ],
-        [
-          -2.925,
-          -30.539
-        ],
-        [
-          -2.475,
-          -30.339
-        ],
-        [
-          -1.925,
-          -30.289
-        ],
-        [
-          -1.175,
-          -30.639
-        ],
-        [
-          -0.8,
-          -31.364
-        ],
-        [
-          -0.8,
-          -31.814
-        ],
-        [
-          -1,
-          -32.364
-        ],
-        [
-          -1.775,
-          -32.889
-        ],
-        [
-          -2.175,
-          -32.939
-        ],
-        [
-          -2.3,
-          -33.114
-        ],
-        [
-          -2.075,
-          -33.339
-        ],
-        [
-          2.275,
-          -33.289
-        ],
-        [
-          2.4,
-          -33.114
-        ],
-        [
-          2.275,
-          -32.939
-        ],
-        [
-          1.775,
-          -32.889
-        ],
-        [
-          1.475,
-          -32.739
-        ],
-        [
-          0.95,
-          -32.264
-        ],
-        [
-          0.8,
-          -31.814
-        ],
-        [
-          0.8,
-          -31.364
-        ],
-        [
-          1,
-          -30.864
-        ],
-        [
-          1.175,
-          -30.639
-        ],
-        [
-          1.625,
-          -30.389
-        ],
-        [
-          2.275,
-          -30.289
-        ],
-        [
-          2.925,
-          -30.539
-        ],
-        [
-          3.475,
-          -31.139
-        ],
-        [
-          3.7,
-          -30.964
-        ],
-        [
-          4.3,
-          -29.914
-        ],
-        [
-          4.3,
-          -28.264
-        ],
-        [
-          4.175,
-          -28.089
-        ],
-        [
-          3.75,
-          -27.914
-        ],
-        [
-          3.7,
-          -27.214
-        ],
-        [
-          3.45,
-          -26.764
-        ],
-        [
-          3.45,
-          -25.264
-        ],
-        [
-          3.75,
-          -24.814
-        ],
-        [
-          3.45,
-          -23.964
-        ],
-        [
-          3.45,
-          -23.814
-        ],
-        [
-          3.65,
-          -23.514
-        ],
-        [
-          3.25,
-          -22.764
-        ],
-        [
-          3.15,
-          -22.014
-        ],
-        [
-          3.4,
-          -21.164
-        ],
-        [
-          3.3,
-          -20.864
-        ],
-        [
-          3.55,
-          -20.364
-        ],
-        [
-          4.125,
-          -19.789
-        ],
-        [
-          4.825,
-          -19.489
-        ],
-        [
-          4.95,
-          -19.314
-        ],
-        [
-          4.825,
-          -19.139
-        ],
-        [
-          4.625,
-          -19.089
-        ],
-        [
-          3.975,
-          -19.439
-        ],
-        [
-          3.525,
-          -19.089
-        ],
-        [
-          2.525,
-          -19.939
-        ],
-        [
-          0.475,
-          -17.789
-        ]
-      ],
-      "baseY": 12.25,
-      "height": 0.8,
-      "material": "naval"
-    },
-    {
       "id": "bridge-013",
       "name": "Bridge 14.6-14.6 m",
       "footprint": [
@@ -50236,117 +49998,8 @@
       "material": "naval"
     },
     {
-      "id": "bridge-016",
-      "name": "Bridge 12.2-12.2 m",
-      "footprint": [
-        [
-          0.775,
-          -21.039
-        ],
-        [
-          0.575,
-          -21.039
-        ],
-        [
-          0.325,
-          -21.189
-        ],
-        [
-          -0.325,
-          -21.189
-        ],
-        [
-          -0.575,
-          -21.039
-        ],
-        [
-          -0.825,
-          -21.039
-        ],
-        [
-          -1.175,
-          -21.239
-        ],
-        [
-          -1.925,
-          -21.239
-        ],
-        [
-          -2.15,
-          -21.464
-        ],
-        [
-          -2.15,
-          -30.014
-        ],
-        [
-          -1.925,
-          -30.239
-        ],
-        [
-          -1.225,
-          -30.239
-        ],
-        [
-          -0.9,
-          -30.514
-        ],
-        [
-          -0.8,
-          -31.614
-        ],
-        [
-          -0.575,
-          -31.839
-        ],
-        [
-          0.675,
-          -31.789
-        ],
-        [
-          0.8,
-          -31.614
-        ],
-        [
-          0.85,
-          -30.614
-        ],
-        [
-          0.95,
-          -30.414
-        ],
-        [
-          1.225,
-          -30.239
-        ],
-        [
-          1.925,
-          -30.239
-        ],
-        [
-          2.15,
-          -30.014
-        ],
-        [
-          2.1,
-          -21.414
-        ],
-        [
-          1.875,
-          -21.189
-        ],
-        [
-          1.025,
-          -21.189
-        ]
-      ],
-      "baseY": 12.15,
-      "height": 0.1,
-      "material": "naval"
-    },
-    {
       "id": "bridge-017",
-      "name": "Bridge 13.1-14.8 m",
+      "name": "Bridge 12.1-14.8 m",
       "footprint": [
         [
           0.025,
@@ -50433,8 +50086,8 @@
           -21.189
         ]
       ],
-      "baseY": 13.05,
-      "height": 1.7,
+      "baseY": 12.1,
+      "height": 2.65,
       "material": "naval"
     },
     {
@@ -54121,207 +53774,6 @@
       "material": "naval"
     },
     {
-      "id": "bridge-025",
-      "name": "Bridge 17.5-18.9 m",
-      "footprint": [
-        [
-          -1.025,
-          -20.439
-        ],
-        [
-          -1.225,
-          -20.539
-        ],
-        [
-          -1.375,
-          -20.439
-        ],
-        [
-          -1.55,
-          -20.564
-        ],
-        [
-          -1.55,
-          -20.764
-        ],
-        [
-          -1.3,
-          -21.014
-        ],
-        [
-          -1.425,
-          -21.189
-        ],
-        [
-          -1.975,
-          -21.239
-        ],
-        [
-          -2.2,
-          -21.464
-        ],
-        [
-          -2.2,
-          -23.064
-        ],
-        [
-          -2.4,
-          -23.414
-        ],
-        [
-          -2.4,
-          -23.614
-        ],
-        [
-          -2.2,
-          -23.964
-        ],
-        [
-          -2.2,
-          -25.064
-        ],
-        [
-          -2.35,
-          -25.314
-        ],
-        [
-          -2.35,
-          -25.514
-        ],
-        [
-          -2.2,
-          -25.764
-        ],
-        [
-          -2.2,
-          -27.664
-        ],
-        [
-          -2.475,
-          -27.989
-        ],
-        [
-          -3.575,
-          -28.139
-        ],
-        [
-          -3.7,
-          -28.314
-        ],
-        [
-          -3.7,
-          -29.064
-        ],
-        [
-          -3.575,
-          -29.239
-        ],
-        [
-          -3.275,
-          -29.389
-        ],
-        [
-          -1.525,
-          -29.989
-        ],
-        [
-          -0.575,
-          -30.289
-        ],
-        [
-          0.275,
-          -30.339
-        ],
-        [
-          3.575,
-          -29.239
-        ],
-        [
-          3.7,
-          -29.064
-        ],
-        [
-          3.7,
-          -28.314
-        ],
-        [
-          3.475,
-          -28.089
-        ],
-        [
-          2.425,
-          -27.989
-        ],
-        [
-          2.15,
-          -27.664
-        ],
-        [
-          2.15,
-          -25.764
-        ],
-        [
-          2.3,
-          -25.514
-        ],
-        [
-          2.3,
-          -25.314
-        ],
-        [
-          2.15,
-          -25.064
-        ],
-        [
-          2.15,
-          -23.964
-        ],
-        [
-          2.35,
-          -23.614
-        ],
-        [
-          2.35,
-          -23.414
-        ],
-        [
-          2.15,
-          -23.064
-        ],
-        [
-          2.1,
-          -21.314
-        ],
-        [
-          1.075,
-          -20.939
-        ],
-        [
-          0.675,
-          -20.989
-        ],
-        [
-          0.275,
-          -21.239
-        ],
-        [
-          -0.325,
-          -21.239
-        ],
-        [
-          -0.8,
-          -20.964
-        ],
-        [
-          -0.8,
-          -20.664
-        ]
-      ],
-      "baseY": 17.5,
-      "height": 1.35,
-      "material": "naval"
-    },
-    {
       "id": "bridge-026",
       "name": "Bridge 19.8-19.9 m",
       "footprint": [
@@ -54392,7 +53844,7 @@
     },
     {
       "id": "bridge-027",
-      "name": "Bridge 18.9-19.8 m",
+      "name": "Bridge 17.5-19.8 m",
       "footprint": [
         [
           1.075,
@@ -54431,8 +53883,8 @@
           -23.514
         ]
       ],
-      "baseY": 18.85,
-      "height": 0.9,
+      "baseY": 17.5,
+      "height": 2.25,
       "material": "naval"
     },
     {
@@ -54440,40 +53892,8 @@
       "name": "Bridge 19.9-20.4 m",
       "footprint": [
         [
-          -1.525,
-          -21.239
-        ],
-        [
-          -2,
-          -21.614
-        ],
-        [
-          -2.275,
-          -22.089
-        ],
-        [
-          -2.425,
-          -22.139
-        ],
-        [
-          -2.725,
-          -21.989
-        ],
-        [
-          -2.825,
-          -22.039
-        ],
-        [
-          -3.1,
-          -22.714
-        ],
-        [
-          -3.35,
-          -22.964
-        ],
-        [
-          -3.3,
-          -23.364
+          -3.3304,
+          -23.44
         ],
         [
           -3.4,
@@ -54564,40 +53984,8 @@
           -23.564
         ],
         [
-          3.25,
-          -23.364
-        ],
-        [
-          3.3,
-          -22.964
-        ],
-        [
-          3.05,
-          -22.664
-        ],
-        [
-          2.85,
-          -22.164
-        ],
-        [
-          2.675,
-          -22.039
-        ],
-        [
-          2.425,
-          -22.139
-        ],
-        [
-          2.275,
-          -22.089
-        ],
-        [
-          1.775,
-          -21.389
-        ],
-        [
-          1.525,
-          -21.239
+          3.288,
+          -23.44
         ]
       ],
       "baseY": 19.9,
@@ -54605,5804 +53993,261 @@
       "material": "naval"
     },
     {
-      "id": "bridge-029",
-      "name": "Bridge 20.4-20.8 m",
-      "footprint": [
-        [
-          -1.525,
-          -21.239
-        ],
-        [
-          -2,
-          -21.614
-        ],
-        [
-          -2.2,
-          -22.114
-        ],
-        [
-          -2.15,
-          -22.464
-        ],
-        [
-          -1.875,
-          -22.889
-        ],
-        [
-          -1.525,
-          -23.089
-        ],
-        [
-          -1.025,
-          -23.089
-        ],
-        [
-          -0.8,
-          -23.314
-        ],
-        [
-          -1.025,
-          -23.589
-        ],
-        [
-          -1.925,
-          -23.589
-        ],
-        [
-          -2.15,
-          -23.814
-        ],
-        [
-          -2.15,
-          -27.914
-        ],
-        [
-          -1.375,
-          -28.539
-        ],
-        [
-          -0.875,
-          -29.089
-        ],
-        [
-          -0.175,
-          -29.389
-        ],
-        [
-          0.425,
-          -29.339
-        ],
-        [
-          0.725,
-          -29.189
-        ],
-        [
-          1.375,
-          -28.539
-        ],
-        [
-          2.1,
-          -28.014
-        ],
-        [
-          2.2,
-          -26.514
-        ],
-        [
-          2.15,
-          -25.064
-        ],
-        [
-          2.4,
-          -24.664
-        ],
-        [
-          2.45,
-          -24.314
-        ],
-        [
-          2.45,
-          -23.964
-        ],
-        [
-          2.275,
-          -23.639
-        ],
-        [
-          1.025,
-          -23.589
-        ],
-        [
-          0.8,
-          -23.364
-        ],
-        [
-          1.025,
-          -23.089
-        ],
-        [
-          1.525,
-          -23.089
-        ],
-        [
-          1.95,
-          -22.814
-        ],
-        [
-          2.2,
-          -22.264
-        ],
-        [
-          2.15,
-          -21.864
-        ],
-        [
-          2,
-          -21.614
-        ],
-        [
-          1.525,
-          -21.239
-        ]
-      ],
-      "baseY": 20.45,
-      "height": 0.4,
-      "material": "naval"
-    },
-    {
       "id": "bridge-030",
-      "name": "Bridge 20.9-22.0 m",
+      "name": "Bridge 20.4-21.9 m",
       "footprint": [
-        [
-          0.675,
-          -23.439
-        ],
-        [
-          0.325,
-          -23.589
-        ],
         [
           -0.325,
           -23.589
         ],
         [
-          -0.675,
-          -23.439
+          -0.591,
+          -23.475
         ],
         [
-          -0.925,
+          -0.845,
+          -23.541
+        ],
+        [
+          -1.12,
           -23.589
         ],
         [
-          -1.925,
+          -1.41,
           -23.589
         ],
         [
-          -2.15,
-          -23.814
+          -1.687,
+          -23.601
+        ],
+        [
+          -1.874,
+          -23.787
+        ],
+        [
+          -1.958,
+          -24.011
+        ],
+        [
+          -2.04,
+          -24.288
+        ],
+        [
+          -2.118,
+          -24.557
         ],
         [
           -2.15,
-          -27.914
+          -24.836
         ],
         [
-          -1.375,
-          -28.539
+          -2.15,
+          -25.126
         ],
         [
-          -0.875,
-          -29.089
+          -2.15,
+          -25.415
         ],
         [
-          -0.425,
+          -2.15,
+          -25.704
+        ],
+        [
+          -2.15,
+          -25.993
+        ],
+        [
+          -2.15,
+          -26.283
+        ],
+        [
+          -2.15,
+          -26.572
+        ],
+        [
+          -2.15,
+          -26.861
+        ],
+        [
+          -2.15,
+          -27.15
+        ],
+        [
+          -2.15,
+          -27.44
+        ],
+        [
+          -2.15,
+          -27.729
+        ],
+        [
+          -2.069,
+          -27.979
+        ],
+        [
+          -1.844,
+          -28.161
+        ],
+        [
+          -1.618,
+          -28.343
+        ],
+        [
+          -1.393,
+          -28.524
+        ],
+        [
+          -1.196,
+          -28.736
+        ],
+        [
+          -1.002,
+          -28.95
+        ],
+        [
+          -0.787,
+          -29.138
+        ],
+        [
+          -0.534,
+          -29.278
+        ],
+        [
+          -0.26,
           -29.339
         ],
         [
-          0.425,
+          0.029,
           -29.339
         ],
         [
-          0.725,
-          -29.189
+          0.318,
+          -29.339
+        ],
+        [
+          0.588,
+          -29.257
+        ],
+        [
+          0.827,
+          -29.098
+        ],
+        [
+          1.042,
+          -28.905
+        ],
+        [
+          1.258,
+          -28.712
+        ],
+        [
+          1.473,
+          -28.519
+        ],
+        [
+          1.689,
+          -28.326
+        ],
+        [
+          1.904,
+          -28.134
+        ],
+        [
+          2.12,
+          -27.941
         ],
         [
           2.15,
-          -27.914
+          -27.665
         ],
         [
           2.15,
-          -25.064
+          -27.376
         ],
         [
-          2.4,
-          -24.664
+          2.15,
+          -27.086
         ],
         [
-          2.45,
-          -23.964
+          2.15,
+          -26.797
         ],
         [
-          2.35,
+          2.15,
+          -26.508
+        ],
+        [
+          2.15,
+          -26.219
+        ],
+        [
+          2.15,
+          -25.929
+        ],
+        [
+          2.15,
+          -25.64
+        ],
+        [
+          2.15,
+          -25.351
+        ],
+        [
+          2.15,
+          -25.062
+        ],
+        [
+          2.15,
+          -24.772
+        ],
+        [
+          2.102,
+          -24.497
+        ],
+        [
+          2.025,
+          -24.225
+        ],
+        [
+          1.947,
+          -23.956
+        ],
+        [
+          1.85,
           -23.714
         ],
         [
-          2.175,
+          1.627,
           -23.589
         ],
         [
-          0.925,
+          1.338,
+          -23.589
+        ],
+        [
+          1.049,
+          -23.589
+        ],
+        [
+          0.783,
+          -23.504
+        ],
+        [
+          0.525,
+          -23.503
+        ],
+        [
+          0.254,
+          -23.589
+        ],
+        [
+          -0.036,
           -23.589
         ]
       ],
-      "baseY": 20.85,
-      "height": 1.1,
-      "material": "naval",
-      "surface": {
-        "vertices": [
-          [
-            -0.325,
-            20.85,
-            -23.589
-          ],
-          [
-            -0.591,
-            20.85,
-            -23.475
-          ],
-          [
-            -0.845,
-            20.85,
-            -23.541
-          ],
-          [
-            -1.12,
-            20.85,
-            -23.589
-          ],
-          [
-            -1.41,
-            20.85,
-            -23.589
-          ],
-          [
-            -1.699,
-            20.85,
-            -23.589
-          ],
-          [
-            -1.992,
-            20.85,
-            -23.656
-          ],
-          [
-            -2.15,
-            20.85,
-            -23.956
-          ],
-          [
-            -2.15,
-            20.85,
-            -24.261
-          ],
-          [
-            -2.15,
-            20.85,
-            -24.547
-          ],
-          [
-            -2.15,
-            20.85,
-            -24.836
-          ],
-          [
-            -2.15,
-            20.85,
-            -25.126
-          ],
-          [
-            -2.15,
-            20.85,
-            -25.415
-          ],
-          [
-            -2.15,
-            20.85,
-            -25.704
-          ],
-          [
-            -2.15,
-            20.85,
-            -25.993
-          ],
-          [
-            -2.15,
-            20.85,
-            -26.283
-          ],
-          [
-            -2.15,
-            20.85,
-            -26.572
-          ],
-          [
-            -2.15,
-            20.85,
-            -26.861
-          ],
-          [
-            -2.15,
-            20.85,
-            -27.15
-          ],
-          [
-            -2.15,
-            20.85,
-            -27.44
-          ],
-          [
-            -2.15,
-            20.85,
-            -27.729
-          ],
-          [
-            -2.069,
-            20.85,
-            -27.979
-          ],
-          [
-            -1.844,
-            20.85,
-            -28.161
-          ],
-          [
-            -1.618,
-            20.85,
-            -28.343
-          ],
-          [
-            -1.393,
-            20.85,
-            -28.524
-          ],
-          [
-            -1.196,
-            20.85,
-            -28.736
-          ],
-          [
-            -1.002,
-            20.85,
-            -28.95
-          ],
-          [
-            -0.787,
-            20.85,
-            -29.138
-          ],
-          [
-            -0.534,
-            20.85,
-            -29.278
-          ],
-          [
-            -0.26,
-            20.85,
-            -29.339
-          ],
-          [
-            0.029,
-            20.85,
-            -29.339
-          ],
-          [
-            0.318,
-            20.85,
-            -29.339
-          ],
-          [
-            0.588,
-            20.85,
-            -29.257
-          ],
-          [
-            0.827,
-            20.85,
-            -29.098
-          ],
-          [
-            1.042,
-            20.85,
-            -28.905
-          ],
-          [
-            1.258,
-            20.85,
-            -28.712
-          ],
-          [
-            1.473,
-            20.85,
-            -28.519
-          ],
-          [
-            1.689,
-            20.85,
-            -28.326
-          ],
-          [
-            1.904,
-            20.85,
-            -28.134
-          ],
-          [
-            2.12,
-            20.85,
-            -27.941
-          ],
-          [
-            2.15,
-            20.85,
-            -27.665
-          ],
-          [
-            2.15,
-            20.85,
-            -27.376
-          ],
-          [
-            2.15,
-            20.85,
-            -27.086
-          ],
-          [
-            2.15,
-            20.85,
-            -26.797
-          ],
-          [
-            2.15,
-            20.85,
-            -26.508
-          ],
-          [
-            2.15,
-            20.85,
-            -26.219
-          ],
-          [
-            2.15,
-            20.85,
-            -25.93
-          ],
-          [
-            2.15,
-            20.85,
-            -25.64
-          ],
-          [
-            2.15,
-            20.85,
-            -25.351
-          ],
-          [
-            2.151,
-            20.85,
-            -25.062
-          ],
-          [
-            2.281,
-            20.85,
-            -24.855
-          ],
-          [
-            2.412,
-            20.85,
-            -24.502
-          ],
-          [
-            2.432,
-            20.85,
-            -24.219
-          ],
-          [
-            2.394,
-            20.85,
-            -23.823
-          ],
-          [
-            1.95,
-            20.85,
-            -23.589
-          ],
-          [
-            1.627,
-            20.85,
-            -23.589
-          ],
-          [
-            1.338,
-            20.85,
-            -23.589
-          ],
-          [
-            1.049,
-            20.85,
-            -23.589
-          ],
-          [
-            0.783,
-            20.85,
-            -23.504
-          ],
-          [
-            0.525,
-            20.85,
-            -23.503
-          ],
-          [
-            0.254,
-            20.85,
-            -23.589
-          ],
-          [
-            -0.036,
-            20.85,
-            -23.589
-          ],
-          [
-            -0.325,
-            21.125,
-            -23.589
-          ],
-          [
-            -0.591,
-            21.125,
-            -23.475
-          ],
-          [
-            -0.845,
-            21.125,
-            -23.541
-          ],
-          [
-            -1.12,
-            21.125,
-            -23.589
-          ],
-          [
-            -1.41,
-            21.125,
-            -23.589
-          ],
-          [
-            -1.699,
-            21.125,
-            -23.589
-          ],
-          [
-            -1.992,
-            21.125,
-            -23.656
-          ],
-          [
-            -2.15,
-            21.125,
-            -23.956
-          ],
-          [
-            -2.15,
-            21.125,
-            -24.261
-          ],
-          [
-            -2.15,
-            21.125,
-            -24.547
-          ],
-          [
-            -2.15,
-            21.125,
-            -24.836
-          ],
-          [
-            -2.15,
-            21.125,
-            -25.126
-          ],
-          [
-            -2.15,
-            21.125,
-            -25.415
-          ],
-          [
-            -2.15,
-            21.125,
-            -25.704
-          ],
-          [
-            -2.15,
-            21.125,
-            -25.993
-          ],
-          [
-            -2.15,
-            21.125,
-            -26.283
-          ],
-          [
-            -2.15,
-            21.125,
-            -26.572
-          ],
-          [
-            -2.15,
-            21.125,
-            -26.861
-          ],
-          [
-            -2.15,
-            21.125,
-            -27.15
-          ],
-          [
-            -2.15,
-            21.125,
-            -27.44
-          ],
-          [
-            -2.15,
-            21.125,
-            -27.729
-          ],
-          [
-            -2.069,
-            21.125,
-            -27.979
-          ],
-          [
-            -1.844,
-            21.125,
-            -28.161
-          ],
-          [
-            -1.618,
-            21.125,
-            -28.343
-          ],
-          [
-            -1.393,
-            21.125,
-            -28.524
-          ],
-          [
-            -1.196,
-            21.125,
-            -28.736
-          ],
-          [
-            -1.002,
-            21.125,
-            -28.95
-          ],
-          [
-            -0.787,
-            21.125,
-            -29.138
-          ],
-          [
-            -0.534,
-            21.125,
-            -29.278
-          ],
-          [
-            -0.26,
-            21.125,
-            -29.339
-          ],
-          [
-            0.029,
-            21.125,
-            -29.339
-          ],
-          [
-            0.318,
-            21.125,
-            -29.339
-          ],
-          [
-            0.588,
-            21.125,
-            -29.257
-          ],
-          [
-            0.827,
-            21.125,
-            -29.098
-          ],
-          [
-            1.042,
-            21.125,
-            -28.905
-          ],
-          [
-            1.258,
-            21.125,
-            -28.712
-          ],
-          [
-            1.473,
-            21.125,
-            -28.519
-          ],
-          [
-            1.689,
-            21.125,
-            -28.326
-          ],
-          [
-            1.904,
-            21.125,
-            -28.134
-          ],
-          [
-            2.12,
-            21.125,
-            -27.941
-          ],
-          [
-            2.15,
-            21.125,
-            -27.665
-          ],
-          [
-            2.15,
-            21.125,
-            -27.376
-          ],
-          [
-            2.15,
-            21.125,
-            -27.086
-          ],
-          [
-            2.15,
-            21.125,
-            -26.797
-          ],
-          [
-            2.15,
-            21.125,
-            -26.508
-          ],
-          [
-            2.15,
-            21.125,
-            -26.219
-          ],
-          [
-            2.15,
-            21.125,
-            -25.93
-          ],
-          [
-            2.15,
-            21.125,
-            -25.64
-          ],
-          [
-            2.15,
-            21.125,
-            -25.351
-          ],
-          [
-            2.151,
-            21.125,
-            -25.062
-          ],
-          [
-            2.281,
-            21.125,
-            -24.855
-          ],
-          [
-            2.412,
-            21.125,
-            -24.502
-          ],
-          [
-            2.432,
-            21.125,
-            -24.219
-          ],
-          [
-            2.394,
-            21.125,
-            -23.823
-          ],
-          [
-            1.95,
-            21.125,
-            -23.589
-          ],
-          [
-            1.627,
-            21.125,
-            -23.589
-          ],
-          [
-            1.338,
-            21.125,
-            -23.589
-          ],
-          [
-            1.049,
-            21.125,
-            -23.589
-          ],
-          [
-            0.783,
-            21.125,
-            -23.504
-          ],
-          [
-            0.525,
-            21.125,
-            -23.503
-          ],
-          [
-            0.254,
-            21.125,
-            -23.589
-          ],
-          [
-            -0.036,
-            21.125,
-            -23.589
-          ],
-          [
-            -0.325,
-            21.225,
-            -23.589
-          ],
-          [
-            -0.591,
-            21.225,
-            -23.475
-          ],
-          [
-            -0.845,
-            21.225,
-            -23.541
-          ],
-          [
-            -1.12,
-            21.225,
-            -23.589
-          ],
-          [
-            -1.41,
-            21.225,
-            -23.589
-          ],
-          [
-            -1.699,
-            21.225,
-            -23.589
-          ],
-          [
-            -1.992,
-            21.225,
-            -23.656
-          ],
-          [
-            -2.15,
-            21.225,
-            -23.956
-          ],
-          [
-            -2.15,
-            21.225,
-            -24.261
-          ],
-          [
-            -2.15,
-            21.225,
-            -24.547
-          ],
-          [
-            -2.15,
-            21.225,
-            -24.836
-          ],
-          [
-            -2.15,
-            21.225,
-            -25.126
-          ],
-          [
-            -2.15,
-            21.225,
-            -25.415
-          ],
-          [
-            -2.15,
-            21.225,
-            -25.704
-          ],
-          [
-            -2.15,
-            21.225,
-            -25.993
-          ],
-          [
-            -2.15,
-            21.225,
-            -26.283
-          ],
-          [
-            -2.15,
-            21.225,
-            -26.572
-          ],
-          [
-            -2.15,
-            21.225,
-            -26.861
-          ],
-          [
-            -2.15,
-            21.225,
-            -27.15
-          ],
-          [
-            -2.15,
-            21.225,
-            -27.44
-          ],
-          [
-            -2.15,
-            21.225,
-            -27.729
-          ],
-          [
-            -2.069,
-            21.225,
-            -27.979
-          ],
-          [
-            -1.844,
-            21.225,
-            -28.161
-          ],
-          [
-            -1.618,
-            21.225,
-            -28.343
-          ],
-          [
-            -1.393,
-            21.225,
-            -28.524
-          ],
-          [
-            -1.196,
-            21.225,
-            -28.736
-          ],
-          [
-            -1.002,
-            21.225,
-            -28.95
-          ],
-          [
-            -0.787,
-            21.225,
-            -29.138
-          ],
-          [
-            -0.534,
-            21.225,
-            -29.278
-          ],
-          [
-            -0.26,
-            21.225,
-            -29.339
-          ],
-          [
-            0.029,
-            21.225,
-            -29.339
-          ],
-          [
-            0.318,
-            21.225,
-            -29.339
-          ],
-          [
-            0.588,
-            21.225,
-            -29.257
-          ],
-          [
-            0.827,
-            21.225,
-            -29.098
-          ],
-          [
-            1.042,
-            21.225,
-            -28.905
-          ],
-          [
-            1.258,
-            21.225,
-            -28.712
-          ],
-          [
-            1.473,
-            21.225,
-            -28.519
-          ],
-          [
-            1.689,
-            21.225,
-            -28.326
-          ],
-          [
-            1.904,
-            21.225,
-            -28.134
-          ],
-          [
-            2.12,
-            21.225,
-            -27.941
-          ],
-          [
-            2.15,
-            21.225,
-            -27.665
-          ],
-          [
-            2.15,
-            21.225,
-            -27.376
-          ],
-          [
-            2.15,
-            21.225,
-            -27.086
-          ],
-          [
-            2.15,
-            21.225,
-            -26.797
-          ],
-          [
-            2.15,
-            21.225,
-            -26.508
-          ],
-          [
-            2.15,
-            21.225,
-            -26.219
-          ],
-          [
-            2.15,
-            21.225,
-            -25.93
-          ],
-          [
-            2.15,
-            21.225,
-            -25.64
-          ],
-          [
-            2.15,
-            21.225,
-            -25.351
-          ],
-          [
-            2.15,
-            21.225,
-            -25.062
-          ],
-          [
-            2.15,
-            21.225,
-            -24.773
-          ],
-          [
-            2.15,
-            21.225,
-            -24.484
-          ],
-          [
-            2.15,
-            21.225,
-            -24.199
-          ],
-          [
-            2.15,
-            21.225,
-            -23.921
-          ],
-          [
-            1.95,
-            21.225,
-            -23.614
-          ],
-          [
-            1.627,
-            21.225,
-            -23.589
-          ],
-          [
-            1.338,
-            21.225,
-            -23.589
-          ],
-          [
-            1.049,
-            21.225,
-            -23.589
-          ],
-          [
-            0.783,
-            21.225,
-            -23.504
-          ],
-          [
-            0.525,
-            21.225,
-            -23.503
-          ],
-          [
-            0.254,
-            21.225,
-            -23.589
-          ],
-          [
-            -0.036,
-            21.225,
-            -23.589
-          ],
-          [
-            -0.325,
-            21.475,
-            -23.589
-          ],
-          [
-            -0.591,
-            21.475,
-            -23.475
-          ],
-          [
-            -0.845,
-            21.475,
-            -23.541
-          ],
-          [
-            -1.12,
-            21.475,
-            -23.589
-          ],
-          [
-            -1.41,
-            21.475,
-            -23.589
-          ],
-          [
-            -1.687,
-            21.475,
-            -23.601
-          ],
-          [
-            -1.874,
-            21.475,
-            -23.787
-          ],
-          [
-            -1.958,
-            21.475,
-            -24.011
-          ],
-          [
-            -2.04,
-            21.475,
-            -24.288
-          ],
-          [
-            -2.118,
-            21.475,
-            -24.557
-          ],
-          [
-            -2.15,
-            21.475,
-            -24.836
-          ],
-          [
-            -2.15,
-            21.475,
-            -25.126
-          ],
-          [
-            -2.15,
-            21.475,
-            -25.415
-          ],
-          [
-            -2.15,
-            21.475,
-            -25.704
-          ],
-          [
-            -2.15,
-            21.475,
-            -25.993
-          ],
-          [
-            -2.15,
-            21.475,
-            -26.283
-          ],
-          [
-            -2.15,
-            21.475,
-            -26.572
-          ],
-          [
-            -2.15,
-            21.475,
-            -26.861
-          ],
-          [
-            -2.15,
-            21.475,
-            -27.15
-          ],
-          [
-            -2.15,
-            21.475,
-            -27.44
-          ],
-          [
-            -2.15,
-            21.475,
-            -27.729
-          ],
-          [
-            -2.069,
-            21.475,
-            -27.979
-          ],
-          [
-            -1.844,
-            21.475,
-            -28.161
-          ],
-          [
-            -1.618,
-            21.475,
-            -28.343
-          ],
-          [
-            -1.393,
-            21.475,
-            -28.524
-          ],
-          [
-            -1.196,
-            21.475,
-            -28.736
-          ],
-          [
-            -1.002,
-            21.475,
-            -28.95
-          ],
-          [
-            -0.787,
-            21.475,
-            -29.138
-          ],
-          [
-            -0.534,
-            21.475,
-            -29.278
-          ],
-          [
-            -0.26,
-            21.475,
-            -29.339
-          ],
-          [
-            0.029,
-            21.475,
-            -29.339
-          ],
-          [
-            0.318,
-            21.475,
-            -29.339
-          ],
-          [
-            0.588,
-            21.475,
-            -29.257
-          ],
-          [
-            0.827,
-            21.475,
-            -29.098
-          ],
-          [
-            1.042,
-            21.475,
-            -28.905
-          ],
-          [
-            1.258,
-            21.475,
-            -28.712
-          ],
-          [
-            1.473,
-            21.475,
-            -28.519
-          ],
-          [
-            1.689,
-            21.475,
-            -28.326
-          ],
-          [
-            1.904,
-            21.475,
-            -28.134
-          ],
-          [
-            2.12,
-            21.475,
-            -27.941
-          ],
-          [
-            2.15,
-            21.475,
-            -27.665
-          ],
-          [
-            2.15,
-            21.475,
-            -27.376
-          ],
-          [
-            2.15,
-            21.475,
-            -27.086
-          ],
-          [
-            2.15,
-            21.475,
-            -26.797
-          ],
-          [
-            2.15,
-            21.475,
-            -26.508
-          ],
-          [
-            2.15,
-            21.475,
-            -26.219
-          ],
-          [
-            2.15,
-            21.475,
-            -25.929
-          ],
-          [
-            2.15,
-            21.475,
-            -25.64
-          ],
-          [
-            2.15,
-            21.475,
-            -25.351
-          ],
-          [
-            2.15,
-            21.475,
-            -25.062
-          ],
-          [
-            2.15,
-            21.475,
-            -24.772
-          ],
-          [
-            2.102,
-            21.475,
-            -24.497
-          ],
-          [
-            2.025,
-            21.475,
-            -24.225
-          ],
-          [
-            1.947,
-            21.475,
-            -23.956
-          ],
-          [
-            1.85,
-            21.475,
-            -23.714
-          ],
-          [
-            1.627,
-            21.475,
-            -23.589
-          ],
-          [
-            1.338,
-            21.475,
-            -23.589
-          ],
-          [
-            1.049,
-            21.475,
-            -23.589
-          ],
-          [
-            0.783,
-            21.475,
-            -23.504
-          ],
-          [
-            0.525,
-            21.475,
-            -23.503
-          ],
-          [
-            0.254,
-            21.475,
-            -23.589
-          ],
-          [
-            -0.036,
-            21.475,
-            -23.589
-          ],
-          [
-            -0.28,
-            21.725,
-            -23.543
-          ],
-          [
-            -0.591,
-            21.725,
-            -23.339
-          ],
-          [
-            -0.865,
-            21.725,
-            -23.525
-          ],
-          [
-            -1.111,
-            21.725,
-            -23.626
-          ],
-          [
-            -1.35,
-            21.725,
-            -23.714
-          ],
-          [
-            -1.376,
-            21.725,
-            -23.801
-          ],
-          [
-            -1.43,
-            21.725,
-            -23.977
-          ],
-          [
-            -1.486,
-            21.725,
-            -24.161
-          ],
-          [
-            -1.569,
-            21.725,
-            -24.436
-          ],
-          [
-            -1.65,
-            21.725,
-            -24.703
-          ],
-          [
-            -1.73,
-            21.725,
-            -24.965
-          ],
-          [
-            -1.81,
-            21.725,
-            -25.228
-          ],
-          [
-            -1.89,
-            21.725,
-            -25.493
-          ],
-          [
-            -1.97,
-            21.725,
-            -25.758
-          ],
-          [
-            -2.051,
-            21.725,
-            -26.023
-          ],
-          [
-            -2.131,
-            21.725,
-            -26.286
-          ],
-          [
-            -2.196,
-            21.725,
-            -26.576
-          ],
-          [
-            -2.177,
-            21.725,
-            -26.864
-          ],
-          [
-            -2.157,
-            21.725,
-            -27.152
-          ],
-          [
-            -2.138,
-            21.725,
-            -27.441
-          ],
-          [
-            -2.119,
-            21.725,
-            -27.729
-          ],
-          [
-            -2.102,
-            21.725,
-            -27.98
-          ],
-          [
-            -1.862,
-            21.725,
-            -28.186
-          ],
-          [
-            -1.628,
-            21.725,
-            -28.356
-          ],
-          [
-            -1.394,
-            21.725,
-            -28.525
-          ],
-          [
-            -1.196,
-            21.725,
-            -28.736
-          ],
-          [
-            -1.002,
-            21.725,
-            -28.95
-          ],
-          [
-            -0.787,
-            21.725,
-            -29.138
-          ],
-          [
-            -0.534,
-            21.725,
-            -29.278
-          ],
-          [
-            -0.265,
-            21.725,
-            -29.339
-          ],
-          [
-            0.032,
-            21.725,
-            -29.339
-          ],
-          [
-            0.319,
-            21.725,
-            -29.339
-          ],
-          [
-            0.588,
-            21.725,
-            -29.257
-          ],
-          [
-            0.827,
-            21.725,
-            -29.098
-          ],
-          [
-            1.042,
-            21.725,
-            -28.905
-          ],
-          [
-            1.258,
-            21.725,
-            -28.712
-          ],
-          [
-            1.473,
-            21.725,
-            -28.519
-          ],
-          [
-            1.689,
-            21.725,
-            -28.326
-          ],
-          [
-            1.904,
-            21.725,
-            -28.134
-          ],
-          [
-            2.12,
-            21.725,
-            -27.941
-          ],
-          [
-            2.15,
-            21.725,
-            -27.665
-          ],
-          [
-            2.15,
-            21.725,
-            -27.376
-          ],
-          [
-            2.15,
-            21.725,
-            -27.086
-          ],
-          [
-            2.15,
-            21.725,
-            -26.797
-          ],
-          [
-            2.15,
-            21.725,
-            -26.508
-          ],
-          [
-            2.138,
-            21.725,
-            -26.222
-          ],
-          [
-            2.058,
-            21.725,
-            -25.957
-          ],
-          [
-            1.979,
-            21.725,
-            -25.691
-          ],
-          [
-            1.9,
-            21.725,
-            -25.425
-          ],
-          [
-            1.821,
-            21.725,
-            -25.159
-          ],
-          [
-            1.742,
-            21.725,
-            -24.893
-          ],
-          [
-            1.662,
-            21.725,
-            -24.627
-          ],
-          [
-            1.582,
-            21.725,
-            -24.356
-          ],
-          [
-            1.516,
-            21.725,
-            -24.135
-          ],
-          [
-            1.444,
-            21.725,
-            -23.904
-          ],
-          [
-            1.348,
-            21.725,
-            -23.753
-          ],
-          [
-            1.289,
-            21.725,
-            -23.661
-          ],
-          [
-            1.053,
-            21.725,
-            -23.583
-          ],
-          [
-            0.825,
-            21.725,
-            -23.472
-          ],
-          [
-            0.443,
-            21.725,
-            -23.421
-          ],
-          [
-            0.254,
-            21.725,
-            -23.589
-          ],
-          [
-            -0.036,
-            21.725,
-            -23.589
-          ],
-          [
-            -0.19,
-            21.95,
-            -23.434
-          ],
-          [
-            -0.59,
-            21.95,
-            -23.249
-          ],
-          [
-            -0.841,
-            21.95,
-            -23.551
-          ],
-          [
-            -0.934,
-            21.95,
-            -23.751
-          ],
-          [
-            -1,
-            21.95,
-            -23.892
-          ],
-          [
-            -1.035,
-            21.95,
-            -23.967
-          ],
-          [
-            -1.094,
-            21.95,
-            -24.094
-          ],
-          [
-            -1.163,
-            21.95,
-            -24.258
-          ],
-          [
-            -1.246,
-            21.95,
-            -24.534
-          ],
-          [
-            -1.325,
-            21.95,
-            -24.801
-          ],
-          [
-            -1.404,
-            21.95,
-            -25.064
-          ],
-          [
-            -1.482,
-            21.95,
-            -25.327
-          ],
-          [
-            -1.562,
-            21.95,
-            -25.592
-          ],
-          [
-            -1.641,
-            21.95,
-            -25.857
-          ],
-          [
-            -1.72,
-            21.95,
-            -26.123
-          ],
-          [
-            -1.798,
-            21.95,
-            -26.386
-          ],
-          [
-            -1.883,
-            21.95,
-            -26.67
-          ],
-          [
-            -1.957,
-            21.95,
-            -26.918
-          ],
-          [
-            -2.036,
-            21.95,
-            -27.183
-          ],
-          [
-            -2.115,
-            21.95,
-            -27.448
-          ],
-          [
-            -2.131,
-            21.95,
-            -27.731
-          ],
-          [
-            -2.104,
-            21.95,
-            -27.98
-          ],
-          [
-            -1.862,
-            21.95,
-            -28.186
-          ],
-          [
-            -1.628,
-            21.95,
-            -28.356
-          ],
-          [
-            -1.394,
-            21.95,
-            -28.525
-          ],
-          [
-            -1.196,
-            21.95,
-            -28.736
-          ],
-          [
-            -1.002,
-            21.95,
-            -28.95
-          ],
-          [
-            -0.787,
-            21.95,
-            -29.138
-          ],
-          [
-            -0.534,
-            21.95,
-            -29.278
-          ],
-          [
-            -0.265,
-            21.95,
-            -29.339
-          ],
-          [
-            0.032,
-            21.95,
-            -29.339
-          ],
-          [
-            0.319,
-            21.95,
-            -29.339
-          ],
-          [
-            0.588,
-            21.95,
-            -29.257
-          ],
-          [
-            0.827,
-            21.95,
-            -29.098
-          ],
-          [
-            1.042,
-            21.95,
-            -28.905
-          ],
-          [
-            1.258,
-            21.95,
-            -28.712
-          ],
-          [
-            1.473,
-            21.95,
-            -28.519
-          ],
-          [
-            1.689,
-            21.95,
-            -28.326
-          ],
-          [
-            1.904,
-            21.95,
-            -28.134
-          ],
-          [
-            2.12,
-            21.95,
-            -27.941
-          ],
-          [
-            2.15,
-            21.95,
-            -27.666
-          ],
-          [
-            2.096,
-            21.95,
-            -27.384
-          ],
-          [
-            2.016,
-            21.95,
-            -27.115
-          ],
-          [
-            1.94,
-            21.95,
-            -26.86
-          ],
-          [
-            1.861,
-            21.95,
-            -26.594
-          ],
-          [
-            1.781,
-            21.95,
-            -26.329
-          ],
-          [
-            1.702,
-            21.95,
-            -26.063
-          ],
-          [
-            1.623,
-            21.95,
-            -25.797
-          ],
-          [
-            1.543,
-            21.95,
-            -25.531
-          ],
-          [
-            1.464,
-            21.95,
-            -25.265
-          ],
-          [
-            1.385,
-            21.95,
-            -25
-          ],
-          [
-            1.305,
-            21.95,
-            -24.734
-          ],
-          [
-            1.224,
-            21.95,
-            -24.463
-          ],
-          [
-            1.158,
-            21.95,
-            -24.242
-          ],
-          [
-            1.066,
-            21.95,
-            -24.035
-          ],
-          [
-            1.024,
-            21.95,
-            -23.943
-          ],
-          [
-            0.978,
-            21.95,
-            -23.846
-          ],
-          [
-            0.907,
-            21.95,
-            -23.692
-          ],
-          [
-            0.802,
-            21.95,
-            -23.449
-          ],
-          [
-            0.343,
-            21.95,
-            -23.321
-          ],
-          [
-            0.175,
-            21.95,
-            -23.489
-          ],
-          [
-            -0.036,
-            21.95,
-            -23.489
-          ]
-        ],
-        "triangles": [
-          [
-            0,
-            1,
-            63
-          ],
-          [
-            0,
-            63,
-            62
-          ],
-          [
-            1,
-            2,
-            64
-          ],
-          [
-            1,
-            64,
-            63
-          ],
-          [
-            2,
-            3,
-            65
-          ],
-          [
-            2,
-            65,
-            64
-          ],
-          [
-            3,
-            4,
-            66
-          ],
-          [
-            3,
-            66,
-            65
-          ],
-          [
-            4,
-            5,
-            67
-          ],
-          [
-            4,
-            67,
-            66
-          ],
-          [
-            5,
-            6,
-            68
-          ],
-          [
-            5,
-            68,
-            67
-          ],
-          [
-            6,
-            7,
-            69
-          ],
-          [
-            6,
-            69,
-            68
-          ],
-          [
-            7,
-            8,
-            70
-          ],
-          [
-            7,
-            70,
-            69
-          ],
-          [
-            8,
-            9,
-            71
-          ],
-          [
-            8,
-            71,
-            70
-          ],
-          [
-            9,
-            10,
-            72
-          ],
-          [
-            9,
-            72,
-            71
-          ],
-          [
-            10,
-            11,
-            73
-          ],
-          [
-            10,
-            73,
-            72
-          ],
-          [
-            11,
-            12,
-            74
-          ],
-          [
-            11,
-            74,
-            73
-          ],
-          [
-            12,
-            13,
-            75
-          ],
-          [
-            12,
-            75,
-            74
-          ],
-          [
-            13,
-            14,
-            76
-          ],
-          [
-            13,
-            76,
-            75
-          ],
-          [
-            14,
-            15,
-            77
-          ],
-          [
-            14,
-            77,
-            76
-          ],
-          [
-            15,
-            16,
-            78
-          ],
-          [
-            15,
-            78,
-            77
-          ],
-          [
-            16,
-            17,
-            79
-          ],
-          [
-            16,
-            79,
-            78
-          ],
-          [
-            17,
-            18,
-            80
-          ],
-          [
-            17,
-            80,
-            79
-          ],
-          [
-            18,
-            19,
-            81
-          ],
-          [
-            18,
-            81,
-            80
-          ],
-          [
-            19,
-            20,
-            82
-          ],
-          [
-            19,
-            82,
-            81
-          ],
-          [
-            20,
-            21,
-            83
-          ],
-          [
-            20,
-            83,
-            82
-          ],
-          [
-            21,
-            22,
-            84
-          ],
-          [
-            21,
-            84,
-            83
-          ],
-          [
-            22,
-            23,
-            85
-          ],
-          [
-            22,
-            85,
-            84
-          ],
-          [
-            23,
-            24,
-            86
-          ],
-          [
-            23,
-            86,
-            85
-          ],
-          [
-            24,
-            25,
-            87
-          ],
-          [
-            24,
-            87,
-            86
-          ],
-          [
-            25,
-            26,
-            88
-          ],
-          [
-            25,
-            88,
-            87
-          ],
-          [
-            26,
-            27,
-            89
-          ],
-          [
-            26,
-            89,
-            88
-          ],
-          [
-            27,
-            28,
-            90
-          ],
-          [
-            27,
-            90,
-            89
-          ],
-          [
-            28,
-            29,
-            91
-          ],
-          [
-            28,
-            91,
-            90
-          ],
-          [
-            29,
-            30,
-            92
-          ],
-          [
-            29,
-            92,
-            91
-          ],
-          [
-            30,
-            31,
-            93
-          ],
-          [
-            30,
-            93,
-            92
-          ],
-          [
-            31,
-            32,
-            94
-          ],
-          [
-            31,
-            94,
-            93
-          ],
-          [
-            32,
-            33,
-            95
-          ],
-          [
-            32,
-            95,
-            94
-          ],
-          [
-            33,
-            34,
-            96
-          ],
-          [
-            33,
-            96,
-            95
-          ],
-          [
-            34,
-            35,
-            97
-          ],
-          [
-            34,
-            97,
-            96
-          ],
-          [
-            35,
-            36,
-            98
-          ],
-          [
-            35,
-            98,
-            97
-          ],
-          [
-            36,
-            37,
-            99
-          ],
-          [
-            36,
-            99,
-            98
-          ],
-          [
-            37,
-            38,
-            100
-          ],
-          [
-            37,
-            100,
-            99
-          ],
-          [
-            38,
-            39,
-            101
-          ],
-          [
-            38,
-            101,
-            100
-          ],
-          [
-            39,
-            40,
-            102
-          ],
-          [
-            39,
-            102,
-            101
-          ],
-          [
-            40,
-            41,
-            103
-          ],
-          [
-            40,
-            103,
-            102
-          ],
-          [
-            41,
-            42,
-            104
-          ],
-          [
-            41,
-            104,
-            103
-          ],
-          [
-            42,
-            43,
-            105
-          ],
-          [
-            42,
-            105,
-            104
-          ],
-          [
-            43,
-            44,
-            106
-          ],
-          [
-            43,
-            106,
-            105
-          ],
-          [
-            44,
-            45,
-            107
-          ],
-          [
-            44,
-            107,
-            106
-          ],
-          [
-            45,
-            46,
-            108
-          ],
-          [
-            45,
-            108,
-            107
-          ],
-          [
-            46,
-            47,
-            109
-          ],
-          [
-            46,
-            109,
-            108
-          ],
-          [
-            47,
-            48,
-            110
-          ],
-          [
-            47,
-            110,
-            109
-          ],
-          [
-            48,
-            49,
-            111
-          ],
-          [
-            48,
-            111,
-            110
-          ],
-          [
-            49,
-            50,
-            112
-          ],
-          [
-            49,
-            112,
-            111
-          ],
-          [
-            50,
-            51,
-            113
-          ],
-          [
-            50,
-            113,
-            112
-          ],
-          [
-            51,
-            52,
-            114
-          ],
-          [
-            51,
-            114,
-            113
-          ],
-          [
-            52,
-            53,
-            115
-          ],
-          [
-            52,
-            115,
-            114
-          ],
-          [
-            53,
-            54,
-            116
-          ],
-          [
-            53,
-            116,
-            115
-          ],
-          [
-            54,
-            55,
-            117
-          ],
-          [
-            54,
-            117,
-            116
-          ],
-          [
-            55,
-            56,
-            118
-          ],
-          [
-            55,
-            118,
-            117
-          ],
-          [
-            56,
-            57,
-            119
-          ],
-          [
-            56,
-            119,
-            118
-          ],
-          [
-            57,
-            58,
-            120
-          ],
-          [
-            57,
-            120,
-            119
-          ],
-          [
-            58,
-            59,
-            121
-          ],
-          [
-            58,
-            121,
-            120
-          ],
-          [
-            59,
-            60,
-            122
-          ],
-          [
-            59,
-            122,
-            121
-          ],
-          [
-            60,
-            61,
-            123
-          ],
-          [
-            60,
-            123,
-            122
-          ],
-          [
-            61,
-            0,
-            62
-          ],
-          [
-            61,
-            62,
-            123
-          ],
-          [
-            62,
-            63,
-            125
-          ],
-          [
-            62,
-            125,
-            124
-          ],
-          [
-            63,
-            64,
-            126
-          ],
-          [
-            63,
-            126,
-            125
-          ],
-          [
-            64,
-            65,
-            127
-          ],
-          [
-            64,
-            127,
-            126
-          ],
-          [
-            65,
-            66,
-            128
-          ],
-          [
-            65,
-            128,
-            127
-          ],
-          [
-            66,
-            67,
-            129
-          ],
-          [
-            66,
-            129,
-            128
-          ],
-          [
-            67,
-            68,
-            130
-          ],
-          [
-            67,
-            130,
-            129
-          ],
-          [
-            68,
-            69,
-            131
-          ],
-          [
-            68,
-            131,
-            130
-          ],
-          [
-            69,
-            70,
-            132
-          ],
-          [
-            69,
-            132,
-            131
-          ],
-          [
-            70,
-            71,
-            133
-          ],
-          [
-            70,
-            133,
-            132
-          ],
-          [
-            71,
-            72,
-            134
-          ],
-          [
-            71,
-            134,
-            133
-          ],
-          [
-            72,
-            73,
-            135
-          ],
-          [
-            72,
-            135,
-            134
-          ],
-          [
-            73,
-            74,
-            136
-          ],
-          [
-            73,
-            136,
-            135
-          ],
-          [
-            74,
-            75,
-            137
-          ],
-          [
-            74,
-            137,
-            136
-          ],
-          [
-            75,
-            76,
-            138
-          ],
-          [
-            75,
-            138,
-            137
-          ],
-          [
-            76,
-            77,
-            139
-          ],
-          [
-            76,
-            139,
-            138
-          ],
-          [
-            77,
-            78,
-            140
-          ],
-          [
-            77,
-            140,
-            139
-          ],
-          [
-            78,
-            79,
-            141
-          ],
-          [
-            78,
-            141,
-            140
-          ],
-          [
-            79,
-            80,
-            142
-          ],
-          [
-            79,
-            142,
-            141
-          ],
-          [
-            80,
-            81,
-            143
-          ],
-          [
-            80,
-            143,
-            142
-          ],
-          [
-            81,
-            82,
-            144
-          ],
-          [
-            81,
-            144,
-            143
-          ],
-          [
-            82,
-            83,
-            145
-          ],
-          [
-            82,
-            145,
-            144
-          ],
-          [
-            83,
-            84,
-            146
-          ],
-          [
-            83,
-            146,
-            145
-          ],
-          [
-            84,
-            85,
-            147
-          ],
-          [
-            84,
-            147,
-            146
-          ],
-          [
-            85,
-            86,
-            148
-          ],
-          [
-            85,
-            148,
-            147
-          ],
-          [
-            86,
-            87,
-            149
-          ],
-          [
-            86,
-            149,
-            148
-          ],
-          [
-            87,
-            88,
-            150
-          ],
-          [
-            87,
-            150,
-            149
-          ],
-          [
-            88,
-            89,
-            151
-          ],
-          [
-            88,
-            151,
-            150
-          ],
-          [
-            89,
-            90,
-            152
-          ],
-          [
-            89,
-            152,
-            151
-          ],
-          [
-            90,
-            91,
-            153
-          ],
-          [
-            90,
-            153,
-            152
-          ],
-          [
-            91,
-            92,
-            154
-          ],
-          [
-            91,
-            154,
-            153
-          ],
-          [
-            92,
-            93,
-            155
-          ],
-          [
-            92,
-            155,
-            154
-          ],
-          [
-            93,
-            94,
-            156
-          ],
-          [
-            93,
-            156,
-            155
-          ],
-          [
-            94,
-            95,
-            157
-          ],
-          [
-            94,
-            157,
-            156
-          ],
-          [
-            95,
-            96,
-            158
-          ],
-          [
-            95,
-            158,
-            157
-          ],
-          [
-            96,
-            97,
-            159
-          ],
-          [
-            96,
-            159,
-            158
-          ],
-          [
-            97,
-            98,
-            160
-          ],
-          [
-            97,
-            160,
-            159
-          ],
-          [
-            98,
-            99,
-            161
-          ],
-          [
-            98,
-            161,
-            160
-          ],
-          [
-            99,
-            100,
-            162
-          ],
-          [
-            99,
-            162,
-            161
-          ],
-          [
-            100,
-            101,
-            163
-          ],
-          [
-            100,
-            163,
-            162
-          ],
-          [
-            101,
-            102,
-            164
-          ],
-          [
-            101,
-            164,
-            163
-          ],
-          [
-            102,
-            103,
-            165
-          ],
-          [
-            102,
-            165,
-            164
-          ],
-          [
-            103,
-            104,
-            166
-          ],
-          [
-            103,
-            166,
-            165
-          ],
-          [
-            104,
-            105,
-            167
-          ],
-          [
-            104,
-            167,
-            166
-          ],
-          [
-            105,
-            106,
-            168
-          ],
-          [
-            105,
-            168,
-            167
-          ],
-          [
-            106,
-            107,
-            169
-          ],
-          [
-            106,
-            169,
-            168
-          ],
-          [
-            107,
-            108,
-            170
-          ],
-          [
-            107,
-            170,
-            169
-          ],
-          [
-            108,
-            109,
-            171
-          ],
-          [
-            108,
-            171,
-            170
-          ],
-          [
-            109,
-            110,
-            172
-          ],
-          [
-            109,
-            172,
-            171
-          ],
-          [
-            110,
-            111,
-            173
-          ],
-          [
-            110,
-            173,
-            172
-          ],
-          [
-            111,
-            112,
-            174
-          ],
-          [
-            111,
-            174,
-            173
-          ],
-          [
-            112,
-            113,
-            175
-          ],
-          [
-            112,
-            175,
-            174
-          ],
-          [
-            113,
-            114,
-            176
-          ],
-          [
-            113,
-            176,
-            175
-          ],
-          [
-            114,
-            115,
-            177
-          ],
-          [
-            114,
-            177,
-            176
-          ],
-          [
-            115,
-            116,
-            178
-          ],
-          [
-            115,
-            178,
-            177
-          ],
-          [
-            116,
-            117,
-            179
-          ],
-          [
-            116,
-            179,
-            178
-          ],
-          [
-            117,
-            118,
-            180
-          ],
-          [
-            117,
-            180,
-            179
-          ],
-          [
-            118,
-            119,
-            181
-          ],
-          [
-            118,
-            181,
-            180
-          ],
-          [
-            119,
-            120,
-            182
-          ],
-          [
-            119,
-            182,
-            181
-          ],
-          [
-            120,
-            121,
-            183
-          ],
-          [
-            120,
-            183,
-            182
-          ],
-          [
-            121,
-            122,
-            184
-          ],
-          [
-            121,
-            184,
-            183
-          ],
-          [
-            122,
-            123,
-            185
-          ],
-          [
-            122,
-            185,
-            184
-          ],
-          [
-            123,
-            62,
-            124
-          ],
-          [
-            123,
-            124,
-            185
-          ],
-          [
-            124,
-            125,
-            187
-          ],
-          [
-            124,
-            187,
-            186
-          ],
-          [
-            125,
-            126,
-            188
-          ],
-          [
-            125,
-            188,
-            187
-          ],
-          [
-            126,
-            127,
-            189
-          ],
-          [
-            126,
-            189,
-            188
-          ],
-          [
-            127,
-            128,
-            190
-          ],
-          [
-            127,
-            190,
-            189
-          ],
-          [
-            128,
-            129,
-            191
-          ],
-          [
-            128,
-            191,
-            190
-          ],
-          [
-            129,
-            130,
-            192
-          ],
-          [
-            129,
-            192,
-            191
-          ],
-          [
-            130,
-            131,
-            193
-          ],
-          [
-            130,
-            193,
-            192
-          ],
-          [
-            131,
-            132,
-            194
-          ],
-          [
-            131,
-            194,
-            193
-          ],
-          [
-            132,
-            133,
-            195
-          ],
-          [
-            132,
-            195,
-            194
-          ],
-          [
-            133,
-            134,
-            196
-          ],
-          [
-            133,
-            196,
-            195
-          ],
-          [
-            134,
-            135,
-            197
-          ],
-          [
-            134,
-            197,
-            196
-          ],
-          [
-            135,
-            136,
-            198
-          ],
-          [
-            135,
-            198,
-            197
-          ],
-          [
-            136,
-            137,
-            199
-          ],
-          [
-            136,
-            199,
-            198
-          ],
-          [
-            137,
-            138,
-            200
-          ],
-          [
-            137,
-            200,
-            199
-          ],
-          [
-            138,
-            139,
-            201
-          ],
-          [
-            138,
-            201,
-            200
-          ],
-          [
-            139,
-            140,
-            202
-          ],
-          [
-            139,
-            202,
-            201
-          ],
-          [
-            140,
-            141,
-            203
-          ],
-          [
-            140,
-            203,
-            202
-          ],
-          [
-            141,
-            142,
-            204
-          ],
-          [
-            141,
-            204,
-            203
-          ],
-          [
-            142,
-            143,
-            205
-          ],
-          [
-            142,
-            205,
-            204
-          ],
-          [
-            143,
-            144,
-            206
-          ],
-          [
-            143,
-            206,
-            205
-          ],
-          [
-            144,
-            145,
-            207
-          ],
-          [
-            144,
-            207,
-            206
-          ],
-          [
-            145,
-            146,
-            208
-          ],
-          [
-            145,
-            208,
-            207
-          ],
-          [
-            146,
-            147,
-            209
-          ],
-          [
-            146,
-            209,
-            208
-          ],
-          [
-            147,
-            148,
-            210
-          ],
-          [
-            147,
-            210,
-            209
-          ],
-          [
-            148,
-            149,
-            211
-          ],
-          [
-            148,
-            211,
-            210
-          ],
-          [
-            149,
-            150,
-            212
-          ],
-          [
-            149,
-            212,
-            211
-          ],
-          [
-            150,
-            151,
-            213
-          ],
-          [
-            150,
-            213,
-            212
-          ],
-          [
-            151,
-            152,
-            214
-          ],
-          [
-            151,
-            214,
-            213
-          ],
-          [
-            152,
-            153,
-            215
-          ],
-          [
-            152,
-            215,
-            214
-          ],
-          [
-            153,
-            154,
-            216
-          ],
-          [
-            153,
-            216,
-            215
-          ],
-          [
-            154,
-            155,
-            217
-          ],
-          [
-            154,
-            217,
-            216
-          ],
-          [
-            155,
-            156,
-            218
-          ],
-          [
-            155,
-            218,
-            217
-          ],
-          [
-            156,
-            157,
-            219
-          ],
-          [
-            156,
-            219,
-            218
-          ],
-          [
-            157,
-            158,
-            220
-          ],
-          [
-            157,
-            220,
-            219
-          ],
-          [
-            158,
-            159,
-            221
-          ],
-          [
-            158,
-            221,
-            220
-          ],
-          [
-            159,
-            160,
-            222
-          ],
-          [
-            159,
-            222,
-            221
-          ],
-          [
-            160,
-            161,
-            223
-          ],
-          [
-            160,
-            223,
-            222
-          ],
-          [
-            161,
-            162,
-            224
-          ],
-          [
-            161,
-            224,
-            223
-          ],
-          [
-            162,
-            163,
-            225
-          ],
-          [
-            162,
-            225,
-            224
-          ],
-          [
-            163,
-            164,
-            226
-          ],
-          [
-            163,
-            226,
-            225
-          ],
-          [
-            164,
-            165,
-            227
-          ],
-          [
-            164,
-            227,
-            226
-          ],
-          [
-            165,
-            166,
-            228
-          ],
-          [
-            165,
-            228,
-            227
-          ],
-          [
-            166,
-            167,
-            229
-          ],
-          [
-            166,
-            229,
-            228
-          ],
-          [
-            167,
-            168,
-            230
-          ],
-          [
-            167,
-            230,
-            229
-          ],
-          [
-            168,
-            169,
-            231
-          ],
-          [
-            168,
-            231,
-            230
-          ],
-          [
-            169,
-            170,
-            232
-          ],
-          [
-            169,
-            232,
-            231
-          ],
-          [
-            170,
-            171,
-            233
-          ],
-          [
-            170,
-            233,
-            232
-          ],
-          [
-            171,
-            172,
-            234
-          ],
-          [
-            171,
-            234,
-            233
-          ],
-          [
-            172,
-            173,
-            235
-          ],
-          [
-            172,
-            235,
-            234
-          ],
-          [
-            173,
-            174,
-            236
-          ],
-          [
-            173,
-            236,
-            235
-          ],
-          [
-            174,
-            175,
-            237
-          ],
-          [
-            174,
-            237,
-            236
-          ],
-          [
-            175,
-            176,
-            238
-          ],
-          [
-            175,
-            238,
-            237
-          ],
-          [
-            176,
-            177,
-            239
-          ],
-          [
-            176,
-            239,
-            238
-          ],
-          [
-            177,
-            178,
-            240
-          ],
-          [
-            177,
-            240,
-            239
-          ],
-          [
-            178,
-            179,
-            241
-          ],
-          [
-            178,
-            241,
-            240
-          ],
-          [
-            179,
-            180,
-            242
-          ],
-          [
-            179,
-            242,
-            241
-          ],
-          [
-            180,
-            181,
-            243
-          ],
-          [
-            180,
-            243,
-            242
-          ],
-          [
-            181,
-            182,
-            244
-          ],
-          [
-            181,
-            244,
-            243
-          ],
-          [
-            182,
-            183,
-            245
-          ],
-          [
-            182,
-            245,
-            244
-          ],
-          [
-            183,
-            184,
-            246
-          ],
-          [
-            183,
-            246,
-            245
-          ],
-          [
-            184,
-            185,
-            247
-          ],
-          [
-            184,
-            247,
-            246
-          ],
-          [
-            185,
-            124,
-            186
-          ],
-          [
-            185,
-            186,
-            247
-          ],
-          [
-            186,
-            187,
-            249
-          ],
-          [
-            186,
-            249,
-            248
-          ],
-          [
-            187,
-            188,
-            250
-          ],
-          [
-            187,
-            250,
-            249
-          ],
-          [
-            188,
-            189,
-            251
-          ],
-          [
-            188,
-            251,
-            250
-          ],
-          [
-            189,
-            190,
-            252
-          ],
-          [
-            189,
-            252,
-            251
-          ],
-          [
-            190,
-            191,
-            253
-          ],
-          [
-            190,
-            253,
-            252
-          ],
-          [
-            191,
-            192,
-            254
-          ],
-          [
-            191,
-            254,
-            253
-          ],
-          [
-            192,
-            193,
-            255
-          ],
-          [
-            192,
-            255,
-            254
-          ],
-          [
-            193,
-            194,
-            256
-          ],
-          [
-            193,
-            256,
-            255
-          ],
-          [
-            194,
-            195,
-            257
-          ],
-          [
-            194,
-            257,
-            256
-          ],
-          [
-            195,
-            196,
-            258
-          ],
-          [
-            195,
-            258,
-            257
-          ],
-          [
-            196,
-            197,
-            259
-          ],
-          [
-            196,
-            259,
-            258
-          ],
-          [
-            197,
-            198,
-            260
-          ],
-          [
-            197,
-            260,
-            259
-          ],
-          [
-            198,
-            199,
-            261
-          ],
-          [
-            198,
-            261,
-            260
-          ],
-          [
-            199,
-            200,
-            262
-          ],
-          [
-            199,
-            262,
-            261
-          ],
-          [
-            200,
-            201,
-            263
-          ],
-          [
-            200,
-            263,
-            262
-          ],
-          [
-            201,
-            202,
-            264
-          ],
-          [
-            201,
-            264,
-            263
-          ],
-          [
-            202,
-            203,
-            265
-          ],
-          [
-            202,
-            265,
-            264
-          ],
-          [
-            203,
-            204,
-            266
-          ],
-          [
-            203,
-            266,
-            265
-          ],
-          [
-            204,
-            205,
-            267
-          ],
-          [
-            204,
-            267,
-            266
-          ],
-          [
-            205,
-            206,
-            268
-          ],
-          [
-            205,
-            268,
-            267
-          ],
-          [
-            206,
-            207,
-            269
-          ],
-          [
-            206,
-            269,
-            268
-          ],
-          [
-            207,
-            208,
-            270
-          ],
-          [
-            207,
-            270,
-            269
-          ],
-          [
-            208,
-            209,
-            271
-          ],
-          [
-            208,
-            271,
-            270
-          ],
-          [
-            209,
-            210,
-            272
-          ],
-          [
-            209,
-            272,
-            271
-          ],
-          [
-            210,
-            211,
-            273
-          ],
-          [
-            210,
-            273,
-            272
-          ],
-          [
-            211,
-            212,
-            274
-          ],
-          [
-            211,
-            274,
-            273
-          ],
-          [
-            212,
-            213,
-            275
-          ],
-          [
-            212,
-            275,
-            274
-          ],
-          [
-            213,
-            214,
-            276
-          ],
-          [
-            213,
-            276,
-            275
-          ],
-          [
-            214,
-            215,
-            277
-          ],
-          [
-            214,
-            277,
-            276
-          ],
-          [
-            215,
-            216,
-            278
-          ],
-          [
-            215,
-            278,
-            277
-          ],
-          [
-            216,
-            217,
-            279
-          ],
-          [
-            216,
-            279,
-            278
-          ],
-          [
-            217,
-            218,
-            280
-          ],
-          [
-            217,
-            280,
-            279
-          ],
-          [
-            218,
-            219,
-            281
-          ],
-          [
-            218,
-            281,
-            280
-          ],
-          [
-            219,
-            220,
-            282
-          ],
-          [
-            219,
-            282,
-            281
-          ],
-          [
-            220,
-            221,
-            283
-          ],
-          [
-            220,
-            283,
-            282
-          ],
-          [
-            221,
-            222,
-            284
-          ],
-          [
-            221,
-            284,
-            283
-          ],
-          [
-            222,
-            223,
-            285
-          ],
-          [
-            222,
-            285,
-            284
-          ],
-          [
-            223,
-            224,
-            286
-          ],
-          [
-            223,
-            286,
-            285
-          ],
-          [
-            224,
-            225,
-            287
-          ],
-          [
-            224,
-            287,
-            286
-          ],
-          [
-            225,
-            226,
-            288
-          ],
-          [
-            225,
-            288,
-            287
-          ],
-          [
-            226,
-            227,
-            289
-          ],
-          [
-            226,
-            289,
-            288
-          ],
-          [
-            227,
-            228,
-            290
-          ],
-          [
-            227,
-            290,
-            289
-          ],
-          [
-            228,
-            229,
-            291
-          ],
-          [
-            228,
-            291,
-            290
-          ],
-          [
-            229,
-            230,
-            292
-          ],
-          [
-            229,
-            292,
-            291
-          ],
-          [
-            230,
-            231,
-            293
-          ],
-          [
-            230,
-            293,
-            292
-          ],
-          [
-            231,
-            232,
-            294
-          ],
-          [
-            231,
-            294,
-            293
-          ],
-          [
-            232,
-            233,
-            295
-          ],
-          [
-            232,
-            295,
-            294
-          ],
-          [
-            233,
-            234,
-            296
-          ],
-          [
-            233,
-            296,
-            295
-          ],
-          [
-            234,
-            235,
-            297
-          ],
-          [
-            234,
-            297,
-            296
-          ],
-          [
-            235,
-            236,
-            298
-          ],
-          [
-            235,
-            298,
-            297
-          ],
-          [
-            236,
-            237,
-            299
-          ],
-          [
-            236,
-            299,
-            298
-          ],
-          [
-            237,
-            238,
-            300
-          ],
-          [
-            237,
-            300,
-            299
-          ],
-          [
-            238,
-            239,
-            301
-          ],
-          [
-            238,
-            301,
-            300
-          ],
-          [
-            239,
-            240,
-            302
-          ],
-          [
-            239,
-            302,
-            301
-          ],
-          [
-            240,
-            241,
-            303
-          ],
-          [
-            240,
-            303,
-            302
-          ],
-          [
-            241,
-            242,
-            304
-          ],
-          [
-            241,
-            304,
-            303
-          ],
-          [
-            242,
-            243,
-            305
-          ],
-          [
-            242,
-            305,
-            304
-          ],
-          [
-            243,
-            244,
-            306
-          ],
-          [
-            243,
-            306,
-            305
-          ],
-          [
-            244,
-            245,
-            307
-          ],
-          [
-            244,
-            307,
-            306
-          ],
-          [
-            245,
-            246,
-            308
-          ],
-          [
-            245,
-            308,
-            307
-          ],
-          [
-            246,
-            247,
-            309
-          ],
-          [
-            246,
-            309,
-            308
-          ],
-          [
-            247,
-            186,
-            248
-          ],
-          [
-            247,
-            248,
-            309
-          ],
-          [
-            248,
-            249,
-            311
-          ],
-          [
-            248,
-            311,
-            310
-          ],
-          [
-            249,
-            250,
-            312
-          ],
-          [
-            249,
-            312,
-            311
-          ],
-          [
-            250,
-            251,
-            313
-          ],
-          [
-            250,
-            313,
-            312
-          ],
-          [
-            251,
-            252,
-            314
-          ],
-          [
-            251,
-            314,
-            313
-          ],
-          [
-            252,
-            253,
-            315
-          ],
-          [
-            252,
-            315,
-            314
-          ],
-          [
-            253,
-            254,
-            316
-          ],
-          [
-            253,
-            316,
-            315
-          ],
-          [
-            254,
-            255,
-            317
-          ],
-          [
-            254,
-            317,
-            316
-          ],
-          [
-            255,
-            256,
-            318
-          ],
-          [
-            255,
-            318,
-            317
-          ],
-          [
-            256,
-            257,
-            319
-          ],
-          [
-            256,
-            319,
-            318
-          ],
-          [
-            257,
-            258,
-            320
-          ],
-          [
-            257,
-            320,
-            319
-          ],
-          [
-            258,
-            259,
-            321
-          ],
-          [
-            258,
-            321,
-            320
-          ],
-          [
-            259,
-            260,
-            322
-          ],
-          [
-            259,
-            322,
-            321
-          ],
-          [
-            260,
-            261,
-            323
-          ],
-          [
-            260,
-            323,
-            322
-          ],
-          [
-            261,
-            262,
-            324
-          ],
-          [
-            261,
-            324,
-            323
-          ],
-          [
-            262,
-            263,
-            325
-          ],
-          [
-            262,
-            325,
-            324
-          ],
-          [
-            263,
-            264,
-            326
-          ],
-          [
-            263,
-            326,
-            325
-          ],
-          [
-            264,
-            265,
-            327
-          ],
-          [
-            264,
-            327,
-            326
-          ],
-          [
-            265,
-            266,
-            328
-          ],
-          [
-            265,
-            328,
-            327
-          ],
-          [
-            266,
-            267,
-            329
-          ],
-          [
-            266,
-            329,
-            328
-          ],
-          [
-            267,
-            268,
-            330
-          ],
-          [
-            267,
-            330,
-            329
-          ],
-          [
-            268,
-            269,
-            331
-          ],
-          [
-            268,
-            331,
-            330
-          ],
-          [
-            269,
-            270,
-            332
-          ],
-          [
-            269,
-            332,
-            331
-          ],
-          [
-            270,
-            271,
-            333
-          ],
-          [
-            270,
-            333,
-            332
-          ],
-          [
-            271,
-            272,
-            334
-          ],
-          [
-            271,
-            334,
-            333
-          ],
-          [
-            272,
-            273,
-            335
-          ],
-          [
-            272,
-            335,
-            334
-          ],
-          [
-            273,
-            274,
-            336
-          ],
-          [
-            273,
-            336,
-            335
-          ],
-          [
-            274,
-            275,
-            337
-          ],
-          [
-            274,
-            337,
-            336
-          ],
-          [
-            275,
-            276,
-            338
-          ],
-          [
-            275,
-            338,
-            337
-          ],
-          [
-            276,
-            277,
-            339
-          ],
-          [
-            276,
-            339,
-            338
-          ],
-          [
-            277,
-            278,
-            340
-          ],
-          [
-            277,
-            340,
-            339
-          ],
-          [
-            278,
-            279,
-            341
-          ],
-          [
-            278,
-            341,
-            340
-          ],
-          [
-            279,
-            280,
-            342
-          ],
-          [
-            279,
-            342,
-            341
-          ],
-          [
-            280,
-            281,
-            343
-          ],
-          [
-            280,
-            343,
-            342
-          ],
-          [
-            281,
-            282,
-            344
-          ],
-          [
-            281,
-            344,
-            343
-          ],
-          [
-            282,
-            283,
-            345
-          ],
-          [
-            282,
-            345,
-            344
-          ],
-          [
-            283,
-            284,
-            346
-          ],
-          [
-            283,
-            346,
-            345
-          ],
-          [
-            284,
-            285,
-            347
-          ],
-          [
-            284,
-            347,
-            346
-          ],
-          [
-            285,
-            286,
-            348
-          ],
-          [
-            285,
-            348,
-            347
-          ],
-          [
-            286,
-            287,
-            349
-          ],
-          [
-            286,
-            349,
-            348
-          ],
-          [
-            287,
-            288,
-            350
-          ],
-          [
-            287,
-            350,
-            349
-          ],
-          [
-            288,
-            289,
-            351
-          ],
-          [
-            288,
-            351,
-            350
-          ],
-          [
-            289,
-            290,
-            352
-          ],
-          [
-            289,
-            352,
-            351
-          ],
-          [
-            290,
-            291,
-            353
-          ],
-          [
-            290,
-            353,
-            352
-          ],
-          [
-            291,
-            292,
-            354
-          ],
-          [
-            291,
-            354,
-            353
-          ],
-          [
-            292,
-            293,
-            355
-          ],
-          [
-            292,
-            355,
-            354
-          ],
-          [
-            293,
-            294,
-            356
-          ],
-          [
-            293,
-            356,
-            355
-          ],
-          [
-            294,
-            295,
-            357
-          ],
-          [
-            294,
-            357,
-            356
-          ],
-          [
-            295,
-            296,
-            358
-          ],
-          [
-            295,
-            358,
-            357
-          ],
-          [
-            296,
-            297,
-            359
-          ],
-          [
-            296,
-            359,
-            358
-          ],
-          [
-            297,
-            298,
-            360
-          ],
-          [
-            297,
-            360,
-            359
-          ],
-          [
-            298,
-            299,
-            361
-          ],
-          [
-            298,
-            361,
-            360
-          ],
-          [
-            299,
-            300,
-            362
-          ],
-          [
-            299,
-            362,
-            361
-          ],
-          [
-            300,
-            301,
-            363
-          ],
-          [
-            300,
-            363,
-            362
-          ],
-          [
-            301,
-            302,
-            364
-          ],
-          [
-            301,
-            364,
-            363
-          ],
-          [
-            302,
-            303,
-            365
-          ],
-          [
-            302,
-            365,
-            364
-          ],
-          [
-            303,
-            304,
-            366
-          ],
-          [
-            303,
-            366,
-            365
-          ],
-          [
-            304,
-            305,
-            367
-          ],
-          [
-            304,
-            367,
-            366
-          ],
-          [
-            305,
-            306,
-            368
-          ],
-          [
-            305,
-            368,
-            367
-          ],
-          [
-            306,
-            307,
-            369
-          ],
-          [
-            306,
-            369,
-            368
-          ],
-          [
-            307,
-            308,
-            370
-          ],
-          [
-            307,
-            370,
-            369
-          ],
-          [
-            308,
-            309,
-            371
-          ],
-          [
-            308,
-            371,
-            370
-          ],
-          [
-            309,
-            248,
-            310
-          ],
-          [
-            309,
-            310,
-            371
-          ],
-          [
-            58,
-            59,
-            57
-          ],
-          [
-            53,
-            54,
-            52
-          ],
-          [
-            50,
-            56,
-            49
-          ],
-          [
-            49,
-            60,
-            48
-          ],
-          [
-            39,
-            40,
-            38
-          ],
-          [
-            36,
-            24,
-            35
-          ],
-          [
-            35,
-            25,
-            34
-          ],
-          [
-            32,
-            33,
-            31
-          ],
-          [
-            30,
-            31,
-            33
-          ],
-          [
-            28,
-            29,
-            27
-          ],
-          [
-            26,
-            27,
-            30
-          ],
-          [
-            21,
-            22,
-            20
-          ],
-          [
-            19,
-            20,
-            22
-          ],
-          [
-            6,
-            7,
-            5
-          ],
-          [
-            10,
-            3,
-            9
-          ],
-          [
-            0,
-            1,
-            2
-          ],
-          [
-            60,
-            57,
-            59
-          ],
-          [
-            55,
-            52,
-            54
-          ],
-          [
-            48,
-            60,
-            47
-          ],
-          [
-            41,
-            38,
-            40
-          ],
-          [
-            33,
-            34,
-            30
-          ],
-          [
-            29,
-            30,
-            27
-          ],
-          [
-            25,
-            26,
-            34
-          ],
-          [
-            23,
-            19,
-            22
-          ],
-          [
-            18,
-            19,
-            23
-          ],
-          [
-            8,
-            5,
-            7
-          ],
-          [
-            2,
-            10,
-            0
-          ],
-          [
-            12,
-            0,
-            11
-          ],
-          [
-            52,
-            55,
-            51
-          ],
-          [
-            38,
-            41,
-            37
-          ],
-          [
-            25,
-            35,
-            24
-          ],
-          [
-            30,
-            34,
-            26
-          ],
-          [
-            24,
-            18,
-            23
-          ],
-          [
-            5,
-            8,
-            4
-          ],
-          [
-            0,
-            12,
-            61
-          ],
-          [
-            51,
-            55,
-            50
-          ],
-          [
-            42,
-            37,
-            41
-          ],
-          [
-            17,
-            43,
-            16
-          ],
-          [
-            44,
-            16,
-            43
-          ],
-          [
-            17,
-            18,
-            24
-          ],
-          [
-            9,
-            4,
-            8
-          ],
-          [
-            57,
-            49,
-            56
-          ],
-          [
-            56,
-            50,
-            55
-          ],
-          [
-            37,
-            42,
-            36
-          ],
-          [
-            16,
-            44,
-            15
-          ],
-          [
-            24,
-            43,
-            17
-          ],
-          [
-            4,
-            9,
-            3
-          ],
-          [
-            60,
-            49,
-            57
-          ],
-          [
-            36,
-            42,
-            24
-          ],
-          [
-            15,
-            45,
-            14
-          ],
-          [
-            3,
-            10,
-            2
-          ],
-          [
-            61,
-            47,
-            60
-          ],
-          [
-            43,
-            24,
-            42
-          ],
-          [
-            45,
-            15,
-            44
-          ],
-          [
-            11,
-            0,
-            10
-          ],
-          [
-            13,
-            61,
-            12
-          ],
-          [
-            46,
-            14,
-            45
-          ],
-          [
-            14,
-            46,
-            13
-          ],
-          [
-            13,
-            47,
-            61
-          ],
-          [
-            47,
-            13,
-            46
-          ],
-          [
-            370,
-            369,
-            368
-          ],
-          [
-            363,
-            370,
-            364
-          ],
-          [
-            371,
-            363,
-            362
-          ],
-          [
-            365,
-            370,
-            366
-          ],
-          [
-            356,
-            323,
-            357
-          ],
-          [
-            324,
-            355,
-            325
-          ],
-          [
-            346,
-            352,
-            347
-          ],
-          [
-            348,
-            351,
-            350
-          ],
-          [
-            348,
-            350,
-            349
-          ],
-          [
-            351,
-            348,
-            347
-          ],
-          [
-            354,
-            346,
-            345
-          ],
-          [
-            341,
-            343,
-            342
-          ],
-          [
-            343,
-            341,
-            340
-          ],
-          [
-            337,
-            339,
-            338
-          ],
-          [
-            340,
-            337,
-            336
-          ],
-          [
-            329,
-            332,
-            330
-          ],
-          [
-            332,
-            331,
-            330
-          ],
-          [
-            327,
-            333,
-            328
-          ],
-          [
-            354,
-            325,
-            355
-          ],
-          [
-            319,
-            360,
-            320
-          ],
-          [
-            360,
-            319,
-            361
-          ],
-          [
-            361,
-            318,
-            362
-          ],
-          [
-            316,
-            371,
-            317
-          ],
-          [
-            371,
-            316,
-            315
-          ],
-          [
-            371,
-            314,
-            313
-          ],
-          [
-            310,
-            312,
-            311
-          ],
-          [
-            370,
-            368,
-            367
-          ],
-          [
-            364,
-            370,
-            365
-          ],
-          [
-            355,
-            324,
-            356
-          ],
-          [
-            351,
-            347,
-            352
-          ],
-          [
-            335,
-            345,
-            344
-          ],
-          [
-            340,
-            344,
-            343
-          ],
-          [
-            337,
-            340,
-            339
-          ],
-          [
-            344,
-            336,
-            335
-          ],
-          [
-            328,
-            332,
-            329
-          ],
-          [
-            326,
-            334,
-            327
-          ],
-          [
-            320,
-            359,
-            321
-          ],
-          [
-            317,
-            362,
-            318
-          ],
-          [
-            371,
-            315,
-            314
-          ],
-          [
-            312,
-            310,
-            313
-          ],
-          [
-            366,
-            370,
-            367
-          ],
-          [
-            359,
-            320,
-            360
-          ],
-          [
-            323,
-            356,
-            324
-          ],
-          [
-            352,
-            346,
-            353
-          ],
-          [
-            353,
-            346,
-            354
-          ],
-          [
-            336,
-            344,
-            340
-          ],
-          [
-            332,
-            328,
-            333
-          ],
-          [
-            325,
-            354,
-            326
-          ],
-          [
-            362,
-            317,
-            371
-          ],
-          [
-            313,
-            310,
-            371
-          ],
-          [
-            363,
-            371,
-            370
-          ],
-          [
-            322,
-            357,
-            323
-          ],
-          [
-            333,
-            327,
-            334
-          ],
-          [
-            345,
-            335,
-            334
-          ],
-          [
-            321,
-            358,
-            322
-          ],
-          [
-            318,
-            361,
-            319
-          ],
-          [
-            358,
-            321,
-            359
-          ],
-          [
-            334,
-            354,
-            345
-          ],
-          [
-            357,
-            322,
-            358
-          ],
-          [
-            334,
-            326,
-            354
-          ]
-        ]
-      }
+      "baseY": 20.45,
+      "height": 1.5,
+      "material": "naval"
     },
     {
       "id": "bridge-031",
@@ -73105,167 +66950,6 @@
       }
     },
     {
-      "id": "midships-051",
-      "name": "Midships deckhouse 9.7-10.7 m",
-      "footprint": [
-        [
-          1.725,
-          -2.289
-        ],
-        [
-          0.975,
-          -2.389
-        ],
-        [
-          0.425,
-          -2.739
-        ],
-        [
-          -0.775,
-          -2.739
-        ],
-        [
-          -1.325,
-          -2.439
-        ],
-        [
-          -1.725,
-          -2.389
-        ],
-        [
-          -2.125,
-          -2.439
-        ],
-        [
-          -2.4,
-          -2.614
-        ],
-        [
-          -2.6,
-          -3.364
-        ],
-        [
-          -3.15,
-          -4.014
-        ],
-        [
-          -3.15,
-          -4.264
-        ],
-        [
-          -2.6,
-          -5.114
-        ],
-        [
-          -2.9,
-          -5.464
-        ],
-        [
-          -3.2,
-          -6.064
-        ],
-        [
-          -3.2,
-          -6.364
-        ],
-        [
-          -2.6,
-          -7.014
-        ],
-        [
-          -2.45,
-          -7.414
-        ],
-        [
-          -2.45,
-          -7.714
-        ],
-        [
-          -2.325,
-          -7.889
-        ],
-        [
-          -1.725,
-          -8.089
-        ],
-        [
-          -1.425,
-          -8.089
-        ],
-        [
-          -0.975,
-          -7.989
-        ],
-        [
-          -0.425,
-          -7.639
-        ],
-        [
-          0.775,
-          -7.639
-        ],
-        [
-          1.325,
-          -7.939
-        ],
-        [
-          1.725,
-          -7.989
-        ],
-        [
-          2.125,
-          -7.939
-        ],
-        [
-          2.4,
-          -7.764
-        ],
-        [
-          2.6,
-          -7.014
-        ],
-        [
-          3.15,
-          -6.364
-        ],
-        [
-          3.15,
-          -6.114
-        ],
-        [
-          2.95,
-          -5.714
-        ],
-        [
-          2.6,
-          -5.264
-        ],
-        [
-          2.9,
-          -4.914
-        ],
-        [
-          3.2,
-          -4.314
-        ],
-        [
-          3.2,
-          -4.014
-        ],
-        [
-          2.6,
-          -3.364
-        ],
-        [
-          2.4,
-          -2.564
-        ]
-      ],
-      "baseY": 9.65,
-      "height": 1,
-      "material": "naval"
-    },
-    {
       "id": "midships-052",
       "name": "Midships deckhouse 12.0-12.2 m",
       "footprint": [
@@ -73562,7 +67246,7 @@
     },
     {
       "id": "midships-055",
-      "name": "Midships deckhouse 10.7-12.0 m",
+      "name": "Midships deckhouse 9.7-12.0 m",
       "footprint": [
         [
           1.825,
@@ -73597,8 +67281,8 @@
           -3.914
         ]
       ],
-      "baseY": 10.65,
-      "height": 1.35,
+      "baseY": 9.65,
+      "height": 2.35,
       "material": "naval"
     },
     {
@@ -92081,322 +85765,322 @@
           ],
           [
             0,
-            19,
+            19.0,
             -15.2108
           ],
           [
             0.3,
-            19,
+            19.0,
             -15.1408
           ],
           [
             0.87,
-            19,
+            19.0,
             -14.9408
           ],
           [
             1.12,
-            19,
+            19.0,
             -14.7408
           ],
           [
             1.32,
-            19,
+            19.0,
             -14.5408
           ],
           [
             1.41,
-            19,
+            19.0,
             -14.3408
           ],
           [
             1.48,
-            19,
+            19.0,
             -14.1408
           ],
           [
             1.58,
-            19,
+            19.0,
             -13.8408
           ],
           [
             1.66,
-            19,
+            19.0,
             -13.3408
           ],
           [
             1.66,
-            19,
+            19.0,
             -12.3408
           ],
           [
             1.6,
-            19,
+            19.0,
             -11.3408
           ],
           [
             1.43,
-            19,
+            19.0,
             -10.8408
           ],
           [
             1.3,
-            19,
+            19.0,
             -10.5408
           ],
           [
             1.07,
-            19,
+            19.0,
             -10.3408
           ],
           [
             0.73,
-            19,
+            19.0,
             -10.1408
           ],
           [
             0.3,
-            19,
+            19.0,
             -9.9408
           ],
           [
             0,
-            19,
+            19.0,
             -9.8908
           ],
           [
             -0.3,
-            19,
+            19.0,
             -9.9408
           ],
           [
             -0.73,
-            19,
+            19.0,
             -10.1408
           ],
           [
             -1.07,
-            19,
+            19.0,
             -10.3408
           ],
           [
             -1.3,
-            19,
+            19.0,
             -10.5408
           ],
           [
             -1.43,
-            19,
+            19.0,
             -10.8408
           ],
           [
             -1.6,
-            19,
+            19.0,
             -11.3408
           ],
           [
             -1.66,
-            19,
+            19.0,
             -12.3408
           ],
           [
             -1.66,
-            19,
+            19.0,
             -13.3408
           ],
           [
             -1.58,
-            19,
+            19.0,
             -13.8408
           ],
           [
             -1.48,
-            19,
+            19.0,
             -14.1408
           ],
           [
             -1.41,
-            19,
+            19.0,
             -14.3408
           ],
           [
             -1.32,
-            19,
+            19.0,
             -14.5408
           ],
           [
             -1.12,
-            19,
+            19.0,
             -14.7408
           ],
           [
             -0.87,
-            19,
+            19.0,
             -14.9408
           ],
           [
             -0.3,
-            19,
+            19.0,
             -15.1408
           ],
           [
             0,
-            20,
+            20.0,
             -15.0983
           ],
           [
             0.3,
-            20,
+            20.0,
             -15.0283
           ],
           [
             0.87,
-            20,
+            20.0,
             -14.8283
           ],
           [
             1.12,
-            20,
+            20.0,
             -14.6283
           ],
           [
             1.32,
-            20,
+            20.0,
             -14.4283
           ],
           [
             1.41,
-            20,
+            20.0,
             -14.2283
           ],
           [
             1.48,
-            20,
+            20.0,
             -14.0283
           ],
           [
             1.58,
-            20,
+            20.0,
             -13.7283
           ],
           [
             1.66,
-            20,
+            20.0,
             -13.2283
           ],
           [
             1.66,
-            20,
+            20.0,
             -12.2283
           ],
           [
             1.6,
-            20,
+            20.0,
             -11.2283
           ],
           [
             1.43,
-            20,
+            20.0,
             -10.7283
           ],
           [
             1.3,
-            20,
+            20.0,
             -10.4283
           ],
           [
             1.07,
-            20,
+            20.0,
             -10.2283
           ],
           [
             0.73,
-            20,
+            20.0,
             -10.0283
           ],
           [
             0.3,
-            20,
+            20.0,
             -9.8283
           ],
           [
             0,
-            20,
+            20.0,
             -9.7783
           ],
           [
             -0.3,
-            20,
+            20.0,
             -9.8283
           ],
           [
             -0.73,
-            20,
+            20.0,
             -10.0283
           ],
           [
             -1.07,
-            20,
+            20.0,
             -10.2283
           ],
           [
             -1.3,
-            20,
+            20.0,
             -10.4283
           ],
           [
             -1.43,
-            20,
+            20.0,
             -10.7283
           ],
           [
             -1.6,
-            20,
+            20.0,
             -11.2283
           ],
           [
             -1.66,
-            20,
+            20.0,
             -12.2283
           ],
           [
             -1.66,
-            20,
+            20.0,
             -13.2283
           ],
           [
             -1.58,
-            20,
+            20.0,
             -13.7283
           ],
           [
             -1.48,
-            20,
+            20.0,
             -14.0283
           ],
           [
             -1.41,
-            20,
+            20.0,
             -14.2283
           ],
           [
             -1.32,
-            20,
+            20.0,
             -14.4283
           ],
           [
             -1.12,
-            20,
+            20.0,
             -14.6283
           ],
           [
             -0.87,
-            20,
+            20.0,
             -14.8283
           ],
           [
             -0.3,
-            20,
+            20.0,
             -15.0283
           ]
         ],
@@ -93346,7 +87030,7 @@
       "exhaust": {
         "position": [
           0,
-          20,
+          20.0,
           -12.4283
         ],
         "width": 3.3,
@@ -99197,19 +92881,19 @@
       "name": "Bulwark 12.4-12.8 m",
       "footprint": [
         [
-          0,
+          0.0,
           49.825
         ],
         [
-          0,
+          0.0,
           50.241
         ],
         [
-          0,
+          0.0,
           50.241
         ],
         [
-          0,
+          0.0,
           49.825
         ],
         [
@@ -101481,6 +95165,131 @@
       "baseY": 9.753,
       "height": 0.897,
       "material": "naval"
+    },
+    {
+      "id": "wall-058-1",
+      "name": "Bulwark 12.0-13.2 m",
+      "footprint": [
+        [
+          3.443,
+          -24.892
+        ],
+        [
+          3.443,
+          -27.422
+        ],
+        [
+          3.383,
+          -27.422
+        ],
+        [
+          3.383,
+          -24.892
+        ]
+      ],
+      "baseY": 12.009,
+      "height": 1.191,
+      "material": "naval"
+    },
+    {
+      "id": "wall-058-port-1",
+      "name": "Bulwark 12.0-13.2 m",
+      "footprint": [
+        [
+          -3.383,
+          -24.892
+        ],
+        [
+          -3.383,
+          -27.422
+        ],
+        [
+          -3.443,
+          -27.422
+        ],
+        [
+          -3.443,
+          -24.892
+        ]
+      ],
+      "baseY": 12.009,
+      "height": 1.191,
+      "material": "naval"
+    },
+    {
+      "id": "wall-059-1",
+      "name": "Bulwark 12.0-13.2 m",
+      "footprint": [
+        [
+          4.3,
+          -28.4
+        ],
+        [
+          4.3,
+          -29.72
+        ],
+        [
+          4.24,
+          -29.72
+        ],
+        [
+          4.24,
+          -28.4
+        ]
+      ],
+      "baseY": 12.009,
+      "height": 1.191,
+      "material": "naval"
+    },
+    {
+      "id": "wall-059-port-1",
+      "name": "Bulwark 12.0-13.2 m",
+      "footprint": [
+        [
+          -4.24,
+          -28.4
+        ],
+        [
+          -4.24,
+          -29.72
+        ],
+        [
+          -4.3,
+          -29.72
+        ],
+        [
+          -4.3,
+          -28.4
+        ]
+      ],
+      "baseY": 12.009,
+      "height": 1.191,
+      "material": "naval"
+    },
+    {
+      "id": "wall-060-1",
+      "name": "Bulwark 12.0-13.2 m",
+      "footprint": [
+        [
+          -2.2,
+          -33.273
+        ],
+        [
+          2.2,
+          -33.273
+        ],
+        [
+          2.2,
+          -33.333
+        ],
+        [
+          -2.2,
+          -33.333
+        ]
+      ],
+      "baseY": 12.009,
+      "height": 1.191,
+      "material": "naval"
     }
   ],
   "viewpoints": {
@@ -101529,7 +95338,7 @@
               4.95
             ],
             "b": [
-              -4,
+              -4.0,
               2.25,
               4.95
             ],
@@ -101543,7 +95352,7 @@
               5.65
             ],
             "b": [
-              -4,
+              -4.0,
               2.25,
               5.65
             ],
@@ -101557,7 +95366,7 @@
               4.95
             ],
             "b": [
-              4,
+              4.0,
               2.25,
               4.95
             ],
@@ -101571,7 +95380,7 @@
               5.65
             ],
             "b": [
-              4,
+              4.0,
               2.25,
               5.65
             ],
@@ -101603,7 +95412,7 @@
               4.95
             ],
             "b": [
-              -4,
+              -4.0,
               2.25,
               4.95
             ],
@@ -101617,7 +95426,7 @@
               5.65
             ],
             "b": [
-              -4,
+              -4.0,
               2.25,
               5.65
             ],
@@ -101631,7 +95440,7 @@
               4.95
             ],
             "b": [
-              4,
+              4.0,
               2.25,
               4.95
             ],
@@ -101645,7 +95454,7 @@
               5.65
             ],
             "b": [
-              4,
+              4.0,
               2.25,
               5.65
             ],
@@ -101677,7 +95486,7 @@
               4.95
             ],
             "b": [
-              -4,
+              -4.0,
               2.25,
               4.95
             ],
@@ -101691,7 +95500,7 @@
               5.65
             ],
             "b": [
-              -4,
+              -4.0,
               2.25,
               5.65
             ],
@@ -101705,7 +95514,7 @@
               4.95
             ],
             "b": [
-              4,
+              4.0,
               2.25,
               4.95
             ],
@@ -101719,7 +95528,7 @@
               5.65
             ],
             "b": [
-              4,
+              4.0,
               2.25,
               5.65
             ],
@@ -101733,7 +95542,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101749,7 +95558,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101765,7 +95574,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101781,7 +95590,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101797,7 +95606,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101813,7 +95622,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101829,7 +95638,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101845,7 +95654,7 @@
         "body": {
           "center": [
             0,
-            1,
+            1.0,
             0.35
           ],
           "size": [
@@ -101865,7 +95674,7 @@
             0.3
           ],
           "size": [
-            3,
+            3.0,
             1.9,
             2.4
           ]
@@ -101881,7 +95690,7 @@
             0.3
           ],
           "size": [
-            3,
+            3.0,
             1.9,
             2.4
           ]
@@ -101897,7 +95706,7 @@
             0.3
           ],
           "size": [
-            3,
+            3.0,
             1.9,
             2.4
           ]
@@ -101913,7 +95722,7 @@
             0.3
           ],
           "size": [
-            3,
+            3.0,
             1.9,
             2.4
           ]
@@ -101929,7 +95738,7 @@
             0.3
           ],
           "size": [
-            3,
+            3.0,
             1.9,
             2.4
           ]
@@ -101945,7 +95754,7 @@
             0.3
           ],
           "size": [
-            3,
+            3.0,
             1.9,
             2.4
           ]
@@ -102402,15 +96211,7 @@
         "topExtensionM": 0
       },
       {
-        "structureId": "bridge-012",
-        "topExtensionM": 0
-      },
-      {
         "structureId": "bridge-015",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "bridge-016",
         "topExtensionM": 0
       },
       {
@@ -102439,10 +96240,6 @@
       },
       {
         "structureId": "midships-050",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "midships-051",
         "topExtensionM": 0
       },
       {
@@ -102770,6 +96567,10 @@
         "topExtensionM": 0
       },
       {
+        "structureId": "wall-060-1",
+        "topExtensionM": 0
+      },
+      {
         "structureId": "bridge-036",
         "topExtensionM": 0
       },
@@ -102779,6 +96580,14 @@
       },
       {
         "structureId": "after-superstructure-109",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "wall-059-1",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "wall-059-port-1",
         "topExtensionM": 0
       },
       {
@@ -102846,6 +96655,14 @@
         "topExtensionM": 0
       },
       {
+        "structureId": "wall-058-1",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "wall-058-port-1",
+        "topExtensionM": 0
+      },
+      {
         "structureId": "after-superstructure-107",
         "topExtensionM": 0
       },
@@ -102871,14 +96688,6 @@
       },
       {
         "structureId": "wall-015-1",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "wall-015-2",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "bridge-025",
         "topExtensionM": 0
       }
     ],
@@ -103017,7 +96826,7 @@
           29.43,
           43.1112
         ],
-        "width": 3,
+        "width": 3.0,
         "staffHeight": 0
       }
     ],
@@ -103081,7 +96890,7 @@
     "regions": [
       {
         "id": "underwater-port-1",
-        "name": "Underwater hull · port · bow",
+        "name": "Underwater hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103097,7 +96906,7 @@
       },
       {
         "id": "underwater-port-2",
-        "name": "Underwater hull · port · forward",
+        "name": "Underwater hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103113,7 +96922,7 @@
       },
       {
         "id": "underwater-port-3",
-        "name": "Underwater hull · port · forward amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103129,7 +96938,7 @@
       },
       {
         "id": "underwater-port-4",
-        "name": "Underwater hull · port · amidships forward",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103145,7 +96954,7 @@
       },
       {
         "id": "underwater-port-5",
-        "name": "Underwater hull · port · amidships aft",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103161,7 +96970,7 @@
       },
       {
         "id": "underwater-port-6",
-        "name": "Underwater hull · port · aft amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103177,7 +96986,7 @@
       },
       {
         "id": "underwater-port-7",
-        "name": "Underwater hull · port · aft",
+        "name": "Underwater hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103193,7 +97002,7 @@
       },
       {
         "id": "underwater-port-8",
-        "name": "Underwater hull · port · stern",
+        "name": "Underwater hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103209,7 +97018,7 @@
       },
       {
         "id": "underwater-starboard-1",
-        "name": "Underwater hull · starboard · bow",
+        "name": "Underwater hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103225,7 +97034,7 @@
       },
       {
         "id": "underwater-starboard-2",
-        "name": "Underwater hull · starboard · forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103241,7 +97050,7 @@
       },
       {
         "id": "underwater-starboard-3",
-        "name": "Underwater hull · starboard · forward amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103257,7 +97066,7 @@
       },
       {
         "id": "underwater-starboard-4",
-        "name": "Underwater hull · starboard · amidships forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103273,7 +97082,7 @@
       },
       {
         "id": "underwater-starboard-5",
-        "name": "Underwater hull · starboard · amidships aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103289,7 +97098,7 @@
       },
       {
         "id": "underwater-starboard-6",
-        "name": "Underwater hull · starboard · aft amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103305,7 +97114,7 @@
       },
       {
         "id": "underwater-starboard-7",
-        "name": "Underwater hull · starboard · aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103321,7 +97130,7 @@
       },
       {
         "id": "underwater-starboard-8",
-        "name": "Underwater hull · starboard · stern",
+        "name": "Underwater hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -103337,7 +97146,7 @@
       },
       {
         "id": "upper-hull-port-1",
-        "name": "Upper hull · port · bow",
+        "name": "Upper hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103353,7 +97162,7 @@
       },
       {
         "id": "upper-hull-port-2",
-        "name": "Upper hull · port · forward",
+        "name": "Upper hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103369,7 +97178,7 @@
       },
       {
         "id": "upper-hull-port-3",
-        "name": "Upper hull · port · forward amidships",
+        "name": "Upper hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103385,7 +97194,7 @@
       },
       {
         "id": "upper-hull-port-4",
-        "name": "Upper hull · port · amidships forward",
+        "name": "Upper hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103401,7 +97210,7 @@
       },
       {
         "id": "upper-hull-port-5",
-        "name": "Upper hull · port · amidships aft",
+        "name": "Upper hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103417,7 +97226,7 @@
       },
       {
         "id": "upper-hull-port-6",
-        "name": "Upper hull · port · aft amidships",
+        "name": "Upper hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103433,7 +97242,7 @@
       },
       {
         "id": "upper-hull-port-7",
-        "name": "Upper hull · port · aft",
+        "name": "Upper hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103449,7 +97258,7 @@
       },
       {
         "id": "upper-hull-port-8",
-        "name": "Upper hull · port · stern",
+        "name": "Upper hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103465,7 +97274,7 @@
       },
       {
         "id": "upper-hull-starboard-1",
-        "name": "Upper hull · starboard · bow",
+        "name": "Upper hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103481,7 +97290,7 @@
       },
       {
         "id": "upper-hull-starboard-2",
-        "name": "Upper hull · starboard · forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103497,7 +97306,7 @@
       },
       {
         "id": "upper-hull-starboard-3",
-        "name": "Upper hull · starboard · forward amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103513,7 +97322,7 @@
       },
       {
         "id": "upper-hull-starboard-4",
-        "name": "Upper hull · starboard · amidships forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103529,7 +97338,7 @@
       },
       {
         "id": "upper-hull-starboard-5",
-        "name": "Upper hull · starboard · amidships aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103545,7 +97354,7 @@
       },
       {
         "id": "upper-hull-starboard-6",
-        "name": "Upper hull · starboard · aft amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103561,7 +97370,7 @@
       },
       {
         "id": "upper-hull-starboard-7",
-        "name": "Upper hull · starboard · aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103577,7 +97386,7 @@
       },
       {
         "id": "upper-hull-starboard-8",
-        "name": "Upper hull · starboard · stern",
+        "name": "Upper hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -103593,7 +97402,7 @@
       },
       {
         "id": "upperworks-port-1",
-        "name": "Upperworks · port · bow",
+        "name": "Upperworks \u00b7 port \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103609,7 +97418,7 @@
       },
       {
         "id": "upperworks-port-2",
-        "name": "Upperworks · port · forward",
+        "name": "Upperworks \u00b7 port \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103625,7 +97434,7 @@
       },
       {
         "id": "upperworks-port-3",
-        "name": "Upperworks · port · forward amidships",
+        "name": "Upperworks \u00b7 port \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103641,7 +97450,7 @@
       },
       {
         "id": "upperworks-port-4",
-        "name": "Upperworks · port · amidships forward",
+        "name": "Upperworks \u00b7 port \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103657,7 +97466,7 @@
       },
       {
         "id": "upperworks-port-5",
-        "name": "Upperworks · port · amidships aft",
+        "name": "Upperworks \u00b7 port \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103673,7 +97482,7 @@
       },
       {
         "id": "upperworks-port-6",
-        "name": "Upperworks · port · aft amidships",
+        "name": "Upperworks \u00b7 port \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103689,7 +97498,7 @@
       },
       {
         "id": "upperworks-port-7",
-        "name": "Upperworks · port · aft",
+        "name": "Upperworks \u00b7 port \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103705,7 +97514,7 @@
       },
       {
         "id": "upperworks-port-8",
-        "name": "Upperworks · port · stern",
+        "name": "Upperworks \u00b7 port \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103721,7 +97530,7 @@
       },
       {
         "id": "upperworks-starboard-1",
-        "name": "Upperworks · starboard · bow",
+        "name": "Upperworks \u00b7 starboard \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103737,7 +97546,7 @@
       },
       {
         "id": "upperworks-starboard-2",
-        "name": "Upperworks · starboard · forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103753,7 +97562,7 @@
       },
       {
         "id": "upperworks-starboard-3",
-        "name": "Upperworks · starboard · forward amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103769,7 +97578,7 @@
       },
       {
         "id": "upperworks-starboard-4",
-        "name": "Upperworks · starboard · amidships forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103785,7 +97594,7 @@
       },
       {
         "id": "upperworks-starboard-5",
-        "name": "Upperworks · starboard · amidships aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103801,7 +97610,7 @@
       },
       {
         "id": "upperworks-starboard-6",
-        "name": "Upperworks · starboard · aft amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103817,7 +97626,7 @@
       },
       {
         "id": "upperworks-starboard-7",
-        "name": "Upperworks · starboard · aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -103833,7 +97642,7 @@
       },
       {
         "id": "upperworks-starboard-8",
-        "name": "Upperworks · starboard · stern",
+        "name": "Upperworks \u00b7 starboard \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [

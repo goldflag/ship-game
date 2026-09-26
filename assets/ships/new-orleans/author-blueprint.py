@@ -255,17 +255,21 @@ def block(sid, base=None, top=None):
     return s
 
 
-def rename(s):
-    s['name'] = s['name'].rsplit(' ', 2)[0] + f" {s['baseY']:.1f}-{s['baseY'] + s['height']:.1f} m"
-
+# Open decks measured as solid slabs (authoring/enclosures.py): the lower bridge round the pilothouse (bridge-012), the
+# open navigating bridge (bridge-025) and the midships 20 mm tub (midships-051) are dropped, the director platform abaft
+# its tower (bridge-028, bridge-029) cut back, and the pilothouse, the director tower's base and the tub's tower carried
+# down to their decks; new_orleans_walls.py carries the bulwarks round them.
+sys.path.insert(0, str(HERE / 'authoring'))
+from enclosures import correct  # noqa: E402
+correct(structures)
 
 # The open navigating bridge. The reference's deck at 17.5 m runs unbroken from the bulwark to the pilothouse top
 # (bridge-018), but the plan trace left bridge-010 a sawtoothed U round it that misses the pilothouse's outline by up to
-# 0.3 m, so the sea showed through the deck, and bridge-025 floated 5 cm over both. The deck takes its outer outline
-# (runtime metres) and meets the pilothouse along the pilothouse's own outline; bridge-025 stands on them.
+# 0.3 m, so the sea showed through the deck. The deck takes its outer outline (runtime metres) and meets the
+# pilothouse along the pilothouse's own outline.
 OPEN_BRIDGE = [(4.08, -28.09), (4.3, -28.31), (4.3, -30.56), (2.98, -33.34), (-2.92, -33.39), (-3.1, -33.26), (-4.3, -30.56),
                (-4.3, -28.31), (-4.17, -28.14)]
-deck, house, wheel = block('bridge-010', 17.4, 17.5), block('bridge-018', 14.9, 17.5), block('bridge-025', None, 18.85)
+deck, house = block('bridge-010', 17.4, 17.5), block('bridge-018', 14.9, 17.5)
 aft_z = -28.12
 edge = list(zip(house['footprint'], house['footprint'][1:] + house['footprint'][:1]))
 cut = sorted(((ax + (bx - ax) * (aft_z - az) / (bz - az), aft_z) for (ax, az), (bx, bz) in edge if min(az, bz) < aft_z < max(az, bz)))
@@ -279,9 +283,6 @@ if forward[0][0] > forward[-1][0]:
     forward.reverse()
 # outer outline round the bow side from starboard aft to port aft, then the pilothouse's forward outline from port to starboard
 deck['footprint'] = [[x, z] for x, z in OPEN_BRIDGE] + [list(cut[0])] + [list(p) for p in forward] + [list(cut[1])]
-wheel['height'] = round(wheel['baseY'] + wheel['height'] - 17.5, 3)
-wheel['baseY'] = 17.5
-rename(wheel)
 
 # The after deckhouse (6.2 to 9.7 m) was lofted through twelve plan levels whose 5 cm trace noise and small steps
 # crumpled its sides into visible shading ripples. Its walls stand nearly plumb to 8.8 m and flare out to the deck
@@ -304,6 +305,27 @@ if len(ys) > len(keep):
         new_tris += [[i % n + (a if i // n == 0 else a + 1) * n for i in t] for t in side]
     new_tris += [[i % n + (len(rings) - 1) * n for i in t] for t in top_cap]
     after['surface'] = dict(vertices=[verts[old * n + k] for old in rings for k in range(n)], triangles=new_tris)
+
+# The director tower (bridge-030, 20.85 to 21.95 m) was lofted through six plan levels a few centimetres apart, and
+# bridge-029 under it repeats its outline to 20.45 m: the seams and the loft's small bulges read as ledges and smeared
+# shading on what the reference shows as one plumb-sided block. The tower is one prism of its 21.475 m level from
+# 20.45 m, standing on bridge-028 (the tower's foot and the Mk 51 tubs' brackets); bridge-029 goes.
+tower = block('bridge-030', None, 21.95)
+if 'surface' in tower:
+    verts = tower['surface']['vertices']
+    ys = sorted({round(v[1], 4) for v in verts})
+    n = len(verts) // len(ys)
+    k = min(range(len(ys)), key=lambda i: abs(ys[i] - 21.475))
+    if abs(ys[k] - 21.475) > .01:
+        sys.exit('bridge-030 no longer has the 21.475 m level its prism keeps; re-check the tower correction')
+    tower['footprint'] = [[round(v[0], 4), round(v[2], 4)] for v in verts[k * n:(k + 1) * n]]
+    del tower['surface']
+    tower['baseY'], tower['height'] = 20.45, 1.5
+    tower['name'] = f"Bridge {tower['baseY']:.1f}-{tower['baseY'] + tower['height']:.1f} m"
+tower_foot = next((s for s in structures if s['id'] == 'bridge-029'), None)
+if tower_foot is not None:
+    block('bridge-029', 20.45, 20.85)
+    structures.remove(tower_foot)
 b['structures'] = structures
 
 
@@ -505,6 +527,10 @@ for k, (x, y, z, sx, sy, sz) in enumerate(LOCKERS):
     if any(math.hypot(m['position'][0] - x, m['position'][2] - rz(z)) < guns[m['partId']]['muzzleForward'] + 1.0
            and abs(m['position'][1] - (y - sy / 2)) < 3 for m in b['mounts']):
         b['obstructions'].append(dict(id=f'locker-{k + 1}', center=[x, round(y + .125, 3), rz(z)], size=[sx, round(sy + .25, 3), sz]))
+# So are the four posts under the midships 20 mm platform (new_orleans_fittings.py, reference frame), in the twin
+# mounts' working circles on the tub floor.
+for k, (x, z) in enumerate([(-2.54, -8.16), (2.54, -8.16), (-2.54, -3.44), (2.54, -3.44)]):
+    b['obstructions'].append(dict(id=f'platform-post-{k + 1}', center=[x, 10.825, rz(z)], size=[.2, 2.35, .2]))
 
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: barrels (with the full recoil stroke) and rotating carriages may not enter the blocks they
@@ -795,6 +821,8 @@ if 'localDamage' not in b:
                             basis='Placeholder; author-local-damage.ts replaces it.')
 if not ear_clips(deck['footprint']):
     sys.exit('the corrected open-bridge deck outline does not triangulate; check OPEN_BRIDGE against bridge-018')
+if not ear_clips(tower['footprint']):
+    sys.exit('the director tower prism outline does not triangulate; check the tower correction')
 write(HERE / 'blueprint.json', b)
 print(f'Authored new-orleans: {len(sections)} sections, {round(volume * 1.025)} t at the reference waterline, draft {DRAFT} m, beam {round(beam, 2)} m, '
       f'{len(b["mounts"])} mounts, {len(structures)} structures, {len(b["armor"])} armour plates, {len(b["obstructions"])} obstructions. '

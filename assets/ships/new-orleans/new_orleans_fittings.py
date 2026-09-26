@@ -663,6 +663,12 @@ def deck_gear(D, kit):
         y = foot + sy / 2
         kit.boxc(aid, col, 'ready-use locker', V(x, y, z), (sz, sx, sy), 'naval')
         kit.boxc(aid, col, 'locker lid', V(x, y + sy / 2 + .015, z), (sz + .04, sx + .04, .03), 'edge')
+    # The four posts under the corners of the midships 20 mm platform (12.0 m), on the tub floor (reference plan cut
+    # at 11.7 m: 0.16 m posts at x 2.54, z -8.16 and -3.44).
+    for x in (-2.54, 2.54):
+        for z in (-8.16, -3.44):
+            foot = seat(kit, x, 11.0, z, 2.0)
+            kit.part('rod', aid, col, 'platform post', V(x, foot - .02, z), V(x, 12.03, z), .08, 'naval', vertices=8)
     # Sky lookouts (am061), bridge binoculars (am463) and the RDF loop (am115).
     for x, y, z in [(-1.66, 16.03, 42.06), (1.66, 16.03, 42.05), (-1.19, 21.97, -22.57), (1.19, 21.97, -22.57)]:
         y = seat(kit, x, y, z)
