@@ -63,7 +63,7 @@ export const TECH_TREE: readonly TechNation[] = [
         ['us-omaha', 'Omaha', 'Light cruiser', 1923, 1500],
         ['us-pensacola', 'Pensacola', 'Heavy cruiser', 1930, 1500],
         ['us-new-orleans', 'New Orleans', 'Heavy cruiser', 1934, 1500],
-        ['us-atlanta', 'Atlanta', 'Light cruiser', 1941, 2200],
+        ship('atlanta', 'Atlanta', 'Atlanta', 'Light cruiser', 1941, 2200),
         ship('cleveland', 'Cleveland', 'Cleveland', 'Light cruiser', 1942, 0, true),
         ship('baltimore', 'Baltimore', 'Baltimore', 'Heavy cruiser', 1943, 3000),
         ship('alaska', 'Alaska', 'Alaska', 'Large cruiser', 1944, 3000),
