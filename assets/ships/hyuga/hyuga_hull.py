@@ -192,6 +192,43 @@ def crest_and_staffs(kit, col):
     fx, fy, _ = P(0, 0, -107.6)
     floor = kit.try_below(fx, fy, 9.5, 8.0)
     kit.part('rod', 'jackstaff', col, 'staff', (fx, fy, floor), (fx, fy, floor + 7.4), .05, 'naval', vertices=8)
+    stern_name(kit, col)
+
+
+# The ship's name in gold kana on each quarter, reading ひうか right to left from either side (reference
+# JM2501/2515/2519 parts): strokes traced off an orthographic render of the starboard letters, in metres to
+# the viewer's right (a) and up (b) from each letter's centre.
+KANA = {
+    'hi': [[(-.07, .26), (-.18, .18), (-.24, .06), (-.25, -.08), (-.19, -.22), (-.10, -.28), (0, -.26), (.06, -.15),
+            (.07, 0), (.06, .14)], [(.07, .12), (.17, .04), (.25, -.03)]],
+    'u': [[(-.06, .23), (.02, .21), (.09, .15)], [(-.18, -.10), (-.08, 0), (.06, .04), (.16, -.01), (.20, -.11), (.15, -.21),
+          (.03, -.27)]],
+    'ka': [[(-.23, .06), (-.09, .09), (.05, .09), (.08, -.01), (.05, -.13), (-.03, -.23)], [(0, .24), (-.07, .06), (-.15, -.12),
+           (-.20, -.23)], [(.11, .03), (.20, -.04), (.25, -.13)]],
+}
+# Letter centres (reference z, y) on the starboard and port quarters.
+NAME = {1: [('hi', 102.98), ('u', 104.035), ('ka', 104.97)], -1: [('hi', 104.975), ('u', 103.91), ('ka', 102.995)]}
+
+
+def stern_name(kit, col):
+    from hyuga_aft import half_breadth
+    A = 'stern-name'
+    D = kit.D
+    y0 = 3.43
+    for side, letters in NAME.items():
+        for kana, zc in letters:
+            for stroke in KANA[kana]:
+                pts = []
+                for a, b in stroke:
+                    # The viewer's right is toward the bow on the starboard side and toward the stern to port.
+                    z = zc - a if side > 0 else zc + a
+                    y = y0 + b
+                    hb = half_breadth(D, z, y)
+                    slope = (half_breadth(D, z + .3, y) - half_breadth(D, z - .3, y)) / .6
+                    n = (1 + slope * slope) ** .5
+                    nx, nz = side / n, -slope / n
+                    pts.append(P(side * hb + nx * .02, y, z + nz * .02))
+                kit.polyline(A, col, pts, .06, 'gold', 8)
 
 
 # ---------------------------------------------------------------- screws, shafts, brackets and rudders

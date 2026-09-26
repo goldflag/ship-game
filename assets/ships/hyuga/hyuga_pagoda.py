@@ -48,7 +48,7 @@ def build(D, kit):
         if s['id'] in ('pagoda-009', 'pagoda-010', 'pagoda-016', 'pagoda-017'):
             kit.stilts(s['id'] + '-legs', sup, s, .09)
     kit.windows('pagoda-windows', sup, WINDOWS['pagoda'])
-    kit.roof_rails('pagoda-rails', sup, structures, lambda x, y, z: zone(x, y, z) and y < 34.0)
+    kit.roof_rails('pagoda-rails', sup, structures, lambda x, y, z: zone(x, y, z) and y < 35.6)
     kit.overhang_knees('pagoda-knees', sup, structures, zone)
 
 

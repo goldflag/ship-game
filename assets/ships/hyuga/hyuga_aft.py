@@ -18,7 +18,7 @@ from hyuga_kit import P, ZC
 
 # The mainmast's pole, yards and gaff were traced as thin prisms (after-tower-015 to -046).
 CLAIMED_STRUCTURES = {f'after-tower-{i:03d}' for i in range(15, 47)}
-BLACK_ABOVE = 31.5
+BLACK_ABOVE = 24.95        # the reference paints the mainmast black above a white band at 23.9-24.95 m
 
 # The aircraft deck (reference frame, x starboard, z aft): linoleum from the brass strip at z 97.78 forward to
 # a V whose flat apex (x +-1.52) stands at z 80.2 and whose arms reach the transverse strips at z 74.74
@@ -148,6 +148,7 @@ def build(D, kit):
     catapult(kit, cols['Boats and aviation'])
     aircraft_deck(D, kit, cols['Boats and aviation'])
     crane_boom(D, kit, cols['Boats and aviation'])
+    rigging(D, kit, masts)
 
 
 def split_black(kit, assembly, col, label, a, b, r, r2=None, vertices=14):
@@ -164,45 +165,58 @@ def split_black(kit, assembly, col, label, a, b, r, r2=None, vertices=14):
 
 
 def mainmast(kit, col):
-    """Lower mast (1.2 m) from the tower top to the lookout platform at 32 m, the upper pole to the truck at
-    46 m, the fore-and-aft aerial spar and the athwartships yards (reference silhouettes and side view)."""
+    """Lower mast (1.1 m) from the tower top to its cap at 32.15 m, grey below the reference's white band at
+    23.9-24.95 m and black above it, with the day light on its forward side; the lookout platform at 30 m on its
+    brackets; the fore-and-aft aerial spar and the lower yard at 32 m; the upper pole to the truck at 46 m with
+    the upper yard at 39.3 m (reference station section and plan cuts)."""
     A = 'mainmast'
     foot = Vector(P(0, 19.9, 42.3))
     floor = kit.try_below(foot.x, foot.y, 20.4, 19.9)
     foot.z = floor - .02
-    cap = Vector(P(0, 32.7, 42.3))
-    split_black(kit, A, col, 'lower mast', tuple(foot), tuple(cap), .6, .58, 24)
-    kit.part('rod', A, col, 'smoke band', tuple(Vector(P(0, 31.15, 42.3))), tuple(Vector(P(0, 31.5, 42.3))), .6, 'white', vertices=24)
-    top = Vector(P(0, 46.0, 41.3))
-    kit.part('rod', A, col, 'upper pole', tuple(cap + Vector((0, 0, -.3))), tuple(top), .19, 'black', vertices=12, r2=.08)
+    cap = Vector(P(0, 32.15, 42.3))
+    split_black(kit, A, col, 'lower mast', tuple(foot), tuple(cap), .55, .54, 24)
+    kit.part('rod', A, col, 'smoke band', P(0, 23.9, 42.3), P(0, BLACK_ABOVE, 42.3), .565, 'white', vertices=24)
+    # The topmast stands 1.3 m ahead of the lower mast (reference z 41.0), stepped on the lookout platform and
+    # held at the lower mast's cap.
+    heel = Vector(P(0, 29.97, 41.0))
+    top = Vector(P(0, 46.0, 41.0))
+    kit.part('rod', A, col, 'upper pole', tuple(heel), tuple(top), .16, 'black', vertices=12, r2=.08)
     kit.cylz(A, col, 'truck', (top.x, top.y, top.z - .05), .11, .12, 'black', 10)
-    # Lookout platform at 32 m on a gusseted bracket, railed round (reference z 39.2 to 42.9).
-    px0, px1 = P(0, 0, 42.9)[0], P(0, 0, 39.2)[0]
-    kit.part('box', A, col, 'lookout platform', ((px0 + px1) / 2, 0, 32.0), (abs(px1 - px0), 2.2, .1), 'black')
-    kit.beam(A, col, 'platform bracket', (px0, 0, 30.2), (px1 - .05, 0, 31.95), .3, .3, 'black')
-    kit.rail(A, col, [(px0 + .05, -1.05), (px1 - .05, -1.05), (px1 - .05, 1.05), (px0 + .05, 1.05)], 32.05, .9, 1.0, check=False)
-    # Fore-and-aft aerial spar at 32 m (reference z 33.6 to 50.1) with its braces down to the lower mast.
+    kit.beam(A, col, 'mast cap', (cap.x, 0, 31.95), (heel.x + .1, 0, 31.95), .45, .3, 'black')
+    # Lookout platform at 30 m (reference z 39.07 to 43.41, 3.5 m across) on a bracket and two knees, railed round.
+    px0, px1 = P(0, 0, 43.41)[0], P(0, 0, 39.07)[0]
+    kit.part('box', A, col, 'lookout platform', ((px0 + px1) / 2, 0, 29.97), (abs(px1 - px0), 3.5, .1), 'black')
+    kit.beam(A, col, 'platform bracket', (foot.x + .5, 0, 28.9), (px1 + .1, 0, 29.9), .3, .3, 'black')
+    for s in (-1, 1):
+        kit.member(A, col, (foot.x + .45, s * .25, 29.0), (px1 + .25, s * 1.3, 29.9), .06, 'black', 4)
+    kit.rail(A, col, [(px0 + .05, -1.7), (px1 - .05, -1.7), (px1 - .05, 1.7), (px0 + .05, 1.7)], 30.02, .9, 1.0, check=False)
+    # Fore-and-aft aerial spar at 32 m (reference z 33.6 to 50.1) with its braces down to the platform.
     sx0, sx1 = P(0, 0, 50.1)[0], P(0, 0, 33.6)[0]
-    kit.member(A, col, (sx0, 0, 32.05), (sx1, 0, 32.05), .07, 'black', 8)
+    kit.member(A, col, (sx0, 0, 32.0), (sx1, 0, 32.0), .07, 'black', 8)
     for zr in (37.0, 38.8, 45.8, 47.6):
         x = P(0, 0, zr)[0]
-        kit.member(A, col, (x, 0, 32.02), (foot.x + (-.55 if zr > 42.3 else .55), 0, 30.1), .04, 'black', 6)
-    # Athwartships yards: 31.3 m (x +-9.0) and 39.3 m (x +-5.0), with their braces.
-    yx = foot.x - .62
-    kit.member(A, col, (yx, -9.0, 31.3), (yx, 9.0, 31.3), .08, 'black', 8)
+        kit.member(A, col, (x, 0, 31.97), (foot.x + (-.5 if zr > 42.3 else .5), 0, 30.08), .04, 'black', 6)
+    # Athwartships yards: 31.95 m (x +-9.1) and 39.3 m (x +-5.0), with their braces.
+    yx = foot.x - .6
+    kit.member(A, col, (yx, -9.1, 31.95), (yx, 9.1, 31.95), .08, 'black', 8)
     for s in (-1, 1):
-        kit.member(A, col, (yx, s * 3.4, 31.3), (yx + .05, s * .5, 30.0), .045, 'black', 6)
-    t = (39.3 - (cap.z - .3)) / (top.z - (cap.z - .3))
-    ux = cap.x + (top.x - cap.x) * t - (.19 + (.08 - .19) * t) - .02
+        kit.member(A, col, (yx, s * 3.4, 31.95), (yx + .05, s * .45, 30.7), .045, 'black', 6)
+    def pole_r(h):
+        return .16 + (.08 - .16) * (h - 29.97) / (46.0 - 29.97)
+    ux = heel.x + pole_r(39.3) + .05
     kit.member(A, col, (ux, -5.0, 39.3), (ux, 5.0, 39.3), .07, 'black', 8)
     for s in (-1, 1):
-        kit.member(A, col, (ux, s * 2.0, 39.3), (ux + .1, s * .1, 37.9), .035, 'black', 6)
-        kit.wire(A, col, (ux, s * 4.8, 39.3), (yx, s * 8.8, 31.3), .01, False)
-    # Ladder up the lower mast's after side, and the day light on its bracket.
-    kit.ladder(A, col, (foot.x - .62, 0, 20.4), (cap.x - .6, 0, 31.9), (0, 1, 0), .4, .32, .03, .018, 'naval')
-    lamp = foot.lerp(cap, (27.9 - foot.z) / (cap.z - foot.z))
-    kit.part('box', A, col, 'day light bracket', tuple(lamp + Vector((.0, .62, 0))), (.12, .5, .1), 'naval')
-    kit.cylz(A, col, 'day light', (lamp.x, lamp.y + .92, lamp.z - .25), .14, .5, 'naval', 12)
+        kit.member(A, col, (ux, s * 2.0, 39.3), (heel.x + pole_r(37.9) - .01, s * .1, 37.9), .035, 'black', 6)
+        kit.wire(A, col, (ux, s * 4.8, 39.3), (yx, s * 8.8, 31.95), .01, False)
+        # Topmast shrouds from the platform's corners (reference) to the pole below the yard.
+        for zr in (39.31, 42.82):
+            kit.wire(A, col, (P(0, 0, zr)[0], s * (1.62 if zr < 40 else 1.08), 30.02), (heel.x, s * .13, 39.2), .012, False)
+    # Ladder up the lower mast's after side, and the day light on its bracket forward (reference 23.7-24.5 m,
+    # 1.2 m ahead of the mast).
+    kit.ladder(A, col, (foot.x - .58, 0, 20.4), (cap.x - .56, 0, 29.9), (0, 1, 0), .4, .32, .03, .018, 'naval')
+    lx, _, _ = P(0, 0, 41.1)
+    kit.part('box', A, col, 'day light bracket', ((foot.x + .5 + lx - .12) / 2, 0, 24.12), (lx - .12 - foot.x - .5 + .06, .1, .1), 'black')
+    kit.cylz(A, col, 'day light', (lx, 0, 23.75), .14, .6, 'naval', 12)
 
 
 def after_director(kit, col):
@@ -511,3 +525,33 @@ def crane_boom(D, kit, col):
     bx, by, _ = P(axis(z_heel), 0, (z_heel + BLISTER[0][0] + .02) / 2)
     kit.part('box', A, col, 'heel bracket', (bx, by, top + .35), (BLISTER[0][0] + .02 - z_heel, 1.1, .8), 'naval')
     kit.part('rod', A, col, 'heel pin', P(axis(z_heel) - .55, top + .35, z_heel - .05), P(axis(z_heel) + .55, top + .35, z_heel - .05), .09, 'edge', vertices=10)
+
+
+def rigging(D, kit, col):
+    """The reference's long wires (thin triangles of its mesh): the stays from the jackstaff to the pagoda's top
+    platform, the four aerials from the pagoda's after face to the mainmast's upper yard, the shrouds from the
+    after tower's roof to that yard, and the stern flagstaff with its two stays to the yard's ends."""
+    A = 'rigging'
+    yard_x = P(0, 0, 41.0)[0] + .16 + (.08 - .16) * (39.3 - 29.97) / (46.0 - 29.97) + .05
+    # Stern flagstaff, raked aft over the stern (reference 4.6 to 13.7 m, z 106.4 to 107.5).
+    fx, fy, _ = P(0, 0, 106.2)
+    floor = kit.try_below(fx, fy, 5.5, deck_edge(D, 106.2)[1])
+    tx, ty, _ = P(0, 0, 107.5)
+    kit.part('rod', A, col, 'flagstaff', (fx, fy, floor - .02), (tx, ty, 13.69), .07, 'naval', vertices=8, r2=.04)
+    stay = Vector((fx, fy, floor)).lerp(Vector((tx, ty, 13.69)), (13.3 - floor) / (13.69 - floor))
+    for s in (-1, 1):
+        kit.wire(A, col, tuple(stay), (yard_x, s * 4.85, 39.3), .015, False)
+        # Aerials from the pagoda's after face to the upper yard.
+        for px, yx in ((.92, 4.8), (.41, 2.67)):
+            kit.wire(A, col, P(s * px, 34.15, -25.8), (yard_x, -s * yx, 39.3), .015, False)
+        # Shrouds from the after tower's roof to the yard's ends.
+        for (rx, rz), yx in (((1.0, 47.41), 4.84), ((3.4, 41.57), 4.6)):
+            x, y, _ = P(s * rx, 0, rz)
+            roof = kit.try_below(x, y, 19.0)
+            if roof is not None:
+                kit.wire(A, col, (x, y, roof), (yard_x, -s * yx, 39.3), .015, False)
+    # Bow stays from the jackstaff, 11 m up, to the pagoda's top platform edge.
+    jx, jy, _ = P(0, 0, -107.6)
+    for s in (-1, 1):
+        ex, ey, _ = P(s * 4.25, 0, -30.88)
+        kit.wire(A, col, (jx, jy, 11.0), (ex, ey, 35.4), .015, False)
