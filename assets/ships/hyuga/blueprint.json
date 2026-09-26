@@ -87885,12 +87885,12 @@
       "id": "pagoda-001-0",
       "center": [
         -0.005,
-        8.411,
+        8.392,
         -45.487
       ],
       "size": [
         13.141,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87898,12 +87898,12 @@
       "id": "pagoda-001-1",
       "center": [
         0.005,
-        8.411,
+        8.392,
         -42.55
       ],
       "size": [
         16.301,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87911,12 +87911,12 @@
       "id": "pagoda-001-2",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -39.614
       ],
       "size": [
         17.2,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87924,12 +87924,12 @@
       "id": "pagoda-001-3",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -36.677
       ],
       "size": [
         17.2,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87937,12 +87937,12 @@
       "id": "pagoda-001-4",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -33.741
       ],
       "size": [
         17.2,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87950,12 +87950,12 @@
       "id": "pagoda-001-5",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -30.804
       ],
       "size": [
         17.2,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87963,12 +87963,12 @@
       "id": "pagoda-001-6",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -27.868
       ],
       "size": [
         17.2,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87976,12 +87976,12 @@
       "id": "pagoda-001-7",
       "center": [
         -0.02,
-        8.411,
+        8.392,
         -24.931
       ],
       "size": [
         26.92,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -87989,12 +87989,12 @@
       "id": "pagoda-001-8",
       "center": [
         -0.02,
-        8.411,
+        8.392,
         -21.995
       ],
       "size": [
         26.92,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88002,12 +88002,12 @@
       "id": "pagoda-001-9",
       "center": [
         -0.02,
-        8.411,
+        8.392,
         -19.059
       ],
       "size": [
         26.92,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88015,12 +88015,12 @@
       "id": "pagoda-001-10",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -16.122
       ],
       "size": [
         17.44,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88028,12 +88028,12 @@
       "id": "pagoda-001-11",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -13.186
       ],
       "size": [
         17.04,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88041,12 +88041,12 @@
       "id": "pagoda-001-12",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -10.249
       ],
       "size": [
         17.04,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88054,12 +88054,12 @@
       "id": "pagoda-001-13",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -7.313
       ],
       "size": [
         16.026,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88067,12 +88067,12 @@
       "id": "pagoda-001-14",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -4.376
       ],
       "size": [
         12.646,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88080,12 +88080,12 @@
       "id": "pagoda-001-15",
       "center": [
         0.0,
-        8.411,
+        8.392,
         -1.44
       ],
       "size": [
         9.379,
-        3.379,
+        3.416,
         2.736
       ]
     },
@@ -88093,13 +88093,39 @@
       "id": "pagoda-001-16",
       "center": [
         0.0,
-        8.411,
+        8.392,
         1.497
       ],
       "size": [
         5.36,
-        3.379,
+        3.416,
         2.736
+      ]
+    },
+    {
+      "id": "pagoda-004-0",
+      "center": [
+        -11.6,
+        7.7,
+        -24.815
+      ],
+      "size": [
+        3.76,
+        1.6,
+        1.44
+      ]
+    },
+    {
+      "id": "pagoda-005-0",
+      "center": [
+        11.62,
+        7.7,
+        -24.835
+      ],
+      "size": [
+        3.72,
+        1.6,
+        1.48
       ]
     },
     {
@@ -89120,101 +89146,7 @@
   "structures": [
     {
       "id": "deckhouse-001",
-      "name": "Deckhouse platform 4.3-4.6 m",
-      "footprint": [
-        [
-          -3.32,
-          99.765
-        ],
-        [
-          -2.92,
-          101.445
-        ],
-        [
-          2.92,
-          101.445
-        ],
-        [
-          3.36,
-          99.885
-        ],
-        [
-          3.32,
-          99.765
-        ]
-      ],
-      "baseY": 4.267,
-      "height": 0.333,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-002",
-      "name": "Deckhouse platform 4.6-4.7 m",
-      "footprint": [
-        [
-          -6.12,
-          87.605
-        ],
-        [
-          -6.32,
-          88.765
-        ],
-        [
-          -5.08,
-          89.805
-        ],
-        [
-          -3.8,
-          89.805
-        ],
-        [
-          -3.32,
-          90.005
-        ],
-        [
-          -2.8,
-          90.525
-        ],
-        [
-          -2.44,
-          91.605
-        ],
-        [
-          2.44,
-          91.605
-        ],
-        [
-          2.8,
-          90.525
-        ],
-        [
-          3.32,
-          90.005
-        ],
-        [
-          3.8,
-          89.805
-        ],
-        [
-          5.08,
-          89.805
-        ],
-        [
-          6.32,
-          88.765
-        ],
-        [
-          6.12,
-          87.605
-        ]
-      ],
-      "baseY": 4.624,
-      "height": 0.076,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-003",
-      "name": "Deckhouse platform 4.5-4.8 m",
+      "name": "Deckhouse platform 4.4-4.8 m",
       "footprint": [
         [
           -5.96,
@@ -89233,13 +89165,13 @@
           11.605
         ]
       ],
-      "baseY": 4.48,
-      "height": 0.32,
+      "baseY": 4.389,
+      "height": 0.411,
       "material": "naval"
     },
     {
-      "id": "deckhouse-004",
-      "name": "Deckhouse platform 4.5-4.8 m",
+      "id": "deckhouse-002",
+      "name": "Deckhouse platform 4.4-4.8 m",
       "footprint": [
         [
           4.92,
@@ -89258,8 +89190,94 @@
           11.605
         ]
       ],
-      "baseY": 4.48,
-      "height": 0.32,
+      "baseY": 4.389,
+      "height": 0.411,
+      "material": "naval"
+    },
+    {
+      "id": "deckhouse-003",
+      "name": "Deckhouse platform 4.6-4.8 m",
+      "footprint": [
+        [
+          -6.12,
+          87.605
+        ],
+        [
+          -6.4,
+          88.845
+        ],
+        [
+          -5.4,
+          89.605
+        ],
+        [
+          -4.84,
+          89.845
+        ],
+        [
+          -3.88,
+          89.845
+        ],
+        [
+          -3.16,
+          89.525
+        ],
+        [
+          -2.8,
+          89.085
+        ],
+        [
+          -2.58,
+          88.525
+        ],
+        [
+          -2.58,
+          87.605
+        ]
+      ],
+      "baseY": 4.624,
+      "height": 0.176,
+      "material": "naval"
+    },
+    {
+      "id": "deckhouse-004",
+      "name": "Deckhouse platform 4.6-4.8 m",
+      "footprint": [
+        [
+          2.58,
+          87.605
+        ],
+        [
+          2.58,
+          88.525
+        ],
+        [
+          2.8,
+          89.085
+        ],
+        [
+          3.16,
+          89.525
+        ],
+        [
+          3.88,
+          89.805
+        ],
+        [
+          5.08,
+          89.805
+        ],
+        [
+          6.4,
+          88.845
+        ],
+        [
+          6.12,
+          87.605
+        ]
+      ],
+      "baseY": 4.624,
+      "height": 0.176,
       "material": "naval"
     },
     {
@@ -89514,118 +89532,7 @@
     },
     {
       "id": "deckhouse-005",
-      "name": "Deckhouse platform 4.7-4.8 m",
-      "footprint": [
-        [
-          -0.96,
-          99.685
-        ],
-        [
-          -0.96,
-          101.585
-        ],
-        [
-          0.98,
-          101.585
-        ],
-        [
-          0.98,
-          99.685
-        ]
-      ],
-      "baseY": 4.678,
-      "height": 0.122,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-006",
-      "name": "Deckhouse platform 4.6-4.8 m",
-      "footprint": [
-        [
-          -6.12,
-          87.605
-        ],
-        [
-          -6.4,
-          88.845
-        ],
-        [
-          -5.4,
-          89.605
-        ],
-        [
-          -4.84,
-          89.845
-        ],
-        [
-          -3.88,
-          89.845
-        ],
-        [
-          -3.16,
-          89.525
-        ],
-        [
-          -2.8,
-          89.085
-        ],
-        [
-          -2.58,
-          88.525
-        ],
-        [
-          -2.58,
-          87.605
-        ]
-      ],
-      "baseY": 4.624,
-      "height": 0.176,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-007",
-      "name": "Deckhouse platform 4.6-4.8 m",
-      "footprint": [
-        [
-          2.58,
-          87.605
-        ],
-        [
-          2.58,
-          88.525
-        ],
-        [
-          2.8,
-          89.085
-        ],
-        [
-          3.16,
-          89.525
-        ],
-        [
-          3.88,
-          89.805
-        ],
-        [
-          5.08,
-          89.805
-        ],
-        [
-          6.4,
-          88.845
-        ],
-        [
-          6.12,
-          87.605
-        ]
-      ],
-      "baseY": 4.624,
-      "height": 0.176,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-008",
-      "name": "Deckhouse platform 4.8-5.1 m",
+      "name": "Deckhouse platform 4.4-5.1 m",
       "footprint": [
         [
           -5.4,
@@ -89648,13 +89555,13 @@
           20.105
         ]
       ],
-      "baseY": 4.8,
-      "height": 0.3,
+      "baseY": 4.389,
+      "height": 0.711,
       "material": "naval"
     },
     {
-      "id": "deckhouse-009",
-      "name": "Deckhouse platform 4.8-5.1 m",
+      "id": "deckhouse-006",
+      "name": "Deckhouse platform 4.4-5.1 m",
       "footprint": [
         [
           3.96,
@@ -89673,13 +89580,13 @@
           20.105
         ]
       ],
-      "baseY": 4.8,
-      "height": 0.3,
+      "baseY": 4.389,
+      "height": 0.711,
       "material": "naval"
     },
     {
-      "id": "deckhouse-010",
-      "name": "Deckhouse platform 4.9-5.1 m",
+      "id": "deckhouse-007",
+      "name": "Deckhouse platform 4.8-5.1 m",
       "footprint": [
         [
           -3.72,
@@ -89850,8 +89757,8 @@
           97.445
         ]
       ],
-      "baseY": 4.862,
-      "height": 0.238,
+      "baseY": 4.771,
+      "height": 0.329,
       "material": "naval"
     },
     {
@@ -90112,8 +90019,82 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-011",
-      "name": "Deckhouse platform 6.7-6.9 m",
+      "id": "pagoda-002",
+      "name": "Pagoda platform 6.6-7.2 m",
+      "footprint": [
+        [
+          -12.28,
+          -30.315
+        ],
+        [
+          -12.48,
+          -29.635
+        ],
+        [
+          -11.64,
+          -28.795
+        ],
+        [
+          -11.46,
+          -28.795
+        ],
+        [
+          -11.46,
+          -29.395
+        ],
+        [
+          -11.92,
+          -29.875
+        ],
+        [
+          -12,
+          -30.275
+        ]
+      ],
+      "baseY": 6.645,
+      "height": 0.555,
+      "material": "naval"
+    },
+    {
+      "id": "pagoda-003",
+      "name": "Pagoda platform 6.6-7.2 m",
+      "footprint": [
+        [
+          12.04,
+          -30.315
+        ],
+        [
+          11.92,
+          -29.875
+        ],
+        [
+          11.46,
+          -29.395
+        ],
+        [
+          11.46,
+          -28.795
+        ],
+        [
+          11.64,
+          -28.795
+        ],
+        [
+          12.48,
+          -29.635
+        ],
+        [
+          12.32,
+          -30.275
+        ]
+      ],
+      "baseY": 6.645,
+      "height": 0.555,
+      "material": "naval"
+    },
+    {
+      "id": "deckhouse-008",
+      "name": "Deckhouse platform 6.6-6.9 m",
       "footprint": [
         [
           -8.78,
@@ -90672,8 +90653,8 @@
           -32.555
         ]
       ],
-      "baseY": 6.65,
-      "height": 0.25,
+      "baseY": 6.647,
+      "height": 0.253,
       "material": "naval"
     },
     {
@@ -91373,86 +91354,86 @@
           -45.715
         ]
       ],
-      "baseY": 6.721,
-      "height": 3.379,
+      "baseY": 6.684,
+      "height": 3.416,
       "material": "naval"
     },
     {
-      "id": "pagoda-002",
-      "name": "Pagoda platform 6.6-7.2 m",
+      "id": "deckhouse-010",
+      "name": "Deckhouse platform 6.8-7.2 m",
       "footprint": [
         [
-          -12.28,
-          -30.315
+          -4.36,
+          -52.155
         ],
         [
-          -12.48,
-          -29.635
+          -4.48,
+          -51.795
         ],
         [
-          -11.64,
-          -28.795
+          -4,
+          -51.235
         ],
         [
-          -11.46,
-          -28.795
+          -3.8,
+          -50.715
         ],
         [
-          -11.46,
-          -29.395
+          -3.04,
+          -51.475
         ],
         [
-          -11.92,
-          -29.875
+          -3.48,
+          -51.595
         ],
         [
-          -12,
-          -30.275
+          -3.96,
+          -52.155
         ]
       ],
-      "baseY": 6.645,
-      "height": 0.555,
+      "baseY": 6.779,
+      "height": 0.421,
       "material": "naval"
     },
     {
-      "id": "pagoda-003",
-      "name": "Pagoda platform 6.6-7.2 m",
+      "id": "deckhouse-011",
+      "name": "Deckhouse platform 6.8-7.2 m",
       "footprint": [
         [
-          12.04,
-          -30.315
+          3.96,
+          -52.155
         ],
         [
-          11.92,
-          -29.875
+          3.48,
+          -51.595
         ],
         [
-          11.46,
-          -29.395
+          3.04,
+          -51.475
         ],
         [
-          11.46,
-          -28.795
+          3.8,
+          -50.715
         ],
         [
-          11.64,
-          -28.795
+          4,
+          -51.235
         ],
         [
-          12.48,
-          -29.635
+          4.48,
+          -51.795
         ],
         [
-          12.32,
-          -30.275
+          4.36,
+          -52.155
         ]
       ],
-      "baseY": 6.645,
-      "height": 0.555,
+      "baseY": 6.779,
+      "height": 0.421,
       "material": "naval"
     },
     {
-      "id": "deckhouse-012",
+      "id": "deckhouse-009",
       "name": "Deckhouse platform 6.8-7.4 m",
       "footprint": [
         [
@@ -91500,86 +91481,12 @@
           -55.495
         ]
       ],
-      "baseY": 6.842,
-      "height": 0.558,
+      "baseY": 6.84,
+      "height": 0.56,
       "material": "naval"
     },
     {
-      "id": "deckhouse-013",
-      "name": "Deckhouse platform 6.8-7.2 m",
-      "footprint": [
-        [
-          -4.36,
-          -52.155
-        ],
-        [
-          -4.48,
-          -51.795
-        ],
-        [
-          -4,
-          -51.235
-        ],
-        [
-          -3.8,
-          -50.715
-        ],
-        [
-          -3.04,
-          -51.475
-        ],
-        [
-          -3.48,
-          -51.595
-        ],
-        [
-          -3.96,
-          -52.155
-        ]
-      ],
-      "baseY": 6.779,
-      "height": 0.421,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-014",
-      "name": "Deckhouse platform 6.8-7.2 m",
-      "footprint": [
-        [
-          3.96,
-          -52.155
-        ],
-        [
-          3.48,
-          -51.595
-        ],
-        [
-          3.04,
-          -51.475
-        ],
-        [
-          3.8,
-          -50.715
-        ],
-        [
-          4,
-          -51.235
-        ],
-        [
-          4.48,
-          -51.795
-        ],
-        [
-          4.36,
-          -52.155
-        ]
-      ],
-      "baseY": 6.779,
-      "height": 0.421,
-      "material": "naval"
-    },
-    {
-      "id": "deckhouse-015",
+      "id": "deckhouse-012",
       "name": "Deckhouse block 6.9-7.5 m",
       "footprint": [
         [
@@ -91628,7 +91535,7 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-016",
+      "id": "deckhouse-013",
       "name": "Deckhouse block 6.9-7.5 m",
       "footprint": [
         [
@@ -91678,92 +91585,112 @@
     },
     {
       "id": "deckhouse-017",
-      "name": "Deckhouse platform 7.2-7.7 m",
+      "name": "Deckhouse platform 7.1-7.5 m",
       "footprint": [
         [
-          -4.44,
-          -52.395
+          -2.78,
+          -81.755
         ],
         [
-          -4.96,
-          -51.795
+          -2.78,
+          -80.035
         ],
         [
-          -4.96,
-          -51.635
+          -3.12,
+          -79.075
         ],
         [
-          -4.16,
-          -50.915
+          -3.12,
+          -78.435
         ],
         [
-          -4.08,
-          -50.515
+          -2.76,
+          -77.595
         ],
         [
-          -3.96,
-          -50.475
+          -1.64,
+          -77.595
         ],
         [
-          -2.8,
-          -51.635
+          -1.24,
+          -78.355
         ],
         [
-          -3.24,
-          -51.755
+          -1.24,
+          -80.275
         ],
         [
-          -3.88,
-          -52.395
+          -1.96,
+          -80.475
+        ],
+        [
+          -2.48,
+          -81.075
+        ],
+        [
+          -2.56,
+          -81.715
         ]
       ],
-      "baseY": 7.2,
-      "height": 0.5,
+      "baseY": 7.128,
+      "height": 0.372,
       "material": "naval"
     },
     {
       "id": "deckhouse-018",
-      "name": "Deckhouse platform 7.2-7.7 m",
+      "name": "Deckhouse platform 7.1-7.5 m",
       "footprint": [
         [
-          3.88,
-          -52.395
+          2.6,
+          -81.755
         ],
         [
-          3.24,
-          -51.755
+          2.4,
+          -80.915
+        ],
+        [
+          1.96,
+          -80.475
+        ],
+        [
+          1.24,
+          -80.275
+        ],
+        [
+          1.24,
+          -78.355
+        ],
+        [
+          1.64,
+          -77.595
+        ],
+        [
+          2.76,
+          -77.595
+        ],
+        [
+          3.12,
+          -78.435
+        ],
+        [
+          3.12,
+          -79.075
         ],
         [
           2.8,
-          -51.635
+          -80.035
         ],
         [
-          4.04,
-          -50.475
-        ],
-        [
-          4.16,
-          -50.915
-        ],
-        [
-          4.96,
-          -51.635
-        ],
-        [
-          4.96,
-          -51.795
-        ],
-        [
-          4.44,
-          -52.395
+          2.8,
+          -81.715
         ]
       ],
-      "baseY": 7.2,
-      "height": 0.5,
+      "baseY": 7.128,
+      "height": 0.372,
       "material": "naval"
     },
     {
-      "id": "deckhouse-019",
+      "id": "deckhouse-016",
       "name": "Deckhouse platform 7.1-7.4 m",
       "footprint": [
         [
@@ -91864,114 +91791,94 @@
       "material": "naval"
     },
     {
-      "id": "deckhouse-020",
-      "name": "Deckhouse platform 7.1-7.5 m",
+      "id": "deckhouse-014",
+      "name": "Deckhouse platform 7.2-7.7 m",
       "footprint": [
         [
-          -2.78,
-          -81.755
+          -4.44,
+          -52.395
         ],
         [
-          -2.78,
-          -80.035
+          -4.96,
+          -51.795
         ],
         [
-          -3.12,
-          -79.075
+          -4.96,
+          -51.635
         ],
         [
-          -3.12,
-          -78.435
+          -4.16,
+          -50.915
         ],
         [
-          -2.76,
-          -77.595
+          -4.08,
+          -50.515
         ],
         [
-          -1.64,
-          -77.595
+          -3.96,
+          -50.475
         ],
         [
-          -1.24,
-          -78.355
+          -2.8,
+          -51.635
         ],
         [
-          -1.24,
-          -80.275
+          -3.24,
+          -51.755
         ],
         [
-          -1.96,
-          -80.475
-        ],
-        [
-          -2.48,
-          -81.075
-        ],
-        [
-          -2.56,
-          -81.715
+          -3.88,
+          -52.395
         ]
       ],
-      "baseY": 7.128,
-      "height": 0.372,
+      "baseY": 7.2,
+      "height": 0.5,
       "material": "naval"
     },
     {
-      "id": "deckhouse-021",
-      "name": "Deckhouse platform 7.1-7.5 m",
+      "id": "deckhouse-015",
+      "name": "Deckhouse platform 7.2-7.7 m",
       "footprint": [
         [
-          2.6,
-          -81.755
+          3.88,
+          -52.395
         ],
         [
-          2.4,
-          -80.915
-        ],
-        [
-          1.96,
-          -80.475
-        ],
-        [
-          1.24,
-          -80.275
-        ],
-        [
-          1.24,
-          -78.355
-        ],
-        [
-          1.64,
-          -77.595
-        ],
-        [
-          2.76,
-          -77.595
-        ],
-        [
-          3.12,
-          -78.435
-        ],
-        [
-          3.12,
-          -79.075
+          3.24,
+          -51.755
         ],
         [
           2.8,
-          -80.035
+          -51.635
         ],
         [
-          2.8,
-          -81.715
+          4.04,
+          -50.475
+        ],
+        [
+          4.16,
+          -50.915
+        ],
+        [
+          4.96,
+          -51.635
+        ],
+        [
+          4.96,
+          -51.795
+        ],
+        [
+          4.44,
+          -52.395
         ]
       ],
-      "baseY": 7.128,
-      "height": 0.372,
+      "baseY": 7.2,
+      "height": 0.5,
       "material": "naval"
     },
     {
-      "id": "deckhouse-022",
-      "name": "Deckhouse platform 7.4-7.9 m",
+      "id": "deckhouse-019",
+      "name": "Deckhouse platform 7.0-7.9 m",
       "footprint": [
         [
           -0.46,
@@ -91998,13 +91905,13 @@
           -69.895
         ]
       ],
-      "baseY": 7.4,
-      "height": 0.5,
+      "baseY": 6.971,
+      "height": 0.929,
       "material": "naval"
     },
     {
       "id": "pagoda-004",
-      "name": "Pagoda tier 7.4-8.5 m",
+      "name": "Pagoda tier 6.9-8.5 m",
       "footprint": [
         [
           -11.72,
@@ -92051,13 +91958,13 @@
           -25.635
         ]
       ],
-      "baseY": 7.4,
-      "height": 1.1,
+      "baseY": 6.9,
+      "height": 1.6,
       "material": "naval"
     },
     {
       "id": "pagoda-005",
-      "name": "Pagoda tier 7.4-8.5 m",
+      "name": "Pagoda tier 6.9-8.5 m",
       "footprint": [
         [
           10.28,
@@ -92112,8 +92019,8 @@
           -25.675
         ]
       ],
-      "baseY": 7.4,
-      "height": 1.1,
+      "baseY": 6.9,
+      "height": 1.6,
       "material": "naval"
     },
     {
@@ -92199,7 +92106,7 @@
     },
     {
       "id": "pagoda-006",
-      "name": "Pagoda platform 8.6-9.0 m",
+      "name": "Pagoda platform 8.5-9.0 m",
       "footprint": [
         [
           -11.64,
@@ -92242,13 +92149,13 @@
           -25.675
         ]
       ],
-      "baseY": 8.6,
-      "height": 0.4,
+      "baseY": 8.5,
+      "height": 0.5,
       "material": "naval"
     },
     {
       "id": "pagoda-007",
-      "name": "Pagoda platform 8.6-9.0 m",
+      "name": "Pagoda platform 8.5-9.0 m",
       "footprint": [
         [
           10.28,
@@ -92291,8 +92198,8 @@
           -25.635
         ]
       ],
-      "baseY": 8.6,
-      "height": 0.4,
+      "baseY": 8.5,
+      "height": 0.5,
       "material": "naval"
     },
     {
@@ -94270,7 +94177,7 @@
     },
     {
       "id": "after-tower-006",
-      "name": "After tower tier 15.2-15.8 m",
+      "name": "After tower tier 14.7-15.8 m",
       "footprint": [
         [
           -3.16,
@@ -94305,13 +94212,13 @@
           38.285
         ]
       ],
-      "baseY": 15.2,
-      "height": 0.6,
+      "baseY": 14.7,
+      "height": 1.1,
       "material": "naval"
     },
     {
       "id": "after-tower-007",
-      "name": "After tower tier 15.2-15.8 m",
+      "name": "After tower tier 14.7-15.8 m",
       "footprint": [
         [
           2.92,
@@ -94350,8 +94257,8 @@
           38.205
         ]
       ],
-      "baseY": 15.2,
-      "height": 0.6,
+      "baseY": 14.7,
+      "height": 1.1,
       "material": "naval"
     },
     {
@@ -94627,7 +94534,7 @@
     },
     {
       "id": "pagoda-018",
-      "name": "Pagoda platform 16.2-16.3 m",
+      "name": "Pagoda platform 16.1-16.3 m",
       "footprint": [
         [
           -1.96,
@@ -94726,8 +94633,8 @@
           -40.875
         ]
       ],
-      "baseY": 16.2,
-      "height": 0.1,
+      "baseY": 16.1,
+      "height": 0.2,
       "material": "naval"
     },
     {
@@ -100606,7 +100513,7 @@
     },
     {
       "id": "after-tower-018",
-      "name": "After tower platform 23.8-24.1 m",
+      "name": "After tower platform 23.6-24.1 m",
       "footprint": [
         [
           -0.2,
@@ -100641,8 +100548,8 @@
           42.965
         ]
       ],
-      "baseY": 23.8,
-      "height": 0.3,
+      "baseY": 23.6,
+      "height": 0.5,
       "material": "naval"
     },
     {
@@ -100925,7 +100832,7 @@
     },
     {
       "id": "after-tower-019",
-      "name": "After tower platform 24.2-24.4 m",
+      "name": "After tower platform 24.1-24.4 m",
       "footprint": [
         [
           -0.2,
@@ -100960,13 +100867,13 @@
           42.885
         ]
       ],
-      "baseY": 24.2,
-      "height": 0.2,
+      "baseY": 24.1,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-020",
-      "name": "After tower platform 24.5-24.7 m",
+      "name": "After tower platform 24.4-24.7 m",
       "footprint": [
         [
           -0.2,
@@ -101001,13 +100908,13 @@
           42.885
         ]
       ],
-      "baseY": 24.5,
-      "height": 0.2,
+      "baseY": 24.4,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-021",
-      "name": "After tower platform 24.8-25.0 m",
+      "name": "After tower platform 24.7-25.0 m",
       "footprint": [
         [
           -0.2,
@@ -101042,8 +100949,8 @@
           42.885
         ]
       ],
-      "baseY": 24.8,
-      "height": 0.2,
+      "baseY": 24.7,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -101189,7 +101096,7 @@
     },
     {
       "id": "after-tower-022",
-      "name": "After tower platform 25.1-25.3 m",
+      "name": "After tower platform 25.0-25.3 m",
       "footprint": [
         [
           -0.2,
@@ -101224,8 +101131,8 @@
           42.885
         ]
       ],
-      "baseY": 25.1,
-      "height": 0.2,
+      "baseY": 25.0,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -101457,7 +101364,7 @@
     },
     {
       "id": "after-tower-023",
-      "name": "After tower platform 25.4-25.6 m",
+      "name": "After tower platform 25.3-25.6 m",
       "footprint": [
         [
           -0.2,
@@ -101492,13 +101399,13 @@
           42.885
         ]
       ],
-      "baseY": 25.4,
-      "height": 0.2,
+      "baseY": 25.3,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-024",
-      "name": "After tower platform 25.7-25.9 m",
+      "name": "After tower platform 25.6-25.9 m",
       "footprint": [
         [
           -0.2,
@@ -101533,8 +101440,8 @@
           42.885
         ]
       ],
-      "baseY": 25.7,
-      "height": 0.2,
+      "baseY": 25.6,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -101808,7 +101715,7 @@
     },
     {
       "id": "after-tower-025",
-      "name": "After tower platform 26.0-26.2 m",
+      "name": "After tower platform 25.9-26.2 m",
       "footprint": [
         [
           -0.2,
@@ -101843,8 +101750,8 @@
           42.885
         ]
       ],
-      "baseY": 26.0,
-      "height": 0.2,
+      "baseY": 25.9,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -102303,7 +102210,7 @@
     },
     {
       "id": "after-tower-026",
-      "name": "After tower platform 26.3-26.5 m",
+      "name": "After tower platform 26.2-26.5 m",
       "footprint": [
         [
           -0.2,
@@ -102338,13 +102245,13 @@
           42.885
         ]
       ],
-      "baseY": 26.3,
-      "height": 0.2,
+      "baseY": 26.2,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-027",
-      "name": "After tower platform 26.6-26.8 m",
+      "name": "After tower platform 26.5-26.8 m",
       "footprint": [
         [
           -0.2,
@@ -102379,13 +102286,13 @@
           42.885
         ]
       ],
-      "baseY": 26.6,
-      "height": 0.2,
+      "baseY": 26.5,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-028",
-      "name": "After tower platform 26.9-27.1 m",
+      "name": "After tower platform 26.8-27.1 m",
       "footprint": [
         [
           -0.2,
@@ -102420,8 +102327,8 @@
           42.885
         ]
       ],
-      "baseY": 26.9,
-      "height": 0.2,
+      "baseY": 26.8,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -102571,7 +102478,7 @@
     },
     {
       "id": "after-tower-029",
-      "name": "After tower platform 27.2-27.4 m",
+      "name": "After tower platform 27.1-27.4 m",
       "footprint": [
         [
           -0.2,
@@ -102606,8 +102513,8 @@
           42.885
         ]
       ],
-      "baseY": 27.2,
-      "height": 0.2,
+      "baseY": 27.1,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -102745,7 +102652,7 @@
     },
     {
       "id": "after-tower-030",
-      "name": "After tower platform 27.5-27.7 m",
+      "name": "After tower platform 27.4-27.7 m",
       "footprint": [
         [
           -0.2,
@@ -102780,8 +102687,8 @@
           42.885
         ]
       ],
-      "baseY": 27.5,
-      "height": 0.2,
+      "baseY": 27.4,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -102919,7 +102826,7 @@
     },
     {
       "id": "after-tower-031",
-      "name": "After tower platform 27.8-28.0 m",
+      "name": "After tower platform 27.7-28.0 m",
       "footprint": [
         [
           -0.2,
@@ -102954,13 +102861,13 @@
           42.885
         ]
       ],
-      "baseY": 27.8,
-      "height": 0.2,
+      "baseY": 27.7,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-032",
-      "name": "After tower platform 28.1-28.3 m",
+      "name": "After tower platform 28.0-28.3 m",
       "footprint": [
         [
           -0.2,
@@ -102995,8 +102902,8 @@
           42.885
         ]
       ],
-      "baseY": 28.1,
-      "height": 0.2,
+      "baseY": 28.0,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -103307,7 +103214,7 @@
     },
     {
       "id": "after-tower-033",
-      "name": "After tower platform 28.4-28.6 m",
+      "name": "After tower platform 28.3-28.6 m",
       "footprint": [
         [
           -0.2,
@@ -103342,13 +103249,13 @@
           42.885
         ]
       ],
-      "baseY": 28.4,
-      "height": 0.2,
+      "baseY": 28.3,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-034",
-      "name": "After tower platform 28.7-28.9 m",
+      "name": "After tower platform 28.6-28.9 m",
       "footprint": [
         [
           -0.12,
@@ -103383,13 +103290,13 @@
           42.805
         ]
       ],
-      "baseY": 28.7,
-      "height": 0.2,
+      "baseY": 28.6,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-035",
-      "name": "After tower platform 29.0-29.2 m",
+      "name": "After tower platform 28.9-29.2 m",
       "footprint": [
         [
           -0.12,
@@ -103432,13 +103339,13 @@
           42.445
         ]
       ],
-      "baseY": 29.0,
-      "height": 0.2,
+      "baseY": 28.9,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-036",
-      "name": "After tower platform 29.3-29.5 m",
+      "name": "After tower platform 29.2-29.5 m",
       "footprint": [
         [
           -0.12,
@@ -103481,13 +103388,13 @@
           42.445
         ]
       ],
-      "baseY": 29.3,
-      "height": 0.2,
+      "baseY": 29.2,
+      "height": 0.3,
       "material": "naval"
     },
     {
       "id": "after-tower-037",
-      "name": "After tower platform 29.8-30.0 m",
+      "name": "After tower platform 29.5-30.0 m",
       "footprint": [
         [
           -1.66,
@@ -103538,8 +103445,8 @@
           40.565
         ]
       ],
-      "baseY": 29.8,
-      "height": 0.2,
+      "baseY": 29.5,
+      "height": 0.5,
       "material": "naval"
     },
     {
@@ -103665,7 +103572,7 @@
     },
     {
       "id": "pagoda-042",
-      "name": "Pagoda platform 30.0-30.2 m",
+      "name": "Pagoda platform 29.9-30.2 m",
       "footprint": [
         [
           -0.84,
@@ -103716,8 +103623,8 @@
           -34.235
         ]
       ],
-      "baseY": 30.0,
-      "height": 0.2,
+      "baseY": 29.9,
+      "height": 0.3,
       "material": "naval"
     },
     {
@@ -104714,7 +104621,7 @@
     },
     {
       "id": "pagoda-048",
-      "name": "Pagoda platform 31.0-31.2 m",
+      "name": "Pagoda platform 30.7-31.2 m",
       "footprint": [
         [
           -0.6,
@@ -104765,8 +104672,8 @@
           -34.195
         ]
       ],
-      "baseY": 31.0,
-      "height": 0.2,
+      "baseY": 30.7,
+      "height": 0.5,
       "material": "naval"
     },
     {
@@ -106268,7 +106175,7 @@
     },
     {
       "id": "after-tower-044",
-      "name": "After tower platform 32.1-32.5 m",
+      "name": "After tower platform 32.0-32.5 m",
       "footprint": [
         [
           -0.6,
@@ -106299,8 +106206,8 @@
           41.385
         ]
       ],
-      "baseY": 32.1,
-      "height": 0.4,
+      "baseY": 32.0,
+      "height": 0.5,
       "material": "naval"
     },
     {
@@ -108227,7 +108134,7 @@
     ],
     "structures": [
       {
-        "structureId": "deckhouse-011",
+        "structureId": "deckhouse-008",
         "topExtensionM": 0
       },
       {
@@ -108279,23 +108186,23 @@
         "topExtensionM": 0
       },
       {
-        "structureId": "deckhouse-015",
+        "structureId": "deckhouse-012",
         "topExtensionM": 0
       },
       {
-        "structureId": "deckhouse-016",
+        "structureId": "deckhouse-013",
         "topExtensionM": 0
       },
       {
-        "structureId": "deckhouse-008",
+        "structureId": "deckhouse-005",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-006",
         "topExtensionM": 0
       },
       {
         "structureId": "deckhouse-009",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "deckhouse-012",
         "topExtensionM": 0
       },
       {
@@ -108311,19 +108218,7 @@
         "topExtensionM": 0
       },
       {
-        "structureId": "deckhouse-022",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "deckhouse-017",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "deckhouse-018",
-        "topExtensionM": 0
-      },
-      {
-        "structureId": "deckhouse-013",
+        "structureId": "deckhouse-019",
         "topExtensionM": 0
       },
       {
@@ -108331,11 +108226,23 @@
         "topExtensionM": 0
       },
       {
-        "structureId": "deckhouse-004",
+        "structureId": "deckhouse-015",
         "topExtensionM": 0
       },
       {
-        "structureId": "deckhouse-003",
+        "structureId": "deckhouse-010",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-011",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-002",
+        "topExtensionM": 0
+      },
+      {
+        "structureId": "deckhouse-001",
         "topExtensionM": 0
       },
       {

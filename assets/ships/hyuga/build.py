@@ -23,10 +23,14 @@ sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from hyuga_kit import Kit, ZC
+import hyuga_pagoda
+import hyuga_midships
+import hyuga_aft
+import hyuga_hull
 
 # Region modules in build order; each may claim measured prisms it draws itself.
-REGIONS = []
-CLAIMED = set().union(*(region.CLAIMED_STRUCTURES for region in REGIONS)) if REGIONS else set()
+REGIONS = [hyuga_pagoda, hyuga_midships, hyuga_aft, hyuga_hull]
+CLAIMED = set().union(*(region.CLAIMED_STRUCTURES for region in REGIONS))
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -126,7 +130,7 @@ for s in D['structures']:
     ob = authored_structure(s, mesh, materials, collections['Superstructure'])
     ob.data.materials.append(materials['roof'])
     ob.data.materials.append(materials['black'])
-    funnel = s['id'].startswith('funnel-') and s['baseY'] > 20.6
+    funnel = s['id'].startswith('funnel-') and s['baseY'] > 22.6
     for face in ob.data.polygons:
         if funnel:
             face.material_index = 2

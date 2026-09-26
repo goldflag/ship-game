@@ -33,6 +33,46 @@ class Kit:
                 house = max(w['gunhouseSize'][:2]) * .6
             self.arcs.append((mx, my, mz, house, w))
 
+    # ------------------------------------------------------------ support queries that may miss
+    def try_below(self, x, y, ceiling, fallback=None):
+        """Height of the support under (x, y) at or below `ceiling`, or `fallback` where there is none."""
+        try:
+            return self.support.below(x, y, ceiling)
+        except ValueError:
+            return fallback
+
+    def try_along(self, origin, direction, distance):
+        """First support hit along a ray, or None."""
+        try:
+            return self.support.along(origin, direction, distance)
+        except ValueError:
+            return None
+
+    def stilts(self, assembly, col, s, radius=.09, min_gap=.35, inset=.35, max_drop=6.0):
+        """Columns under a platform structure (runtime footprint) down to whatever supports it: one under
+        each corner of its outline's bounding box pulled `inset` inboard, where the drop is at least `min_gap`."""
+        poly = [tuple(p) for p in s['footprint']]
+        xs = [p[0] for p in poly]
+        zs = [p[1] for p in poly]
+        cx, cz = sum(xs) / len(xs), sum(zs) / len(zs)
+        base = s['baseY']
+        placed = []
+        # Candidates: the bounding box corners pulled inboard, then points part way to the centre.
+        cands = [(fx, fz) for fx in (min(xs) + inset, max(xs) - inset) for fz in (min(zs) + inset, max(zs) - inset)]
+        cands += [(cx + (fx - cx) * t, cz + (fz - cz) * t) for t in (.6, .3) for fx, fz in cands[:4]] + [(cx, cz)]
+        for fx, fz in cands:
+            if len(placed) >= 4 or not self._inside(poly, fx, fz):
+                continue
+            if any(math.hypot(fx - px, fz - pz) < .8 for px, pz in placed):
+                continue
+            x, y = -fz, -fx
+            floor = self.try_below(x, y, base - .02)
+            if floor is None or base - floor < min_gap or base - floor > max_drop:
+                continue
+            self.part('rod', assembly, col, 'stanchion', (x, y, floor - .02), (x, y, base + .01), radius, 'naval', vertices=10)
+            placed.append((fx, fz))
+        return len(placed)
+
     # ------------------------------------------------------------ primitives with ownership
     def tag(self, ob, assembly):
         ob['assemblyId'] = assembly
@@ -302,7 +342,9 @@ class Kit:
         """Keel chocks from the supporting deck up under the hull at stations ts."""
         for t in ts:
             px, w, k, g = station(t)
-            floor = self.support.below(px, y, k - .02)
+            floor = self.try_below(px, y, k - .02)
+            if floor is None or k - floor > 3.0:
+                continue
             self.part('box', id, col, 'cradle', (px, y, (floor + k + .12) / 2), (.14, width, max(.08, k + .12 - floor)), 'naval')
 
     def gunwale_band(self, id, col, station, y, material='naval', r=.045, drop=0.0):
