@@ -52,11 +52,13 @@ def near(a, b):
     return abs(a - b) <= .06
 
 
-def clip_forward(ring, z0):
-    """The part of a closed outline (x, z) with z <= z0 (Sutherland-Hodgman against one line)."""
+def clip_forward(ring, z0, forward=True):
+    """The part of a closed outline (x, z) with z <= z0, or z >= z0 when not `forward` (Sutherland-Hodgman against
+    one line)."""
+    keep = (lambda z: z <= z0 + 1e-9) if forward else (lambda z: z >= z0 - 1e-9)
     out = []
     for a, b in zip(ring, ring[1:] + ring[:1]):
-        ina, inb = a[1] <= z0 + 1e-9, b[1] <= z0 + 1e-9
+        ina, inb = keep(a[1]), keep(b[1])
         if ina:
             out.append(list(a))
         if ina != inb:

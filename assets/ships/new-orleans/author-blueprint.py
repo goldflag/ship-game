@@ -260,7 +260,7 @@ def block(sid, base=None, top=None):
 # its tower (bridge-028, bridge-029) cut back, and the pilothouse, the director tower's base and the tub's tower carried
 # down to their decks; new_orleans_walls.py carries the bulwarks round them.
 sys.path.insert(0, str(HERE / 'authoring'))
-from enclosures import correct  # noqa: E402
+from enclosures import clip_forward, correct  # noqa: E402
 correct(structures)
 
 # The open navigating bridge. The reference's deck at 17.5 m runs unbroken from the bulwark to the pilothouse top
@@ -322,6 +322,21 @@ if 'surface' in tower:
     del tower['surface']
     tower['baseY'], tower['height'] = 20.45, 1.5
     tower['name'] = f"Bridge {tower['baseY']:.1f}-{tower['baseY'] + tower['height']:.1f} m"
+# The Mk 28 house on the after superstructure (after-superstructure-098, 14.3 m up) has two tiers under it (093 and
+# 094, 13.6 to 14.3 m) that the trace carried 0.75 m forward of its front and 0.3 m out at its sides, over the open
+# deck round the mainmast's foot (vertical lines through the reference find only the 12.85 m deck there), and the
+# block under them (092, 12.85 to 13.6 m) the same way forward of the house. The tiers take the house's own outline and
+# the block stops at the house front (z 42.26); the platforms beside the house keep their measured outlines.
+house = block('after-superstructure-098', 14.3, 15.6)
+for sid, base, top in [('after-superstructure-093', 13.6, 14.05), ('after-superstructure-094', 14.05, 14.3)]:
+    block(sid, base, top)['footprint'] = [list(p) for p in house['footprint']]
+under = block('after-superstructure-092', 12.85, 13.6)
+under['footprint'] = clip_forward(under['footprint'], 42.26, forward=False)
+# The block ahead of the mainmast (091, 12.8 to 14.1 m, open under it down to the 9.75 m deck) hung off that forward
+# strip; its after edge reaches back onto the front of the 12.85 m platform (095), as the reference's does.
+ahead = block('after-superstructure-091', 12.8, 14.1)
+ahead['footprint'] = [[x, 41.66 if z > 41.4 else z] for x, z in ahead['footprint']]
+
 tower_foot = next((s for s in structures if s['id'] == 'bridge-029'), None)
 if tower_foot is not None:
     block('bridge-029', 20.45, 20.85)
@@ -823,6 +838,8 @@ if not ear_clips(deck['footprint']):
     sys.exit('the corrected open-bridge deck outline does not triangulate; check OPEN_BRIDGE against bridge-018')
 if not ear_clips(tower['footprint']):
     sys.exit('the director tower prism outline does not triangulate; check the tower correction')
+if not ear_clips(under['footprint']):
+    sys.exit('the cut-back block under the Mk 28 house does not triangulate; check the after-superstructure correction')
 write(HERE / 'blueprint.json', b)
 print(f'Authored new-orleans: {len(sections)} sections, {round(volume * 1.025)} t at the reference waterline, draft {DRAFT} m, beam {round(beam, 2)} m, '
       f'{len(b["mounts"])} mounts, {len(structures)} structures, {len(b["armor"])} armour plates, {len(b["obstructions"])} obstructions. '
