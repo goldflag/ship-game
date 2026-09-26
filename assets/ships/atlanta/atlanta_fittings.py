@@ -507,12 +507,13 @@ def masts(D, kit):
     foot, head = (0, 15.1, axis(15.1)), (0, 32.82, axis(32.82))
     taper(kit, aid, col, 'pole', foot, head, .45, .2, 'naval', 6)
     kit.cylz(aid, col, 'foot collar', V(0, 15.1, axis(15.1)), .56, .3, 'naval', 6)
+    # The signal yard crosses on the pole's after face (reference z -12.83, where its wires end).
     for s in (-1, 1):
-        taper(kit, aid, col, 'signal yard', (s * .15, 31.0, axis(31.0)), (s * 7.8, 31.0, axis(31.0)), .1, .05, 'naval', 8)
-        kit.member(aid, col, V(0, 29.6, axis(29.6)), V(s * 4.0, 30.98, axis(31.0)), .03, 'naval', 5)
-        for x in (4.52, 7.30):
-            kit.cylz(aid, col, 'signal lamp', V(s * x, 31.05, axis(31.0)), .08, .2, 'dark', 8)
-    kit.boxc(aid, col, 'wind vane', V(1.54, 31.25, axis(31.0)), (.4, .1, .6), 'edge')
+        taper(kit, aid, col, 'signal yard', (s * .15, 31.0, -12.83), (s * 7.8, 31.0, -12.83), .1, .05, 'naval', 8)
+        kit.member(aid, col, V(0, 29.6, axis(29.6)), V(s * 4.0, 30.98, -12.83), .03, 'naval', 5)
+        # Signal lamps at the yard arms (reference am049 at x 7.62).
+        kit.cylz(aid, col, 'signal lamp', V(s * 7.62, 31.05, -12.83), .07, .24, 'dark', 8)
+    kit.boxc(aid, col, 'wind vane', V(1.54, 31.25, -12.83), (.4, .1, .6), 'edge')
     # Outriggers where the reference has them and its wires end: aft level at 30.92 m to z -9.45 on a strut from the
     # mast at 28.9 m, forward from the mast at 30.75 m down to the forestay's end (29.62 m, z -16.22), held by a lift
     # from the masthead platform.
@@ -529,7 +530,14 @@ def masts(D, kit):
         kit.member(aid, col, V(x * .1, 31.92, axis(31.92)), V(x, 32.8, z), .035, 'naval', 5)
     for s in (-1, 1):
         kit.cylz(aid, col, 'fighting light', V(s * 1.32, 32.4, -13.0), .1, .6, 'dark', 8)
-    kit.boxc(aid, col, 'signal plate', V(0, 27.6, axis(27.6) - .55), (.4, .12, 2.9), 'naval')
+    # The octagonal lookout cabinet on the pole's forward face (sections at 26.5 and 27.5 m: 0.9 m across about z
+    # -14.12, 26.0 to 27.9 m with its flared band and lid) over a step on brackets at 25.1 m.
+    kit.cylz(aid, col, 'lookout cabinet', V(0, 26.01, -14.12), .46, 1.2, 'naval', 8)
+    kit.cylz(aid, col, 'cabinet band', V(0, 27.2, -14.12), .51, .41, 'naval', 8)
+    kit.cylz(aid, col, 'cabinet lid', V(0, 27.61, -14.12), .46, .29, 'naval', 8, r2=.38)
+    kit.boxc(aid, col, 'cabinet step', V(0, 25.13, -14.14), (.96, .6, .08), 'naval')
+    for s in (-1, 1):
+        kit.member(aid, col, V(s * .25, 25.09, -14.5), V(s * .12, 24.4, axis(24.4) - .2), .03, 'naval', 5)
     for y in (19.4, 20.6, 22.1, 25.1):
         c = V(0, y, axis(y) - .35)
         kit.boxc(aid, col, 'lamp bracket', c + Vector((.2, 0, 0)), (.6, .5, .06), 'naval')
@@ -568,10 +576,17 @@ def masts(D, kit):
     for s in (-1, 1):
         taper(kit, aid, col, 'yard', (s * .06, 25.15, axis_m(25.15) + .1), (s * 4.57, 25.15, axis_m(25.15) + .1), .08, .04, 'naval', 8)
         kit.member(aid, col, V(s * .1, 23.42, 9.78), V(s * 1.04, 23.42, 9.78), .03, 'naval', 5)
-    kit.boxc(aid, col, 'masthead platform', V(0, 27.34, 9.97), (1.88, 1.88, .1), 'naval')
+    # The masthead platform: a twelve-sided grating in a rim, as the reference's.
+    kit.cylz(aid, col, 'masthead platform', V(0, 27.29, 9.97), .94, .1, 'edge', 12)
+    rim = [V(.95 * math.cos(math.tau * k / 12), 27.39, 9.97 + .95 * math.sin(math.tau * k / 12)) for k in range(12)]
+    for a, b in zip(rim, rim[1:] + rim[:1]):
+        kit.member(aid, col, a, b, .035, 'naval', 6)
     for x, z in ((-.64, 9.3), (.64, 9.3), (-.64, 10.65), (.64, 10.65)):
         kit.member(aid, col, V(x * .05, 26.46, axis_m(26.46)), V(x, 27.3, z), .03, 'naval', 5)
     taper(kit, aid, col, 'gaff', (0, 24.8, axis_m(24.8) + .1), (0, 24.8, 13.14), .07, .04, 'naval', 8)
+    # Signal lamps (reference am049): at the yard arms, the crosstree ends and the masthead.
+    for x, y, z in ((4.52, 25.2, 10.08), (-4.52, 25.2, 10.08), (1.1, 23.47, 9.79), (-1.1, 23.47, 9.79), (0, 28.62, 9.97)):
+        kit.cylz(aid, col, 'signal lamp', V(x, y, z), .06, .24, 'dark', 8)
     kit.member(aid, col, V(0, 23.07, axis_m(23.07) + .1), V(0, 24.8, 12.54), .03, 'naval', 5)
     kit.boxc(aid, col, 'speed light', V(0, 18.0, axis_m(18.0) + .3), (.8, .28, .6), 'edge')
     kit.ladder(aid, col, V(0, 14.8, axis_m(14.8) + .32), V(0, 25.8, axis_m(25.8) + .28), (0, 1, 0), .34)
