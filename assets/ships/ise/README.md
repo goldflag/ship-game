@@ -43,6 +43,13 @@ searchlights, the boat crane, the stern aircraft crane, and boats (a 17 m motor 
 Armour zones and thicknesses come from the reference's public armour model (`jsb048_ise_hybrid_1945` armour and the
 `jgm191` turret armour).
 
+The source's default paint is one blue-grey over hull and upperworks (its texture, seen unlit, is linear
+0.133, 0.147, 0.181 on the hull sides and 0.127, 0.138, 0.168 on the pagoda; the light and dark patches its lit
+renders show are shadows of the flight deck, sponsons and platforms, not a pattern). The model paints it
+`ise-reference-grey` (0.128, 0.140, 0.170), with grey steel roofs and flight deck, natural wood weather decks, a
+black funnel cap and mast head and a red-oxide bottom without boot topping; the swatches are linear-RGB
+interpretations of the reference's texture, not measured historical paint.
+
 The hull is an original authored-stations loft: 228 stations of 31 points from `bun run ship:lines` with dense
 upper levels (0.12 to 1 of the height from 1.5 m to the deck, bracketing the old casemate ledge at 0.567), 215.0 m
 overall, 33.82 m over the anti-torpedo bulges and 9.42 m to the keel at the reference's y = 0 design waterline,
@@ -112,10 +119,6 @@ GameModels3D as the only reference.
 
 These are the model's own approximations and gaps, not yet reviewed by the owner.
 
-- **Paint:** the default paint's two-tone disruptive pattern (lighter grey patches over the hull abaft No. 4
-  turret, the hangar sides and the towers) is not reproduced. The model carries its base blue-grey only, with grey
-  steel roofs and flight deck, natural wood weather decks, a black funnel cap and mast head and a red-oxide bottom
-  without boot topping; swatches are linear-RGB interpretations of the reference's texture matched under one light.
 - **After turrets' arcs:** as the reference places them, the stowed catapults' girders stand at the height of
   No. 3's barrels beside No. 4, and the catapult sponsons and girders flank No. 4. Below 6 degrees of elevation
   No. 3 trains only 27 degrees either side of astern; it clears the girders to the beam from 9 degrees. No. 4
