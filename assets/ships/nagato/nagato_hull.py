@@ -1,6 +1,6 @@
 """Nagato hull fittings: deck gear at the reference datums (vents, bitts, fairleads, winches, capstans, hatches,
 reels, lockers, lamps, life buoys), ground tackle, the four three-bladed screws on their shafts and brackets, the
-twin rudders, bilge keels and the chrysanthemum on the stem.
+twin rudders, bilge keels, the chrysanthemum on the stem, the jack and ensign staffs and the propeller guards.
 
 Datums are the cached pjsb010 reference's part bounds (nagato_gear.GEAR) and profile cuts, converted by `P`.
 """
@@ -235,7 +235,7 @@ def underwater(kit, D):
     # Four three-bladed screws (HP datums of cm001/cm032), turning outward, each at the end of its shaft line as the
     # reference's plan cuts at the shaft heights (y = -4.94 and -6.83) show it: a streamlined bossing where the shaft
     # leaves the hull (r 0.45, about 4 m), the bare shaft, and a bearing housing (r 0.47, about 2.7 m) ahead of the hub
-    # held by an A-bracket, all in the bottom paint.
+    # held by a bracket strut, all in the bottom paint.
     for side, kind in [(-1, 'screw-port'), (1, 'screw-starboard')]:
         for x, y, z, sx, sy, sz, foot in rows(kind):
             A = f'screw-{"port" if side < 0 else "starboard"}-{"outer" if abs(x) > 7 else "inner"}'
@@ -394,7 +394,7 @@ def propeller_guards(kit, D):
     for side in (-1, 1):
         A = 'propeller-guard-' + ('port' if side < 0 else 'starboard')
         apex = (13.04, 76.9)
-        for z in (73.3, 76.9, 80.67):
+        for z in (72.9, 76.9, 81.7):
             inboard = loft_half_breadth(D, z, y) - .2
             kit.beam(A, col, 'guard bar', P(side * inboard, y, z), P(side * apex[0], y, apex[1]), .1, .15, 'naval')
         kit.cylz(A, col, 'guard apex', Vector(P(side * apex[0], y - .1, apex[1])), .1, .2, 'naval', 8)

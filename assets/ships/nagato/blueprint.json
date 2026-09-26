@@ -29099,7 +29099,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-2",
@@ -29118,7 +29119,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-3",
@@ -29156,7 +29158,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-5",
@@ -29175,7 +29178,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-6",
@@ -29194,7 +29198,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-7",
@@ -29213,7 +29218,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-8",
@@ -29232,7 +29238,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-9",
@@ -29251,7 +29258,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa3-10",
@@ -29270,7 +29278,8 @@
         "fuelSeconds": 45,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "elevationMinDeg": -5
     },
     {
       "id": "aa2-1",

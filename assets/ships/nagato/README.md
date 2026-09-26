@@ -8,10 +8,11 @@ This is a legacy Blender-recipe preset (like Kongō, Takao, Alaska, Hood and Yam
 construction ship. `blueprint.json` (written by `author-blueprint.py` from the measured loft in `authoring/lines.json`),
 `build.py` and its modules are the durable inputs: `nagato_kit.py` (shared vocabulary: materials, primitives with
 ownership, merged rails and wires, boats, searchlights, rangefinders, glazing), `nagato_fittings.py` (mount seats,
-roofs, posts and the main director), `nagato_masts.py` (pagoda topmast and yards, rangefinders, directors, lights,
-the tripod mainmast and aircraft crane jib, the funnel cap), `nagato_boats.py` (boats, boat cranes, davits, the
-catapult), `nagato_hull.py` (deck gear, ground tackle, screws, rudders, bilge keels, the chrysanthemum) and
-`nagato_rails.py`, plus three measured datum tables: `nagato_gear.py` (deck-gear positions and sizes),
+roof paint, posts, the gun decks' splinter screens, the funnel's searchlight towers and the main director),
+`nagato_masts.py` (pagoda topmast and yards, rangefinders, directors, lights, the tripod mainmast and aircraft crane
+jib, the funnel cap, sirens and lattice), `nagato_boats.py` (boats, boat cranes, davits, the catapult, the aircraft
+deck's strips), `nagato_hull.py` (deck gear, ground tackle, screws, rudders, bilge keels, the chrysanthemum, staffs
+and propeller guards) and `nagato_rails.py`, plus three measured datum tables: `nagato_gear.py` (deck-gear positions and sizes),
 `nagato_windows.py` (windows and portholes) and `nagato_tiers.py` (the open tiers of the pagoda and the mainmast).
 Reusable guns come from `assets/parts/`. Generated Blender scenes and runtime models are build outputs.
 
@@ -27,9 +28,11 @@ Reusable guns come from `assets/parts/`. Generated Blender scenes and runtime mo
   Type 94 director, 10 m, 4.5 m and 1.5 m rangefinders, two Type 91 high-angle directors, the tripod mainmast with the
   aircraft crane, a catapult (empty, as the reference stows it), six searchlights, two boat cranes and nine boats. The
   `AB_Radars` component the brief names does not exist on this vehicle; no radar is fitted.
-- **Paint:** the reference's source (`default`) paint, as Kongō has: one blue-grey over hull and upperworks, grey steel
-  roofs and casemate shelf, natural wood weather decks, a linoleum aircraft deck, a black funnel band and mast heads,
-  the gold chrysanthemum on the stem. The reference paints its bottom a weathered red and green; following the fleet's
+- **Paint:** the reference's source (`default`) paint, as Kongō has: one blue-grey over hull and upperworks, natural
+  wood weather decks and 01 and 02 decks round the pagoda and funnel, grey steel roofs, casemate shelf, deck-edge
+  sponsons and the forecastle head's chain deck, a linoleum aircraft deck with pale strips from deck edge to deck edge,
+  a black funnel band, a black mainmast above 22.65 m and the pagoda's black topmast, the gold chrysanthemum on the
+  stem. The reference paints its bottom a weathered red and green; following the fleet's
   appearance conventions (docs/ship-appearance.md) the bottom is plain red oxide to the waterline with no boot topping,
   and the game weathers it at runtime.
 - **Reference policy:** GameModels3D only; no War Thunder, Sketchfab, photographs or plans. Model fidelity and export
@@ -42,9 +45,11 @@ the cached reference in three spans sharing one frame and one set of levels: the
 (reference z −114.8 to −57.5, deck = forecastle deck), the casemate shelf (−57.5 to 12, deck capped at the shelf's
 outer edge, 3.72 m) and the upper deck to the stern (12 to 110.4). The first span's deck detection caught No. 1
 barbette's ring, the windlass beds and the breakwater; its deck follows the forecastle deck line cut at x = 2 m
-(`ship:slice --section x=2`) instead, and each corrected station was re-levelled on its own measured outline. At the
-reference's y = 0 design waterline it is 225.2 m overall, 34.6 m over the anti-torpedo bulges, 9.3 m keel draft and
-41,897 t. The raised forecastle deck abaft the break (the casemate battery, 3.5 to 6.5 m, and its narrower
+(`ship:slice --section x=2`) instead, and each corrected station was re-levelled on its own measured outline. The
+stations forward of reference z −98.5 were re-measured on station cuts to the true stem and forefoot (`ship:lines`
+had cut the stem back by up to 1.4 m), and at two stern stations the points by the propeller guards were re-set on
+the shell under the guards' rails. At the reference's y = 0 design waterline it is 225.2 m overall, 34.6 m over the
+anti-torpedo bulges, 9.3 m keel draft and 41,901 t. The raised forecastle deck abaft the break (the casemate battery, 3.5 to 6.5 m, and its narrower
 continuation aft to No. 3 barbette) is the 5.0 m plan outline of the reference, a measured prism; its volume counts
 toward reserve buoyancy. The loft's runtime z is reference z + 2.2 m.
 
@@ -66,8 +71,9 @@ Where a pagoda or mainmast prism stands for legs, the central tube, fins and bul
 show instead of the solid block: the reference is cut every 0.1 m through the prism (`ship:slice pjsb010 --section
 y=...`), runs of similar cuts are drawn from their middle cut as columns and 6 cm walls, and the decks and ceilings that
 vertical probes (`--probe x,z`) cross within its height become 8 cm plates; the two decks above are drawn the same way.
-The blueprint keeps the measured prisms as the combat volumes. The mainmast's tripod legs are struts, black from
-27.6 m as the reference paints them.
+The blueprint keeps the measured prisms as the combat volumes. The mainmast's tripod legs are struts from the after
+control deck to the 28.75 m platform, on the line through their plan-cut centres, and the trunk under the 23.65 m
+platform is a 0.76 m square post; the reference paints the whole mainmast black above 22.65 m.
 
 Mounts sit at the reference's HP_ datums (`bun run ship:hardpoints pjsb010`): the 41 cm turrets are the catalog's
 `type3-410-nagato-twin` (Nos. 1 and 4), `-rf` (No. 2) and `-rf-aft` (No. 3), each built against this reference's own
@@ -85,15 +91,22 @@ Fittings follow reference datums and the part bounds of the reference's deck gea
 capstans, hatches, reels, lockers, lamps, life buoys, paravanes and accommodation ladders; bower, stern and sheet
 anchors with cables from the hawse pipes to the forecastle capstan; the Type 94 director (which trains for the rig),
 the 10 m, 4.5 m and 1.5 m rangefinders, the Type 91 directors, machine-gun control sights, periscopes, six searchlights
-and their controls; the pagoda topmast with two signal yards; the tripod mainmast with its topmast, top yard, gaff,
-signal blocks and the aircraft crane jib; the funnel's black band, rim, domed grating, steam pipes and ladder; the two
-17 m and one 11 m motor boats, two 12 m launches, the 9 m cutter, the 6 m dinghy, the two jib boat cranes with their
-slung cutters, davits and the stowed boom; the catapult on its turntable and the aircraft trolleys; four three-bladed
-screws with broad blades, each on a shaft with its hull bossing, bearing housing and A-bracket (plan cuts at the shaft
-heights), the twin rudders with rounded corners hung on their stocks clear of the hull (profile cut x = 2.3) and bilge
-keels. Windows and portholes were located on orthographic renders of the reference's painted textures and seated on
-this model's own walls where they stand within 0.4 m of the reference's; the compass bridge's windscreen carries its
-band of 0.6 m panes every 0.74 m, 0.93 m tall on its face and 1.2 m on its sides, measured on the same renders.
+and their controls; the pagoda topmast with two signal yards; the tripod mainmast with its upright pole, the 10.5 m
+top yard with its braces and lifts, the masthead gaff (the ensign flies from its peak at sea), the lower gaff, the
+signal blocks forward of the trunk and the aircraft crane jib; the funnel's black band, rim, domed grating, steam
+pipes, ladder and sirens, the X-braced lattice under its searchlight and 25 mm platforms and the two four-legged
+searchlight towers (plan cuts y = 9.6 to 17); the splinter-screened gun decks round the 25 mm triples on the decks
+(section y = 4.6 through the reference's gun-deck parts); the two 17 m and one 11 m motor boats, two 12 m launches, the
+9 m cutter, the 6 m dinghy, the two jib boat cranes with their slung cutters, davits and the stowed boom; the catapult
+on its turntable, the aircraft trolleys and the aircraft deck's pale strips; the jack staff and the raked ensign staff
+(profile x = 0) and a propeller guard over each outer screw (plan cuts y = 1.3 to 1.45); four three-bladed screws with
+broad blades, each on a shaft with its hull bossing, bearing housing and single bracket strut leaning into the hull
+(plan cuts at the shaft heights, station cuts at the brackets), the twin rudders with rounded corners hung on their
+stocks clear of the hull (profile cut x = 2.3) and bilge keels. Windows and portholes were located on orthographic
+renders of the reference's painted textures and seated on this model's own walls where they stand within 0.4 m of the
+reference's; the compass bridge's windscreen carries its band of 0.6 m panes every 0.74 m, 0.93 m tall on its face and
+1.2 m on its sides, and the after control room its band of four windows on each quarter, measured on the same
+renders.
 
 Machinery (four boiler rooms under the funnel, four turbine rooms between the funnel and No. 3 turret, four shafts),
 magazines, flood spaces, stability and damage-control values are game estimates; the visual reference does not
@@ -121,11 +134,17 @@ model for this vehicle.
   are left out of the motion envelope because the simulation stalls a superfiring pair training together over them
   (`sweep-accepted.json`). A sweep ignoring those two meshes finds no other contact between the turrets.
 - Casemate arcs, the arcs of the mainmast singles and of the two singles abaft the pagoda, the mainmast singles'
-  depression, some casemate stops and No. 1 turret's stop at the stowed dinghy are game estimates set by the sweep; the
-  reference shows no mechanical stops.
+  depression, the 5° depression of the nine 25 mm triples inside the splinter-screened gun decks (their barrels
+  reach the 0.62 m screens' tops below it), some casemate stops and No. 1 turret's stop at the stowed dinghy are game
+  estimates set by the sweep; the reference shows no mechanical stops.
 - Windows and portholes come from the reference's painted textures, so painted vents and a few girder holes read as
-  glazing; rigging, halyards and aerials are omitted.
-- The boats' hulls use a light grey; boat and crane details, the catapult and the mast yards are simplified.
+  glazing; rigging, halyards and aerials are omitted apart from the mainmast's lifts and peak halyards and the crane's
+  topping lift.
+- The boats' hulls use a light grey; boat and crane details, the catapult and the mast yards are simplified. The
+  aircraft deck's trolley tracks and the four turntables they link are not modelled, and the funnel carries three
+  steam pipes where the reference runs six round its after face.
+- The loft takes the keel where the shell comes within 0.3 m of the centre line, so the narrow skeg on the centre line
+  ahead of the twin rudders (runtime z 76 to 85, up to 1.2 m deep) is left out.
 - Handling (25 kn), stability, mass distribution, flooding compartmentation, protection and weapon values are shared
   game calibration, not historical measurements.
 

@@ -1,6 +1,7 @@
 """Nagato boats, boat cranes and aviation: the 17 m motor boats and 12 m launches amidships, the 11 m motor boat and
 9 m cutter on the upperworks, the 6 m dinghy, the two jib boat cranes with their slung boats, the small davits, the
-stowed boom, the Kure Type 2 catapult on its turntable and the aircraft deck's trolley rails.
+stowed boom, the Kure Type 2 catapult on its turntable, the aircraft trolleys on their rails and the pale strips over
+the linoleum aircraft deck.
 
 Datums are the cached pjsb010 reference's part bounds (nagato_gear.GEAR), converted by `P`.
 """
@@ -102,17 +103,19 @@ def build(kit):
         for t in (.25, .75):
             p = a.lerp(b, t)
             kit.member(A, col, (cx, cy, cz + 1.4), (p.x, p.y, p.z - .7), .08, 'naval', 6)
+    tracks = []
     for x, y, z, sx, sy, sz, foot in rows('aircraft-rail'):
+        # Each trolley stands on its side's track (trolley_tracks), on one of the track's two turntables.
         A = f'aircraft-trolley-{"port" if x < 0 else "starboard"}'
         cx, cy, cz = P(x, foot, z)
-        for t in (-1, 1):
-            kit.boxc(A, col, 'trolley rail', (cx, cy + t * .55, cz + .06), (sz, .12, .12), 'edge')
+        tracks.append((x, foot))
         kit.boxc(A, col, 'trolley', (cx, cy, cz + .55), (1.6, 1.3, .25), 'naval')
         for t in (-1, 1):
             for u in (-1, 1):
-                kit.part('rod', A, col, 'trolley leg', (cx + u * .6, cy + t * .55, cz + .1), (cx + u * .6, cy + t * .55, cz + .45), .06, 'naval', vertices=8)
+                kit.part('rod', A, col, 'trolley leg', (cx + u * .6, cy + t * .55, cz + .05), (cx + u * .6, cy + t * .55, cz + .45), .06, 'naval', vertices=8)
         kit.lattice(A, col, (cx - .6, cy, cz + .7), (cx + .6, cy, cz + 1.3), .9, .5, 2)
     aircraft_deck(kit, col)
+    trolley_tracks(kit, col, tracks)
 
 
 def _inside(poly, x, z):
@@ -157,3 +160,39 @@ def aircraft_deck(kit, col):
         strip((-13.0, z), (13.0, z), .22)
     for x in (-3.77, 3.77):
         strip((x, z0), (x, z1), .22)
+
+
+# The aircraft trolleys' tracks on the linoleum deck (textured top render, runtime frame): on each side two rails 1.1 m
+# apart centred on the trolley's datum, from z 45.4 forward to 24.6 and then out toward the deck edge (1.87 m out over
+# 3.5 m), with a sleeper every 2.35 m and two 2.7 m turntables, at z 39.8 and 30.5; the branches that lead in from the
+# turntables toward the catapult are left out.
+TRACK_AFT, TRACK_BEND, TRACK_OUT = 45.4, 24.6, (1.87, -3.5)
+TURNTABLES = (39.8, 30.5)
+
+
+def trolley_tracks(kit, col, tracks):
+    for x0, foot in tracks:
+        s = 1 if x0 > 0 else -1
+        A = f'aircraft-track-{"port" if s < 0 else "starboard"}'
+
+        def pt(x, z, dy=0.0):
+            return (-z, -x, foot + dy)
+
+        for u in (-.55, .55):
+            x = x0 + u
+            end = (x + s * TRACK_OUT[0], TRACK_BEND + TRACK_OUT[1])
+            kit.beam(A, col, 'rail', pt(x, TRACK_AFT, .035), pt(x, TRACK_BEND, .035), .1, .08, 'edge')
+            kit.beam(A, col, 'rail', pt(x, TRACK_BEND + .05, .035), pt(*end, .035), .1, .08, 'edge')
+        z = TRACK_AFT - .6
+        while z > TRACK_BEND:
+            if all(abs(z - zt) > 1.5 for zt in TURNTABLES):
+                kit.beam(A, col, 'sleeper', pt(x0 - .68, z, .02), pt(x0 + .68, z, .02), .12, .05, 'edge')
+            z -= 2.35
+        for f in (.4, .8):
+            zz = TRACK_BEND + TRACK_OUT[1] * f
+            xx = x0 + s * TRACK_OUT[0] * f
+            kit.beam(A, col, 'sleeper', pt(xx - .68, zz, .02), pt(xx + .68, zz, .02), .12, .05, 'edge')
+        for zt in TURNTABLES:
+            kit.cylz(A, col, 'turntable', pt(x0, zt, -.01), 1.35, .04, 'roof', 32)
+            ring = [pt(x0 + 1.33 * math.cos(math.tau * i / 32), zt + 1.33 * math.sin(math.tau * i / 32), .035) for i in range(33)]
+            kit.polyline(A, col, ring, .03, 'wood', 5)

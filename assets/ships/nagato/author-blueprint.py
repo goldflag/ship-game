@@ -278,6 +278,9 @@ SINGLES = [(-10.446, 6.492, -46.744, -45), (10.523, 6.491, -46.738, 45), (-11.43
 # bridge forward and their deck's bulwark aft (game stops, not historical ones).
 SINGLE_STOPS = {5: dict(traverseDeg=50), 6: dict(traverseDeg=50),
                 7: dict(bearingDeg=-110, traverseDeg=40, elevationMinDeg=0), 8: dict(bearingDeg=110, traverseDeg=40, elevationMinDeg=0)}
+# The triples on the decks stand inside the reference's 0.62 m splinter-screened gun decks (nagato_fittings.GUN_DECK),
+# whose tops their barrels reach below about 5 degrees of depression: a game stop set by the sweep.
+SCREENED_TRIPLES = {1, 2, 4, 5, 6, 7, 8, 9, 10}
 for group, part, rows, label in [('aa3', 'type96-25-triple', TRIPLES, 'triple'), ('aa2', 'type96-25-mogami-2', TWINS, 'twin'),
                                  ('aa1', 'type96-25-kongo-single', SINGLES, 'single')]:
     for i, (x, y, z, bearing) in enumerate(rows, 1):
@@ -285,6 +288,8 @@ for group, part, rows, label in [('aa3', 'type96-25-triple', TRIPLES, 'triple'),
                      bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition', fire=FIRE_LIGHT)
         if group == 'aa1' and i in SINGLE_STOPS:
             mount.update(SINGLE_STOPS[i])
+        if group == 'aa3' and i in SCREENED_TRIPLES:
+            mount['elevationMinDeg'] = -5
         b['mounts'].append(mount)
 # Two triples on the roofs of Nos. 2 and 3 turrets train with them (HP_JGM_2/3_HP_JGA; neutral datums).
 for parent, rows in [('main-2', [(-1.900, 13.998, -48.096, 0), (1.901, 13.998, -48.098, 0)]), ('main-3', [(1.899, 11.475, 47.109, 180), (-1.899, 11.475, 47.109, 180)])]:

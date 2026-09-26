@@ -1,5 +1,6 @@
 """Nagato masts, funnel top and optics: the pagoda's topmast, yards and rangefinders, the tripod mainmast with its
-crosstree, topmast, gaff and aircraft crane jib, the funnel cap, directors, searchlights and periscopes.
+trunk, legs, pole, top yard, gaffs, signal blocks and aircraft crane jib, the funnel cap, sirens and lattice, directors,
+searchlights and periscopes.
 
 Datums are reference-frame measurements (x starboard, y up, z toward the stern, metres) converted by `P`, read from
 plan and profile cuts (`ship:slice --plan/--section`) and the part bounds of the cached pjsb010 reference.

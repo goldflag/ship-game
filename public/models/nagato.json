@@ -37160,6 +37160,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37178,7 +37179,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37205,7 +37206,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37226,6 +37228,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37244,7 +37247,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37271,7 +37274,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37358,6 +37362,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37376,7 +37381,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37403,7 +37408,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37424,6 +37430,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37442,7 +37449,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37469,7 +37476,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37490,6 +37498,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37508,7 +37517,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37535,7 +37544,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37556,6 +37566,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37574,7 +37585,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37601,7 +37612,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37622,6 +37634,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37640,7 +37653,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37667,7 +37680,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37688,6 +37702,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37706,7 +37721,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37733,7 +37748,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -37754,6 +37770,7 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       },
+      "elevationMinDeg": -5,
       "weapon": {
         "id": "type96-25-triple",
         "name": "25 mm Type 96 triple",
@@ -37772,7 +37789,7 @@
         "caliberM": 0.025,
         "traverseDeg": 90,
         "traverseRateDeg": 18,
-        "elevationMinDeg": -10,
+        "elevationMinDeg": -5,
         "elevationMaxDeg": 85,
         "elevationRateDeg": 12,
         "reloadSeconds": 0.55,
@@ -37799,7 +37816,8 @@
           "muzzleSpeedSigmaFraction": 0.005,
           "penetrationReferenceSpeedMps": 530,
           "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
-        }
+        },
+        "catalogElevationMinDeg": -10
       }
     },
     {
@@ -156619,5 +156637,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "bc32734cc05664af06a21abbea926450bdf79f6cf077878694181839a1ade112"
+  "contentHash": "e27e5f4fa5710c3189ae87b72624f2c7267a84053d1fdba6be50b4261f5ea380"
 }
