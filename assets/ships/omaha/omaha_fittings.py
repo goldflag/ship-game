@@ -856,6 +856,12 @@ def deck_gear(D, kit):
         kit.cylz('ventilators', col, 'ventilator trunk', c, r * .8, top - c.z, 'naval', 14)
         kit.part('rod', 'ventilators', col, 'cowl', Vector((c.x, c.y, top - .05)), Vector((c.x + .9 * r, c.y, top + r * 1.1)), r * .9, 'naval', r2=r * 1.35, vertices=14)
         kit.part('rod', 'ventilators', col, 'cowl mouth', Vector((c.x + .9 * r, c.y, top + r * 1.1)), Vector((c.x + 1.0 * r, c.y, top + r * 1.2)), r * 1.25, 'dark', vertices=14)
+    # On the midships deckhouse's roof (10.0 m): the octagonal ventilation trunk at its after end under a canvas
+    # cover, and the low skylight at its forward end (reference plan cuts at 10.3-11.3 m).
+    roof = kit.below(*V(0, 0, -6.5)[:2], 10.5, 9.9)
+    trunk = [V(.92 * math.cos(math.tau * (k + .5) / 8), 0, -6.515 + .86 * math.sin(math.tau * (k + .5) / 8))[:2] for k in range(8)]
+    kit.prism('midships-house-fittings', col, 'ventilation trunk', trunk, roof - .02, roof + 1.45, 'naval', 'canvas')
+    kit.boxc('midships-house-fittings', col, 'skylight', V(0, 0, -11.07) + Vector((0, 0, roof + .14)), (.76, 3.32, .30), 'naval')
     for z in (-27.5, 35.3, 57.7):
         c = V(0, 0, z)
         c.z = kit.below(c.x, c.y, 8.5, 3.4)
