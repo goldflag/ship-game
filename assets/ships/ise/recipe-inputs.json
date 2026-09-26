@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-356/geometry.py",
+    "assets/ships/ise/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}
