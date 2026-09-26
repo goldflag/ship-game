@@ -467,15 +467,26 @@ def measured_prisms(cuts, cell=.1, gap=3):
         def snapped(values, lift):
             hist = np.bincount(values, minlength=n)
             peaks = np.array([k for k in range(n) if hist[k] >= 25 and hist[k] == hist[max(0, k - 3):k + 4].max()])
-            out = (values // 6) * 6 + lift
+            out = ((values + lift) // 6) * 6
             if len(peaks):
                 d = np.abs(values[:, None] - peaks[None, :])
                 j = d.argmin(1)
                 near = d[np.arange(len(values)), j] <= 3
                 out[near] = peaks[j[near]]
             return np.clip(out, 0, n - 1)
-        s, e = snapped(runs[:, 1], 0), snapped(runs[:, 2], 5)
+        s, e = snapped(runs[:, 1], 0), snapped(runs[:, 2], 3)
         e = np.maximum(e, s)
+        # Snapping must not lift a block back into a gun's working space: a run that starts below a carve ends
+        # under it.
+        ys = np.array([lv['y'] for lv in levels])
+        floor_level = np.full(W * H, n, np.int64)
+        for gy, where in carve:
+            first = int(np.searchsorted(ys, gy + .08, side='right'))
+            cells = where[0] * W + where[1]
+            floor_level[cells] = np.minimum(floor_level[cells], first)
+        cap = floor_level[runs[:, 0]]
+        clip = (s < cap) & (e >= cap)
+        e = np.where(clip, cap - 1, e)
         key = s.astype(np.int64) * 100000 + e
         order = np.argsort(key, kind='stable')
         bounds = np.nonzero(np.diff(key[order]))[0] + 1
