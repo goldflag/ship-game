@@ -891,9 +891,29 @@ def deck_gear(D, kit):
         kit.part('rod', 'winches', col, 'winch drum', c + Vector((0, -1.05, .55)), c + Vector((0, 1.05, .55)), .3, 'naval', vertices=14)
         for t in (-1, 1):
             kit.boxc('winches', col, 'winch cheek', c + Vector((0, t * 1.2, .45)), (.7, .12, .7), 'naval')
+    # The accommodation ladders stowed on their sides along the hull at the deck edge, treads upright between the
+    # stringers, with the grated platform hung at the forward end (reference CM024/CM025: x 8.85-9.55, z -4.64 to
+    # 4.51, the ladder from the deck edge to about 1.2 m over it).
     for s in (-1, 1):
-        c = V(s * 9.2, 6.71, -0.06)
-        kit.beam('ladders', col, 'accommodation ladder', c + Vector((4.4, 0, -1.0)), c + Vector((-4.4, 0, 1.0)), .7, .12, 'naval')
+        aid = 'accommodation-ladder-' + ('port' if s < 0 else 'starboard')
+        out = lambda z, y: hull_half(kit, z, y) + .15
+        for y in (6.70, 7.72):
+            kit.beam(aid, col, 'stringer', V(s * out(-3.15, y), y, -3.15), V(s * out(4.50, y), y, 4.50), .06, .16, 'naval')
+        for k in range(20):
+            z = -2.95 + 7.25 * k / 19
+            kit.boxc(aid, col, 'tread', V(s * out(z, 7.2), 7.21, z), (.06, .20, .90), 'naval')
+        for z in (-2.4, 3.6):
+            x0, x1 = hull_half(kit, z, 6.70) - .05, out(z, 6.70)
+            kit.boxc(aid, col, 'stowage bracket', V(s * (x0 + x1) / 2, 6.62, z), (.12, x1 - x0, .14), 'naval')
+        # The platform: a grating in a frame, hung upright forward of the ladder on a strut to the ship's side.
+        g0, g1, y0, y1 = -4.55, -3.25, 5.80, 7.35
+        xg = out(-3.9, 6.6)
+        kit.boxc(aid, col, 'platform grating', V(s * xg, (y0 + y1) / 2, (g0 + g1) / 2), (g1 - g0 - .08, .03, y1 - y0 - .08), 'dark')
+        for (za, ya), (zb, yb) in (((g0, y0), (g1, y0)), ((g0, y1), (g1, y1)), ((g0, y0), (g0, y1)), ((g1, y0), (g1, y1))):
+            kit.member(aid, col, V(s * xg, ya, za), V(s * xg, yb, zb), .04, 'naval', 4)
+        kit.member(aid, col, V(s * xg, 7.72, -3.15), V(s * xg, y1, g1), .04, 'naval', 4)
+        kit.member(aid, col, V(s * xg, y1, g0), V(s * (hull_half(kit, -5.3, 5.2) - .02), 5.20, -5.30), .035, 'naval', 5)
+        kit.boxc(aid, col, 'stowage bracket', V(s * (hull_half(kit, -3.9, 6.9) + xg) / 2, 6.90, -3.9), (.12, xg - hull_half(kit, -3.9, 6.9) + .05, .14), 'naval')
 
 
 # ---------------------------------------------------------------- underwater

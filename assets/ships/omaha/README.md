@@ -86,7 +86,10 @@ measurements and comparison captures stay in ignored `.build/`.
   ends 0.8 m forward of the reference's so their breeches, trained right aft, pass clear.
 - **Superstructure:** tiers are prisms, so the after control station steps where the reference tapers, and the
   drums' recesses are circles cut from the traced tiers. The reference's tubs round the upper forward guns are
-  left to the guns' own drums.
+  left to the guns' own drums. Under the forward superstructure the loft's deck edge runs at 8.2-8.6 m, on the
+  reference's armour-model deck plates, where the visual reference's deck line stands at about 9.35 m; the
+  superstructure's sides run flush with the hull there, so it does not show, but the hull counts that much less
+  freeboard in reserve buoyancy.
 - **Glazing:** windows and scuttles are placed where the reference paints them; an opening whose wall here stands
   more than 0.3 m (0.4 m for a window strip) from the reference's wall is left out, and windows are glazed in
   strips that follow this model's facets.
