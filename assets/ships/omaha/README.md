@@ -28,9 +28,10 @@ models are build outputs.
 The loft is `ship:lines` from the cached reference (`authoring/lines.json`), sampled at 127 stations; the
 authoring script sets the forecastle and quarterdeck lines, the stem and forefoot profile, the flat keel and the
 stern tips, and rebuilds outlying stations (bilge keels, torpedo pockets, an anchor recess at the deck edge) from
-their neighbours; `omaha_fittings.py` cuts the torpedo pockets and the anchor recesses from the visual hull only. The superstructure is prisms traced from reference plan cuts at every tier (`--structures`
-takes the traced tier files in `.build/omaha/`), with the funnels, midships casings, the forward shelter and the
-after superstructure's lowest tier as measured tables. Where the lowest forward tier runs out over the side
+their neighbours; `omaha_fittings.py` cuts the torpedo pockets and the anchor recesses from the visual hull only.
+The superstructure is prisms traced from reference plan cuts at every tier (`--structures` takes the traced tier
+files in `.build/omaha/`), with the funnels, midships casings, the forward shelter and the after superstructure's
+lowest tier as measured tables. Where the lowest forward tier runs out over the side
 beside the lower 6-inch drums it becomes a sponson shelf over a bowl fairing, as the reference's cuts show.
 
 Mounts, directors, rangefinders, torpedo pivots and tube muzzles are the reference hardpoints. The 6-inch singles
