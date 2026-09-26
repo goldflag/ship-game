@@ -70,6 +70,9 @@ def torpedo_pockets(D, kit, hull):
         lo = [min(a[i], b[i]) for i in range(3)]
         hi = [max(a[i], b[i]) for i in range(3)]
         cutter = kit.box('pocket cutter', [(l + h) / 2 for l, h in zip(lo, hi)], [h - l for l, h in zip(lo, hi)], 'hullgray', kit.collections['Hull and decks'])
+        # Kit.box winds its faces inward; the exact solver reads an inside-out cutter as empty and only scores the
+        # hull, so turn its normals outward first.
+        kit.solid(cutter)
         mod = hull.modifiers.new('pocket', 'BOOLEAN')
         mod.operation = 'DIFFERENCE'
         mod.object = cutter
@@ -77,6 +80,10 @@ def torpedo_pockets(D, kit, hull):
         bpy.context.view_layer.objects.active = hull
         bpy.ops.object.modifier_apply(modifier=mod.name)
         bpy.data.objects.remove(cutter, do_unlink=True)
+    # The cut must leave each pocket's back wall (authoring y = -x); a failed boolean only scores the side.
+    back = [v for v in hull.data.vertices if abs(abs(v.co.y) - POCKET['back']) < .01 and POCKET['floor'] - .01 <= v.co.z <= POCKET['head'] + .01]
+    if len(back) < 8:
+        raise RuntimeError(f'torpedo pockets: the boolean left {len(back)} back-wall vertices; the pockets were not cut')
     # Faces the cut made: walls and ceiling take the hull paint, the floor the deck paint (build.py sorts them).
     names = [m.name for m in hull.data.materials]
     return names
