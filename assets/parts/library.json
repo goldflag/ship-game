@@ -346,6 +346,14 @@
         "scripts/ships/blender_barrels.py"
       ]
     },
+    "ijn-hyuga-356": {
+      "path": "assets/parts/ijn-hyuga-356/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_components.py",
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
     "ijn-152": {
       "path": "assets/parts/ijn-152/geometry.py",
       "function": "create_mount",
@@ -437,6 +445,14 @@
     },
     "ijn-light-140-single": {
       "path": "assets/parts/ijn-light-cruiser-guns/type3_140_single.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py",
+        "assets/parts/gun_bloomers.py"
+      ]
+    },
+    "ijn-140-nagato-casemate": {
+      "path": "assets/parts/ijn-140-nagato/casemate.py",
       "function": "create_mount",
       "inputs": [
         "scripts/ships/blender_barrels.py",
@@ -1333,12 +1349,28 @@
       "limitations": "Kong\u014d 1942 installation of the original Kong\u014d twin with the barrel reach of the approved GameModels3D pjsb007 jgm049/jgm050 visuals (muzzle 14.34 m ahead of the yaw axis); gunhouse, bearing and optional rangefinder unchanged. Proportions and articulation remain under review."
     },
     {
+      "partId": "type41-356-hyuga-twin",
+      "nation": "Japan",
+      "family": "356 mm Type 41 twin",
+      "builder": "ijn-hyuga-356",
+      "review": "unreviewed",
+      "limitations": "Original Ise-class gunhouse measured against approved GameModels3D pjsb517 (jgm191): lozenge plan, inward-leaning sides and gabled roof, with the Type 41 gun's catalog values from the Kong\u014d twin. Interior machinery is not modelled; proportions and articulation remain under review."
+    },
+    {
       "partId": "type41-152-kongo-casemate",
       "nation": "Japan",
       "family": "Type 41 152 mm",
       "builder": "ijn-152",
       "review": "unreviewed",
       "limitations": "Original cylindrical casemate against approved Kong\u014d model; visual, installation and articulation review pending. Performance provisional."
+    },
+    {
+      "partId": "type3-140-hyuga-casemate",
+      "nation": "Japan",
+      "family": "14 cm/50 3rd Year Type casemate",
+      "builder": "ijn-152",
+      "review": "unreviewed",
+      "limitations": "Hy\u016bga installation of the original cylindrical casemate (ijn-152, built against the approved Kong\u014d model) carrying the 14 cm/50 3rd Year Type gun's catalog values and the barrel reach of the approved GameModels3D pjsb517 jgs197 visual (muzzle 6.19 m ahead of the training axis); drum, seat, canvas curtain, sight hood and barrel taper are the 15.2 cm recipe's. Visual, installation and articulation review pending. Performance provisional."
     },
     {
       "partId": "type96-25-kongo-3",
@@ -1443,6 +1475,14 @@
       "review": "unreviewed",
       "limitations": "Original reconstruction against GameModels3D pjsc013 Kuma AB1 artillery (jgm035); Tenryu, Iwaki and Kitakami fit the same visual. The catalog shell is a thin closed slab of the open-backed shield; lower rear corner, the below-deck lip and interior fittings approximate; weapon and armor values are provisional game calibration. Installed clearance, including the port opening, requires ship review.",
       "builder": "ijn-light-140-single"
+    },
+    {
+      "partId": "type3-140-nagato-casemate",
+      "nation": "Japan",
+      "family": "14 cm/50 3rd Year Type casemate",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction of the drum casemate against GameModels3D pjsb010 (jgs053), measured with ship:slice cuts: twelve-sided fixed seat and revolving drum, slot curtain, two sight ports, bore 0.96 m above the seat and muzzle 6.2 m ahead. The drum interior, sights and the curtain folds are simplified; the breech is kept short so the gun recoils and elevates inside the drum. Weapon values reuse the 14 cm/50 single; armour, arcs and elevation limits are provisional game calibration. Installed clearance requires ship review.",
+      "builder": "ijn-140-nagato-casemate"
     },
     {
       "partId": "type41-152-agano-twin",

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-356/geometry.py",
+    "assets/parts/ijn-152/geometry.py",
+    "assets/parts/ijn-carrier-guns/type89_twin.py",
+    "assets/parts/ijn-destroyer-guns/aa.py",
+    "assets/parts/type96-single/geometry.py",
+    "assets/ships/fuso/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}
