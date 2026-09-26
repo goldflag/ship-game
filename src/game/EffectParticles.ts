@@ -131,12 +131,9 @@ export class EffectParticlePool {
   private readonly progress?: THREE.InstancedBufferAttribute;
   // Instance poses do not need a scene object's synchronized Euler rotation or
   // world-matrix propagation: publish() composes them straight into the buffers.
-  private readonly position = new THREE.Vector3();
   private readonly orientation = new THREE.Quaternion();
   private readonly facing = new THREE.Matrix4();
   private readonly up = THREE.Object3D.DEFAULT_UP.clone();
-  private readonly cameraInverse = new THREE.Quaternion();
-  private readonly direction = new THREE.Vector3();
   private readonly frustum = new THREE.Frustum();
   private readonly projection = new THREE.Matrix4();
   private cursor = 0;
@@ -153,8 +150,8 @@ export class EffectParticlePool {
     const material = volumeMaterial ?? new THREE.MeshBasicNodeMaterial({ map, transparent: true, depthWrite: false,
       side: THREE.DoubleSide, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending });
     material.forceSinglePass = true;
-    // The map already contributes its alpha through materialColor.
-    material.opacityNode = attribute('effectOpacity', 'float');
+    // The map already contributes its alpha through materialColor. A volume material brings its own opacity.
+    if (!volumeMaterial?.opacityNode) material.opacityNode = attribute('effectOpacity', 'float');
     if (volumeMaterial) {
       this.sphere = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
       this.volume = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
@@ -333,7 +330,6 @@ export class EffectParticlePool {
     const cameraRotation = camera.quaternion, qx = cameraRotation.x, qy = cameraRotation.y, qz = cameraRotation.z, qw = cameraRotation.w;
     // The camera's inverse rotation, as Quaternion.invert() makes it.
     const ix = qx * -1, iy = qy * -1, iz = qz * -1, iw = qw;
-    this.cameraInverse.set(ix, iy, iz, iw);
     const perspective = !!(camera as THREE.PerspectiveCamera).isPerspectiveCamera;
     const cull = this.cullOffscreen && perspective, volumes = !!this.sphere, fineWater = this.cullFineWater && perspective;
     const cameraPosition = camera.position, cx = cameraPosition.x, cy = cameraPosition.y, cz = cameraPosition.z;
@@ -353,6 +349,8 @@ export class EffectParticlePool {
       if (p.age < 0 || p.age >= p.life) continue;
       // Hidden smoke still ages and drifts, so leaving optics restores its current state.
       if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
+      // A gas puff faded to nothing would still fill its whole quad.
+      if (volumes && p.opacity * (1 - smooth((p.age / p.life - .18) / .82)) < .004) continue;
       const position = p.position, x = position.x, y = position.y, z = position.z;
       if (cull) {
         // Linear growth bounds the decaying expansion. Include the full rotated
@@ -360,9 +358,9 @@ export class EffectParticlePool {
         const size = Math.max(.01, p.size + Math.max(0, p.growth) * p.age + Math.max(0, p.diffusion) * p.age);
         if (p.stretch !== boundStretch) { boundStretch = p.stretch; boundScale = Math.hypot(1, p.stretch); }
         const reach = -(size * .5 * boundScale);
-        // Volume rays start at the camera, including gas inside the near
-        // plane. Only the four side planes can reject their bounding sphere;
-        // the fragment shader owns depth clipping against the captured scene.
+        // A gas puff's sprite is pulled toward the camera and the gas material
+        // clears a puff around the lens, so only the four side planes reject
+        // its bounding sphere; depth against the scene is the material's.
         if (n0x * x + n0y * y + n0z * z + c0 < reach || n1x * x + n1y * y + n1z * z + c1 < reach
           || n2x * x + n2y * y + n2z * z + c2 < reach || n3x * x + n3y * y + n3z * z + c3 < reach) continue;
         if (!volumes && (n4x * x + n4y * y + n4z * z + c4 < reach || n5x * x + n5y * y + n5z * z + c5 < reach)) continue;
@@ -404,23 +402,17 @@ export class EffectParticlePool {
       const size = Math.max(.01, p.size + p.growth * expansion + p.diffusion * p.age);
       let px = p.position.x, py = p.position.y, pz = p.position.z, ox: number, oy: number, oz: number, ow: number, sx: number, sy: number;
       if (facing) {
-        const radiusSq = size * size / 4, orientation = this.orientation;
-        if (p.distance > radiusSq * 1.01) {
-          // A sphere's perspective silhouette extends beyond a diameter-sized
-          // billboard. Face its center and bound the camera's tangent cone.
-          orientation.setFromRotationMatrix(this.facing.lookAt(cameraPosition, p.position, this.up));
-          sx = sy = size * Math.sqrt(p.distance / (p.distance - radiusSq));
-        } else {
-          // Inside the volume, every screen ray may intersect gas. Cover the
-          // viewport at a valid clip depth; the shader still uses the real sphere.
-          orientation.copy(cameraRotation);
-          // Mid-clip depth stays inside the frustum with standard AND reversed
-          // depth; zero lies on the far plane when reversed depth is active.
-          const center = this.position.set(0, 0, .5).unproject(camera);
-          px = center.x; py = center.y; pz = center.z;
-          this.direction.set(1, 1, .5).unproject(camera).sub(center).applyQuaternion(this.cameraInverse);
-          sx = Math.abs(this.direction.x) * 2; sy = Math.abs(this.direction.y) * 2;
+        // A puff is a sprite facing the camera from its centre (the frame the gas material rebuilds), drawn half its
+        // radius nearer the camera so the deck or hull it rises from does not cut it through the middle. Scaled to
+        // keep the puff's angular size where it is drawn.
+        const orientation = this.orientation, distance = Math.sqrt(p.distance), radius = size / 2;
+        orientation.setFromRotationMatrix(this.facing.lookAt(cameraPosition, p.position, this.up));
+        const pull = distance > 1e-6 ? Math.min(radius * .5, Math.max(0, distance - (camera as THREE.PerspectiveCamera).near * 2)) : 0;
+        if (pull > 0) {
+          const k = pull / distance;
+          px -= (px - cameraPosition.x) * k; py -= (py - cameraPosition.y) * k; pz -= (pz - cameraPosition.z) * k;
         }
+        sx = sy = size * (distance > 1e-6 ? (distance - pull) / distance : 1);
         ox = orientation.x; oy = orientation.y; oz = orientation.z; ow = orientation.w;
       } else {
         let angle = p.angle, stretch = p.stretch, ax = qx, ay = qy, az = qz, aw = qw;

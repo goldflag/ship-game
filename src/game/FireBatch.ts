@@ -36,9 +36,13 @@ export interface FireParticle {
   /** Flame temperature, or smoke underglow from the fire below; cools over `cool` seconds. */
   glow: number;
   cool: number;
+  /** Gas only: burning gas (0 none … 2 white-hot) that cools to smoke over `cooling` seconds, as the gas atlas draws it. */
+  heat: number;
+  cooling: number;
 }
 
-export type FireBatchMode = 'flame' | 'smoke';
+/** `flame` tongues, `smoke` puffs shaded as spheres by their own material, or `gas` puffs that relight the gas atlas. */
+export type FireBatchMode = 'flame' | 'smoke' | 'gas';
 const UP = new THREE.Vector3(0, 1, 0);
 const smooth = (n: number) => { const t = Math.max(0, Math.min(1, n)); return t * t * (3 - 2 * t); };
 
@@ -46,14 +50,17 @@ const smooth = (n: number) => { const t = Math.max(0, Math.min(1, n)); return t 
  *
  * Particles live in world space. Flames stand upright on the world axis and turn only in azimuth
  * toward the camera (full billboards when looking straight down); smoke puffs face the camera and
- * are shaded as spheres by their material. Per-instance data: `fireCenter` (centre, radius or half
- * height), `fireState` (seed, life fraction, glow, opacity) and `fireColor` (albedo, age in s). */
+ * are shaded as spheres by their material; gas puffs face the camera from their centres, the frame the
+ * gas atlas is relit in. Per-instance data: `fireCenter` (centre, radius or half height), `fireState`
+ * (seed, life fraction, glow, opacity), `fireColor` (albedo, age in s) and `fireHeat` (a gas puff's
+ * burning gas). */
 export class FireBatch {
   readonly mesh: THREE.InstancedMesh<THREE.InstancedBufferGeometry, THREE.Material>;
   private readonly particles: FireParticle[];
   private readonly center: THREE.InstancedBufferAttribute;
   private readonly state: THREE.InstancedBufferAttribute;
   private readonly color: THREE.InstancedBufferAttribute;
+  private readonly heat: THREE.InstancedBufferAttribute;
   private readonly order: number[] = [];
   private readonly depth: Float32Array;
   private readonly sorted: Uint32Array;
@@ -86,9 +93,11 @@ export class FireBatch {
     geometry.instanceCount = 0;
     const vec4 = () => new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
     this.center = vec4(); this.state = vec4(); this.color = vec4();
+    this.heat = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1).setUsage(THREE.DynamicDrawUsage);
     geometry.setAttribute('fireCenter', this.center);
     geometry.setAttribute('fireState', this.state);
     geometry.setAttribute('fireColor', this.color);
+    geometry.setAttribute('fireHeat', this.heat);
     this.mesh = new THREE.InstancedMesh(geometry, material, capacity);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     // Three sizes the matrix buffer from the capacity at compilation; instanceCount draws the live part.
@@ -101,7 +110,7 @@ export class FireBatch {
     this.particles = Array.from({ length: capacity }, () => ({
       origin: new THREE.Vector3(), position: new THREE.Vector3(), drift: new THREE.Vector3(), drag: 0, age: 0, life: 0,
       rise: 0, riseTime: 1, lift: 0, shear: 0, shearHeight: 1, size: 1, growth: 0, growthDecay: 0, diffusion: 0, aspect: 1,
-      seed: 0, opacity: 1, thin: 0, fadeIn: 0, albedo: new THREE.Color(), glow: 0, cool: 1 }));
+      seed: 0, opacity: 1, thin: 0, fadeIn: 0, albedo: new THREE.Color(), glow: 0, cool: 1, heat: 0, cooling: 1 }));
   }
 
   /** A reset particle at `position`. Thinned requests get a detached scratch particle, so callers
@@ -127,7 +136,7 @@ export class FireBatch {
     p.drag = 0; p.age = 0; p.life = 1; p.rise = 0; p.riseTime = 1; p.lift = 0; p.shear = 0; p.shearHeight = 1;
     p.size = 1; p.growth = 0; p.growthDecay = 0; p.diffusion = 0; p.aspect = 1;
     p.seed = (++this.emitted * .61803398875 % 1) * 100; p.opacity = 1; p.thin = 0; p.fadeIn = 0; p.albedo.setRGB(1, 1, 1);
-    p.glow = 0; p.cool = 1;
+    p.glow = 0; p.cool = 1; p.heat = 0; p.cooling = 1;
     return p;
   }
 
@@ -168,6 +177,8 @@ export class FireBatch {
       const p = this.particles[i];
       if (p.age < 0 || p.age >= p.life) continue;
       if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
+      // A puff faded to nothing would still fill its whole quad.
+      if (this.mode !== 'flame' && p.opacity * (1 - smooth((p.age / p.life - .45) / .55)) < .01) continue;
       const extent = FireBatch.extent(p);
       if (perspective) {
         this.bounds.center.copy(p.position);
@@ -204,17 +215,18 @@ export class FireBatch {
       this.up.copy(UP).lerp(this.cameraUp, steep).normalize();
       this.right.crossVectors(this.up, this.normal).normalize();
       this.up.crossVectors(this.normal, this.right);
-    } else {
+    } else if (this.mode === 'smoke') {
       this.right.copy(this.cameraRight); this.up.copy(this.cameraUp);
       this.normal.crossVectors(this.right, this.up);
     }
-    const matrices = this.mesh.instanceMatrix.array as Float32Array;
+    const matrices = this.mesh.instanceMatrix.array as Float32Array, near = perspective ? (camera as THREE.PerspectiveCamera).near : 0;
     const center = this.center.array as Float32Array, state = this.state.array as Float32Array, color = this.color.array as Float32Array;
+    const heat = this.heat.array as Float32Array;
     for (let slot = 0; slot < this.order.length; slot++) {
       const index = this.order[slot], p = this.particles[index], t = p.age / p.life, extent = this.extents[index];
       const fade = (p.fadeIn > 0 ? smooth(p.age / p.fadeIn) : 1) * (1 - smooth((t - .45) / .55))
         * (p.thin > 0 ? Math.max(.35, Math.min(1, (p.size / extent) ** p.thin)) : 1)
-        // A puff around the camera would fill the screen with one flat layer: clear it as the lens enters.
+        // A puff around the camera would fill the screen with one flat layer: clear it as the lens enters (the gas material does its own).
         * (this.mode === 'smoke' ? smooth((Math.sqrt(this.depth[index]) - extent * .7) / (extent * 1.6)) : 1);
       const m = slot * 16;
       let cx = p.position.x, cy = p.position.y, cz = p.position.z, sx: number, sy: number;
@@ -223,8 +235,20 @@ export class FireBatch {
         sy = height; sx = height * p.aspect * (1 - .45 * t);
         cx += this.up.x * sy * .5; cy += this.up.y * sy * .5; cz += this.up.z * sy * .5;
         center[slot * 4 + 3] = sy * .5;
-      } else {
+      } else if (this.mode === 'smoke') {
         sx = sy = extent * 2;
+        center[slot * 4 + 3] = extent;
+      } else {
+        // Gas puffs face the camera from their centres, turned about the world's up (the frame the gas material relights
+        // them in), drawn half a radius nearer the camera so the deck they rise from does not cut them.
+        const distance = Math.sqrt(this.depth[index]);
+        this.normal.subVectors(this.cameraPosition, p.position).divideScalar(Math.max(distance, 1e-6));
+        this.right.crossVectors(UP, this.normal);
+        if (this.right.lengthSq() < 1e-8) this.right.copy(this.cameraRight); else this.right.normalize();
+        this.up.crossVectors(this.normal, this.right);
+        const pull = Math.min(extent * .5, Math.max(0, distance - near * 2));
+        cx += this.normal.x * pull; cy += this.normal.y * pull; cz += this.normal.z * pull;
+        sx = sy = extent * 2 * (distance > 1e-6 ? (distance - pull) / distance : 1);
         center[slot * 4 + 3] = extent;
       }
       matrices[m] = this.right.x * sx; matrices[m + 1] = this.right.y * sx; matrices[m + 2] = this.right.z * sx; matrices[m + 3] = 0;
@@ -234,6 +258,7 @@ export class FireBatch {
       center[slot * 4] = p.position.x; center[slot * 4 + 1] = p.position.y; center[slot * 4 + 2] = p.position.z;
       state[slot * 4] = p.seed; state[slot * 4 + 1] = t;
       state[slot * 4 + 2] = p.glow * Math.exp(-p.age / p.cool); state[slot * 4 + 3] = p.opacity * fade;
+      heat[slot] = p.heat > 0 ? p.heat * (1 - smooth(p.age / p.cooling)) : 0;
       color[slot * 4] = p.albedo.r; color[slot * 4 + 1] = p.albedo.g; color[slot * 4 + 2] = p.albedo.b; color[slot * 4 + 3] = p.age;
     }
     this.live = this.order.length;
@@ -242,7 +267,7 @@ export class FireBatch {
     this.mesh.geometry.instanceCount = this.live;
     this.mesh.visible = this.live > 0;
     if (!this.live) return;
-    for (const buffer of [this.mesh.instanceMatrix, this.center, this.state, this.color]) {
+    for (const buffer of [this.mesh.instanceMatrix, this.center, this.state, this.color, this.heat]) {
       buffer.clearUpdateRanges();
       buffer.addUpdateRange(0, this.live * buffer.itemSize);
       buffer.needsUpdate = true;

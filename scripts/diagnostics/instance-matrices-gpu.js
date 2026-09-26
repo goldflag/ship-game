@@ -1,12 +1,12 @@
 import * as THREE from 'three/webgpu';
-import { float, uniform } from 'three/tsl';
 import { AircraftView } from '/src/game/AircraftView.ts';
 import { AircraftGunfire } from '/src/game/AircraftGunfire.ts';
 import { installInstanceBufferNames } from '/src/game/InstanceBufferNames.ts';
 import { installFleetBatchInstancing } from '/src/game/FleetBatchInstancing.ts';
 import { prepareInstanceUploads } from '/src/game/InstanceUploads.ts';
 import { EffectParticlePool, effectTexture } from '/src/game/EffectParticles.ts';
-import { effectVolumeMaterial, effectVolumeTexture } from '/src/game/EffectVolume.ts';
+import { EffectLighting } from '/src/game/EffectLighting.ts';
+import { GasAtlas, gasSpriteMaterial } from '/src/game/GasAtlas.ts';
 import { CombatSimulation } from '/src/simulation/combat.ts';
 import { GAMEPLAY_AIRCRAFT } from '/src/ships/blueprint.ts';
 import { shipPreset } from '/src/ships/presets.ts';
@@ -104,11 +104,12 @@ for (const events of [1, 100, 0, 101]) {
 }
 device.createRenderPipeline = original; device.createShaderModule = originalModule;
 gunfire.root.visible = false;
-const particles = [], map = effectTexture('smoke'), volumeMap = effectVolumeTexture();
+const particles = [], map = effectTexture('smoke'), atlas = new GasAtlas(), lighting = new EffectLighting();
+atlas.bake(renderer);
 for (const volume of [false, true]) {
   const capacity = volume ? 192 : 6144;
   const pools = [false, true].map(storage => {
-    const material = volume ? effectVolumeMaterial(volumeMap, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), float(renderer.reversedDepthBuffer ? 0 : 1), 16, true) : undefined;
+    const material = volume ? gasSpriteMaterial(atlas, { lighting }) : undefined;
     const pool = new EffectParticlePool(capacity, map, false, material);
     pool.mesh.name = 'Particle upload comparison';
     if (storage) prepareInstanceUploads(pool.mesh);

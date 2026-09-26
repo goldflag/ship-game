@@ -1,5 +1,4 @@
 import * as THREE from 'three/webgpu';
-import { effectVolumeMaterial } from '../../src/game/EffectVolume';
 import { CombatEffects } from '../../src/game/CombatEffects';
 import type { CombatEvent, CombatSimulation } from '../../src/simulation/combat';
 
@@ -163,77 +162,6 @@ export async function measureSmoke(review: any, samples = 20) {
     smoke.visible = visible;
     renderer.backend.trackTimestamp = tracking;
     renderer.info.autoReset = autoReset;
-    game.scheduleFrame = schedule;
-    game.lastTime = performance.now();
-    game.scheduleFrame();
-  }
-}
-
-/** Compare shader revisions on identical live particle buffers, in alternating
- * order on the same GPU. Pass a retained baseline factory from a local .build
- * copy; that file is intentionally not a production dependency. */
-export async function compareSmokeMaterials(review: any, baseline: typeof effectVolumeMaterial, samples = 30) {
-  const game = review.game, renderer: THREE.WebGPURenderer = game.renderer;
-  // r185 exposes this switch at runtime but omits it from the base Backend type.
-  const backend = renderer.backend as typeof renderer.backend & { trackTimestamp: boolean };
-  const schedule = game.scheduleFrame;
-  game.scheduleFrame = () => {};
-  cancelAnimationFrame(game.raf);
-  await game.frameTask;
-  cancelAnimationFrame(game.raf);
-  const effects = game.effects;
-  const mesh = effects.root.getObjectByName('Propellant and impact volumes').clone() as THREE.InstancedMesh;
-  const scene = new THREE.Scene();
-  scene.add(mesh);
-  const materials = [baseline, effectVolumeMaterial].map(factory => factory(effects.volumeMap, effects.sun, effects.volumeDepth, 12, true));
-  const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-  const target = new THREE.RenderTarget(size.x, size.y, { samples: renderer.samples });
-  const oldTarget = renderer.getRenderTarget(), alpha = renderer.getClearAlpha(), color = renderer.getClearColor(new THREE.Color());
-  const tracking = backend.trackTimestamp;
-  const timings: number[][] = [[], []];
-  try {
-    if (!renderer.hasFeature('timestamp-query')) throw new Error('This probe requires WebGPU timestamp queries.');
-    backend.trackTimestamp = true;
-    renderer.setRenderTarget(target);
-    renderer.setClearColor(0, 0);
-    for (let frame = -6; frame < samples; frame++) {
-      for (const index of frame % 2 === 0 ? [0, 1] : [1, 0]) {
-        mesh.material = materials[index];
-        renderer.render(scene, game.camera);
-        const ms = await renderer.resolveTimestampsAsync('render');
-        if (ms === undefined) throw new Error('GPU timestamp query returned no result.');
-        if (frame >= 0) timings[index].push(ms);
-      }
-    }
-    const pixels = [];
-    for (const material of materials) {
-      mesh.material = material;
-      renderer.render(scene, game.camera);
-      pixels.push(await renderer.readRenderTargetPixelsAsync(target, 0, 0, size.x, size.y));
-    }
-    let sum = 0, max = 0, changed = 0, covered = 0;
-    for (let i = 0; i < pixels[0].length; i += 4) {
-      if (pixels[0][i + 3] > 0) covered++;
-      let delta = 0;
-      for (let c = 0; c < 4; c++) {
-        const d = Math.abs(pixels[0][i + c] - pixels[1][i + c]);
-        sum += d; max = Math.max(max, d); delta = Math.max(delta, d);
-      }
-      if (delta > 2) changed++;
-    }
-    const stats = (values: number[]) => {
-      values.sort((a, b) => a - b);
-      return { median: values[Math.floor(values.length / 2)], p90: values[Math.floor(values.length * .9)] };
-    };
-    return { canvas: size.toArray(), antialiasSamples: renderer.samples, effects: effects.diagnostics(), samples,
-      gpuMs: { before: stats(timings[0]), after: stats(timings[1]) },
-      pixels: { covered, changedByMoreThanTwo: changed, maxChannelDelta: max, meanChannelDelta: sum / pixels[0].length } };
-  } finally {
-    renderer.setRenderTarget(oldTarget);
-    renderer.setClearColor(color, alpha);
-    backend.trackTimestamp = tracking;
-    for (const material of materials) material.dispose();
-    mesh.dispose(); target.dispose();
     game.scheduleFrame = schedule;
     game.lastTime = performance.now();
     game.scheduleFrame();

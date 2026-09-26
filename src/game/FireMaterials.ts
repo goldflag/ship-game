@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { Fn, attribute, cameraPosition, cameraProjectionMatrix, float, mix, positionWorld, screenSize, smoothstep, texture3D, uv, vec3, vec4 } from 'three/tsl';
 import type { EffectLighting } from './EffectLighting';
+import type { GasPuffAttributes } from './GasAtlas';
 
 /** Flame tongues for `FireBatch` in `flame` mode: an animated, tapering tongue whose temperature
  * falls from a white-yellow root through orange to a sooty red tip. The shape comes from a periodic
@@ -106,4 +107,17 @@ export function fireSmokeMaterial(noise: THREE.Data3DTexture, lighting: EffectLi
   // nothing inside its own quad, so no hard line shows where it rises off the deck.
   material.opacityNode = shaded.a.mul(state.w);
   return material;
+}
+
+/** What `gasSpriteMaterial` reads for a `FireBatch` of rolling flame bodies: each puff's centre and radius, age and seed,
+ * albedo, life, its burning gas (white-yellow at the roof, cooling through orange and deep red into soot) and the fire's
+ * light on its underside. A body thins into wisps over the last part of its life. */
+export function fireBodyInputs(): GasPuffAttributes {
+  const center = attribute<'vec4'>('fireCenter', 'vec4'); // centre, radius
+  const state = attribute<'vec4'>('fireState', 'vec4'); // seed, life fraction, underglow, opacity
+  const tint = attribute<'vec4'>('fireColor', 'vec4'); // albedo, age in seconds
+  const heat = attribute<'float'>('fireHeat', 'float');
+  // Burning oil is dense: a body keeps its shape until late in its climb.
+  return { sphere: center, state: vec4(tint.w, state.x, heat.add(state.z.mul(.3)), 5), tint: vec4(tint.rgb, 1),
+    evolution: vec4(state.y, smoothstep(.6, 1, state.y), 0, 0), opacity: state.w, glow: state.z.mul(1.6) };
 }

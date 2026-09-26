@@ -30,14 +30,15 @@ test('a surface that asks for no history writes that response into the motion ta
   expect(motion.node.value.toArray()).toEqual([0, 0, 1, 0]);
 });
 
-test('the combat volumes keep their colour under temporal AA and moving instances take no history', () => {
+test('the combat gas keeps its colour under temporal AA and moving instances take no history', () => {
   const effects = new CombatEffects();
-  const taa = new TemporalAntialiasing(new PerspectiveCamera());
-  for (const name of ['Heavy AA burst smoke', 'Propellant and impact volumes']) {
+  for (const name of ['Heavy AA burst smoke', 'Propellant and impact volumes', 'Smouldering and fragment smoke', 'Falling aircraft smoke']) {
     const material = (effects.root.getObjectByName(name) as InstancedMesh).material as MeshBasicNodeMaterial;
-    expect(material.fragmentNode).not.toBeNull();
-    const output = material.setupOutput(builder(taa.mrt), vec4(1)) as unknown as Outputs;
-    expect(Object.keys(output.outputNodes)).toContain(MOTION_OUTPUT);
+    // Gas shades through the standard colour and opacity, so the pass fills its motion target like any transparent surface's;
+    // a material with its own fragment output would have to write the scene targets itself (see above).
+    expect(material.fragmentNode).toBeNull();
+    expect(material.colorNode).not.toBeNull();
+    expect(material.transparent).toBe(true);
   }
   for (const name of ['Shell bodies', 'Shell streaks', 'Shell glows', 'Torpedo bodies', 'Depth charge bodies']) {
     expect(effects.root.getObjectByName(name)?.userData.temporalResponse).toBe(1);
