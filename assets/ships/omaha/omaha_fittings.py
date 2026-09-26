@@ -376,8 +376,11 @@ def mainmast(D, kit):
     kit.part('cyl', aid, col, 'mast band', V(0, 24.5, pole(24.5)), .39, .30, 'naval', vertices=14)
     kit.boxc(aid, col, 'deck house', V(0, base + .95, pole(base) - .2), (1.3, 1.3, 1.9), 'naval')
     post = kit.below(*V(0, 0, 31.96)[:2], 12.0, 6.0)
-    taper(kit, aid, col, 'derrick post', (0, post - .05, 31.96), (0, 25.0, 31.96), .17, .10)
-    kit.member(aid, col, V(0, 24.5, 31.96), V(0, 24.5, pole(24.5)), .05)
+    taper(kit, aid, col, 'derrick post', (0, post - .05, 31.96), (0, 24.6, 31.96), .17, .10)
+    # The post is braced to the mast by a triangular bracket at 20.5 m (reference side view), not at its head.
+    kit.member(aid, col, V(0, 20.55, 32.02), V(0, 20.55, pole(20.55) - .25), .06)
+    kit.member(aid, col, V(0, 20.55, 32.02), V(0, 19.45, pole(19.45) - .28), .05)
+    kit.beam(aid, col, 'post bracket', V(0, 20.25, 32.05), V(0, 20.25, pole(20.25) - .28), .03, .55, 'naval')
     # Lower lookout station abaft the pole (reference 15.71-17.71 m, 1.9 m across, z 33.62 to 34.55) on a floor plate
     # that reaches forward to the pole, its window band over a sill at 17.0 m.
     kit.boxc(aid, col, 'lower lookout floor', V(0, 15.77, 33.72), (1.30, 1.95, .12), 'naval')
@@ -531,11 +534,11 @@ def rangefinders(D, kit):
 
 
 # ---------------------------------------------------------------- boats and davits
-def boat(kit, aid, col, c, length, beam, depth, heading=0.0, cabin=None, engine=False, colour='white'):
+def boat(kit, aid, col, c, length, beam, depth, heading=0.0, cabin=None, engine=False, colour='white', double=False):
     """Original lofted boat hull on its keel point c (authoring frame), bow toward +X, open as the reference's boats
     are: the hull's top between the gunwales is the dark inside, with a rim along the sheer and thwarts across it.
     `cabin` = (length, height) adds the motor boat's white canopy amidships; `engine` the launch's engine box and
-    helm post aft of amidships."""
+    helm post aft of amidships; `double` gives a double-ended hull, pointed at both ends like the whaleboats."""
     rings = []
     n = 13
     for i in range(n):
@@ -545,6 +548,10 @@ def boat(kit, aid, col, c, length, beam, depth, heading=0.0, cabin=None, engine=
         aft = max(0, (.22 - t) / .22)
         half = beam / 2 * (1 - fore ** 1.8) * (1 - .45 * aft ** 2) + .03
         top = depth * (1 + .18 * fore ** 2 + .06 * aft)
+        if double:
+            aft = max(0, (.38 - t) / .38)
+            half = beam / 2 * (1 - fore ** 1.8) * (1 - aft ** 1.8) + .03
+            top = depth * (1 + .18 * fore ** 2 + .18 * aft ** 2)
         ring = []
         for k in range(9):
             a = math.pi * k / 8
@@ -585,7 +592,7 @@ def boat(kit, aid, col, c, length, beam, depth, heading=0.0, cabin=None, engine=
 
 
 def davit(kit, aid, col, foot, height, out, radius=.13):
-    """A radial boat davit: a post rising from its deck socket that crooks over outboard by `out` (authoring vector)."""
+    """A radial boat davit: a post rising from its socket that crooks over by `out` (authoring vector)."""
     foot, out = Vector(foot), Vector(out)
     pts = []
     for k in range(9):
@@ -617,22 +624,29 @@ def boats(D, kit):
             c = V(s * 6.8, 0, -14.8 + dz)
             floor = kit.below(c.x, c.y, 7.7, 6.0)
             kit.boxc(f'motor-boat-{side}', col, 'chock', Vector((c.x, c.y, (floor + 7.65) / 2)), (.3, 1.7, 7.65 - floor), 'edge')
-        boat(kit, f'whaleboat-{side}', col, V(s * 9.75, 9.85, -15.18), 8.5, 2.15, 1.2, 0)
-        for z in (-11.3, -18.9):
+        boat(kit, f'whaleboat-{side}', col, V(s * 9.75, 9.85, -15.18), 8.5, 2.15, 1.2, 0, double=True)
+        # The davits stand in sockets on the hull side and rise past the deck edge, as the reference mounts them.
+        for z, y0, top, head_x in ((-11.3, 5.35, 12.75, 9.75), (-18.9, 5.55, 12.9, 9.75), (-23.43, 5.75, 13.1, 6.30), (-32.85, 5.75, 13.1, 6.30)):
             aid = f'davit-{side}-{abs(z):.0f}'
-            foot = V(s * 8.3, 0, z)
-            foot.z = kit.below(foot.x, foot.y, 7.5, 6.9)
-            head = davit(kit, aid, col, foot, 13.0 - foot.z, Vector((0, -s * 1.5, 0)))
-            kit.wire(aid, col, head - Vector((0, 0, .25)), V(s * 9.75, 11.0, z * .6 - 15.18 * .4), .015, False)
-        for z in (-23.43, -32.85):
-            aid = f'davit-{side}-{abs(z):.0f}'
-            foot = V(s * 7.45, 0, z)
-            foot.z = kit.below(foot.x, foot.y, 7.8, 7.0)
-            head = davit(kit, aid, col, foot, 13.1 - foot.z, Vector((0, s * 1.4, 0)))
-            kit.wire(aid, col, head - Vector((0, 0, .25)), V(s * 5.94, ky + 1.8, z * .5 - 28.13 * .5), .015, False)
-        foot = V(s * 9.06, 0, 3.7)
-        foot.z = kit.below(foot.x, foot.y, 7.0, 6.3)
-        davit(kit, f'davit-{side}-small', col, foot, 10.55 - foot.z, Vector((0, -s * .6, 0)), .08)
+            x0 = hull_half(kit, z, y0 + .9) + .16
+            foot = V(s * x0, y0, z)
+            head = davit(kit, aid, col, foot, top - y0, Vector((0, -s * (head_x - x0), 0)))
+            edge = deck(kit, z) - .12
+            kit.boxc(aid, col, 'davit bracket', V(s * (hull_half(kit, z, edge) + .05), edge, z), (.22, .26, .16), 'naval')
+            if head_x > 9:
+                kit.wire(aid, col, head - Vector((0, 0, .25)), V(s * 9.75, 11.0, z * .6 - 15.18 * .4), .015, False)
+            else:
+                kit.wire(aid, col, head - Vector((0, 0, .25)), V(s * 5.94, ky + 1.8, z * .5 - 28.13 * .5), .015, False)
+        x0 = hull_half(kit, 3.7, 6.4) + .12
+        foot = V(s * x0, 5.55, 3.7)
+        davit(kit, f'davit-{side}-small', col, foot, 10.55 - 5.55, Vector((0, -s * .5, 0)), .08)
+        kit.boxc(f'davit-{side}-small', col, 'davit bracket', V(s * (hull_half(kit, 3.7, deck(kit, 3.7) - .12) + .03), deck(kit, 3.7) - .12, 3.7), (.18, .20, .14), 'naval')
+        # The boat boom stowed along the hull side under the launch's davits (reference AM109, 5.2-5.5 m, z -35.8 to -24.7).
+        a, b = V(s * (hull_half(kit, -35.6, 5.37) + .14), 5.37, -35.6), V(s * (hull_half(kit, -24.9, 5.37) + .14), 5.37, -24.9)
+        kit.part('rod', f'boat-boom-{side}', col, 'boat boom', a, b, .13, 'naval', r2=.10, vertices=10)
+        for t in (.2, .8):
+            p = a.lerp(b, t)
+            kit.boxc(f'boat-boom-{side}', col, 'boom bracket', p + Vector((0, s * .08, 0)), (.14, .22, .30), 'naval')
 
 
 # ---------------------------------------------------------------- aviation
@@ -858,11 +872,11 @@ def underwater(D, kit):
             side = axis.cross(Vector((0, 0, 1))).normalized()
             up = side.cross(axis).normalized()
             for k in range(3):
-                a = math.tau * k / 3 + (.3 if s > 0 else -.3)
+                a = math.tau * k / 3 + math.pi / 2  # one blade straight up, as the reference stands them
                 radial = (side * math.cos(a) + up * math.sin(a)).normalized()
                 tangent = axis.cross(radial).normalized()
                 sections = []
-                for r, w in ((.30, .55), (.75, .95), (1.15, .95), (1.45, .65), (radius, .25)):
+                for r, w in ((.30, .70), (.75, 1.20), (1.15, 1.26), (1.45, .92), (radius, .42)):
                     p = c + radial * r
                     sections.append((p - tangent * w * .5 - axis * w * .18 * s, p + tangent * w * .5 + axis * w * .18 * s))
                 vv = []
