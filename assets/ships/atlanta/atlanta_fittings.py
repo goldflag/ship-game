@@ -933,38 +933,138 @@ def depth_charges(D, kit):
 
 
 # ---------------------------------------------------------------- boats and the crane
-def boat(kit, aid, col, c, length, beam, depth, heading=0.0, covered=False, material='white', bottom=None):
-    """Original lofted boat hull on its keel point c (authoring frame), bow toward +X; `bottom` paints the lower
-    third of the hull."""
-    rings = []
-    n = 13
-    for i in range(n):
-        t = i / (n - 1)
+def boat(kit, aid, col, c, length, beam, depth, heading=0.0, material='naval', bottom=None, ends='transom', foredeck=.15,
+         afterdeck=.08, thwarts=4, coaming=False, bottom_frac=.32):
+    """Original open boat on its keel point c (authoring frame), bow toward +X: a lofted shell 5 cm thick, closed by
+    decked ends and bulkheads round an open well, with its gunwale, floorboards and thwarts. `ends` is 'transom' (a
+    launch's square stern), 'double' (a whaleboat, pointed at both ends) or 'pram' (a punt's raked square ends);
+    `bottom` paints the hull below `bottom_frac` of its depth."""
+    th = .05
+    C = Vector(c)
+    rot = Matrix.Rotation(heading, 3, 'Z')
+
+    def W(p):
+        return tuple(C + rot @ Vector(p))
+
+    def section(t):
         x = (t - .5) * length
-        fore = max(0, (t - .6) / .4)
-        aft = max(0, (.25 - t) / .25)
-        half = beam / 2 * (1 - fore ** 1.7) * (1 - .35 * aft ** 2) + .02
-        top = depth * (1 + .15 * fore ** 2)
-        ring = []
+        if ends == 'pram':
+            fore, aft = max(0, (t - .78) / .22), max(0, (.22 - t) / .22)
+            half, rise, top = beam / 2 * (1 - .2 * max(fore, aft) ** 2), max(fore, aft) * .9, depth * (1 + .06 * max(fore, aft))
+        else:
+            fore = max(0, (t - .6) / .4)
+            if ends == 'double':
+                aft = max(0, (.4 - t) / .4)
+                half, rise = beam / 2 * (1 - fore ** 1.7) * (1 - aft ** 1.7) + .02, max(fore, aft)
+                top = depth * (1 + .15 * fore ** 2 + .1 * aft ** 2)
+            else:
+                aft = max(0, (.25 - t) / .25)
+                half, rise, top = beam / 2 * (1 - fore ** 1.7) * (1 - .35 * aft ** 2) + .02, fore, depth * (1 + .15 * fore ** 2)
+        outer, inner = [], []
         for k in range(9):
             a = math.pi * k / 8
-            ring.append((x, -half * math.cos(a), top - depth * .85 * math.sin(a) ** 1.4 * (1 - .4 * fore) - depth * .15))
-        rings.append(ring)
-    rot = Matrix.Rotation(heading, 3, 'Z')
-    rings = [[tuple(Vector(c) + rot @ Vector(p)) for p in ring] for ring in rings]
-    hull = kit.loft(aid, col, 'boat hull', rings, material, True, True, True)
+            y = -half * math.cos(a)
+            z = top - depth * .85 * math.sin(a) ** 1.4 * (1 - .4 * rise) - depth * .15
+            outer.append((x, y, z))
+            inner.append((x, y * max(0.0, (half - th) / half), z + th * math.sin(a)))
+        return outer, inner
+
+    ts = sorted(set([i / 20 for i in range(21)] + [afterdeck, 1 - foredeck]))
+    ia, iw = ts.index(afterdeck), ts.index(1 - foredeck)
+    rings = [section(t) for t in ts]
+    vv, ff, mats = [], [], []
+
+    def add(p):
+        vv.append(W(p))
+        return len(vv) - 1
+    O = [[add(p) for p in o] for o, _ in rings]
+    I = [[add(p) for p in inner] if ia <= i <= iw else None for i, (_, inner) in enumerate(rings)]
+    low = min(p[2] for o, _ in rings for p in o) + depth * bottom_frac
+
+    def face(f, outer_skin=False):
+        ff.append(f)
+        mats.append(1 if outer_skin and bottom and min(vv[i][2] for i in f) < C.z + low - 1e-6 and
+                    sum(vv[i][2] for i in f) / len(f) < C.z + low else 0)
+    for i in range(len(ts) - 1):
+        for k in range(8):
+            face((O[i][k], O[i][k + 1], O[i + 1][k + 1], O[i + 1][k]), True)
+        if i < ia or i >= iw:
+            face((O[i][0], O[i + 1][0], O[i + 1][8], O[i][8]))                 # the decked ends
+        else:
+            face((O[i][0], I[i][0], I[i + 1][0], O[i + 1][0]))                 # gunwale tops round the well
+            face((O[i][8], O[i + 1][8], I[i + 1][8], I[i][8]))
+            for k in range(8):
+                face((I[i][k], I[i + 1][k], I[i + 1][k + 1], I[i][k + 1]))     # inside the well
+    face(tuple(O[0]))
+    face(tuple(O[-1]))
+    face(tuple([O[ia][0]] + I[ia] + [O[ia][8]]))                               # bulkheads at the ends of the well
+    face(tuple([O[iw][0]] + I[iw] + [O[iw][8]]))
+    hull = kit.mesh(aid + '.boat hull', vv, ff, material, col)
     if bottom:
         hull.data.materials.append(kit.mat(bottom))
-        for face in hull.data.polygons:
-            if face.center.z < Vector(c).z + depth * .32:
-                face.material_index = 1
-    if covered:
-        kit.boxc(aid, col, 'canopy', Vector(c) + rot @ Vector((-length * .08, 0, depth * .9 + .4)), (length * .5, beam * .7, .85), 'naval', heading)
-        kit.boxc(aid, col, 'cockpit coaming', Vector(c) + rot @ Vector((length * .28, 0, depth * .9 + .12)), (length * .2, beam * .6, .25), 'naval', heading)
-    else:
-        for k in range(4):
-            kit.boxc(aid, col, 'thwart', Vector(c) + rot @ Vector(((k - 1.5) * length * .2, 0, depth * .6)), (.2, beam * .85, .06), 'wood', heading)
-    return hull
+    for poly, m in zip(hull.data.polygons, mats):
+        poly.material_index = m if bottom else 0
+    bm = bmesh.new()
+    bm.from_mesh(hull.data)
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    bm.to_mesh(hull.data)
+    bm.free()
+    kit.tag(hull, aid)
+    # Gunwale capping, stem to stern.
+    for k in (0, 8):
+        for i in range(len(ts) - 1):
+            kit.member(aid, col, Vector(vv[O[i][k]]) + Vector((0, 0, .02)), Vector(vv[O[i + 1][k]]) + Vector((0, 0, .02)), .035, 'naval', 6)
+    if coaming:
+        for k in (0, 8):
+            for i in range(ia, iw):
+                kit.member(aid, col, Vector(vv[I[i][k]]) + Vector((0, 0, .1)), Vector(vv[I[i + 1][k]]) + Vector((0, 0, .1)), .03, 'naval', 6)
+        for i in (ia, iw):
+            kit.member(aid, col, Vector(vv[I[i][0]]) + Vector((0, 0, .1)), Vector(vv[I[i][8]]) + Vector((0, 0, .1)), .03, 'naval', 6)
+
+    def inner_half(i, z):
+        """Half-breadth of the well at station i and local height z, or None where the bottom stands above it."""
+        pts = rings[i][1]
+        for a, b in zip(pts[:4], pts[1:5]):
+            if min(a[2], b[2]) <= z <= max(a[2], b[2]) and abs(b[2] - a[2]) > 1e-9:
+                return abs(a[1] + (b[1] - a[1]) * (z - a[2]) / (b[2] - a[2]))
+        return None
+    # Floorboards over the bottom of the well, 0.22 of the depth over the keel.
+    zf = depth * .22
+    strip = [(ts[i], inner_half(i, zf)) for i in range(ia, iw + 1)]
+    strip = [(tt, h - .03) for tt, h in strip if h and h > .1]
+    if len(strip) >= 2:
+        fv = [W(((tt - .5) * length, s * h, zf + dz)) for dz in (0, .03) for tt, h in strip for s in (-1, 1)]
+        m = len(strip)
+        fl = []
+        for j in range(m - 1):
+            a, b = 2 * j, 2 * (j + 1)
+            fl += [(a, b, b + 1, a + 1), (2 * m + a, 2 * m + a + 1, 2 * m + b + 1, 2 * m + b), (a, 2 * m + a, 2 * m + b, b), (a + 1, b + 1, 2 * m + b + 1, 2 * m + a + 1)]
+        fl += [(0, 1, 2 * m + 1, 2 * m), (2 * m - 2, 4 * m - 2, 4 * m - 1, 2 * m - 1)]
+        boards = kit.mesh(aid + '.floorboards', fv, fl, 'wood', col)
+        bm = bmesh.new()
+        bm.from_mesh(boards.data)
+        bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+        bm.to_mesh(boards.data)
+        bm.free()
+        kit.tag(boards, aid)
+    # Thwarts across the well, 0.25 m under the gunwale.
+    for j in range(thwarts):
+        tt = ts[ia] + (ts[iw] - ts[ia]) * (j + 1) / (thwarts + 1)
+        i = min(range(ia, iw + 1), key=lambda q: abs(ts[q] - tt))
+        zt = rings[i][1][0][2] - .25
+        h = inner_half(i, zt)
+        if h:
+            kit.boxc(aid, col, 'thwart', W(((tt - .5) * length, 0, zt)), (.22, 2 * h + .02, .05), 'naval', heading)
+
+    def keel_at(dx):
+        """Height of the keel over c at dx along the boat (for chocks and cradles)."""
+        xs = [(tt - .5) * length for tt in ts]
+        for j in range(len(ts) - 1):
+            if xs[j] <= dx <= xs[j + 1]:
+                u = (dx - xs[j]) / (xs[j + 1] - xs[j])
+                return rings[j][0][4][2] * (1 - u) + rings[j + 1][0][4][2] * u
+        return 0.0
+    return hull, keel_at
 
 
 def boats(D, kit):
@@ -975,11 +1075,18 @@ def boats(D, kit):
     for s in (-1, 1):
         aid = 'whaleboat-' + ('port' if s < 0 else 'starboard')
         keel = V(s * 6.13, 6.63, -13.87)
-        boat(kit, aid, col, keel, 8.4, 2.0, .94, 0, False, 'naval', 'black')
+        # Double-ended, decked forward and aft round a coamed well with the engine box and two thwarts, as the
+        # reference's am091; its rudder hung on the sternpost.
+        _, keel_at = boat(kit, aid, col, keel, 8.4, 2.0, .94, 0, 'naval', 'black', ends='double', foredeck=.3, afterdeck=.14,
+                          thwarts=2, coaming=True, bottom_frac=.4)
+        kit.boxc(aid, col, 'engine box', keel + Vector((-.4, 0, .62)), (1.0, .8, .55), 'naval')
+        kit.boxc(aid, col, 'engine box lid', keel + Vector((-.4, 0, .91)), (1.04, .84, .04), 'edge')
+        kit.boxc(aid, col, 'rudder', keel + Vector((-4.2, 0, .35)), (.4, .05, .6), 'black')
         for dz in (-2.4, 2.4):
             ck = V(s * 6.13, 0, -13.87 + dz)
             f = kit.below(ck.x, ck.y, keel.z + .3, keel.z - 1.5)
-            kit.boxc(aid, col, 'chock', Vector((ck.x, ck.y, (f + keel.z + .1) / 2)), (.3, 1.3, keel.z + .1 - f), 'edge')
+            top = keel.z + keel_at(-dz) + .04
+            kit.boxc(aid, col, 'chock', Vector((ck.x, ck.y, (f + top) / 2)), (.3, 1.3, top - f), 'edge')
         heads = []
         for zz in (-10.21, -17.19):
             xe = min(7.85, hull_half(kit, zz, deck(kit, zz) - .05) - .12)
@@ -989,8 +1096,14 @@ def boats(D, kit):
             for a, b in zip(arm, arm[1:]):
                 kit.part('rod', aid, col, 'davit arm', a, b, .085, 'naval', vertices=8)
             kit.wire(aid, col, arm[-1] + Vector((0, 0, -.05)), V(s * 6.13, 7.62, zz), .016, False)
-            heads.append(arm[-1])
-        kit.wire(aid, col, heads[0], heads[1], .014, False)
+            heads.append((arm[-1], xe))
+        kit.wire(aid, col, heads[0][0], heads[1][0], .014, False)
+        # The strongback between the davits, level with the gunwale, and the two padded fenders the boat lies
+        # against (reference: spar at 7.55 m with two dark pads).
+        xs = min(h[1] for h in heads) - .02
+        kit.part('rod', aid, col, 'strongback', V(s * xs, 7.55, -10.21), V(s * xs, 7.55, -17.19), .09, 'naval', vertices=8)
+        for zz in (-12.2, -15.5):
+            kit.boxc(aid, col, 'fender pad', V(s * (xs + 7.1) / 2, 7.55, zz), (.85, abs(xs - 7.1) + .04, .42), 'black')
     # 40 ft motor launches on the 01 deck between the funnels, in cradles under the crane (reference 12.25 m x 3.25 m),
     # the 12 ft punts stacked on the centreline between them.
     for s in (-1, 1):
@@ -998,16 +1111,29 @@ def boats(D, kit):
         keel = V(s * 2.62, 6.85, -3.84)
         floor = kit.below(keel.x, keel.y, keel.z + .5, keel.z - .5)
         keel.z = max(keel.z, floor + .35)
-        # Decked ends round an open well (reference sheer 8.45 m, keel 6.87 m) and a small coxswain's shelter
-        # over the stern (z 0.75 to 1.96, to 9.24 m).
-        boat(kit, aid, col, keel, 12.25, 3.25, 1.9, 0, False, 'naval', 'black')
+        # As the reference's am096 (sheer 8.45 m, keel 6.87 m): decked ends round an open well with four thwarts and
+        # floorboards, the engine box at the after end of the well, the coxswain's tubular guard on the stern deck, a
+        # short mast forward, and the rudder and screw under the transom.
+        _, keel_at = boat(kit, aid, col, keel, 12.25, 3.25, 1.9, 0, 'naval', 'black', ends='transom', foredeck=.19, afterdeck=.2,
+                          thwarts=4, bottom_frac=.55)
         gunwale = 1.9 * .85
-        kit.boxc(aid, col, 'coxswain shelter', keel + Vector((-5.2, 0, gunwale + .38)), (1.2, 1.9, .8), 'naval')
-        kit.boxc(aid, col, 'shelter roof', keel + Vector((-5.2, 0, gunwale + .8)), (1.35, 2.05, .06), 'canvas')
+        kit.boxc(aid, col, 'engine box', keel + Vector((-2.4, 0, gunwale - .12)), (1.9, 1.35, .7), 'canvas')
+        kit.boxc(aid, col, 'engine box lid', keel + Vector((-2.4, 0, gunwale + .25)), (1.95, 1.4, .05), 'naval')
+        for dy in (-.65, .65):
+            for dx in (-5.75, -4.55):
+                kit.member(aid, col, keel + Vector((dx, dy, gunwale)), keel + Vector((dx, dy, gunwale + 1.0)), .025, 'naval', 6)
+            kit.member(aid, col, keel + Vector((-5.75, dy, gunwale + 1.0)), keel + Vector((-4.55, dy, gunwale + 1.0)), .025, 'naval', 6)
+            kit.member(aid, col, keel + Vector((-5.75, dy, gunwale + .55)), keel + Vector((-4.55, dy, gunwale + .55)), .02, 'naval', 6)
+        for dx in (-5.75, -4.55):
+            kit.member(aid, col, keel + Vector((dx, -.65, gunwale + 1.0)), keel + Vector((dx, .65, gunwale + 1.0)), .025, 'naval', 6)
+        kit.part('rod', aid, col, 'mast', keel + Vector((5.5, 0, gunwale + .2)), keel + Vector((5.5, 0, gunwale + 1.3)), .03, 'naval', vertices=6)
+        kit.boxc(aid, col, 'rudder', keel + Vector((-6.25, 0, .35)), (.5, .06, .65), 'black')
+        kit.part('rod', aid, col, 'screw', keel + Vector((-5.75, 0, .32)), keel + Vector((-5.65, 0, .32)), .28, 'bronze', vertices=10)
         for dz in (-4.0, 0, 4.0):
             ck = V(s * 2.62, 0, -3.84 + dz)
             f = kit.below(ck.x, ck.y, keel.z + .3, keel.z - .6)
-            kit.boxc(aid, col, 'cradle', Vector((ck.x, ck.y, (f + keel.z + .15) / 2)), (.3, 1.9, keel.z + .15 - f), 'edge')
+            top = keel.z + keel_at(-dz) + .04
+            kit.boxc(aid, col, 'cradle', Vector((ck.x, ck.y, (f + top) / 2)), (.3, 1.9, top - f), 'edge')
     # Two 12 ft punts stacked on a rack between the launches (reference 3.66 m x 1.15 m, keels at 7.1 and 7.75 m).
     aid = 'punts'
     lower, upper = V(0, 7.07, -4.55), V(0, 7.75, -4.55)
@@ -1016,8 +1142,8 @@ def boats(D, kit):
         f = kit.below(foot.x, foot.y, 7.2, 5.5)
         kit.boxc(aid, col, 'rack', Vector((foot.x, foot.y, (f + lower.z + .06) / 2)), (.16, 1.0, lower.z + .06 - f), 'edge')
         kit.boxc(aid, col, 'chock', Vector((foot.x, foot.y, lower.z + .57)), (.14, .7, .16), 'edge')
-    boat(kit, aid, col, lower, 3.66, 1.15, .55, 0, False, 'naval')
-    boat(kit, aid, col, upper, 3.66, 1.15, .55, 0, False, 'naval')
+    boat(kit, aid, col, lower, 3.66, 1.15, .55, 0, 'naval', None, ends='pram', foredeck=.07, afterdeck=.07, thwarts=2)
+    boat(kit, aid, col, upper, 3.66, 1.15, .55, 0, 'naval', None, ends='pram', foredeck=.07, afterdeck=.07, thwarts=2)
     # Floater-net life rafts standing on edge against the deckhouse and sponson sides (each pushed inboard until it
     # meets the wall, on two brackets) and two flat on the quarterdeck.
     for x, y, z, flat in [(-7.54, 5.59, -22.57, False), (7.54, 5.59, -22.57, False), (-7.61, 7.9, -19.86, False), (7.61, 7.9, -19.86, False),
