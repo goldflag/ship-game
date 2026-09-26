@@ -274,6 +274,11 @@ def platforms(D, kit):
         cx = sum(p[0] for p in pts) / len(pts)
         cz = sum(p[1] for p in pts) / len(pts)
         made.append(kit.prism(aid, col, 'floor', plan(pts), floor - .1, floor, 'naval', 'roof'))
+    # The waist 20 mm galleries: a 0.1 m floor at the guns' datum (6.31 m) inside the double shield, over the 01 deck's
+    # edge and cantilevered out past the deckhouse side on knees (reference sections at 5.0, 6.1 and 6.26 m).
+    for s in (-1, 1):
+        line = offset_line([(s * x, z) for x, z in WAIST_SHIELD], -.02 * s)
+        made.append(kit.prism('aa-shield-waist-' + ('port' if s < 0 else 'starboard'), col, 'gallery floor', plan(line), 6.21, 6.31, 'naval', 'roof'))
     return made
 
 
@@ -293,16 +298,25 @@ def tubs(D, kit):
         if c.z - base > .08:
             r = max(math.hypot(x - cx, z - cz) for x, z in pts) * .55
             kit.cylz(aid, col, 'pedestal', Vector((c.x, c.y, base - .02)), r, c.z - base + .02, 'naval', 20)
-    # Open-backed double splinter shield round each pair of waist 20 mm on the 01 deck (plan cuts at 6.6-7.32 m),
-    # standing on the deck up to 7.33 m.
+    # Open-backed double splinter shield round each pair of waist 20 mm, from the gallery floor (6.21 m) to 7.33 m
+    # (plan cuts at 6.26-7.32 m), thickened inboard; open below, where the spare torpedoes lie on the main deck.
     for s in (-1, 1):
         aid = 'aa-shield-waist-' + ('port' if s < 0 else 'starboard')
         line = [(s * x, z) for x, z in WAIST_SHIELD]
-        pts = plan(line)
-        floor = kit.below(*V(line[5][0], 6.3, line[5][1])[:2], 6.6, 6.2)
-        kit.wall(aid, col, 'splinter shield', pts, floor - .02, 7.33, .04, 'naval', closed=False)
+        pts = plan(line if s < 0 else line[::-1])
+        kit.wall(aid, col, 'splinter shield', pts, 6.21, 7.33, .04, 'naval', closed=False)
         for a, b in zip(line, line[1:]):
             kit.member(aid, col, V(a[0], 7.33, a[1]), V(b[0], 7.33, b[1]), .025, 'naval', 6)
+        # Knees at reference z 2.59, 6.63 and 9.83: a leg from the main deck by the ship's side (x 7.52), turning
+        # inboard under the gallery into a beam to the deckhouse side (x 5.19); plain beams at 3.1 and 4.29.
+        for z in (2.59, 6.63, 9.83):
+            d = deck(kit, z)
+            knee = [V(s * 7.52, d - .02, z), V(s * 7.52, 5.62, z), V(s * 7.38, 5.92, z), V(s * 7.05, 6.1, z), V(s * 6.6, 6.15, z)]
+            for a, b in zip(knee, knee[1:]):
+                kit.beam(aid, col, 'gallery knee', a, b, .12, .14, 'naval', up=(1, 0, 0))
+            kit.beam(aid, col, 'gallery beam', V(s * 7.3, 6.14, z), V(s * 5.17, 6.14, z), .12, .14, 'naval', up=(1, 0, 0))
+        for z in (3.1, 4.29):
+            kit.beam(aid, col, 'gallery beam', V(s * 6.98, 6.14, z), V(s * 5.17, 6.14, z), .1, .12, 'naval', up=(1, 0, 0))
 
 
 def offset_line(line, d):
@@ -1187,9 +1201,23 @@ def deck_gear(D, kit):
         f = kit.below(c.x, c.y, 5.5, 3.9)
         kit.part('rod', 'smoke-generators', col, 'generator', Vector((c.x + .6, c.y, f + .55)), Vector((c.x - .6, c.y, f + .55)), .4, 'black', vertices=14)
         kit.boxc('smoke-generators', col, 'cradle', Vector((c.x, c.y, f + .1)), (1.0, .7, .2), 'edge')
+        # Two spare Mk 15s a side (reference am496, 6.92 m), painted as the reference's: black bodies with grey
+        # warhead noses aft, the afterbody tapering forward to the fins and the bronze screws.
         for y in (4.28, 4.96):
-            a, b = V(s * 5.47, y, 1.4), V(s * 5.47, y, 8.3)
-            kit.part('rod', 'spare-torpedoes', col, 'torpedo', a, b, .27, 'naval', vertices=12)
+            aid = 'spare-torpedoes'
+            kit.part('rod', aid, col, 'torpedo', V(s * 5.47, y, 2.9), V(s * 5.47, y, 7.72), .27, 'black', vertices=12)
+            kit.part('rod', aid, col, 'afterbody', V(s * 5.47, y, 1.72), V(s * 5.47, y, 2.9), .12, 'black', r2=.27, vertices=12)
+            kit.part('rod', aid, col, 'warhead', V(s * 5.47, y, 7.7), V(s * 5.47, y, 8.12), .27, 'naval', r2=.23, vertices=12)
+            kit.part('rod', aid, col, 'nose', V(s * 5.47, y, 8.1), V(s * 5.47, y, 8.3), .23, 'naval', r2=.1, vertices=12)
+            for k in range(4):
+                a = math.radians(45 + 90 * k)
+                off = Vector((0, math.cos(a), math.sin(a)))
+                kit.beam(aid, col, 'fin', V(s * 5.47, y, 1.98) + off * .08, V(s * 5.47, y, 1.98) + off * .27, .3, .02, 'black', up=(1, 0, 0))
+            kit.part('rod', aid, col, 'screw hub', V(s * 5.47, y, 1.52), V(s * 5.47, y, 1.74), .06, 'bronze', vertices=8)
+            for k in range(4):
+                a = math.radians(90 * k)
+                off = Vector((0, math.cos(a), math.sin(a)))
+                kit.beam(aid, col, 'screw blade', V(s * 5.47, y, 1.6) + off * .04, V(s * 5.47, y, 1.6) + off * .2, .09, .02, 'bronze', up=(1, 0, 0))
         c = V(s * 5.47, 0, 4.84)
         f = kit.below(c.x, c.y, 4.5, 3.4)
         for dz in (-2.4, 0, 2.4):

@@ -307,6 +307,10 @@ for s in structures:
         s['name'], s['baseY'], s['height'] = 'Forward Mk 37 tower 15.4-18.3 m', 15.395, round(top - 15.395, 3)
     elif s['id'] == 'after-superstructure-12':
         s['name'], s['baseY'], s['height'] = 'After Mk 37 tower 11.0-13.8 m', 11.045, round(top - 11.045, 3)
+    elif s['id'] == 'midships-02':
+        # The waist galleries' support beams at 6.1 m were traced into this 01-deck slab as spikes out through the
+        # 20 mm shields; the galleries themselves are drawn by the fittings, so the slab stops at the deckhouse side.
+        s['footprint'] = [p for p in s['footprint'] if not (abs(p[0]) > 5.22 and 1.5 < p[1] < 10.6)]
     elif s['id'] == 'after-superstructure-08':
         s['name'], s['footprint'], s['height'] = 'After lookout station floor 11.0-11.5 m', [list(p) for p in AFTER_STATION_FLOOR], round(11.5 - s['baseY'], 3)
 b['structures'] = structures
