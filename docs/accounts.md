@@ -85,7 +85,7 @@ default; the client treats a 404 as progress unavailable and keeps every ship op
 Better Auth's `admin` plugin adds `role`, `banned`, `banReason` and `banExpires` to
 `auth."user"` and `impersonatedBy` to `auth.session` (migration 004). New accounts get the role
 `user`; accounts older than the migration have none, which also means not an administrator.
-Promote an account on the host (Hermes: `cd /opt/ships/current`):
+Promote an account on the host (`ssh root@64.176.223.30`, then `cd /opt/ships/current`):
 
 ```sh
 docker compose exec -T postgres psql -U ships_admin -d ships \

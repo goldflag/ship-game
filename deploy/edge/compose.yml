@@ -1,0 +1,30 @@
+# The public edge on the ships host: TLS for ships.tomato.gg in front of the `ships` project's web container.
+# A separate project so game deploys never restart it or lose its certificates.
+name: ships-edge
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - data:/data
+      - config:/config
+    networks: [edge]
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+
+networks:
+  # The `ships` web container joins this network; its EDGE_PROXY_CIDR default is this subnet.
+  edge:
+    name: ships-edge
+    ipam:
+      config:
+        - subnet: 172.30.79.0/24
+
+volumes:
+  data:
+  config:

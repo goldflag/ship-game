@@ -11,7 +11,7 @@
     "build": "bun scripts/build/release.ts",
     "preview": "vite preview --host 0.0.0.0",
     "deploy:naval": "bash scripts/deploy-naval.sh",
-    "deploy:hermes": "bash scripts/deploy-hermes.sh",
+    "deploy:ships": "bash scripts/deploy-ships.sh",
     "bootstrap": "bun scripts/build/bootstrap.ts",
     "check": "bun scripts/tests/check.ts",
     "master:red": "bun scripts/tests/master-ci.ts",
