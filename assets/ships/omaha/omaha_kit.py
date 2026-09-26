@@ -206,15 +206,33 @@ class Kit:
 
     # ------------------------------------------------------------ rails and wires
     def in_arc(self, a, b):
-        """Rails stay out of the gun arcs and from under turning gunhouses."""
+        """Rails stay out of the gun arcs and from under turning gunhouses. A barrel reaches a rail only where the
+        rail stands between the barrel's lowest and highest lines at that distance and inside the mount's training
+        arc; without those two tests every rail round a roof over a casemate was dropped (ship:sweep checks the
+        rails that remain)."""
         for p in (a, b, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2)):
             for mx, my, mz, house, w, m in self.arcs:
                 d = math.hypot(p[0] - mx, p[1] - my)
                 if d < house and max(a[2], b[2]) > mz - .05:
                     return True
-                low = mz + w['pivotHeight'] + math.sin(math.radians(w['elevationMinDeg'])) * max(0, d - w['trunnionForward']) - w.get('barrelBaseRadius', .4) - .15
-                if d < w['muzzleForward'] + .6 and max(a[2], b[2]) > low:
-                    return True
+                if d >= w['muzzleForward'] + .6:
+                    continue
+                radius = w.get('barrelBaseRadius', .4)
+                reach = max(0, d - w['trunnionForward'])
+                low = mz + w['pivotHeight'] + math.sin(math.radians(w['elevationMinDeg'])) * reach - radius - .15
+                high = mz + w['pivotHeight'] + math.sin(math.radians(w['elevationMaxDeg'])) * reach + radius + .15
+                if max(a[2], b[2]) <= low or (d > 1.0 and min(a[2], b[2]) >= high):
+                    continue
+                lo, hi = m.get('traverseLimitsDeg') or (-w['traverseDeg'], w['traverseDeg'])
+                if hi - lo < 359 and d > 1.0:
+                    # Bearing clockwise from the bow (authoring +X bow, +Y port), relative to the mount's own. Within
+                    # 3.2 m the breech, swinging opposite the muzzle, can reach the rail too.
+                    rel = math.degrees(math.atan2(-(p[1] - my), p[0] - mx)) - m.get('bearingDeg', 0)
+                    margin = math.degrees(math.asin(min(1.0, (radius + .3) / d))) + 3
+                    arcs = [(lo, hi)] + ([(lo + 180, hi + 180)] if d < 3.2 else [])
+                    if not any(a0 - margin <= (rel - a0 + margin) % 360 + a0 - margin <= a1 + margin for a0, a1 in arcs):
+                        continue
+                return True
         return False
 
     def wire(self, assembly, col, a, b, r=.018, check=True, material='edge', sides=3):

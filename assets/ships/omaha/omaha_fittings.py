@@ -172,7 +172,7 @@ def foremast(D, kit):
     """Tripod foremast: the lower pole from the pilot house to the spotting top, two raked legs from the bridge
     deck, the lower top (a Y-shaped platform at 23.5 m with a lookout house), the signal truss and the spotting
     top round the Mk 7 director (floor 27.85 m), the topmast 1.7 m abaft the lower pole to the truck at 59.5 m, a
-    lookout box and the upper yard (reference cuts every 2-5 m)."""
+    lookout box and the signal yard (reference cuts every 2-5 m and its front view)."""
     col = kit.collections['Sensors and masts']
     aid = 'foremast'
     lower = lambda y: -41.90 + (y - 15.7) * .052
@@ -243,16 +243,24 @@ def foremast(D, kit):
             kit.boxc(aid, col, 'window post', Vector((p.x, p.y, 29.66)), (.07, .07, 1.32), 'naval')
     kit.prism(aid, col, 'spotting top roof', [V(x, 0, z)[:2] for x, z in [(-1.68, -39.12), (1.68, -39.12), (1.68, -44.08), (-1.68, -44.08)]],
               30.32, 30.45, 'naval', 'roof')
-    kit.prism(aid, col, 'spotting top cupola', [V(x, 0, z)[:2] for x, z in [(-1.0, -39.6), (1.0, -39.6), (1.0, -42.2), (-1.0, -42.2)]],
-              30.44, 30.90, 'naval', 'roof')
-    # Lookout box forward of the topmast and the upper yard with its blocks.
+    # The roof rises from its eaves to a flat crown over the after part (reference side and front views: eaves
+    # 30.41 m, crown 30.95 m, 1.58 m across, from the after edge to z -40.93), sloping down to the front and the sides.
+    eaves = [(-1.62, -39.15), (1.62, -39.15), (1.62, -44.02), (-1.62, -44.02)]
+    crown = [(-.79, -39.15), (.79, -39.15), (.79, -40.93), (-.79, -40.93)]
+    kit.loft(aid, col, 'spotting top roof slopes', [[tuple(V(x, 30.44, z)) for x, z in eaves], [tuple(V(x, 30.95, z)) for x, z in crown]],
+             'naval', True, True, False)
+    # Lookout box forward of the topmast.
     kit.boxc(aid, col, 'lookout', V(0, 45.2, -40.25), (.72, .72, 1.25), 'naval')
     kit.member(aid, col, V(0, 44.6, -39.9), V(0, 44.6, upper(44.6)), .05)
-    kit.part('rod', aid, col, 'upper yard', V(-5.4, 44.2, upper(44.2) - .15), V(5.4, 44.2, upper(44.2) - .15), .07, 'naval', r2=.045, vertices=8)
-    kit.part('rod', aid, col, 'top yard', V(-3.5, 52.5, upper(52.5) - .1), V(3.5, 52.5, upper(52.5) - .1), .05, 'naval', r2=.035, vertices=8)
+    # The signal yard at 42.3 m, 13.7 m across, carrying eight signal lamps (reference front view, AM071 datums).
     for s in (-1, 1):
-        for k in range(1, 6):
-            kit.boxc(aid, col, 'yard block', V(s * k * .95, 44.05, upper(44.2) - .15), (.12, .10, .18), 'edge')
+        kit.part('rod', aid, col, 'signal yard', V(0, 42.29, -39.25), V(s * 6.85, 42.29, -39.25), .08, 'naval', r2=.045, vertices=8)
+        for xc in (2.635, 3.715, 4.805, 5.89):
+            kit.boxc(aid, col, 'signal lamp', V(s * xc, 42.50, -39.36), (.18, .22, .30), 'naval')
+            kit.part('cyl', aid, col, 'signal lamp hood', V(s * xc, 42.69, -39.36), .10, .07, 'edge', vertices=10)
+            kit.boxc(aid, col, 'signal lamp lens', V(s * xc, 42.50, -39.46), (.02, .14, .14), 'glass')
+        # Lifts from the mast over the lookout box to the yard arms.
+        kit.wire(aid, col, V(0, 46.0, upper(46.0)), V(s * 6.8, 42.33, -39.25), .012, False)
     kit.ladder(aid, col, V(0, 15.9, lower(15.9) + .4), V(0, 27.2, lower(27.2) + .4), (0, 1, 0), .38)
     # Standing rigging: shrouds to the deck edge, and the two forestays that the reference leads down from the
     # masthead and the lower yard to the forward shelter's roof (thin, merged). The aerials are drawn by mainmast().
@@ -724,7 +732,7 @@ def underwater(D, kit):
             c = V(s * x0, y0, z0)
             exit_ = V(s * ex, ey, ez)
             axis = (c - exit_).normalized()
-            kit.part('rod', aid, col, 'shaft', exit_, c, .17, 'bronze', vertices=12)
+            kit.part('rod', aid, col, 'shaft', exit_, c, .17, 'antifouling', vertices=12)  # painted with the bottom
             kit.part('rod', aid, col, 'bossing', exit_ - axis * 2.0, exit_ + axis * 1.4, .45, 'antifouling', r2=.24, vertices=16)
             kit.part('rod', aid, col, 'hub', c - axis * .35, c + axis * .45, .34, 'bronze', r2=.30, vertices=14)
             kit.part('rod', aid, col, 'hub cone', c + axis * .45, c + axis * .95, .30, 'bronze', r2=.06, vertices=14)
