@@ -315,10 +315,18 @@ def mainmast(D, kit):
         kit.wire(aid, col, V(0, 29.0, pole(29.0)), V(s * 6.3, ys + .05, 33.86), .012, False)
     kit.part('rod', aid, col, 'gaff', V(0, 26.0, pole(26.0)), V(0, 27.9, 38.2), .07, 'naval', r2=.045, vertices=8)
     kit.ladder(aid, col, V(0, base + 2.0, pole(base + 2.0) + .4), V(0, 44.0, pole(44.0) + .4), (1, 0, 0), .36)
+    # Shrouds from the masthead and the yard arm, bunched on chain plates at the deck edge just forward of the after
+    # torpedo mounts' muzzles, as the reference leads them; there they stay out of the tubes' swing.
     for s in (-1, 1):
-        for zz in (31.0, 35.0, 38.0):
-            kit.wire(aid, col, V(0, 50.0, pole(50.0)), V(s * 8.1, 6.3, zz), .012, False)
-        kit.wire(aid, col, V(s * 6.5, 41.55, pole(41.55) + .15), V(s * 7.9, 6.2, 33.0), .012, False)
+        for zz in (31.1, 31.6, 32.1):
+            foot = V(s * (hull_half(kit, zz, 6.0) - .18), 0, zz)
+            foot.z = kit.below(foot.x, foot.y, 7.0, 6.0)
+            kit.wire(aid, col, V(0, 50.0, pole(50.0)), foot + Vector((0, 0, .05)), .012, False)
+            kit.boxc(aid, col, 'chain plate', foot + Vector((0, 0, .06)), (.16, .06, .12), 'naval')
+        foot = V(s * (hull_half(kit, 32.55, 6.0) - .18), 0, 32.55)
+        foot.z = kit.below(foot.x, foot.y, 7.0, 6.0)
+        kit.wire(aid, col, V(s * 6.5, 41.55, pole(41.55) + .15), foot + Vector((0, 0, .05)), .012, False)
+        kit.boxc(aid, col, 'chain plate', foot + Vector((0, 0, .06)), (.16, .06, .12), 'naval')
     # Two backstays from the masthead and the upper yard to the screened speed-light post at the after edge of the
     # after superstructure's roof (reference AM200, 9.49-10.17 m at z 50.4-51.2).
     foot = V(0, 0, 50.30)
@@ -766,10 +774,12 @@ def underwater(D, kit):
 
 # ---------------------------------------------------------------- rails
 def railings(D, kit):
-    """Guard rails along the forecastle, upper-deck and quarterdeck edges, kept out of the gun arcs (Kit.in_arc)."""
+    """Guard rails along the forecastle and quarterdeck edges, kept out of the gun arcs (Kit.in_arc). The reference
+    rails no part of the upper deck's edge between the superstructures, where the after torpedo mounts swing their
+    tubes out over the side."""
     col = kit.collections['Deck fittings']
     for s in (-1, 1):
-        for z0, z1 in ((-84.6, -55.0), (-35.0, 41.3), (42.2, 83.4)):
+        for z0, z1 in ((-84.6, -55.0), (42.2, 83.4)):
             n = max(2, int(abs(z1 - z0) / 1.6))
             pts = []
             for i in range(n + 1):

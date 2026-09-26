@@ -301,10 +301,14 @@ TORPEDO = [('torpedo-1', -7.248, 3.503, 24.341, 0.825, -1), ('torpedo-2', 7.248,
 b['torpedoLaunchers'] = []
 b['torpedoTubes'] = []
 for id, x, y, z, rise, side in TORPEDO:
-    # The pocket mounts can train only until the tubes' after ends meet the pocket's back wall (about 35 degrees);
-    # the upper-deck pair train across the beam.
-    arc = ([[15, 35]] if side > 0 else [[-35, -15]]) if y < 5 else ([[40, 140]] if side > 0 else [[-140, -40]])
-    b['torpedoLaunchers'].append(dict(id=id, name=f'Triple 21-inch mount {id[-1]}', position=[x, y, rz(z)], traverseRateDeg=8, launchArcsDeg=arc))
+    # Each mount trains outboard from its stowed position only: without limits the simulation turns a launcher
+    # straight at any aim, which would swing the pocket mounts' tubes through the hull and the upper pair's across
+    # the deck. The pocket mounts stop at 31 degrees, where the inboard tube's after end comes within its radius of
+    # the pocket's back wall (posed against the built scene); the upper-deck pair train across the beam.
+    limit, arc = (31, [15, 31]) if y < 5 else (150, [40, 140])
+    b['torpedoLaunchers'].append(dict(id=id, name=f'Triple 21-inch mount {id[-1]}', position=[x, y, rz(z)], traverseRateDeg=8,
+                                      launchArcsDeg=[[side * a for a in (arc if side > 0 else arc[::-1])]],
+                                      traverseLimitsDeg=[0, limit] if side > 0 else [-limit, 0]))
     for k, dx in enumerate([-.732, 0, .732], 1):
         b['torpedoTubes'].append(dict(id=f'{id}-tube-{k}', name=f'Mount {id[-1]} tube {k}', partId='us-mk15-fast',
                                       position=[round(x + dx, 3), round(y + rise, 3), rz(z - 3.227)], bearingDeg=0, arcDeg=2, ammo=1,

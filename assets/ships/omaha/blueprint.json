@@ -42010,9 +42010,13 @@
       "traverseRateDeg": 8,
       "launchArcsDeg": [
         [
-          -35,
+          -31,
           -15
         ]
+      ],
+      "traverseLimitsDeg": [
+        -31,
+        0
       ]
     },
     {
@@ -42027,8 +42031,12 @@
       "launchArcsDeg": [
         [
           15,
-          35
+          31
         ]
+      ],
+      "traverseLimitsDeg": [
+        0,
+        31
       ]
     },
     {
@@ -42045,6 +42053,10 @@
           -140,
           -40
         ]
+      ],
+      "traverseLimitsDeg": [
+        -150,
+        0
       ]
     },
     {
@@ -42061,6 +42073,10 @@
           40,
           140
         ]
+      ],
+      "traverseLimitsDeg": [
+        0,
+        150
       ]
     }
   ],

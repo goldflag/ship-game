@@ -71,8 +71,13 @@ measurements and comparison captures stay in ignored `.build/`.
 - **Proportions of the reference:** its hull is 169.8 m long and 19.2 m wide at the waterline (published: 169.3 m
   and 16.9 m); the model keeps the reference's breadth. At the reference's waterline she draws 3.95 m and
   displaces 7,428 t (published: 4.3 m mean, 7,050 t standard, 9,500 t full load).
-- **Torpedo mounts:** the catalog's `us-mk15-fast` triple tube stands in for the Omaha's own; the forward pair in
-  the hull-side pockets train only 15-35 degrees before their after ends meet the pocket's back wall.
+- **Torpedo mounts:** the catalog's `us-mk15-fast` triple tube stands in for the Omaha's own. Every mount trains
+  outboard from stowed-forward only (`traverseLimitsDeg`): the forward pair in the hull-side pockets to 31
+  degrees, where the inboard tube's after end reaches the pocket's back wall, launching between 15 and 31 degrees
+  (a provisional game window: the pocket is too short for every tube's run to clear its forward wall at those
+  angles); the after pair 0-150 degrees. `ship:sweep` does not pose launchers, so their clearance was checked by posing them in the built
+  scene at 1-degree steps. The upper deck's edge is unrailed between the superstructures, as the reference shows
+  it, and the mainmast's shrouds come down on chain plates forward of the after mounts' swing.
 - **Upper forward 6-inch singles:** at +20 degrees with full recoil their breech dips about 9 cm into the deck
   they stand on (`sweep-accepted.json`); the reference shows no breech well. The forward shelter between them
   ends 0.8 m forward of the reference's so their breeches, trained right aft, pass clear.
