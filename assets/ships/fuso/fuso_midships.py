@@ -177,22 +177,29 @@ def searchlight_tower(kit, col):
 
 
 def type13_radars(kit, col):
-    """Type 13 air-search antennas on the funnel's sides (reference HP_JRS_3/4): a ladder of dipole rungs 4.7 m
-    tall on brackets from the casing."""
+    """Type 13 air-search antennas on the funnel's sides (reference HP_JRS_3/4, jrs010 bounds): a laced column 0.46 m
+    across and 0.42 m fore and aft from 17.7 to 21.8 m on a foot and under a cap, carrying four dipole frames 1.11 m
+    apart, each a fore-and-aft element 2.0 m long outboard of the column and 1.7 m inboard; bracket plates from the
+    casing under the foot and over the cap."""
     for id, s in [('type13-port', -1), ('type13-starboard', 1)]:
-        x, y0, z = 3.11 * s, 17.33, 8.94
-        top = y0 + 4.68
-        for dz in (-.9, .9):
-            kit.part('rod', id, col, 'rail', P(x, y0, z + dz), P(x, top, z + dz), .045, 'naval', vertices=6)
-        n = 9
-        for i in range(n):
-            yy = y0 + .3 + (top - y0 - .5) * i / (n - 1)
-            kit.part('rod', id, col, 'dipole', P(x, yy, z - .98), P(x, yy, z + .98), .025, 'edge', vertices=6)
+        x, z = 3.17 * s, 8.87
+        kit.lattice(id, col, P(x, 17.77, z), P(x, 21.77, z), .46, .42, n=5, chord=.035, web=.018)
+        # The fore and aft faces are laced in seven crossed panels, as the reference's front view shows.
+        levels = [17.77 + 4.0 * k / 7 for k in range(8)]
+        for zf in (z - .21, z + .21):
+            for y0, y1 in zip(levels, levels[1:]):
+                kit.xbrace(id, col, P(x - .23, y0, zf), P(x + .23, y0, zf), P(x + .23, y1, zf), P(x - .23, y1, zf), .016, 'edge')
+        kit.part('box', id, col, 'foot', P(x, 17.58, z), (.55, .53, .38), 'naval')
+        kit.part('box', id, col, 'cap', P(x, 21.87, z), (.55, .53, .2), 'naval')
         wall = wall_x(kit, z) - .02
-        for yy in (y0 + .4, top - .6):
-            kit.part('rod', id, col, 'bracket', P(x, yy, z), P(s * wall, yy, z), .06, 'naval', vertices=8)
-        kit.part('box', id, col, 'feed box', P(x, y0 - .15, z), (.5, .4, .35), 'naval')
-        kit.part('rod', id, col, 'feed strut', P(x, y0 - .35, z), P(s * wall, y0 - 1.2, z), .06, 'naval', vertices=8)
+        for yy in (17.345, 22.015):
+            inner, outer = P(s * wall, yy, z), P(s * 3.22, yy, z)
+            kit.part('box', id, col, 'bracket plate', ((inner[0] + outer[0]) / 2, (inner[1] + outer[1]) / 2, yy), (.48, abs(outer[1] - inner[1]), .05), 'naval')
+        for yy in (18.06, 19.17, 20.28, 21.4):
+            corners = [P(s * xo, yy, z + zo) for xo, zo in ((2.87, -.55), (3.42, -.55), (3.42, .55), (2.87, .55))]
+            kit.polyline(id, col, corners + corners[:1], .02, 'naval', 4)
+            kit.part('rod', id, col, 'dipole', P(s * 3.47, yy, 7.94), P(s * 3.47, yy, 9.92), .03, 'edge', vertices=6)
+            kit.part('rod', id, col, 'dipole', P(s * 2.9, yy, 8.0), P(s * 2.9, yy, 9.69), .03, 'edge', vertices=6)
 
 
 def searchlights(kit, col):

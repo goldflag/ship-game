@@ -40,6 +40,8 @@ def build(D, kit):
         type91_director(kit, id, (rx, 22.94, -21.4), masts, facing=180)
     bridge_gear(kit, masts)
     rear_legs(kit, sup)
+    after_legs(kit, sup)
+    sponson_struts(kit, sup)
     signal_yards(kit, sup)
     forestay(kit, masts)
     glazing(kit, sup)
@@ -286,6 +288,31 @@ def glazing(kit, col):
                 outer = sorted(abs(r[1]) for r in side)[len(side) // 2]
                 rows += [r for r in side if abs(r[1]) > outer - .5]
     kit.windows('bridge-glazing', col, rows)
+
+
+def after_legs(kit, col):
+    """The tower's three after legs between the 28.7 m platform and the 30.3 m tier (reference plan cuts at 29.0 to
+    30.0 m): the side legs 0.64 m across and 0.32 m fore and aft at 1.33 m out, the centre leg 0.48 m across, all
+    raked forward 0.15 m per metre of height; the two fore-and-aft web plates (0.72 m by 0.25 m) further forward at
+    1.34 m out; the inclined ladder between them up to the tier."""
+    A = 'pagoda-after-legs'
+    lo, hi = 28.62, 30.32
+
+    def zc(y):
+        return -25.11 - .15 * (y - 29.0)
+    for x, w in ((-1.33, .64), (-.02, .48), (1.33, .64)):
+        kit.beam(A, col, 'leg', P(x, lo, zc(lo)), P(x, hi, zc(hi)), w, .32, 'naval', up=(1, 0, 0))
+    for s in (-1, 1):
+        kit.part('box', A, col, 'web', P(s * 1.335, (lo + hi) / 2, -27.15), (.72, .25, hi - lo), 'naval')
+    kit.ladder(A, col, P(-.54, 28.67, -26.28), P(-.02, 30.27, -26.28), (1, 0, 0), width=.41, step=.37)
+
+
+def sponson_struts(kit, col):
+    """The flat struts under the upper rangefinder sponsons (reference plates 0.69 m wide): from the tier's outer edge
+    at 30.6 m, 4.2 m out, down through the 28.7 m platform to the tower at 25.6 m, 2.35 m out."""
+    A = 'pagoda-struts'
+    for s in (-1, 1):
+        kit.beam(A, col, 'strut', P(s * 4.2, 30.6, -27.8), P(s * 2.35, 25.6, -27.8), .62, .1, 'naval')
 
 
 def rear_legs(kit, col):

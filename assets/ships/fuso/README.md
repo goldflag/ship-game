@@ -77,22 +77,24 @@ pagoda's main director (which trains) on the top platform, the 10 m rangefinder 
 radar mattress on the tower's face, the Type 22 radars, the enclosed 3.5 m rangefinders (round houses with the tube
 through their sides) and open 1.5 m ones, the Type 91 high-angle directors in wells sunk 0.8 m into their platforms, the
 tower's rear legs (upright to a knee at 13.2 m, then raked aft) with the raked struts, braces and web plates outboard of
-them, the signal yard (narrow and railed, straight across the tower's after face and swept 25 degrees aft to its tips)
-with its halyards to the flag lockers, the day lights, the red and green side lights, bridge glazing in the three bands
-the reference paints (panes cast onto this model's walls), the funnel's cap band, cage grill, the five steam pipes up
-each side and the tall pipe at each forward quarter, the tapered forward casing, the lattice tower under the after
-searchlight platform, the Type 13 antennas on the funnel's sides, the after director (which trains) in its well, the
-three periscope houses and the enclosed 4.5 m rangefinders (tubes fore and aft) on the after tower with the two large
-windows on each side of its upper deckhouse, the lookout top's star plate on six radial webs, the pole mainmast with its
-topmast, trucks, pole, yard, gaff and stays, the aerials the reference's side render traces (the forestay with its
-bridle and insulator, the long aerial from the mainmast to the pagoda top, the vee over the funnel and the backstay to
-the stern's ensign staff), the catapult, the stowed aircraft crane, the linoleum aircraft deck (its forward edge the
-reference's chevron, flat at z 83.25 within 2.4 m of the centreline and square across at z 77.45 outboard of 7.25 m)
-with its brass strips every 1.39 m, brass edging and trolley rails, boats at their reference parts' centres and long
-axes (two 9 m cutters and four open 12 m motor launches canted bow inboard, two 15 m motor boats stowed stem aft), the
-paravanes on the forecastle, life buoys and buoy boxes, stowed radial davits, ground tackle and housed anchors, the
-stem's chrysanthemum and jackstaff, rails, knees under overhangs, and below the waterline the centreline skeg, four
-three-bladed screws on shafts in bossings with struts and twin rudders behind the inner screws (reference x 2.8 m).
+them, its three after legs, web plates and ladder between the 28.7 m platform and the tier above, the flat struts under
+the upper rangefinder sponsons, the signal yard (narrow and railed, straight across the tower's after face and swept
+25 degrees aft to its tips) with its halyards to the flag lockers, the day lights, the red and green side lights, bridge
+glazing in the three bands the reference paints (panes cast onto this model's walls), the funnel's cap band, cage grill,
+the five steam pipes up each side and the tall pipe at each forward quarter, the tapered forward casing, the lattice
+tower under the after searchlight platform, the Type 13 antennas on the funnel's sides (laced columns carrying four
+dipole frames), the after director (which trains) in its well, the three periscope houses and the enclosed 4.5 m
+rangefinders (tubes fore and aft) on the after tower with the two large windows on each side of its upper deckhouse, the
+lookout top's star plate on six radial webs, the pole mainmast with its topmast, trucks, pole, yard, gaff and stays, the
+aerials the reference's side render traces (the forestay with its bridle and insulator, the long aerial from the
+mainmast to the pagoda top, the vee over the funnel and the backstay to the stern's ensign staff), the catapult, the
+stowed aircraft crane, the linoleum aircraft deck (its forward edge the reference's chevron, flat at z 83.25 within
+2.4 m of the centreline and square across at z 77.45 outboard of 7.25 m) with its brass strips every 1.39 m, brass
+edging and trolley rails, boats at their reference parts' centres and long axes (two 9 m cutters and four open 12 m
+motor launches canted bow inboard, two 15 m motor boats stowed stem aft), the paravanes on the forecastle, life buoys
+and buoy boxes, stowed radial davits, ground tackle and housed anchors, the stem's chrysanthemum and jackstaff, rails,
+knees under overhangs, and below the waterline the centreline skeg, four three-bladed screws on shafts in bossings with
+struts and twin rudders behind the inner screws (reference x 2.8 m).
 
 Machinery (four boiler rooms between Nos. 2 and 3 turrets and under the funnel, four turbine rooms between Nos. 4 and 5,
 four shafts), magazines, flood spaces, stability (GM 7% of beam) and damage-control values are game estimates; the visual
@@ -119,7 +121,8 @@ sampled from station cuts of that model. Hull and superstructure plating are 26 
 - The two 15 m motor boats beside No. 4 turret sit 0.8 m lower than the reference's, with a 0.95 m wheelhouse and no
   mast, so the gunhouse and barrels turn over them. The after capstan stands 0.6 m lower and the stowed crane's jib
   tapers to 0.3 m at its outer end, under No. 6 turret's barrels at full depression; ventilators and other deck
-  fittings under a gunhouse or the main barrels' depression are cut down to clear them.
+  fittings under a gunhouse or the main barrels' depression are cut down to clear them. The port life-buoy box, where
+  No. 6 turret's barrels at full depression leave too little room for any box, is left out.
 - Rigging is the mainmast's stays and the aerials the reference's side render shows, as straight runs between the
   points it traces (the long aerial in seven segments along its sag); the signal halyards run straight from the yard
   arms to the flag lockers.
