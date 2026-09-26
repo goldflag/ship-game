@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "id": "hyuga-starter-v1",
+  "basis": "Scaffold placeholder: one grey for hull and upperworks, dark painted-steel decks and a red-oxide bottom. Replace with the approved paint scheme (docs/ship-appearance.md); swatches are the recipe's linear-RGB material colors.",
+  "wear": "in-commission",
+  "materials": {
+    "naval": { "paint": "hyuga-hull-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "hyuga-hull-grey", "finish": "painted-steel" },
+    "antifouling": { "paint": "hyuga-red-oxide", "finish": "underwater-coating" },
+    "deck": { "paint": "hyuga-deck-grey", "finish": "painted-deck" },
+    "roof": { "paint": "hyuga-deck-grey", "finish": "painted-deck" },
+    "edge": { "paint": "hyuga-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "hyuga-mid-fittings", "finish": "painted-steel" }
+  }
+}
