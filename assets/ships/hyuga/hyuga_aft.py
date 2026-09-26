@@ -41,44 +41,45 @@ def split_black(kit, assembly, col, label, a, b, r, r2=None, vertices=14):
 
 
 def mainmast(kit, col):
+    """Lower mast (1.2 m) from the tower top to the lookout platform at 32 m, the upper pole to the truck at
+    46 m, the fore-and-aft aerial spar and the athwartships yards (reference silhouettes and side view)."""
     A = 'mainmast'
-    # Pole: reference z 42.3 at the tower top to 41.1 at the masthead (46.0 m).
-    foot = Vector(P(0, 19.9, 42.35))
+    foot = Vector(P(0, 19.9, 42.3))
     floor = kit.try_below(foot.x, foot.y, 20.4, 19.9)
     foot.z = floor - .02
-    band = Vector(P(0, 31.5, 41.55))
-    head = Vector(P(0, 39.8, 41.1))
-    split_black(kit, A, col, 'pole', tuple(foot), tuple(band), .5, .44, 20)
-    kit.part('rod', A, col, 'smoke band', tuple(band + Vector((0, 0, -.35))), tuple(band), .46, 'white', vertices=20)
-    kit.part('rod', A, col, 'pole', tuple(band), tuple(head), .44, 'black', vertices=20, r2=.3)
-    top = Vector(P(0, 46.0, 41.05))
-    kit.part('rod', A, col, 'topmast', tuple(head + Vector((0, 0, -.6))), tuple(top), .13, 'black', vertices=10, r2=.06)
-    kit.cylz(A, col, 'truck', (top.x, top.y, top.z - .05), .1, .12, 'black', 10)
-    # Ladder up the pole's after side to the lower yard.
-    kit.ladder(A, col, (foot.x - .52, 0, 20.4), (band.x - .47, 0, 31.3), (0, 1, 0), .4, .32, .03, .018, 'naval')
-    # Lower yard at 31.3 m (reference x +-9.0) with knee braces; upper yard at 39.3 m (x +-5.0).
-    yx = P(0, 0, 41.6)[0]
-    kit.member(A, col, (yx, -9.0, 31.35), (yx, 9.0, 31.35), .09, 'black', 8)
+    cap = Vector(P(0, 32.7, 42.3))
+    split_black(kit, A, col, 'lower mast', tuple(foot), tuple(cap), .6, .58, 24)
+    kit.part('rod', A, col, 'smoke band', tuple(Vector(P(0, 31.15, 42.3))), tuple(Vector(P(0, 31.5, 42.3))), .6, 'white', vertices=24)
+    top = Vector(P(0, 46.0, 41.3))
+    kit.part('rod', A, col, 'upper pole', tuple(cap + Vector((0, 0, -.3))), tuple(top), .19, 'black', vertices=12, r2=.08)
+    kit.cylz(A, col, 'truck', (top.x, top.y, top.z - .05), .11, .12, 'black', 10)
+    # Lookout platform at 32 m on a gusseted bracket, railed round (reference z 39.2 to 42.9).
+    px0, px1 = P(0, 0, 42.9)[0], P(0, 0, 39.2)[0]
+    kit.part('box', A, col, 'lookout platform', ((px0 + px1) / 2, 0, 32.0), (abs(px1 - px0), 2.2, .1), 'black')
+    kit.beam(A, col, 'platform bracket', (px0, 0, 30.2), (px1 - .05, 0, 31.95), .3, .3, 'black')
+    kit.rail(A, col, [(px0 + .05, -1.05), (px1 - .05, -1.05), (px1 - .05, 1.05), (px0 + .05, 1.05)], 32.05, .9, 1.0, check=False)
+    # Fore-and-aft aerial spar at 32 m (reference z 33.6 to 50.1) with its braces down to the lower mast.
+    sx0, sx1 = P(0, 0, 50.1)[0], P(0, 0, 33.6)[0]
+    kit.member(A, col, (sx0, 0, 32.05), (sx1, 0, 32.05), .07, 'black', 8)
+    for zr in (37.0, 38.8, 45.8, 47.6):
+        x = P(0, 0, zr)[0]
+        kit.member(A, col, (x, 0, 32.02), (foot.x + (-.55 if zr > 42.3 else .55), 0, 30.1), .04, 'black', 6)
+    # Athwartships yards: 31.3 m (x +-9.0) and 39.3 m (x +-5.0), with their braces.
+    yx = foot.x - .62
+    kit.member(A, col, (yx, -9.0, 31.3), (yx, 9.0, 31.3), .08, 'black', 8)
     for s in (-1, 1):
-        kit.member(A, col, (yx, s * 3.6, 31.35), (yx, s * .45, 29.9), .05, 'black', 6)
-        for yy in (5.5, 9.0):
-            kit.cylz(A, col, 'yardarm lamp', (yx, s * yy, 31.44), .06, .14, 'black', 8)
-    ux = P(0, 0, 41.15)[0]
+        kit.member(A, col, (yx, s * 3.4, 31.3), (yx + .05, s * .5, 30.0), .045, 'black', 6)
+    t = (39.3 - (cap.z - .3)) / (top.z - (cap.z - .3))
+    ux = cap.x + (top.x - cap.x) * t - (.19 + (.08 - .19) * t) - .02
     kit.member(A, col, (ux, -5.0, 39.3), (ux, 5.0, 39.3), .07, 'black', 8)
     for s in (-1, 1):
-        kit.member(A, col, (ux, s * 2.2, 39.3), (ux, s * .3, 38.3), .04, 'black', 6)
-    # Gaff: from the pole at 29.7 m up aft to its peak at 30.9 m, where the ensign flies.
-    heel = Vector(P(0, 29.7, 42.6))
-    peak = Vector(P(0, 30.9, 45.4))
-    kit.member(A, col, tuple(heel), tuple(peak), .07, 'naval', 8)
-    kit.wire(A, col, tuple(peak), tuple(Vector(P(0, 36.0, 41.4))), .015, False)
-    # Day lights and the halyards from the yards down to the tower.
-    t = (27.9 - foot.z) / (band.z - foot.z)
-    lamp = foot.lerp(band, t) + Vector((-.55, 0, 0))
-    kit.part('box', A, col, 'day light bracket', tuple(foot.lerp(band, t) + Vector((-.3, 0, 0))), (.5, .12, .1), 'naval')
-    kit.cylz(A, col, 'day light', (lamp.x, lamp.y, lamp.z - .25), .14, .5, 'naval', 12)
-    for s in (-1, 1):
-        kit.wire(A, col, (yx, s * 8.6, 31.35), P(s * 3.6, 17.6, 40.2), .01, False)
+        kit.member(A, col, (ux, s * 2.0, 39.3), (ux + .1, s * .1, 37.9), .035, 'black', 6)
+        kit.wire(A, col, (ux, s * 4.8, 39.3), (yx, s * 8.8, 31.3), .01, False)
+    # Ladder up the lower mast's after side, and the day light on its bracket.
+    kit.ladder(A, col, (foot.x - .62, 0, 20.4), (cap.x - .6, 0, 31.9), (0, 1, 0), .4, .32, .03, .018, 'naval')
+    lamp = foot.lerp(cap, (27.9 - foot.z) / (cap.z - foot.z))
+    kit.part('box', A, col, 'day light bracket', tuple(lamp + Vector((.0, .62, 0))), (.12, .5, .1), 'naval')
+    kit.cylz(A, col, 'day light', (lamp.x, lamp.y + .92, lamp.z - .25), .14, .5, 'naval', 12)
 
 
 def after_director(kit, col):

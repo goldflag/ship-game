@@ -146,7 +146,7 @@ for id, name, (y, z), bearing in MAIN:
 # and aft). The mount datum is the casemate's seat, 0.86 m below the reference drum datum, on the ledge.
 # bearingDeg is the arc centre (port sense; the starboard twin mirrors it); traverseDeg the half-sector.
 CASEMATES = [(8.751, -55.711, 62, 55), (10.404, -49.906, 72, 62), (11.412, -42.021, 80, 64), (12.03, -35.05, 85, 64),
-             (12.414, -27.283, 90, 64), (12.583, -19.995, 95, 64), (12.65, -10.776, 105, 62), (11.218, -5.539, 115, 58)]
+             (12.414, -27.283, 90, 58), (12.583, -19.995, 95, 50), (12.65, -10.776, 105, 62), (11.218, -5.539, 115, 58)]
 for side, sign in [('p', -1), ('s', 1)]:
     for i, (x, z, centre, half) in enumerate(CASEMATES, 1):
         b['mounts'].append(dict(id=f'casemate-{side}{i}', name=f'{"Port" if sign < 0 else "Starboard"} casemate {i} 14 cm', partId='type3-140-hyuga-casemate',
@@ -259,32 +259,37 @@ for name, (x0, x1), (y0, y1), (z0, z1) in [('motor-boat-17m', (3.8, 8.04), (9.11
 catalog = {p['id']: p for p in json.loads((ROOT / 'assets/parts/guns.json').read_text())['parts']}
 clear_mounts, reach = [], {}
 for m in b['mounts']:
-    if m['battery'] != 'main' and not m['id'].startswith('ha-'):
+    if m['battery'] != 'main' and not m['id'].startswith(('ha-', 'casemate-')):
         continue
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
         # The Ise-class gunhouse in the yaw frame (x across, y up, z aft): 10.8 m long from 3.95 m ahead of the
-        # pivot, 8.6 m wide, from its floor to the roof ridge.
-        entry['body'] = dict(center=[0, 1.32, 1.45], size=[8.6, 2.64, 10.8])
+        # pivot, 8.6 m wide, from its floor to the periscope hood over the roof ridge.
+        entry['body'] = dict(center=[0, 1.7, 1.45], size=[8.6, 3.4, 10.8])
     clear_mounts.append(entry)
-    reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
+    rise = (w['muzzleForward'] + 1.5) * math.sin(math.radians(w['elevationMaxDeg']))
+    reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'], rise)
 nearby = []
 for st in structures:
     xs = [p[0] for p in st['footprint']]
     zs = [p[1] for p in st['footprint']]
     best = None
-    for (x, y, z), r, pivot in reach.values():
+    for (x, y, z), r, pivot, rise in reach.values():
         dx = max(min(xs) - x, 0, x - max(xs))
         dz = max(min(zs) - z, 0, z - max(zs))
-        if math.hypot(dx, dz) <= r and st['baseY'] < pivot + 2 and st['baseY'] + st['height'] > pivot - 3:
+        if math.hypot(dx, dz) <= r and st['baseY'] < pivot + rise + 1 and st['baseY'] + st['height'] > pivot - 3:
             best = min(best if best is not None else 1e9, math.hypot(dx, dz))
     if best is not None:
         nearby.append((best, st['id']))
 nearby = [sid for _, sid in sorted(nearby)[:128]]
-b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 12.7 cm mounts against the measured superstructure prisms they can reach, including the full recoil stroke, and between the superfiring turret pairs. Game clearance envelopes, not verified historical mechanical stops.',
+# Superfiring pairs, No. 1 turret and the forward casemates, and neighbouring casemates on each side interlock.
+pairs = [['main-1', 'main-2'], ['main-3', 'main-4'], ['main-5', 'main-6'], ['main-1', 'casemate-p1'], ['main-1', 'casemate-s1']]
+for side in 'ps':
+    pairs += [[f'casemate-{side}{i}', f'casemate-{side}{i + 1}'] for i in range(1, len(CASEMATES))]
+b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main, 14 cm and 12.7 cm mounts against the measured superstructure prisms they can reach, including the full recoil stroke, between the superfiring turret pairs, No. 1 turret and the forward casemates, and neighbouring casemates. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
-                           neighbors=[['main-1', 'main-2'], ['main-3', 'main-4'], ['main-5', 'main-6']])
+                           neighbors=pairs)
 
 # ---------------------------------------------------------------- rooms, machinery, directors
 def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):

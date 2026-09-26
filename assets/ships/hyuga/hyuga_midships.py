@@ -58,6 +58,18 @@ def stadium_plan(half, z0, z1, grow=0.0, n=32):
     return [(cx + a, b) for a, b in _stadium(half + grow, (z1 - z0) + 2 * grow, n)]
 
 
+def rounded_rect(half, z0, z1, r=.35, n=6):
+    """Authoring plan outline of a rectangle (half-width `half`, reference z0 to z1) with rounded corners."""
+    x0, x1 = -(z1 - ZC), -(z0 - ZC)
+    r = min(r, half * .9, (x1 - x0) * .45)
+    pts = []
+    for cx, cy, a0 in ((x1 - r, half - r, 0), (x0 + r, half - r, 90), (x0 + r, -half + r, 180), (x1 - r, -half + r, 270)):
+        for i in range(n + 1):
+            a = math.radians(a0 + 90 * i / n)
+            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return pts
+
+
 def _stadium(half, length, n):
     straight = max(0, length / 2 - half)
     pts = []
@@ -71,8 +83,8 @@ def funnel(D, kit, col):
     F = 'funnel'
     t = TOWER
     kit.prism(F, col, 'casing', stadium_plan(CASING['half'], CASING['z0'], CASING['z1']), t['y0'] - .02, t['y1'] + .05, 'naval')
-    kit.prism(F, col, 'fore trunk', stadium_plan(FORE_TRUNK['half'], FORE_TRUNK['z0'], FORE_TRUNK['z1'], 0, 24), t['y0'] - .02, 14.25, 'naval', 'roof')
-    kit.prism(F, col, 'after trunk', stadium_plan(AFT_TRUNK['half'], AFT_TRUNK['z0'], AFT_TRUNK['z1'], 0, 24), t['y0'] - .02, 13.45, 'naval', 'roof')
+    kit.prism(F, col, 'fore trunk', rounded_rect(FORE_TRUNK['half'], FORE_TRUNK['z0'], FORE_TRUNK['z1']), t['y0'] - .02, 14.25, 'naval', 'roof')
+    kit.prism(F, col, 'after trunk', rounded_rect(AFT_TRUNK['half'], AFT_TRUNK['z0'], AFT_TRUNK['z1']), t['y0'] - .02, 13.45, 'naval', 'roof')
     for yy in (12.0, 14.0, 16.0):
         kit.prism(F, col, 'band', stadium_plan(CASING['half'], CASING['z0'], CASING['z1'], .04), yy, yy + .1, 'naval')
     # Black cap: rim and spark cage over the top block, steam pipes and the siren.
@@ -142,9 +154,9 @@ def boats(kit, col):
     """Boats at the reference's positions (bounds centres), keels on their cradles. The reference turns
     several boats a few degrees off the centreline; they are stowed square here."""
     for i, (cx, y0, cz, sx, sy, sz) in enumerate(FITTINGS['cutter'], 1):
-        kit.open_boat(f'cutter-{i}', (cx, cz), 9.0, 2.45, y0 + .05, 1.1, col, chocks=(.2, .5, .8))
+        kit.open_boat(f'cutter-{i}', (cx, cz), 9.0, 2.45, y0 + .05, 1.1, col, outer='naval', inner='wood', chocks=(.2, .5, .8))
     for i, (cx, y0, cz, sx, sy, sz) in enumerate(FITTINGS['dinghy'], 1):
-        kit.open_boat(f'dinghy-{i}', (cx, cz), 5.9, 1.8, y0 + .05, .85, col, chocks=(.25, .75))
+        kit.open_boat(f'dinghy-{i}', (cx, cz), 5.9, 1.8, y0 + .05, .85, col, outer='naval', inner='wood', chocks=(.25, .75))
     for i, (cx, y0, cz, sx, sy, sz) in enumerate(FITTINGS['motor-launch'], 1):
         kit.covered_launch(f'motor-launch-{i}', (cx, cz), 12.0, 3.0, y0 + .05, col)
     for i, (cx, y0, cz, sx, sy, sz) in enumerate(FITTINGS['motor-boat'], 1):

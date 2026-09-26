@@ -56,6 +56,8 @@ def deck_fittings(kit, col):
                 floor = seat(kit, x, y, y0 + .5, None)
                 if floor is None or floor < y0 - .6:
                     continue            # nothing under it here: its wall or rail mount is not modelled
+                if kit.in_arc((x, y, floor), (x, y, floor + Hh)):
+                    continue            # under a gun's sweep: the barrels would strike it
             else:
                 floor = y0
             if kind == 'mushroom-vent':
