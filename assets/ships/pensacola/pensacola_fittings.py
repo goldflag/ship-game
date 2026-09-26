@@ -689,6 +689,34 @@ def deck_stores(D, kit):
     print('deck stores left off where our deck differs:', skipped, '- in the guns\' swept space:', swept)
 
 
+def sponson_supports(D, kit):
+    """The pillars, cross-bracing and knee braces under the forward 5-inch sponsons (plan cuts every 0.4 m from 4.4
+    to 8.8 m): box pillars at the outboard edge and against the deckhouse side, X-bracing between the paired
+    pillars, and knee braces from the deckhouse side out to the sponson's underside; mirrored to port."""
+    col = kit.collections['Superstructure']
+    aid = 'sponson-supports'
+    posts = [(8.39, -29.2), (8.45, -27.97), (6.47, -29.33), (6.46, -20.51), (8.78, -20.51), (6.46, -19.27), (8.82, -19.27),
+             (6.46, -17.22), (8.84, -17.22)]
+    for s in (-1, 1):
+        tops = {}
+        for x, z in posts:
+            c = V(s * x, 0, z)
+            top = kit.below(c.x, c.y, 9.6, 8.9)
+            foot = kit.below(c.x, c.y, top - .3, 4.5)
+            kit.member(aid, col, V(s * x, foot - .02, z), V(s * x, top + .02, z), .06, 'naval', 6)
+            tops[(x, z)] = (foot, top)
+        for (xa, za), (xb, zb) in (((8.39, -29.2), (8.45, -27.97)), ((8.78, -20.51), (8.82, -19.27)), ((6.46, -20.51), (6.46, -19.27))):
+            fa, ta = tops[(xa, za)]
+            fb, tb = tops[(xb, zb)]
+            lo, hi = max(fa, fb) + .3, min(ta, tb) - .3
+            kit.member(aid, col, V(s * xa, lo, za), V(s * xb, hi, zb), .035, 'naval', 5)
+            kit.member(aid, col, V(s * xa, hi, za), V(s * xb, lo, zb), .035, 'naval', 5)
+        for z in (-30.54, -29.11, -26.17, -24.69):
+            c = V(s * 7.3, 0, z)
+            top = kit.below(c.x, c.y, 9.6, 8.9)
+            kit.member(aid, col, V(s * 6.36, 7.0, z), V(s * 7.3, top + .02, z), .045, 'naval', 6)
+
+
 # ---------------------------------------------------------------- deck gear
 def deck_gear(D, kit):
     col = kit.collections['Deck fittings']
@@ -1033,6 +1061,7 @@ def build(D, kit):
     boats(D, kit)
     deck_gear(D, kit)
     deck_stores(D, kit)
+    sponson_supports(D, kit)
     funnels(D, kit)
     underwater(D, kit)
     railings(D, kit)

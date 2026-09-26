@@ -89,7 +89,8 @@ lattice jib), two powder catapults on their pedestals trained fore and aft (fitt
 aircraft cradles, two Mk 19 directors (house, rangefinder arms, sight ports), four Mk 44 directors, the Mk 22 on the
 foretop and the Mk 18 aft (both trained by the rig), the 2.7 m rangefinder, the CXAM bedspring on the topmast
 (turning), the RDF loop, six searchlights and four sky lookouts, two open 26 ft whaleboats under radial davits,
-bollards, fairleads, capstans, the two windlasses with their cables from the hawse-pipe collars, reels,
+the pillars, cross-bracing and knee braces under the forward 5-inch sponsons, bollards, fairleads, capstans, the
+two windlasses with their cables from the hawse-pipe collars, reels,
 ventilators, paravanes, anchors, the jack and ensign staffs, funnel steam pipes, deck-edge rails, four broad-bladed
 screws on shafts in bossings with A-brackets, the semi-balanced rudder (measured from the centreline cut) and the
 bilge keels. About a hundred deck stores (ready-use lockers, hatches and skylights, the signal flag lockers, boat
