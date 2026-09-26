@@ -110,7 +110,7 @@ export const TECH_TREE: readonly TechNation[] = [
         ship('fuso', 'Fusō', 'Fusō', 'Battleship', 1915, 3500),
         ship('hyuga', 'Hyūga', 'Ise', 'Battleship', 1917, 3500),
         ship('ise', 'Ise', 'Ise', 'Hybrid battleship', 1917, 3500),
-        ['jp-nagato', 'Nagato', 'Battleship', 1920, 3500],
+        ship('nagato', 'Nagato', 'Nagato', 'Battleship', 1920, 3500),
         ship('yamato', 'Yamato', 'Yamato', 'Battleship', 1941, 6500),
       ]),
       line('carriers', 'Carriers', [

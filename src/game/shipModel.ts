@@ -16,6 +16,7 @@ const identities: Record<string, { type: string; nation: string }> = {
   kongo: { type: 'Battleship', nation: 'Japan' },
   fuso: { type: 'Battleship', nation: 'Japan' },
   hyuga: { type: 'Battleship', nation: 'Japan' },
+  nagato: { type: 'Battleship', nation: 'Japan' },
   iowa: { type: 'Battleship', nation: 'United States' },
   alaska: { type: 'Large cruiser', nation: 'United States' },
   hood: { type: 'Battlecruiser', nation: 'United Kingdom' },

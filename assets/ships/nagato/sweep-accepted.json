@@ -1,0 +1,13 @@
+{
+  "accepted": [
+    { "mount": "casemate-[ps]l?", "against": "forecastle-001", "reason": "14 cm casemate drums turn half inside their recesses in the forecastle block's casemate wall, as the reference's drums do; the barrel stays outboard within the installed arc" },
+    { "mount": "casemate-[ps]a?", "against": "forecastle-001", "reason": "the after 14 cm casemate drums turn half inside the forecastle block's after wall, as in the reference" },
+    { "mount": "casemate-[ps]u?", "against": "deckhouse-011", "reason": "the upper 14 cm casemate drums turn half inside their recesses in the 01-level deckhouse wall, as in the reference" },
+    { "mount": "casemate-[ps]u?", "against": "deckhouse-018", "reason": "the upper 14 cm casemate drums turn half inside their recesses in the 01-level deckhouse wall, as in the reference" },
+    { "mount": "casemate-*", "against": "casemate-*", "reason": "neighbouring casemates 8 m apart only meet when posed independently toward each other; in action a side's casemates train together on one bearing" },
+    { "mount": "main-3", "against": "main-4.roof-arch*", "reason": "No. 3's barrels pass through No. 4's rear-roof arch (1.6 m across, 4.8 m over its sole) when laid below about 8 degrees within about 15 degrees of the centreline, as the reference's own turrets would; the arch is left out of the motion envelope because the simulation stalls a superfiring pair training together over it (README)" },
+    { "mount": "main-3", "against": "main-4.davit-*", "reason": "No. 3's barrels pass through No. 4's rear-roof davit beside the arch in the same low, near-centreline lays, as the reference's own turrets would (README)" },
+    { "mount": "main-1", "against": "main-2", "reason": "posed apart, No. 2's barrels laid low cross No. 1's rear-roof arch and davit only (a sweep ignoring those meshes finds no contact between the two); left out of the motion envelope as above (README)" },
+    { "mount": "main-3", "against": "main-4", "reason": "posed apart, No. 3's barrels laid low cross No. 4's rear-roof arch and davit only (a sweep ignoring those meshes finds no contact between the two); left out of the motion envelope as above (README)" }
+  ]
+}
