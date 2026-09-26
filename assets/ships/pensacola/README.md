@@ -66,7 +66,9 @@ chains (`walls2.py`): the runs that stand more than 15 cm from every block at th
 a 3 cm raster, thinned to centre lines and followed up and down the levels for a foot and top at every vertex. They
 are thin surfaced blocks (so hits and the clearance interlocks see them) with a rolled top edge along the measured
 top: the eight 5-inch tubs (tops sloping from 10.25 to 10.85 m forward, 7.75-8.0 m aft), the bridge-top bulwark
-(17.3-18.85 m, with its bulges round the Mk 44 directors) and the sidelight screens. The 1.1-inch tubs follow the
+(17.3-18.85 m, with its bulges round the Mk 44 directors), the sidelight screens and the ring round the Mk 22
+director's trunk on the foretop (32.8-34.0 m, over the platform's flared floor, where the plan tracer had filled a solid
+block). The 1.1-inch tubs follow the
 section chains round each mount, and the foretop and after-tower platforms' bulwarks their traced outlines. The windows and scuttles were
 read off orthographic textured renders of the reference with the depth of the wall each lies on
 (`windows_detect.py`, `windows_table.py`) and are set into this model's own walls where they stand within 0.35 m of
