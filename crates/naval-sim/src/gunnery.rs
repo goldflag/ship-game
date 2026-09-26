@@ -306,7 +306,7 @@ pub(crate) fn operate_cadenced(
             } else {
                 Ammunition::Ap
             };
-            state.select_ammunition(m, ammunition);
+            state.select_ammunition(m, state.stocked(m, ammunition));
             let in_range = (c.estimated_position[0] - actor.motion.x)
                 .hypot(c.estimated_position[2] - actor.motion.z)
                 <= bots::gun_range(m);

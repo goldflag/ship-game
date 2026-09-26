@@ -110,9 +110,11 @@ export function presentationAim(view: AimView, moduleId?: string, battery: Batte
 export function presentationTelemetry(view: TelemetryView, battery: Battery, aim: Vec3, weaponGroupId?: string, subject: FleetActor = view.player): CombatTelemetry {
     const definition = subject.definition, ship = subject.motion;
     const groups = weaponGroups(definition);
+    // Until the player picks a shell, show what the guns hold: HE-only guns load HE.
+    const loaded = (key: string): Ammunition => subject.mounts.find(m => groups.find(g => g.id === key || g.battery === key)?.mountIds.includes(m.id))?.loaded ?? 'ap';
     const ammunitionFor = (key: string, fallback = key): Ammunition => subject === view.player
-      ? view.ammunitionSelection[key] ?? view.ammunitionSelection[fallback] ?? 'ap'
-      : subject.mounts.find(m => groups.find(g => g.id === key || g.battery === key)?.mountIds.includes(m.id))?.loaded ?? 'ap';
+      ? view.ammunitionSelection[key] ?? view.ammunitionSelection[fallback] ?? loaded(key)
+      : loaded(key);
     const workRate = gunWorkRate(supportPerformance(subject, subject.definition).power);
     const mounts = battery === 'depth-charge' ? (definition.depthChargeLaunchers ?? []).map((l, i) => {
       const s = subject.depthChargeLaunchers![i];
