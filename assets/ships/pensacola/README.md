@@ -88,10 +88,13 @@ pole mainmast with its gaff and the after tower's struts and legs, the aircraft 
 lattice jib), two powder catapults on their pedestals trained fore and aft (fitted empty), the spare float and
 aircraft cradles, two Mk 19 directors (house, rangefinder arms, sight ports), four Mk 44 directors, the Mk 22 on the
 foretop and the Mk 18 aft (both trained by the rig), the 2.7 m rangefinder, the CXAM bedspring on the topmast
-(turning), the RDF loop, six searchlights and four sky lookouts, two 26 ft whaleboats under davits, bollards,
-fairleads, capstans, reels, ventilators, paravanes, anchors and hawse pipes, the jack and ensign staffs, funnel
-steam pipes, deck-edge rails, four four-bladed screws on shafts in bossings with A-brackets, the semi-balanced rudder
-(measured from the centreline cut) and the bilge keels.
+(turning), the RDF loop, six searchlights and four sky lookouts, two open 26 ft whaleboats under radial davits,
+bollards, fairleads, capstans, the two windlasses with their cables from the hawse-pipe collars, reels,
+ventilators, paravanes, anchors, the jack and ensign staffs, funnel steam pipes, deck-edge rails, four broad-bladed
+screws on shafts in bossings with A-brackets, the semi-balanced rudder (measured from the centreline cut) and the
+bilge keels. About a hundred deck stores (ready-use lockers, hatches and skylights, the signal flag lockers, boat
+winches, the stack of wooden boxes abaft the forward funnel, fuel-oil hoses, net baskets, cooling-water tanks) are
+simple boxes and drums at the bounds of the reference's own fittings, seated on our decks.
 
 **Gameplay data.** Machinery (four firerooms under the funnels and four engine rooms, four shafts), magazines,
 flood spaces, stability and damage-control values are game estimates; the visual reference does not establish
@@ -116,6 +119,9 @@ top, 1.63°/s, 90° in 32 s.
   the traced steps of its base.
 - Masts, the crane, catapults, directors, the radar and searchlights are simplified; the catapults are empty, as the
   brief asks (the reference's aircraft are not modelled). Rails stay out of the gun arcs.
+- Deck stores the 8-inch gunhouses or depressed barrels would strike (three hatches under No. 1 turret's overhang, two
+  hatches and a winch under No. 4's barrels) and three whose deck here stands away from the reference's are left off;
+  the small bridge and deck furniture (telephones, switch boxes, voice tubes, fire-hose reels) is not modelled.
 - Weather-deck planks use the Baltimore preset's plank size (0.127 x 3.048 m): the reference texture shows planking
   under the deck-blue paint but is too coarse to measure it.
 - The 20 mm and 1.1-inch mounts stop at their tub and platform bulwarks through the clearance interlocks; the

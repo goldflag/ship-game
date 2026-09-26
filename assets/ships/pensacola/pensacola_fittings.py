@@ -38,10 +38,13 @@ def hull_half(kit, zref, y):
             t = (station - s0['station']) / max(1e-9, s1['station'] - s0['station'])
 
             def w(sec):
+                # A height above this station's deck edge (the sheer rises toward the next station) reads the
+                # deck edge's own half-breadth, not zero.
+                yy = min(y, sec['points'][-1][1] - 1e-3)
                 best = 0
                 for (w0, y0), (w1, y1) in zip(sec['points'], sec['points'][1:]):
-                    if min(y0, y1) <= y <= max(y0, y1) and abs(y1 - y0) > 1e-9:
-                        best = max(best, w0 + (w1 - w0) * (y - y0) / (y1 - y0))
+                    if min(y0, y1) <= yy <= max(y0, y1) and abs(y1 - y0) > 1e-9:
+                        best = max(best, w0 + (w1 - w0) * (yy - y0) / (y1 - y0))
                 return best
             return w(s0) * (1 - t) + w(s1) * t
     return 0.0
@@ -155,14 +158,13 @@ def mainmast(D, kit):
     kit.member(aid, col, V(0, 21.6, 26.36), V(0, 23.9, 29.6), .06)       # gaff to the ensign's hoist
     kit.boxc(aid, col, 'lookout platform', V(0, 20.7, 26.0), (1.6, 1.6, .08), 'roof')
     kit.ladder(aid, col, V(0, 6.6, 24.85), V(0, 20.6, 26.45), (0, 1, 0), .38)
-    # After tower (plan cuts): two forward struts raked up to the director platform, two after legs
-    # converging on it, and the centre post under the Mk 19.
+    # After tower (plan cuts every 0.2-0.6 m): two forward struts raked up past the platform's forward edge to the
+    # top of its bulwark (16.8 m at z 37.4), two after legs converging on the platform, and the centre post under
+    # the Mk 19. The struts carry no cross-bracing.
     for s in (-1, 1):
-        taper(kit, aid, col, 'forward strut', (s * 2.74, 6.3, 24.79), (s * 2.74, 15.15, 35.56), .33, .3, 'naval', 16)
+        taper(kit, aid, col, 'forward strut', (s * 2.74, 6.3, 24.79), (s * 2.74, 16.8, 37.4), .33, .28, 'naval', 16)
         taper(kit, aid, col, 'after leg', (s * 3.43, 6.2, 42.86), (s * 1.43, 15.15, 41.22), .33, .3, 'naval', 16)
         kit.cylz(aid, col, 'strut foot', V(s * 2.74, 0, 24.79)[:2] + (6.22,), .45, .12, 'edge', 14)
-        kit.member(aid, col, V(s * 2.74, 10.0, 29.3), V(s * 2.95, 10.0, 38.0), .08)
-    kit.member(aid, col, V(-2.74, 10.0, 29.3), V(2.74, 10.0, 29.3), .08)
     taper(kit, aid, col, 'centre post', (0, 6.2, 37.7), (0, 13.2, 38.4), .3, .27, 'naval', 16)
 
 
@@ -406,15 +408,41 @@ def boat(kit, aid, col, c, length, beam, depth, heading=0.0, covered=False):
         fore = max(0, (t - .6) / .4)
         aft = max(0, (.25 - t) / .25)
         half = beam / 2 * (1 - fore ** 1.7) * (1 - .35 * aft ** 2) + .02
-        top = depth * (1 + .25 * fore ** 2)
+        top = depth * (1 + .12 * fore ** 2)
         ring = []
         for k in range(9):
             a = math.pi * k / 8
             ring.append((x, -half * math.cos(a), top - depth * .85 * math.sin(a) ** 1.4 * (1 - .4 * fore) - depth * .15))
         rings.append(ring)
     rot = Matrix.Rotation(heading, 3, 'Z')
-    rings = [[tuple(Vector(c) + rot @ Vector(p)) for p in ring] for ring in rings]
-    hull = kit.loft(aid, col, 'boat hull', rings, 'naval', True, True, True)
+    if covered:
+        rings = [[tuple(Vector(c) + rot @ Vector(p)) for p in ring] for ring in rings]
+        hull = kit.loft(aid, col, 'boat hull', rings, 'naval', True, True, True)
+    else:
+        # An open boat: a 5 cm shell, the inner face following the outer one, closed along the gunwales and at the
+        # transom and stem, so the thwarts and bottom boards show from above.
+        inner = []
+        for ring in rings:
+            half = max(abs(p[1]) for p in ring)
+            inner.append([(x, y * max(0.0, 1 - .05 / half), z + .05 * math.sin(math.pi * k / 8)) for k, (x, y, z) in enumerate(ring)])
+        place = lambda pts: [tuple(Vector(c) + rot @ Vector(p)) for p in pts]
+        outer_w, inner_w = [place(r) for r in rings], [place(r) for r in inner]
+        m = len(rings[0])
+        vv = [p for r in outer_w for p in r] + [p for r in inner_w for p in r]
+        o = lambda i, k: i * m + k
+        q = lambda i, k: len(rings) * m + i * m + k
+        ff = []
+        for i in range(len(rings) - 1):
+            for k in range(m - 1):
+                ff.append((o(i, k), o(i + 1, k), o(i + 1, k + 1), o(i, k + 1)))
+                ff.append((q(i, k), q(i, k + 1), q(i + 1, k + 1), q(i + 1, k)))
+            for k in (0, m - 1):
+                ff.append((o(i, k), q(i, k), q(i + 1, k), o(i + 1, k)))
+        for i in (0, len(rings) - 1):
+            ff.append(tuple(o(i, k) for k in range(m)) + tuple(q(i, k) for k in reversed(range(m))))
+            ff.append(tuple(q(i, k) for k in range(m)))
+        hull = fix_normals(kit.tag(kit.mesh(aid + '.boat hull', vv, ff, 'naval', col), aid))
+        kit.boxc(aid, col, 'bottom boards', Vector(c) + rot @ Vector((0, 0, depth * .28)), (length * .7, beam * .5, .04), 'wood', heading)
     if covered:
         kit.boxc(aid, col, 'canopy', Vector(c) + rot @ Vector((-length * .12, 0, depth * .85 + .32)), (length * .4, beam * .6, .6), 'canvas', heading)
     else:
@@ -430,19 +458,235 @@ def boats(D, kit):
         aid = 'whaleboat-' + ('port' if s < 0 else 'starboard')
         z0 = 36.12
         floor = kit.below(*V(s * 7.87, 0, z0)[:2], 5.0, 3.9)
-        boat(kit, aid, col, V(s * 7.87, floor + .28, z0), 7.9, 2.0, 1.4, math.pi, True)
-        for dz in (-2.4, 2.4):
-            kit.boxc(aid, col, 'chock', V(s * 7.87, floor + .14, z0 + dz), (.3, 1.6, .28), 'edge')
-            foot = V(s * 8.75, floor, z0 + dz * 1.25)
-            top = V(s * 8.9, floor + 3.6, z0 + dz * 1.25)
-            kit.part('rod', aid, col, 'davit', foot, top, .09, 'naval', vertices=10)
-            kit.part('rod', aid, col, 'davit head', top, top + Vector((0, s * .9, -.35)), .07, 'naval', vertices=8)
-            kit.wire(aid, col, top + Vector((0, s * .9, -.4)), V(s * 7.87, floor + 1.7, z0 + dz * 1.1), .015, False)
+        boat(kit, aid, col, V(s * 7.87, floor + .1, z0), 7.9, 2.0, 1.4, math.pi, False)
+        # Radial davits (plan cuts at 4.2-7.4 m): posts at the deck edge (x 9.25, z 32.95 and 38.98) standing to
+        # 6.4 m, then curving in over the boat's centre line to their heads at 7.75 m.
+        for zd in (32.95, 38.98):
+            kit.boxc(aid, col, 'chock', V(s * 7.87, floor + .05, zd + (1.0 if zd < z0 else -1.0)), (.3, 1.6, .1), 'edge')
+            # The post rides the deck edge (the reference's stands on the sheer strake at x 9.25).
+            px = min(9.25, hull_half(kit, zd, floor - .05) - .04)
+            pts = [V(s * px, floor - .02, zd), V(s * px, 6.4, zd)]
+            for k in range(1, 7):
+                a = math.pi / 2 * k / 6
+                pts.append(V(s * (7.9 + (px - 7.9) * math.cos(a)), 6.4 + 1.35 * math.sin(a), zd))
+            for a_, b_ in zip(pts, pts[1:]):
+                kit.part('rod', aid, col, 'davit', a_, b_, .09, 'naval', vertices=10)
+            head = pts[-1]
+            kit.boxc(aid, col, 'davit block', head + Vector((0, 0, -.25)), (.16, .12, .3), 'edge')
+            kit.wire(aid, col, head + Vector((0, 0, -.4)), V(s * 7.87, floor + 1.5, zd + (1.2 if zd < z0 else -1.2)), .015, False)
     # Boat booms stowed on the forecastle and aft (am131 datums) and the Franklin life buoys (am489).
     for s in (-1, 1):
         x = 9.08 + .09      # on the flush side of the midships superstructure (plan cuts: 9.07-9.09 m)
         kit.part('rod', 'life-buoys', col, 'life buoy', V(s * (x - .02), 5.9, 22.59), V(s * (x + .1), 5.9, 22.59), .36, 'white', vertices=16)
         kit.part('rod', 'life-buoys', col, 'buoy bracket', V(s * (x - .02), 6.2, 22.59), V(s * (x - .12), 6.2, 22.59), .04, 'edge', vertices=6)
+
+
+# Deck stores at the bounds of the reference's own fittings (reference frame min and max corners): ready-use
+# lockers, hatches and skylights, signal flag lockers, boat winches, the stack of wooden boxes abaft the forward
+# funnel, fuel-oil hoses, floater-net baskets and the Oerlikons' cooling-water tanks. Shapes are simple originals.
+DECK_STORES = [
+    ('basket', (-4.3, 6.4, -15.34), (-3.84, 6.95, -13.19)),
+    ('basket', (3.84, 6.4, -15.34), (4.3, 6.95, -13.19)),
+    ('flaglocker-edge', (-5.66, 14.71, -21.18), (-1.8, 16.46, -20.23)),
+    ('flaglocker-edge', (1.8, 14.71, -21.18), (5.66, 16.46, -20.23)),
+    ('flagbox', (-2.37, 13.42, 25.04), (-0.47, 14.83, 25.78)),
+    ('flagbox', (0.47, 13.42, 25.04), (2.37, 14.83, 25.78)),
+    ('hatch', (-1.95, 6.95, -79.39), (-1.14, 7.34, -78.42)),
+    ('hatch', (-0.44, 6.57, -71.9), (0.46, 6.93, -71.14)),
+    ('hatch', (-0.45, 6.49, -70.2), (0.45, 6.86, -69.43)),
+    ('hatch', (0.07, 6.15, -64.12), (0.97, 6.52, -63.36)),
+    ('hatch', (-0.51, 5.92, -62.81), (0.51, 6.73, -60.75)),
+    ('hatch', (0.85, 5.92, -59.85), (1.75, 6.28, -59.08)),
+    ('hatch', (-1.64, 5.43, -49.59), (-0.74, 5.79, -48.82)),
+    ('hatch', (-5.4, 6.56, 12.88), (-4.5, 6.89, 13.63)),
+    ('hatch', (4.5, 6.56, 12.88), (5.4, 6.89, 13.63)),
+    ('hatch', (-0.48, 13.34, 18.89), (0.34, 13.65, 19.57)),
+    ('hatch', (1.81, 6.57, 19.0), (2.71, 6.9, 19.75)),
+    ('hatch', (0.15, 3.86, 30.21), (2.15, 4.26, 32.21)),
+    ('hatch', (-2.98, 3.67, 36.02), (-0.7, 4.49, 37.03)),
+    ('hatch', (-0.47, 3.85, 36.03), (0.43, 4.18, 36.78)),
+    ('hatch', (-1.53, 15.2, 38.81), (-0.93, 15.47, 39.53)),
+    ('hatch', (0.58, 3.84, 57.49), (1.48, 4.17, 58.24)),
+    ('hatch', (1.4, 3.81, 68.0), (2.3, 4.14, 68.75)),
+    ('hatch', (-3.26, 3.77, 70.66), (-2.25, 4.48, 72.71)),
+    ('hatch', (2.25, 3.77, 70.66), (3.26, 4.48, 72.71)),
+    ('hose', (-6.54, 5.2, -31.87), (-6.2, 5.62, -29.52)),
+    ('hose', (6.2, 5.15, -31.87), (6.54, 5.57, -29.52)),
+    ('hose', (-6.54, 5.69, -31.86), (-6.2, 6.11, -29.51)),
+    ('hose', (6.2, 5.64, -31.86), (6.54, 6.06, -29.51)),
+    ('hose', (-0.79, 5.66, -25.71), (1.56, 6.04, -25.36)),
+    ('hose', (-0.79, 6.15, -25.71), (1.56, 6.53, -25.36)),
+    ('hose', (0.73, 4.55, 4.46), (3.08, 4.93, 4.8)),
+    ('hose', (0.73, 4.96, 4.46), (3.08, 5.34, 4.8)),
+    ('hose', (-7.58, 4.51, 44.74), (-7.24, 4.89, 47.09)),
+    ('hose', (-7.58, 4.94, 44.74), (-7.24, 5.32, 47.09)),
+    ('hose', (7.24, 4.51, 44.74), (7.58, 4.89, 47.09)),
+    ('hose', (7.24, 4.94, 44.74), (7.58, 5.32, 47.09)),
+    ('locker', (1.93, 9.41, -32.93), (3.25, 10.25, -31.43)),
+    ('locker', (-2.98, 9.4, -32.52), (-2.16, 11.15, -31.76)),
+    ('locker', (-1.8, 24.9, -30.15), (-0.88, 25.97, -29.16)),
+    ('locker', (0.88, 24.9, -30.15), (1.8, 25.97, -29.16)),
+    ('locker', (-2.53, 12.45, -29.87), (-2.13, 14.15, -29.27)),
+    ('locker', (-0.43, 17.45, -29.72), (0.43, 18.52, -29.2)),
+    ('locker', (-1.12, 24.9, -28.25), (-0.5, 25.7, -26.86)),
+    ('locker', (0.5, 24.9, -28.25), (1.12, 25.7, -26.86)),
+    ('locker', (-5.97, 4.56, -26.81), (-4.99, 5.4, -26.25)),
+    ('locker', (-3.39, 9.29, -26.46), (-2.01, 10.09, -25.84)),
+    ('locker', (5.51, 4.47, -26.43), (5.91, 6.17, -25.83)),
+    ('locker', (5.51, 4.47, -25.8), (5.91, 6.17, -25.2)),
+    ('locker', (-1.91, 24.9, -25.53), (-0.53, 25.7, -24.91)),
+    ('locker', (0.53, 24.9, -25.53), (1.91, 25.7, -24.91)),
+    ('locker', (1.62, 9.21, -24.6), (2.23, 10.51, -24.2)),
+    ('locker', (-1.41, 14.91, -22.97), (-0.03, 15.71, -22.35)),
+    ('locker', (0.03, 14.91, -22.97), (1.41, 15.71, -22.35)),
+    ('locker', (-3.82, 9.1, -19.77), (-2.84, 9.94, -19.21)),
+    ('locker', (2.84, 9.1, -19.77), (3.82, 9.94, -19.21)),
+    ('locker', (-3.83, 6.97, -18.77), (-3.32, 7.47, -16.07)),
+    ('locker', (3.32, 6.97, -18.77), (3.83, 7.47, -16.07)),
+    ('locker', (2.02, 4.16, 2.83), (3.24, 5.58, 4.05)),
+    ('locker', (-3.24, 4.16, 3.38), (-2.02, 5.58, 4.6)),
+    ('locker', (2.27, 6.57, 14.35), (3.03, 7.15, 15.75)),
+    ('locker', (2.27, 6.57, 15.86), (3.03, 7.15, 17.26)),
+    ('locker', (-2.96, 6.58, 20.02), (-1.75, 7.8, 21.32)),
+    ('locker', (1.75, 6.58, 20.02), (2.96, 7.8, 21.32)),
+    ('locker', (-4.24, 3.95, 22.99), (-3.68, 4.79, 23.97)),
+    ('locker', (3.68, 3.95, 22.99), (4.24, 4.79, 23.97)),
+    ('locker', (-2.65, 6.58, 23.83), (-1.93, 7.73, 24.77)),
+    ('locker', (1.93, 6.58, 23.83), (2.65, 7.73, 24.77)),
+    ('locker', (-1.9, 6.58, 28.34), (-0.7, 7.8, 29.64)),
+    ('locker', (0.7, 6.58, 28.34), (1.9, 7.8, 29.64)),
+    ('locker', (0.25, 3.88, 28.63), (1.36, 4.79, 29.26)),
+    ('locker', (-0.73, 6.23, 31.78), (-0.13, 6.88, 33.43)),
+    ('locker', (0.13, 6.23, 31.78), (0.73, 6.88, 33.43)),
+    ('locker', (-1.55, 15.29, 37.64), (-0.7, 16.36, 38.16)),
+    ('locker', (2.58, 3.89, 39.6), (2.98, 5.19, 40.2)),
+    ('locker', (-1.79, 15.29, 40.11), (-1.32, 15.9, 40.88)),
+    ('locker', (1.32, 15.29, 40.11), (1.79, 15.9, 40.88)),
+    ('locker', (2.59, 3.89, 40.26), (2.99, 5.19, 40.86)),
+    ('locker', (-0.38, 15.29, 41.81), (0.38, 15.9, 42.27)),
+    ('locker', (-2.19, 6.24, 43.9), (-1.21, 7.08, 44.46)),
+    ('locker', (-1.36, 3.82, 81.46), (-0.51, 4.89, 81.98)),
+    ('locker', (0.51, 3.82, 81.46), (1.36, 4.89, 81.98)),
+    ('skylight', (-1.7, 6.54, 19.9), (-0.12, 7.33, 21.2)),
+    ('skylight', (0.12, 6.54, 19.9), (1.7, 7.33, 21.2)),
+    ('tube', (-2.26, 25.05, -30.1), (-1.9, 26.05, -29.81)),
+    ('tube', (1.89, 25.05, -30.09), (2.25, 26.05, -29.8)),
+    ('tube', (-3.31, 24.97, -25.65), (-2.71, 25.91, -25.09)),
+    ('tube', (2.67, 24.95, -25.56), (3.21, 25.94, -25.05)),
+    ('tube', (-3.59, 15.36, 39.77), (-3.32, 16.36, 40.13)),
+    ('tube', (3.32, 15.36, 39.77), (3.58, 16.36, 40.14)),
+    ('tube', (-3.08, 15.36, 41.96), (-2.82, 16.36, 42.33)),
+    ('tube', (2.81, 15.36, 41.97), (3.08, 16.36, 42.34)),
+    ('winch', (2.83, 6.57, 21.67), (4.83, 7.15, 23.09)),
+    ('winch', (-4.83, 6.57, 21.7), (-2.83, 7.15, 23.12)),
+    ('winch', (-1.28, 6.55, 25.28), (-0.42, 7.4, 26.22)),
+    ('winch', (0.42, 6.55, 25.28), (1.28, 7.4, 26.22)),
+    ('winch', (-0.94, 3.81, 70.68), (0.94, 4.58, 73.34)),
+    ('woodbox', (-2.35, 9.14, -21.59), (0.01, 9.46, -20.75)),
+    ('woodbox', (-2.35, 9.45, -21.59), (0.01, 9.77, -20.75)),
+    ('woodbox', (-2.35, 9.76, -21.59), (0.01, 10.09, -20.75)),
+    ('woodbox', (0.03, 9.14, -21.59), (2.39, 9.46, -20.75)),
+    ('woodbox', (0.03, 9.45, -21.59), (2.39, 9.77, -20.75)),
+    ('woodbox', (0.03, 9.76, -21.59), (2.39, 10.09, -20.75)),
+    ('woodbox', (-2.35, 9.14, -20.75), (0.01, 9.46, -19.91)),
+    ('woodbox', (-2.35, 9.45, -20.75), (0.01, 9.77, -19.91)),
+    ('woodbox', (-2.35, 9.76, -20.75), (0.01, 10.09, -19.91)),
+    ('woodbox', (0.03, 9.14, -20.75), (2.39, 9.46, -19.91)),
+    ('woodbox', (0.03, 9.45, -20.75), (2.39, 9.77, -19.91)),
+    ('woodbox', (0.03, 9.76, -20.75), (2.39, 10.09, -19.91)),
+]
+
+def deck_stores(D, kit):
+    """The deck stores of DECK_STORES as simple original shapes, each seated on the deck or platform under it
+    (dropped where our deck lies more than 0.35 m off the reference's); the wooden boxes keep their stacking."""
+    col = kit.collections['Deck fittings']
+    aid = 'deck-stores'
+    boxes = [r for r in DECK_STORES if r[0] == 'woodbox']
+    stack_base = min(mn[1] for _, mn, _ in boxes)
+    sc = V(*[sum((mn[i] + mx[i]) / 2 for _, mn, mx in boxes) / len(boxes) for i in range(3)])
+    stack_shift = kit.below(sc.x, sc.y, stack_base + .5, stack_base) - stack_base
+    skipped = swept = 0
+    main = [a for a in kit.arcs if a[5]['battery'] == 'main']
+
+    def main_arc(p):
+        # A point the 8-inch gunhouses sweep (within their overhang, above their sole) or the barrels reach at full
+        # depression (as Kit.in_arc, main battery only: the light mounts' interlocks already stop them at the stores).
+        for mx_, my_, mz_, house, w, m in main:
+            d = math.hypot(p[0] - mx_, p[1] - my_)
+            if d < house and p[2] > mz_ - .05:
+                return True
+            # The barrels reach only bearings inside the mount's training limits (authoring +X is the bow, +Y port).
+            bearing = math.degrees(math.atan2(-(p[1] - my_), p[0] - mx_))
+            off = (bearing - m['bearingDeg'] + 180) % 360 - 180
+            if abs(off) > w.get('traverseDeg', 180) + 5:
+                continue
+            low = mz_ + w['pivotHeight'] + math.sin(math.radians(w['elevationMinDeg'])) * max(0, d - w['trunnionForward']) - w.get('barrelBaseRadius', .4) - .15
+            if d < w['muzzleForward'] + .6 and p[2] > low:
+                return True
+        return False
+
+    for kind, mn, mx in DECK_STORES:
+        cx, cz = (mn[0] + mx[0]) / 2, (mn[2] + mx[2]) / 2
+        sx, sy, sz = mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]
+        c = V(cx, 0, cz)
+        if kind == 'woodbox':
+            shift = stack_shift
+        elif kind in ('hose', 'basket', 'flaglocker-edge'):
+            # Hung on a deckhouse side, or (the signal flag lockers abaft the bridge wings) standing against the
+            # platform's after edge, at the reference's height.
+            shift = 0.0
+        else:
+            # The best of the supports under the centre and the four corners (inset 0.1 m) that lies within 0.35 m
+            # of the reference's footing: a store on a platform edge still finds the platform.
+            shifts = []
+            for fx, fz in ((0, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)):
+                q = V(cx + fx * (sx / 2 - .1), 0, cz + fz * (sz / 2 - .1))
+                d = kit.below(q.x, q.y, mx[1] + .2, mn[1] - 5) - mn[1]
+                if abs(d) <= .35:
+                    shifts.append(d)
+            if not shifts:
+                skipped += 1
+                continue
+            shift = max(shifts)
+        base = Vector((c.x, c.y, mn[1] + shift))
+        # Stores the turrets' gunhouses or depressed barrels would sweep through are left off (the reference keeps
+        # hatches and a winch under No. 1's overhang and No. 4's barrels, where the guns would strike them).
+        corners = [V(cx + fx * sx / 2, 0, cz + fz * sz / 2) for fx in (-1, 0, 1) for fz in (-1, 0, 1)]
+        if any(main_arc((q.x, q.y, base.z + sy)) for q in corners):
+            swept += 1
+            print('deck store in a turret\'s swept space:', kind, mn, mx)
+            continue
+        # Authoring box size is (fore-aft, athwart, up).
+        if kind == 'locker':
+            kit.boxc(aid, col, 'locker', base + Vector((0, 0, sy * .45)), (sz, sx, sy * .9), 'naval')
+            kit.boxc(aid, col, 'locker lid', base + Vector((0, 0, sy * .95)), (sz + .04, sx + .04, sy * .1), 'edge')
+        elif kind in ('hatch', 'skylight'):
+            kit.boxc(aid, col, 'hatch coaming', base + Vector((0, 0, sy * .4)), (sz, sx, sy * .8), 'naval')
+            kit.boxc(aid, col, 'hatch cover' if kind == 'hatch' else 'skylight glazing', base + Vector((0, 0, sy * .9)),
+                     (sz * .92, sx * .92, sy * .2), 'roof' if kind == 'hatch' else 'glass')
+        elif kind in ('flagbox', 'flaglocker-edge'):
+            kit.boxc(aid, col, 'flag locker', base + Vector((0, 0, sy * .42)), (sz, sx, sy * .84), 'naval')
+            kit.boxc(aid, col, 'flag locker lid', base + Vector((0, 0, sy * .9)), (sz + .06, sx + .06, sy * .12), 'edge')
+        elif kind == 'winch':
+            kit.boxc(aid, col, 'winch bed', base + Vector((0, 0, .08)), (sz, sx, .16), 'edge')
+            along_x = sx >= sz
+            r = min(sy * .35, (sz if along_x else sx) * .3)
+            a = base + Vector((0, 0, .16 + r))
+            half = Vector((0, sx * .42, 0)) if along_x else Vector((sz * .42, 0, 0))
+            kit.part('rod', aid, col, 'winch drum', a - half, a + half, r, 'black', vertices=14)
+            kit.boxc(aid, col, 'winch motor', base + Vector((0, 0, sy * .45)), (sz * .45, sx * .3, sy * .9) if along_x else (sz * .3, sx * .45, sy * .9), 'naval')
+        elif kind == 'woodbox':
+            kit.boxc(aid, col, 'wooden box', base + Vector((0, 0, sy / 2)), (sz - .02, sx - .02, sy - .01), 'wood')
+        elif kind == 'hose':
+            long_z = sz >= sx
+            half = Vector((sz / 2 - .05, 0, 0)) if long_z else Vector((0, sx / 2 - .05, 0))
+            r = min(sy, sx if long_z else sz) / 2
+            kit.part('rod', aid, col, 'hose coil', base + Vector((0, 0, r)) - half, base + Vector((0, 0, r)) + half, r, 'canvas', vertices=12)
+        elif kind == 'basket':
+            kit.boxc(aid, col, 'net basket', base + Vector((0, 0, sy / 2)), (sz, sx, sy), 'canvas')
+        elif kind == 'tube':
+            kit.cylz(aid, col, 'cooling tank', base, min(sx, sz) / 2, sy, 'naval', 14)
+    print('deck stores left off where our deck differs:', skipped, '- in the guns\' swept space:', swept)
 
 
 # ---------------------------------------------------------------- deck gear
@@ -511,10 +755,33 @@ def deck_gear(D, kit):
         for zz, yy, size in ((-82.1, 5.9, (.95, .3, .3)), (-81.8, 5.45, (1.3, .45, .22))):
             hb = hull_half(kit, zz, yy)
             kit.boxc('ground-tackle', col, 'bow anchor', V(s * (hb + size[2] / 2 - .02), yy, zz), (size[0], size[2], size[1]), 'black')
-        kit.part('rod', 'ground-tackle', col, 'hawse pipe', V(s * 1.2, 7.0, -78.8), V(s * 1.65, 6.6, -81.4), .26, 'naval', vertices=14)
-        for i in range(8):
-            p = V(s * (1.1 - .02 * i), 7.02, -78.6 + i * .75)
-            kit.part('rod', 'ground-tackle', col, 'cable', p, p + Vector((-.55, 0, 0)), .055, 'edge', vertices=6)
+    # Windlasses and cables (plan cuts at 6.7-7.6 m): a 1.44 m drum base at x +-1.0, z -72.51 with its 0.7 m
+    # head and the cable casing ahead of it; each cable runs from its hawse-pipe collar at the stem (x +-0.72,
+    # z -81.7) aft over the deck into the windlass, and on from the windlass into its chain pipe; links 0.38 m long,
+    # alternately flat and on edge.
+    for s in (-1, 1):
+        c = seat(s * 1.0, -72.51, 6.9, .4)
+        kit.cylz('ground-tackle', col, 'windlass base', c + Vector((0, 0, -.02)), .72, .38, 'naval', 28)
+        kit.cylz('ground-tackle', col, 'windlass cover', c + Vector((0, 0, .36)), .7, .06, 'roof', 28)
+        kit.cylz('ground-tackle', col, 'windlass head', c + Vector((0, 0, .42)), .35, .48, 'naval', 20, r2=.3)
+        kit.cylz('ground-tackle', col, 'windlass cap', c + Vector((0, 0, .9)), .33, .05, 'edge', 20)
+        k = seat(s * 1.03, -73.78, 6.9, .3)
+        kit.boxc('ground-tackle', col, 'cable casing', k + Vector((0, 0, .15)), (.95, .65, .3), 'naval')
+        h = seat(s * .72, -81.7, 7.5, .3)
+        kit.cylz('ground-tackle', col, 'hawse collar', h + Vector((0, 0, -.02)), .32, .14, 'edge', 18)
+        p = seat(s * .78, -71.3, 6.8, .3)
+        kit.cylz('ground-tackle', col, 'chain pipe', p + Vector((0, 0, -.02)), .26, .16, 'edge', 16)
+        for (xa, za), (xb, zb) in (((.72, -81.5), (.55, -74.3)), ((.9, -71.95), (.78, -71.45))):
+            n = max(2, int(math.hypot(xb - xa, zb - za) / .38))
+            for i in range(n):
+                t0, t1 = i / n, (i + 1) / n
+                a = seat(s * (xa + (xb - xa) * t0), za + (zb - za) * t0, 7.2, .5)
+                b = seat(s * (xa + (xb - xa) * t1), za + (zb - za) * t1, 7.2, .5)
+                a.z, b.z = a.z + .1, b.z + .1
+                if i % 2:
+                    kit.beam('ground-tackle', col, 'cable link', a, b, .06, .2, 'black')
+                else:
+                    kit.beam('ground-tackle', col, 'cable link', a, b, .23, .06, 'black')
     # 5-inch ammunition hoists and ready-use lockers on the sponson deck (am508, am520).
     for x in (-1.13, 1.19):
         c = seat(x, -23.53, 9.2, .8)
@@ -658,7 +925,8 @@ def screw(kit, aid, col, c, radius, blades=4, hand=1):
         a = math.pi / 4 + k * math.tau / blades
         ca, sa = math.cos(a), math.sin(a)
         sections = []
-        for r, w in ((.3, .62), (.8 * radius / 1.78, .9), (1.3 * radius / 1.78, .82), (radius, .38)):
+        # Broad, rounded blades (the reference's screws are 3.55 m across and 2.0 m long along the shaft).
+        for r, w in ((.26, .7), (.75 * radius / 1.78, 1.22), (1.2 * radius / 1.78, 1.36), (1.55 * radius / 1.78, 1.05), (radius, .42)):
             skew = hand * .22
             le = (c.x - w * .15, c.y + r * ca - w * sa * .5 * hand, c.z + r * sa + w * ca * .5 * hand)
             te = (c.x + w * .15, c.y + r * ca + w * sa * .5 * hand, c.z + r * sa - w * ca * .5 * hand)
@@ -696,7 +964,8 @@ def underwater(D, kit):
             if abs(px) > hull_half(kit, zz, py) + .05:
                 exit_z = zz
                 break
-        kit.part('rod', aid, col, 'shaft', V(xs, ys, start), c + Vector((.5, 0, 0)), .2, 'bronze', vertices=12)
+        # The shafts are painted with the bottom, as the reference shows them.
+        kit.part('rod', aid, col, 'shaft', V(xs, ys, start), c + Vector((.5, 0, 0)), .2, 'antifouling', vertices=12)
         t0 = (exit_z - start) / (z - start)
         ex = Vector(P(xs + (x - xs) * t0, ys + (y - ys) * t0, exit_z))
         mid = ex.lerp(c, .45)
@@ -763,6 +1032,7 @@ def build(D, kit):
     searchlights(D, kit)
     boats(D, kit)
     deck_gear(D, kit)
+    deck_stores(D, kit)
     funnels(D, kit)
     underwater(D, kit)
     railings(D, kit)
