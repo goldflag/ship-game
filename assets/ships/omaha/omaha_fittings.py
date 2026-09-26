@@ -959,14 +959,15 @@ def underwater(D, kit):
 
 # ---------------------------------------------------------------- rails
 def railings(D, kit):
-    """Guard rails along the forecastle and quarterdeck edges, kept out of the gun arcs (Kit.in_arc). The reference
-    rails no part of the upper deck's edge between the superstructures, where the after torpedo mounts swing their
-    tubes out over the side."""
+    """Guard rails along the forecastle and quarterdeck edges and the upper deck's edge beside the boats, kept out
+    of the gun arcs (Kit.in_arc). The reference rails the upper deck's edge only from the launches to abreast No. 3
+    funnel (reference sections find its wires from z -32 to 6); abaft that, where the catapults stand and the after
+    torpedo mounts swing their tubes out over the side, the edge is open."""
     col = kit.collections['Deck fittings']
     r0, r1 = RECESS['z0'] - .15, RECESS['z1'] + .15
     inboard = lambda z: RECESS['inboard'][0] + (RECESS['inboard'][1] - RECESS['inboard'][0]) * (z - RECESS['z0']) / (RECESS['z1'] - RECESS['z0'])
     for s in (-1, 1):
-        for z0, z1 in ((-84.6, -55.0), (42.2, 83.4)):
+        for z0, z1 in ((-84.6, -55.0), (-35.0, 7.0), (42.2, 83.4)):
             n = max(2, int(abs(z1 - z0) / 1.6))
             zs = [z0 + (z1 - z0) * i / n for i in range(n + 1)]
             if z0 < r0 and r1 < z1:

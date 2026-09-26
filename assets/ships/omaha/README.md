@@ -78,9 +78,9 @@ measurements and comparison captures stay in ignored `.build/`.
   degrees, where the inboard tube's after end reaches the pocket's back wall, launching between 15 and 31 degrees
   (a provisional game window: the pocket is too short for every tube's run to clear its forward wall at those
   angles); the after pair 0-150 degrees. `ship:sweep` does not pose launchers, so their clearance was checked by
-  posing them in the built scene at 1-degree steps. The upper deck's edge is unrailed between the
-  superstructures, as the reference shows it, and the mainmast's shrouds come down on chain plates forward of the
-  after mounts' swing.
+  posing them in the built scene at 1-degree steps. The upper deck's edge is railed only beside the boats, as the
+  reference rails it, and open where the after mounts swing their tubes out over the side; the mainmast's shrouds
+  come down on chain plates forward of that swing.
 - **Upper forward 6-inch singles:** at +20 degrees with full recoil their breech dips about 9 cm into the deck
   they stand on (`sweep-accepted.json`); the reference shows no breech well. The forward shelter between them
   ends 0.8 m forward of the reference's so their breeches, trained right aft, pass clear.
