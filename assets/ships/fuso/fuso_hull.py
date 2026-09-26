@@ -286,11 +286,17 @@ def weather_deck_gear(kit, col):
     for n, (rx, ry, rz, ang) in enumerate(BUOY_BOXES):
         A = f'buoy-box-{n}'
         x, y, _ = P(rx, 0, rz)
-        box = kit.part('box', A, col, 'box', (x, y, ry + .725), (.95, 1.07, 1.45), 'naval')
+        # Cut down under No. 6 turret's barrels at full depression, as the deck fittings there are.
+        kit._last_floor = 4.06
+        ceiling = kit.sweep_ceiling(x, y)
+        h = 1.45 if ceiling is None else min(1.45, ceiling - ry - .05)
+        if h < .7:
+            continue
+        box = kit.part('box', A, col, 'box', (x, y, ry + h / 2), (.95, 1.07, h), 'naval')
         box.rotation_euler = (0, 0, math.radians(ang))
-        kit.part('box', A, col, 'lid', (x, y, ry + 1.47), (1.0, 1.12, .05), 'roof').rotation_euler = (0, 0, math.radians(ang))
+        kit.part('box', A, col, 'lid', (x, y, ry + h + .02), (1.0, 1.12, .04), 'roof').rotation_euler = (0, 0, math.radians(ang))
         s = 1 if rx > 0 else -1
-        kit.part('rod', A, col, 'buoy', (x, y - s * .5, ry + 1.0), (x, y - s * .56, ry + 1.0), .3, 'white', vertices=16)
+        kit.part('rod', A, col, 'buoy', (x, y - s * .5, ry + h * .55), (x, y - s * .56, ry + h * .55), min(.3, h * .3), 'white', vertices=16)
 
 
 def crest_and_staffs(kit, col):

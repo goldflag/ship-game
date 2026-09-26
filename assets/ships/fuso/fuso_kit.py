@@ -438,7 +438,10 @@ class Kit:
         self.cylz(id, col, 'pedestal', (x, y, floor), .22, z + .55 - floor, 'naval', 12)
         self.part('box', id, col, 'yoke', (x, y, z + .75), (.25, 1.05, .5), 'naval')
         self.part('rod', id, col, 'drum', (x - .45, y, z + 1.15), (x + .4, y, z + 1.15), .55, 'naval', vertices=20)
-        self.part('rod', id, col, 'glass', (x + .4, y, z + 1.15), (x + .45, y, z + 1.15), .5, 'glass', vertices=20)
+        self.part('rod', id, col, 'glass', (x + .4, y, z + 1.15), (x + .45, y, z + 1.15), .5, 'lens', vertices=20)
+        # The lens's guard: a cross of bars over its face, as the reference's searchlights show.
+        for a, b in (((0, -.5, 0), (0, .5, 0)), ((0, 0, -.5), (0, 0, .5)), ((0, -.35, -.35), (0, .35, .35)), ((0, -.35, .35), (0, .35, -.35))):
+            self.member(id, col, (x + .465 + a[0], y + a[1], z + 1.15 + a[2]), (x + .465 + b[0], y + b[1], z + 1.15 + b[2]), .018, 'naval', 4)
         self.part('rod', id, col, 'vent', (x - .45, y, z + 1.15), (x - .6, y, z + 1.15), .3, 'naval', vertices=12)
 
     def rangefinder(self, id, ref, width, bearing, col=None):

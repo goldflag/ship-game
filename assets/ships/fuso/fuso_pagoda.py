@@ -339,8 +339,3 @@ def rear_legs(kit, col):
         bm = bmesh.new(); bm.from_mesh(ob.data)
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces)); bm.to_mesh(ob.data); bm.free()
         kit.tag(ob, A)
-        # The pipe outboard of the strut from the base roof to the 16 m platform.
-        pf = kit.floor(-(-24.565), -(s * 3.45), 10.5)
-        if pf is None or pf < 8.9:
-            raise ValueError(f'pagoda strut pipe misses the base roof: {pf}')
-        kit.part('rod', A, col, 'pipe', pt(s * 3.44, pf - .02, -24.565), pt(s * 4.22, 16.25, -25.375), .14, 'naval', vertices=10)
