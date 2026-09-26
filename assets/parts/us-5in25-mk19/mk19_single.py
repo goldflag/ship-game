@@ -351,7 +351,7 @@ def create_mount(mount, col, helpers, materials):
             a = math.radians(deg)
             gx, gz = .132 + .112 * math.cos(a), 1.552 + .112 * math.sin(a)
             k.rod('station.crank-handle', (gx, sy * yy, gz), (gx, sy * (yy + h * .085), gz), .012, E, n=6)
-        k.box('station.indicator-dial', (.133, sy * .810, 1.648), (.10, .10, .014), G)
+        k.box('station.indicator-dial', (.133, sy * .810, 1.641), (.10, .10, .016), G)
         # Arm from the drum down to the pedestal head, and the indicator box on the cross shaft.
         k.path('station.arm', [(.170, y, 1.500), (.360, y, 1.390), (.535, y, 1.280)], .034, N, n=4)
         k.box('station.gear-box', (.535, sy * .670, 1.281), (.066, .390, .066), N)
