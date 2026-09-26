@@ -83,6 +83,22 @@ measured.sort(key=lambda m: m[0])
 # where the stem crosses it; ship:lines' running keel median ran those few ends too low or too high.
 STEM = [(-2.0, -80.76), (0.0, -80.79), (1.0, -80.86), (2.0, -80.94), (3.0, -81.08), (4.0, -81.31), (5.0, -81.58),
         (6.0, -81.90), (7.0, -82.24), (7.9, -82.54), (8.0, -82.58)]
+# Two stations through the anchor pockets (reference z -75.3 and -76.3) followed the hawse pipes inboard at the top:
+# a station whose upper half-breadths leave both neighbours' by over 0.3 m takes their mean instead.
+def off_line(i, a, b):
+    (za, pa), (z, p), (zb, pb) = measured[a], measured[i], measured[b]
+    t = (z - za) / (zb - za)
+    return max(abs(p[k][0] - (pa[k][0] * (1 - t) + pb[k][0] * t)) for k in range(-6, 0))
+
+
+bad = [i for i in range(2, len(measured) - 2) if min(off_line(i, i - 1, i + 1), off_line(i, i - 2, i + 2)) > .3]
+for i in bad:
+    a = max(j for j in range(i) if j not in bad)
+    b = min(j for j in range(i + 1, len(measured)) if j not in bad)
+    (za, pa), (z, p), (zb, pb) = measured[a], measured[i], measured[b]
+    t = (z - za) / (zb - za)
+    measured[i] = (z, [[round(pa[k][0] * (1 - t) + pb[k][0] * t, 4), round(pa[k][1] * (1 - t) + pb[k][1] * t, 4)] for k in range(len(p))])
+    print(f'hull: station at reference z {z:.2f} replaced by its neighbours (anchor pocket)')
 fixed = []
 for zref, pts in measured:
     if zref < -80.78:
@@ -208,6 +224,12 @@ for id, name, x, y, z, bearing in QUAD:
 for i, (id, x, y, z, bearing) in enumerate(SINGLE, 1):
     b['mounts'].append(dict(id=id, name=f'20 mm Oerlikon {i}', partId='us-20mm-oerlikon-mk4', battery='secondary', position=[x, y, rz(z)], bearingDeg=bearing,
                             rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after', fire=FIRE_LIGHT))
+    if id in ('aa-20mm-7', 'aa-20mm-8'):
+        # The stern pair stand in 1 m tubs: an installed depression stop keeps the muzzles over the splinter shield.
+        b['mounts'][-1]['elevationMinDeg'] = -2
+    elif id in ('aa-20mm-3', 'aa-20mm-4', 'aa-20mm-5', 'aa-20mm-6'):
+        # The waist four stand inside their double shield, its top 0.1 m under the trunnions: no depression.
+        b['mounts'][-1]['elevationMinDeg'] = 0
 
 # ---------------------------------------------------------------- torpedo mounts
 # Two trainable quadruple 21-inch Mk 14 mounts on the main deck abreast the after superstructure (HP_AGT_1/2),

@@ -120,6 +120,21 @@ def tubs(D, kit):
         if c.z - base > .08:
             r = max(math.hypot(x - cx, z - cz) for x, z in pts) * .55
             kit.cylz(aid, col, 'pedestal', Vector((c.x, c.y, base - .02)), r, c.z - base + .02, 'naval', 20)
+    # Open-backed double splinter shield round each pair of waist 20 mm on the 01 deck (plan cuts at 6.6-7.32 m),
+    # standing on the deck up to 7.33 m.
+    for s in (-1, 1):
+        aid = 'aa-shield-waist-' + ('port' if s < 0 else 'starboard')
+        line = [(s * x, z) for x, z in WAIST_SHIELD]
+        pts = plan(line)
+        floor = kit.below(*V(line[5][0], 6.3, line[5][1])[:2], 6.6, 6.2)
+        kit.wall(aid, col, 'splinter shield', pts, floor - .02, 7.33, .04, 'naval', closed=False)
+        for a, b in zip(line, line[1:]):
+            kit.member(aid, col, V(a[0], 7.33, a[1]), V(b[0], 7.33, b[1]), .025, 'naval', 6)
+
+
+# Outer face of the port waist shield (reference x, z), from its inboard end aft round both tubs to the forward end.
+WAIST_SHIELD = [(3.95, 2.84), (5.16, 2.33), (5.82, 2.15), (6.59, 2.36), (7.15, 2.92), (7.36, 3.69), (7.15, 4.46), (6.59, 5.03), (5.82, 5.24),
+                (5.82, 6.48), (6.59, 6.69), (7.15, 7.25), (7.36, 8.02), (7.15, 8.79), (6.59, 9.36), (5.82, 9.56), (5.16, 9.38), (3.98, 8.64)]
 
 
 # ---------------------------------------------------------------- funnels
@@ -131,8 +146,8 @@ def funnels(D, kit):
             continue
         aid = s['id']
         vs = s['surface']['vertices']
-        n = len(vs) // 2
-        top = [Vector(R(v)) for v in vs[n:]]
+        n = len(s['footprint'])
+        top = [Vector(R(v)) for v in vs[-n:]]
         # Rolled rim round the mouth.
         for a, b in zip(top, top[1:] + top[:1]):
             kit.member(aid, col, a, b, .06, 'naval', 6)
@@ -173,7 +188,7 @@ def masts(D, kit):
         kit.member(aid, col, V(0, 29.5, -13.65), V(s * 4.0, 30.88, -13.55), .03, 'naval', 5)
         for x in (4.52, 7.30):
             kit.cylz(aid, col, 'signal lamp', V(s * x, 31.0, -13.55), .08, .2, 'dark', 8)
-    kit.boxc(aid, col, 'wind vane', V(1.54, 31.26, -12.74), (.4, .1, .6), 'edge')
+    kit.boxc(aid, col, 'wind vane', V(1.54, 31.25, -13.55), (.4, .1, .6), 'edge')
     kit.part('rod', aid, col, 'rdf loop', V(0, 19.1, -12.38), V(0, 19.9, -12.38), .03, 'edge', vertices=6)
     kit.cylz(aid, col, 'rdf ring', V(0, 19.9, -12.38), .32, .04, 'edge', 16)
     kit.member(aid, col, V(0, 19.1, -12.38), V(0, 19.1, -14.25), .04)
@@ -255,7 +270,7 @@ def mk44(kit, did, x, y, z, bearing):
     yaw = math.radians(-bearing)
     head = kit.boxc(did, col, 'sight head', Vector((c.x, c.y, c.z + 1.18)), (.7, .55, .72), 'naval', yaw)
     for t in (-1, 1):
-        off = Matrix.Rotation(yaw, 3, 'Z') @ Vector((.1, t * .42, 1.18))
+        off = Matrix.Rotation(yaw, 3, 'Z') @ Vector((.1, t * .26, 1.18))
         kit.part('rod', did, col, 'handle', c + off, c + off + Matrix.Rotation(yaw, 3, 'Z') @ Vector((-.35, 0, -.25)), .025, 'edge', vertices=6)
         off2 = Matrix.Rotation(yaw, 3, 'Z') @ Vector((.36, t * .15, 1.32))
         kit.part('rod', did, col, 'eyepiece', c + off2, c + off2 + Matrix.Rotation(yaw, 3, 'Z') @ Vector((.12, 0, 0)), .06, 'glass', vertices=8)
@@ -279,7 +294,7 @@ def directors(D, kit):
     # 2.5 m rangefinder on the navigating bridge (HP_AF_1).
     aid = 'rangefinder-2m5'
     c = V(0, 15.171, -26.788)
-    kit.cylz(aid, col, 'pedestal', c, .2, 1.1, 'naval', 12)
+    kit.cylz(aid, col, 'pedestal', c, .2, 1.25, 'naval', 12)
     kit.part('rod', aid, col, 'tube', c + Vector((0, -1.3, 1.35)), c + Vector((0, 1.3, 1.35)), .13, 'naval', vertices=12)
     for t in (-1, 1):
         kit.boxc(aid, col, 'end hood', c + Vector((0, t * 1.26, 1.35)), (.4, .22, .36), 'naval')
@@ -356,7 +371,7 @@ def depth_charges(D, kit):
             for k in range(6):
                 p = Vector((x0 - .3 - k * .65, ry, floor + 1.35 - k * .065 + .25))
                 kit.part('rod', lid, col, 'charge', p + Vector((0, -.35, 0)), p + Vector((0, .35, 0)), .22, 'black', vertices=12)
-            kit.boxc(lid, col, 'release gate', Vector((rx + .2, ry, floor + 1.15)), (.07, 1.0, .12), 'naval')
+            kit.boxc(lid, col, 'release gate', Vector((rx + .05, ry, floor + .97)), (.07, 1.0, .12), 'naval')
     # Ready-use stowage racks by the throwers, with their charges (reference part datums).
     for x, y, z, along in [(-3.09, 4.25, 59.91, 'x'), (3.09, 4.25, 59.91, 'x'), (-3.58, 4.26, 60.71, 'z'), (3.58, 4.26, 60.71, 'z'), (4.67, 4.26, 60.71, 'z'),
                            (-4.67, 4.26, 60.71, 'z'), (-4.12, 4.26, 60.87, 'z'), (4.12, 4.26, 60.87, 'z'), (2.84, 4.3, 63.09, 'x'), (-2.98, 4.3, 63.09, 'x'),
@@ -367,7 +382,7 @@ def depth_charges(D, kit):
         floor = kit.below(c.x, c.y, c.z + .3, c.z - .3)
         kit.boxc('depth-charge-stowage', col, 'rack', Vector((c.x, c.y, floor + .2)), (.45, .45, .4), 'edge')
         a = Vector((.35, 0, 0)) if along == 'z' else Vector((0, .35, 0))
-        kit.part('rod', 'depth-charge-stowage', col, 'charge', Vector((c.x, c.y, floor + .62)) - a, Vector((c.x, c.y, floor + .62)) + a, .22, 'black', vertices=12)
+        kit.part('rod', 'depth-charge-stowage', col, 'charge', Vector((c.x, c.y, floor + .6)) - a, Vector((c.x, c.y, floor + .6)) + a, .22, 'black', vertices=12)
     # Loading davits beside the throwers.
     for x, z in [(-4.51, 60.08), (4.51, 60.08), (-4.22, 63.16), (4.22, 63.16), (-4.12, 65.58), (4.12, 66.19)]:
         side = 1 if x > 0 else -1
@@ -441,20 +456,60 @@ def boats(D, kit):
             ck = V(s * 2.62, 0, -3.84 + dz)
             f = kit.below(ck.x, ck.y, keel.z + .3, keel.z - .6)
             kit.boxc(aid, col, 'cradle', Vector((ck.x, ck.y, (f + keel.z + .15) / 2)), (.3, 1.9, keel.z + .15 - f), 'edge')
-    for k, y in enumerate((7.35, 8.03)):
-        aid = 'punt'
-        kit.boxc(aid, col, 'punt', V(0, y + .15, -4.55), (3.66, 1.15, .4), 'naval')
-    # Floater-net life rafts standing on edge against the deckhouse sides and flat on the quarterdeck.
+    # Two 12 ft punts stacked on a rack between the launches (reference 3.66 m x 1.15 m, keels at 7.1 and 7.75 m).
+    aid = 'punts'
+    lower, upper = V(0, 7.07, -4.55), V(0, 7.75, -4.55)
+    for dz in (-1.1, 1.1):
+        foot = V(0, 0, -4.55 + dz)
+        f = kit.below(foot.x, foot.y, 7.2, 5.5)
+        kit.boxc(aid, col, 'rack', Vector((foot.x, foot.y, (f + lower.z + .06) / 2)), (.16, 1.0, lower.z + .06 - f), 'edge')
+        kit.boxc(aid, col, 'chock', Vector((foot.x, foot.y, lower.z + .57)), (.14, .7, .16), 'edge')
+    boat(kit, aid, col, lower, 3.66, 1.15, .55, 0, False, 'naval')
+    boat(kit, aid, col, upper, 3.66, 1.15, .55, 0, False, 'naval')
+    # Floater-net life rafts standing on edge against the deckhouse and sponson sides (each pushed inboard until it
+    # meets the wall, on two brackets) and two flat on the quarterdeck.
     for x, y, z, flat in [(-7.54, 5.59, -22.57, False), (7.54, 5.59, -22.57, False), (-7.61, 7.9, -19.86, False), (7.61, 7.9, -19.86, False),
                           (-3.71, 10.22, -15.54, False), (3.71, 10.22, -15.54, False), (-2.41, 9.14, 21.09, False), (2.41, 9.14, 21.09, False),
                           (0.0, 4.11, 57.5, True), (0.0, 4.11, 59.49, True)]:
         c = V(x, y, z)
-        aid = 'life-rafts'
         if flat:
-            kit.boxc(aid, col, 'raft', c, (3.44 if z < 58 else 2.9, 2.0 if z < 58 else 1.7, .4), 'canvas')
+            f = kit.below(c.x, c.y, c.z + .3, c.z - .3)
+            raft(kit, 'life-rafts', col, Vector((c.x, c.y, f + .2)), 3.2 if z < 58 else 2.7, 1.8 if z < 58 else 1.5, None)
         else:
-            kit.boxc(aid, col, 'raft', c, (3.44, .42, 1.9), 'canvas')
-            kit.boxc(aid, col, 'raft grating', c + Vector((0, 0, 0)), (3.1, .44, 1.55), 'wood')
+            inboard = Vector((0, -1 if c.y > 0 else 1, 0))
+            try:
+                hit = kit.support.along(c + inboard * -.4, inboard, 4.0)
+                c = Vector((c.x, hit.y - inboard.y * .24, c.z))
+            except ValueError:
+                pass
+            raft(kit, 'life-rafts', col, c, 3.3, 1.8, -inboard)
+
+
+def raft(kit, aid, col, c, length, height, outward):
+    """A floater-net raft: a rounded-rectangle float ring with a slatted grating inside. Standing on edge when
+    `outward` (the wall's outward normal) is given, with two brackets back to the wall; flat otherwise."""
+    r, tube = .42, .17
+    pts = []
+    for cx, cy, a0 in ((length / 2 - r, height / 2 - r, 0), (-length / 2 + r, height / 2 - r, 90), (-length / 2 + r, -height / 2 + r, 180), (length / 2 - r, -height / 2 + r, 270)):
+        for k in range(5):
+            a = math.radians(a0 + 90 * k / 4)
+            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    if outward is None:
+        frame = lambda u, v, w=0.0: c + Vector((u, v, w))
+    else:
+        frame = lambda u, v, w=0.0: c + Vector((u, 0, v)) + outward * w
+    ring = [frame(u, v) for u, v in pts]
+    for a, b in zip(ring, ring[1:] + ring[:1]):
+        kit.member(aid, col, a, b, tube, 'raft', 8)
+    for k in range(7):
+        u = -length / 2 + tube + (length - 2 * tube) * (k + .5) / 7
+        kit.member(aid, col, frame(u, -height / 2 + tube), frame(u, height / 2 - tube), .035, 'wood', 4)
+    for v in (-height * .22, height * .22):
+        kit.member(aid, col, frame(-length / 2 + tube, v), frame(length / 2 - tube, v), .03, 'wood', 4)
+    if outward is not None:
+        for u in (-length * .3, length * .3):
+            kit.member(aid, col, frame(u, -height / 2 + .05, -.02), frame(u, -height / 2 + .05, -.3), .04, 'naval', 5)
+            kit.member(aid, col, frame(u, height / 2 - .05, -.02), frame(u, height / 2 - .05, -.3), .04, 'naval', 5)
 
 
 def crane(D, kit):
@@ -500,18 +555,32 @@ def searchlights(D, kit):
 def deck_gear(D, kit):
     col = kit.collections['Deck fittings']
     aid = 'ground-tackle'
-    # Stockless bow anchors housed in their hawse pipes on the flare, chains led to the capstans on the forecastle.
+    # Stockless bow anchors housed in pockets high on the flare (reference z -76 to -74.6, y 6.3 to 7.5), the hawse
+    # pipes led up to the forecastle and the cables aft to the capstans.
     for s in (-1, 1):
-        zz, yy = -76.0, 6.1
-        hb = hull_half(kit, zz, yy)
-        kit.boxc(aid, col, 'anchor shank', V(s * (hb + .12), yy, zz), (.35, .22, 1.3), 'black')
-        kit.boxc(aid, col, 'anchor crown', V(s * (hb + .14), yy - .75, zz), (1.1, .26, .35), 'black')
-        kit.part('rod', aid, col, 'hawse pipe', V(s * (hb - .3), yy + .6, zz - .2), V(s * 1.5, deck(kit, -73.0) + .05, -73.0), .22, 'edge', vertices=12)
-        kit.cylz(aid, col, 'hawse lip', V(s * 1.5, deck(kit, -73.0), -73.0), .34, .1, 'edge', 14)
-        top = deck(kit, -69.0) + .05
-        for i in range(8):
-            z0 = -73.0 + i * .9
-            kit.part('rod', aid, col, 'chain', V(s * (1.5 + (1.7 - 1.5) * i / 8), top, z0), V(s * (1.5 + (1.7 - 1.5) * (i + 1) / 8), top, z0 + .9), .07, 'black', vertices=6)
+        zz = -75.4
+        for yy, label, size in ((7.05, 'anchor shank', (.34, 1.05)), (6.45, 'anchor crown', (1.1, .28))):
+            hb = hull_half(kit, zz, yy)
+            kit.boxc(aid, col, label, V(s * (hb + .1), yy, zz), (size[0], .24, size[1]), 'black')
+        for dz in (-.45, .45):
+            hb = hull_half(kit, zz + dz, 6.62)
+            kit.part('rod', aid, col, 'anchor fluke', V(s * (hb + .1), 6.4, zz + dz * .9), V(s * (hb + .12), 6.95, zz + dz * 1.1), .08, 'black', vertices=6)
+        ring = []
+        for k in range(12):
+            t = math.tau * k / 12
+            yy, z2 = 6.9 + .72 * math.sin(t), zz + .62 * math.cos(t)
+            ring.append(V(s * (hull_half(kit, z2, yy) + .03), yy, z2))
+        for a, b in zip(ring, ring[1:] + ring[:1]):
+            kit.member(aid, col, a, b, .05, 'naval', 6)
+        top = deck(kit, -74.4)
+        hb = hull_half(kit, -75.2, 7.5)
+        kit.part('rod', aid, col, 'hawse pipe', V(s * (hb - .25), 7.45, -75.3), V(s * 1.9, top + .05, -74.4), .2, 'edge', vertices=12)
+        kit.cylz(aid, col, 'hawse lip', V(s * 1.9, top, -74.4), .32, .1, 'edge', 14)
+        for i in range(9):
+            z0 = -74.2 + i * (74.2 - 66.2) / 9
+            z1 = -74.2 + (i + 1) * (74.2 - 66.2) / 9
+            x0, x1 = 1.9 + (1.7 - 1.9) * i / 9, 1.9 + (1.7 - 1.9) * (i + 1) / 9
+            kit.part('rod', aid, col, 'cable', V(s * x0, deck(kit, z0) + .06, z0), V(s * x1, deck(kit, z1) + .06, z1), .07, 'black', vertices=6)
         c = V(s * 1.7, 0, -65.53)
         f = kit.below(c.x, c.y, 8.5, 7.0)
         kit.cylz(aid, col, 'capstan', Vector((c.x, c.y, f)), .42, .55, 'naval', 16, r2=.36)
@@ -582,7 +651,10 @@ def deck_gear(D, kit):
             kit.boxc('spare-torpedoes', col, 'rack', Vector((c.x + dz, c.y, (f + 4.96) / 2)), (.25, .7, 4.96 - f + .2), 'edge')
     # Jack staff at the stem, stern light.
     kit.part('rod', 'staffs', col, 'jack staff', V(0, 8.0, -82.35), V(0, 14.9, -82.5), .05, 'naval', r2=.025, vertices=8)
-    kit.boxc('staffs', col, 'stern light', V(0, 5.17, 82.1), (.18, .13, .3), 'white')
+    post = V(0, 4.2, 81.95)
+    post.z = kit.below(post.x, post.y, 5.0, 4.0)
+    kit.part('rod', 'staffs', col, 'stern light post', post, post + Vector((0, 0, .95)), .04, 'naval', vertices=8)
+    kit.boxc('staffs', col, 'stern light', post + Vector((0, 0, 1.05)), (.18, .13, .22), 'white')
 
 
 # ---------------------------------------------------------------- underwater

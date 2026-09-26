@@ -7,6 +7,7 @@
     "assets/parts/us-carrier-guns/geometry.py",
     "assets/ships/atlanta/atlanta_kit.py",
     "assets/ships/atlanta/atlanta_fittings.py",
+    "assets/ships/atlanta/atlanta_windows.py",
     "assets/ships/atlanta/appearance.json",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json"

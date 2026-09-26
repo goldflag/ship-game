@@ -25,6 +25,7 @@ from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
 from atlanta_kit import Kit, R
 import atlanta_fittings
+import atlanta_windows
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -87,6 +88,7 @@ for mount in D['mounts']:
 
 # ---------------------------------------------------------------- fittings
 atlanta_fittings.build(D, kit)
+atlanta_windows.build(D, kit)
 
 scene['definitionHash'] = D['contentHash']
 scene['historicalConfiguration'] = D['configuration']
