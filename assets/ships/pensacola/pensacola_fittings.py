@@ -345,8 +345,8 @@ def radars(D, kit):
         kit.member(aid, col, p0, p1, .03, 'edge', 5)
 
 
-def searchlight(kit, aid, col, c, barrel_r, bearing_deg=0):
-    floor = kit.below(c.x, c.y, c.z + .3, c.z - .8)
+def searchlight(kit, aid, col, c, barrel_r, bearing_deg=0, floor=None):
+    floor = kit.below(c.x, c.y, c.z + .3, c.z - .8) if floor is None else floor
     kit.cylz(aid, col, 'pedestal', Vector((c.x, c.y, floor - .01)), .22, c.z - floor + .55, 'naval', 14)
     a = math.radians(bearing_deg)
     d = Vector((math.cos(a), -math.sin(a), 0))
@@ -362,9 +362,18 @@ def searchlights(D, kit):
     # 36-inch (900 mm) searchlights on the platform round the after funnel (am225, bounds 0.9 x 2.3 m).
     for i, (x, z) in enumerate([(-2.43, 19.71), (2.43, 19.71), (-3.18, 23.92), (3.18, 23.92)], 1):
         searchlight(kit, f'searchlight-{i}', col, V(x, 14.1, z), .45, 90 if x > 0 else -90)
-    # 24-inch (600 mm) signal searchlights under the foretop (am038).
+    # 24-inch (600 mm) signal searchlights under the foretop (am038) on their platform between the tripod
+    # legs (plan cut: 4.0 x 2.0 m at 20.8-21.0 m), carried on brackets to the side legs and the main leg.
+    aid = 'searchlight-platform'
+    kit.boxc(aid, col, 'platform', V(0, 20.93, -26.2), (2.0, 4.0, .12), 'roof')
+    for s in (-1, 1):
+        leg_x = 5.63 + (1.18 - 5.63) * (20.9 - 9.2) / (31.0 - 9.2)
+        leg_z = -22.16 + (-26.04 + 22.16) * (20.9 - 9.2) / (31.0 - 9.2)
+        kit.member(aid, col, V(s * 1.9, 20.9, -25.4), V(s * (leg_x - .2), 20.9, leg_z), .07)
+        kit.member(aid, col, V(s * 1.6, 20.87, -26.9), V(s * .2, 20.1, -28.43), .06)
+    kit.member(aid, col, V(0, 20.87, -27.15), V(0, 20.87, -28.36), .08)
     for i, x in enumerate((-.98, .98), 5):
-        searchlight(kit, f'searchlight-{i}', col, V(x, 21.02, -26.17), .3, 0)
+        searchlight(kit, f"searchlight-{i}", col, V(x, 21.02, -26.17), .3, 0, 20.99)
     # Sky lookout stations on the bridge top (am061): a pedestal seat with binoculars.
     for i, (x, z) in enumerate([(-1.79, -31.06), (1.79, -31.06), (-2.10, -25.94), (2.10, -25.94)], 1):
         aid = f'sky-lookout-{i}'
@@ -509,17 +518,20 @@ def deck_gear(D, kit):
 
 # ---------------------------------------------------------------- funnels
 def funnels(D, kit):
-    """Steam pipes up the funnels' faces and the caps' grilles (plan cuts at 10.5-19 m)."""
+    """Steam and exhaust pipes up the funnels (plan cuts at 10-20.5 m): two thin pipes up the forward
+    funnel's face, the whistle pipe standing above its cap, a large pipe up its after face bending into
+    the hood, and three pipes up the after funnel's after face. Each pipe rides the raked casing."""
     col = kit.collections['Superstructure']
-    for aid, z, pipes in [('forward-funnel', -17.5, ((.43, .12), (-.67, .1))), ('after-funnel', 12.1, ((.45, .12), (-.65, .1)))]:
-        tops = [s for s in D['structures'] if s['id'].startswith(aid + '-')]
-        if not tops:
-            continue
-        top = max(s['baseY'] + s['height'] for s in tops)
-        base = min(s['baseY'] for s in tops)
-        for x, r in pipes:
-            kit.part('rod', aid + '-pipes', col, 'steam pipe', V(x, base + 1.5, z + (.4 if z < 0 else -.4)), V(x, top + .9, z - (.35 if z < 0 else -.35)), r, 'naval', vertices=10)
-            kit.part('rod', aid + '-pipes', col, 'pipe mouth', V(x, top + .9, z - (.35 if z < 0 else -.35)), V(x, top + 1.05, z - (.35 if z < 0 else -.35)), r * 1.25, 'black', vertices=10)
+    pipes = [('forward-funnel', (.43, 8.8, -18.2), (.43, 20.6, -17.4), .085), ('forward-funnel', (-.67, 8.8, -18.18), (-.67, 17.6, -17.55), .065),
+             ('forward-funnel', (0, 8.8, -12.3), (0, 18.9, -11.2), .23), ('after-funnel', (-.43, 8.5, 16.9), (-.43, 18.6, 18.05), .15),
+             ('after-funnel', (.58, 8.5, 16.9), (.58, 18.6, 18.1), .24), ('after-funnel', (0, 8.5, 16.95), (0, 18.7, 18.3), .26)]
+    for aid, a, b, r in pipes:
+        foot = kit.below(*V(*a)[:2], a[1] + .3, a[1] - .5)
+        a = (a[0], foot - .02, a[2] - (a[1] - foot) * (b[2] - a[2]) / (b[1] - a[1]))
+        kit.part('rod', aid + '-pipes', col, 'steam pipe', V(*a), V(*b), r, 'naval', vertices=12)
+        kit.part('rod', aid + '-pipes', col, 'pipe mouth', V(*b), V(b[0], b[1] + .12, b[2]), r * 1.2, 'black', vertices=12)
+    # The forward funnel's big after pipe turns forward into the hood.
+    kit.part('rod', 'forward-funnel-pipes', col, 'pipe bend', V(0, 18.9, -11.2), V(0, 19.45, -12.7), .21, 'naval', vertices=12)
 
 
 # ---------------------------------------------------------------- underwater
