@@ -27,8 +27,9 @@ The owner approved this brief on 2026-09-25.
   searchlights, one catapult on the quarterdeck (empty, as the reference shows it) and eighteen boats (eleven 9 m
   cutters, two 6 m dinghies, two 12 m motor launches, 17 m and 11 m motor boats and a 14 m landing craft). No radar.
 - **Paint:** the reference's source ("default") paint, as Kongō has: one grey over hull and upperworks, grey steel roofs and
-  the casemate ledge, natural wood weather decks, a black funnel cap and upper mainmast, a red-oxide bottom to the
-  waterline with no boot topping, and the gold chrysanthemum on the stem. Where the source shows nothing, the fleet's
+  the casemate ledge, natural wood weather decks with the quarterdeck's aircraft deck in linoleum and brass strips and
+  the stern in grey steel, a black funnel cap and upper mainmast, a red-oxide bottom to the waterline with no boot
+  topping, brass-rimmed scuttles, the gold chrysanthemum on the stem and the ship's name in gold kana on the stern. Where the source shows nothing, the fleet's
   appearance conventions (docs/ship-appearance.md) apply; the fleet's IJN ensign flies from the mainmast's aerial spar.
 - **Reference policy:** GameModels3D only; no War Thunder, Sketchfab, photographs or plans. Other gameplay values are
   provisional game calibration.
@@ -56,10 +57,29 @@ Superstructure prisms come from plan cuts of the reference's hull group every 0.
 doors and windows do not open the outline, features thinner than 0.25 m left out), with our loft and the main barbettes
 cleared, followed up through the levels: a piece that keeps its footprint continues its band, and each band is one prism
 with its middle level's outline. A block standing less than 0.6 m over the deck or the block below reaches down to it,
-and the after tower's lowest tiers, traced standing on the reference's deck crown, reach down to our flat deck.
+and the after tower's lowest tiers, traced standing on the reference's deck crown, reach down to our flat deck. Two
+traced quarterdeck prisms are dropped (`STRUCTURE_EDITS`): the catapult turntable's base ring mirrored onto the port
+side, where the reference has none, and the after aircraft trolley with its rails traced as one slab.
 The recipe draws what the tracer cannot: the funnel's lattice tower (the traced block round the funnel's middle is
-replaced by the funnel casing, its trunks, corner posts, X bracing, girts and knees), the mainmast's pole, yards and
-aerial spar, stanchions and brackets under the platforms that stand on them, and the pagoda's after legs.
+replaced by the funnel casing, its trunks, corner posts, X bracing, girts and knees), the mainmast (the lower mast black
+above the reference's white band at 23.9-24.95 m, the lookout platform at 30 m, the aerial spar and lower yard at 32 m,
+and the topmast standing 1.3 m ahead of the lower mast with the upper yard at 39.3 m), stanchions and brackets under the
+platforms that stand on them, and the pagoda's after legs.
+
+The quarterdeck aft of No. 6 turret is the reference's aircraft deck. The recipe cuts the loft's deck along its outline
+and lays linoleum inside a V whose flat apex (x ±1.52 m) stands at reference z 80.2 and whose arms reach transverse
+edges at z 74.74, forward to the brass strip at z 97.78; aft of that the stern is grey steel. Brass strips run across
+every 1.254 m, along the centreline to the apex and round the border, inside 0.4 m steel waterways; the aircraft trolley
+tracks (1.27 m gauge) lie on chairs along the reference's rails, from the after trolley's straight run onto the long
+diagonal toward the port side abreast No. 6 turret, with two switches toward the catapult's heel and two branches
+near the apex; the two wheeled trolleys (the reference's JM066/JM435) carry web-plate frames, twin girders and a float
+cradle rising aft, stayed to the deck. The reference's hull is asymmetric on the port quarter: a blister from reference z
+81.6 to 90.6 stands 1.4-1.6 m outboard of the shell, square from the deck down to 3 m and rounded into it 1.1 m above the
+waterline; the loft is symmetric, so the recipe carries it as a shell of its own (linoleum on top, railed round). The
+aircraft crane's lattice boom is stowed forward of it on a grated platform along the port side (z 66 to 82.3), hinged on
+the blister's forward face. The reference's long wires are drawn: bow stays from the jackstaff to the pagoda's top
+platform, four aerials from the pagoda's after face to the mainmast's upper yard, shrouds from the after tower's roof to
+that yard and stays to the raked stern flagstaff.
 `author-blueprint.py` records how the blueprint was made and rebuilds it from those measurements (`--loft`,
 `--structures`); the scripts that make them live in ignored `.build/hyuga/`.
 
@@ -78,10 +98,14 @@ arcs are game estimates set by bearing and half-sector.
 Fittings follow reference datums: directors, rangefinders and searchlights at the reference's hardpoints and part bounds;
 ventilators, hatches, winches, reels, fairleads, capstans, paravanes, lockers and lamps at the reference's part bounds on
 our decks (a fitting with nothing under it is left out); the anchors housed against the shell; the boats in their cradles;
-the catapult on its turntable at the reference's pivot and 10° heading; four three-bladed screws, their shafts and
-A-brackets, the inner shafts' skegs and the twin rudders at the reference's positions. Windows and portholes were located
-by orthographic renders of the textured reference and set in the plane of this model's own walls where they stand within
-0.35 m of the reference's, never on a prism a region module replaces (hull portholes on the loft, mirrored).
+the catapult on its turntable at the reference's pivot and 10° heading; four three-bladed screws on exposed shafts
+(painted with the bottom, with a fairing at each screw) that run nearly level to where they leave the shell (reference z
+64 for the outer pair, 71 for the inner), each on a streamlined A-bracket, and the twin rudders with the reference's
+rounded corners. Windows and portholes were located by orthographic renders of the textured reference and set in the
+plane of this model's own walls where they stand within 0.35 m of the reference's, never on a prism a region module
+replaces. The hull scuttles are read off each side separately (the port quarter's crane platform and blister cover the
+upper row there) and sit on the loft square to its waterlines, with brass rims as the reference paints them; the stern
+carries the name ひうか in gold strokes on each quarter at the reference's letter positions.
 
 Machinery (four boiler rooms under the funnel between No. 2 and No. 3 barbettes, four turbine rooms between No. 4 and
 No. 5, four shafts), magazines, flood spaces, stability (GM 7% of beam) and damage-control values are game estimates;
@@ -107,6 +131,10 @@ ship.
 - Boats are stowed square to the centreline at the reference's positions (the reference turns several a few degrees).
 - Windows and portholes come from the reference's painted textures, so painted vents and grilles can read as dark panels;
   openings whose wall here stands away from the reference's are left out.
+- The port-quarter blister is a visual shell; the collision hull, flooding and hydrostatics use the symmetric loft.
+- The aircraft trolleys, the crane boom and its heel, and the kana strokes are simplified constructions after the
+  reference's parts; the brass strips and waterways are flat bars laid on the deck. Only the long wires are rigged; the
+  reference's aerial lead-ins, halyards and the catenaries under the aerial spar are left out.
 - Stability, mass distribution, flooding compartmentation, armour and weapon values are shared game calibration, not
   historical measurements. Model fidelity and export checks do not certify historical accuracy.
 

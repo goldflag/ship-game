@@ -1,7 +1,7 @@
 {
   "version": 1,
   "id": "hyuga-1942-default-v1",
-  "basis": "Approved GameModels3D pjsb517 default scheme: one grey over hull and upperworks, grey steel roofs and the casemate ledge, natural wood weather decks, black funnel cap and mast heads and a red-oxide bottom without boot topping. Swatches are linear-RGB interpretations of the reference's texture, not measured historical paint.",
+  "basis": "Approved GameModels3D pjsb517 default scheme: one grey over hull and upperworks, grey steel roofs, the casemate ledge and the stern, natural wood weather decks, a linoleum aircraft deck with brass strips on the quarterdeck, black funnel cap and upper mainmast and a red-oxide bottom without boot topping. Swatches are linear-RGB interpretations of the reference's texture, not measured historical paint.",
   "wear": "in-commission",
   "palette": {
     "hyuga-reference-grey": [0.118, 0.124, 0.140],
