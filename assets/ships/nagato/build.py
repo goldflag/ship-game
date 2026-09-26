@@ -102,13 +102,11 @@ for s in D['structures']:
             face.material_index = 1
     if s['id'] == 'forecastle-001':
         # The linoleum aircraft deck on the forecastle deck abaft the mainmast (textured top render: runtime z 20.5 to
-        # 47.3, 11 m either side of the centre line), cut into the block's roof.
+        # 47.3, from deck edge to deck edge), cut into the block's roof.
         ob.data.materials.append(materials['linoleum'])
-        split_top(ob, [((-LINO[0], 0, 0), (1, 0, 0)), ((-LINO[1], 0, 0), (1, 0, 0)), ((0, LINO[2], 0), (0, 1, 0)), ((0, -LINO[2], 0), (0, 1, 0))],
-                  lambda c: True)
+        split_top(ob, [((-LINO[0], 0, 0), (1, 0, 0)), ((-LINO[1], 0, 0), (1, 0, 0))], lambda c: True)
         for face in ob.data.polygons:
-            c = face.center
-            if face.normal.z > .8 and LINO[0] < -c.x < LINO[1] and abs(c.y) < LINO[2]:
+            if face.normal.z > .8 and LINO[0] < -face.center.x < LINO[1]:
                 face.material_index = 3
     ob.data.shade_smooth()
     ob.data.set_sharp_from_angle(angle=math.radians(30))

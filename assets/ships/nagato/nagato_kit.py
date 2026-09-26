@@ -10,8 +10,9 @@ import bmesh
 from mathutils import Vector
 
 ZC = -2.2  # runtime z = reference z - ZC
-# The linoleum aircraft deck on the forecastle deck (runtime z from, z to, half breadth), read off the textured top render.
-LINO = (20.5, 47.3, 11.0)
+# The linoleum aircraft deck on the forecastle deck, from side to side (runtime z from, z to), read off the textured top
+# render.
+LINO = (20.5, 47.3)
 
 
 def P(x, y, z):

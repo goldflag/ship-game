@@ -127,14 +127,16 @@ def aircraft_deck(kit, col):
     """Pale strips over the linoleum aircraft deck (textured top render: across the deck every 2.0 m from runtime
     z 22.25 to 46.25, and one either side 3.77 m off the centre line), laid only where the deck is open."""
     A = 'aircraft-deck'
-    z0, z1, half = LINO
+    z0, z1 = LINO
     deck = 6.5
+    decks = [s['footprint'] for s in kit.D['structures'] if s['id'] in ('forecastle-001', 'forecastle-004', 'forecastle-005')]
     blocks = [s['footprint'] for s in kit.D['structures'] if s['baseY'] <= deck + .05 < s['baseY'] + s['height']
               and not s['id'].startswith('forecastle-')]
     turrets = [(m['position'][0], m['position'][2], 6.3) for m in kit.D['mounts'] if m['battery'] == 'main']
 
     def open_deck(x, z):
-        return not any(_inside(f, x, z) for f in blocks) and all((x - tx) ** 2 + (z - tz) ** 2 > r * r for tx, tz, r in turrets)
+        return (any(_inside(f, x, z) for f in decks) and not any(_inside(f, x, z) for f in blocks)
+                and all((x - tx) ** 2 + (z - tz) ** 2 > r * r for tx, tz, r in turrets))
 
     def strip(a, b, width):
         """Runs of open deck along a runtime line a -> b (x, z), each laid as one strip."""
@@ -152,6 +154,6 @@ def aircraft_deck(kit, col):
             run = []
     for k in range(13):
         z = 22.25 + 2.0 * k
-        strip((-half, z), (half, z), .22)
+        strip((-13.0, z), (13.0, z), .22)
     for x in (-3.77, 3.77):
         strip((x, z0), (x, z1), .22)

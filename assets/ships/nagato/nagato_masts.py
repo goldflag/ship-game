@@ -113,29 +113,42 @@ def directors(kit):
 def mainmast(kit):
     col = kit.collections['Sensors and masts']
     A = 'mainmast'
-    # Pole: from the crosstree platform to the truck (HP_Flagpole 44.4 m), raked slightly aft. The reference paints the
-    # whole mast black above 22.65 m.
-    rod(kit, A, col, 'pole', (0, 30.9, 17.72), (0, 33.2, 17.75), .34, 'black', 14, .32)
-    rod(kit, A, col, 'topmast', (0, 33.2, 17.75), (0, 45.2, 18.14), .30, 'black', 12, .12)
-    kit.cylz(A, col, 'truck', P(0, 45.2, 18.14), .16, .1, 'black', 10)
-    # Tripod legs: box struts from the after control deck up to the crosstree, splayed to each side, black from the
-    # mast's paint line.
+    # The trunk between the after control position's roof (20.25 m) and the 23.65 m platform: a 0.76 m square (plan
+    # cuts y = 20.5 to 23.4), black above the paint line.
+    for y0, y1, paint in ((20.23, 22.65, 'naval'), (22.65, 23.67, 'black')):
+        kit.boxc(A, col, 'trunk', P(.007, (y0 + y1) / 2, 16.25), (.76, .76, y1 - y0), paint)
+    # Pole: one plain spar 0.36 m across, upright, from the crosstree platform to the truck (plan cuts y = 31.5 to
+    # 45.3 all find it at reference z 17.565-17.885), with a wind vane on the truck. The reference paints the whole
+    # mast black above 22.65 m.
+    POLE_Z, POLE_R = 17.725, .18
+    rod(kit, A, col, 'pole', (0, 30.9, POLE_Z), (0, 45.35, POLE_Z), POLE_R, 'black', 14, .17)
+    kit.cylz(A, col, 'truck', P(0, 45.33, POLE_Z), .21, .14, 'black', 12)
+    rod(kit, A, col, 'wind vane spindle', (0, 45.45, POLE_Z), (0, 46.0, POLE_Z), .03, 'black', 6)
+    rod(kit, A, col, 'wind vane arm', (-.28, 45.95, POLE_Z), (.28, 45.95, POLE_Z), .02, 'black', 6)
     for s in (-1, 1):
-        foot, head = (s * 2.35, 16.85, 19.55), (s * .55, 30.95, 17.2)
+        kit.cylz(A, col, 'wind vane cup', P(s * .28, 45.88, POLE_Z), .06, .14, 'black', 8)
+    # Tripod legs: box struts from the after control deck up to the 28.75 m platform under the crosstree, splayed to
+    # each side and raked forward, black from the mast's paint line (the line through their plan-cut centres at
+    # y = 20.5 to 28.6; the cuts above the platform find only the trunk).
+    for s in (-1, 1):
+        foot, head = (s * 2.6, 16.85, 19.79), (s * .88, 28.77, 17.06)
         t = (22.65 - foot[1]) / (head[1] - foot[1])
         joint = tuple(a + (b - a) * t for a, b in zip(foot, head))
         kit.beam(A, col, 'tripod leg', P(*foot), P(*joint), .75, .8, 'naval')
         kit.beam(A, col, 'tripod leg head', P(*joint), P(*head), .75, .8, 'black')
-    # Crosstree platform rails and the top yard with its braces.
-    for y0, half in [(39.5, 2.6)]:
-        rod(kit, A, col, 'top yard', (-half, y0, 18.02), (half, y0, 18.02), .07, 'black', 8)
-        for s in (-1, 1):
-            rod(kit, A, col, 'top yard brace', (s * half * .7, y0, 18.02), (0, y0 + 1.3, 18.05), .03, 'black', 6)
-    # Two gaffs aft (x = 0 profile cut and the side renders): the masthead gaff from the topmast at 38.9 m to its peak
+    # The top yard across the after face of the pole at 39.7 m, 10.5 m long and tapering from 0.33 m at the pole to
+    # 0.2 m at the arms (profile cuts x = 1 to 5 m and the front silhouette); a brace from each side of the pole below
+    # it up to the yard, and a lift from the pole above it down to each arm.
+    YARD_Y, YARD_Z = 39.685, 18.045
+    for s in (-1, 1):
+        rod(kit, A, col, 'top yard', (0, YARD_Y, YARD_Z), (s * 5.25, YARD_Y, YARD_Z), .165, 'black', 10, .1)
+        rod(kit, A, col, 'top yard brace', (s * .12, 38.86, 17.76), (s * 2.2, YARD_Y, YARD_Z), .055, 'black', 6)
+        kit.member(A, col, P(s * .1, 41.1, POLE_Z), P(s * 3.0, YARD_Y + .12, YARD_Z), .02, 'black', 4)
+    # Two gaffs aft (x = 0 profile cut and the side renders): the masthead gaff from the pole at 38.95 m to its peak
     # 2.3 m aft, where the ensign flies at sea (HP_flag_nation, the blueprint's rig), with its peak stay from 41.8 m;
     # and the lower gaff along the crosstree's after arm at 28.8 m, 3 m abaft the trunk, with its peak halyard.
-    rod(kit, A, col, 'masthead gaff', (0, 38.9, 18.1), (0, 39.55, 20.45), .08, 'black', 8, .05)
-    kit.member(A, col, P(0, 41.76, 17.98), P(0, 39.6, 20.43), .025, 'black', 4)
+    rod(kit, A, col, 'masthead gaff', (0, 38.95, POLE_Z + .12), (0, 39.55, 20.45), .08, 'black', 8, .05)
+    kit.member(A, col, P(0, 41.76, POLE_Z + .1), P(0, 39.6, 20.43), .025, 'black', 4)
     rod(kit, A, col, 'lower gaff', (0, 28.8, 18.95), (0, 28.95, 22.0), .09, 'black', 8, .06)
     kit.member(A, col, P(0, 28.99, 21.95), P(0, 31.1, 19.0), .025, 'black', 4)
     # Three signal blocks forward of the trunk (reference z 14.4 to 15.1), each on a short arm from an eye on the
@@ -155,7 +168,7 @@ def mainmast(kit):
         kit.part('rod', C, col, 'sheave', P(-.35, head[1] + dy, head[2] + dz), P(.35, head[1] + dy, head[2] + dz), .32, 'black', vertices=6)
     kit.member(C, col, P(0, 28.3, 8.9), P(0, 21.35, 8.9), .03, 'black', 4)
     kit.boxc(C, col, 'hook block', P(0, 21.2, 8.9), (.3, .22, .45), 'black')
-    kit.member(C, col, P(0, 28.6, 8.8), P(0, 44.0, 18.1), .025, 'edge', 3)
+    kit.member(C, col, P(0, 28.6, 8.8), P(0, 44.0, POLE_Z - POLE_R + .02), .025, 'edge', 3)
 
 
 # ------------------------------------------------------------------ funnel

@@ -127,6 +127,10 @@ STRUCTURE_EDITS = {
     'platform-076': None,             # stepped prisms that model those legs
     'deckhouse-070': None,            # the lip under the 20.6 m platform's nose, closed down over the bridge windows
     'deckhouse-087': None,            # the sirens and grating over the funnel mouth, which the plan cuts closed into a box
+    # The after control room's lower tier ends in the same three after faces as the tier above it (deckhouse-068), one
+    # wall carrying the window band as the reference's plan cuts at y = 18.5 to 19.8 show; the level grouping had given
+    # it a pointed after end 0.25 m long that stood in front of the windows.
+    'deckhouse-062': dict(footprint=[[-3.015, 18.185], [-3.015, 18.345], [-2.795, 18.605], [-2.556, 18.645], [-2.414, 18.748], [-2.055, 19.904], [-2.097, 20.907], [-2.198, 21.046], [-2.555, 21.205], [-2.695, 21.425], [-2.655, 21.745], [-2.263, 22.079], [-2.102, 22.44], [-1.996, 24.403], [-1.096, 25.343], [-0.336, 25.983], [0.344, 25.983], [1.144, 25.303], [2.044, 24.323], [2.098, 22.44], [2.258, 22.08], [2.565, 21.845], [2.705, 21.625], [2.705, 21.425], [2.625, 21.265], [2.168, 21.046], [2.067, 20.907], [2.025, 19.985], [2.424, 18.75], [2.765, 18.605], [2.945, 18.425], [2.985, 18.185], [2.805, 17.965], [2.565, 17.965], [2.285, 18.324], [2.085, 18.405], [0.967, 18.605], [0.61, 18.605], [0.426, 18.464], [0.246, 18.126], [0.085, 18.005], [-0.075, 18.005], [-0.335, 18.225], [-0.515, 18.563], [-0.756, 18.644], [-2.077, 18.404], [-2.275, 18.324], [-2.555, 17.965], [-2.795, 17.965]]),
 }
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures
               if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]

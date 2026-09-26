@@ -5,14 +5,15 @@ model's own walls where they stand within 0.4 m of the reference's (plan cuts). 
 """
 
 WINDOWS = [
-    # The after control room's band of four windows on each quarter (textured side render: 0.8 m tall at 18.75-19.55 m,
-    # three on its angled after faces abaft the one on its flat side), seated on this model's facets.
-    ('window', 1.804, 19.150, 24.610, 0.550, 0.800, 0.739, 0.673),
-    ('window', -1.804, 19.150, 24.610, 0.550, 0.800, -0.739, 0.673),
-    ('window', 1.410, 19.150, 25.042, 0.450, 0.800, 0.739, 0.673),
-    ('window', -1.410, 19.150, 25.042, 0.450, 0.800, -0.739, 0.673),
-    ('window', 0.771, 19.150, 25.627, 0.600, 0.800, 0.645, 0.765),
-    ('window', -0.771, 19.150, 25.627, 0.600, 0.800, -0.645, 0.765),
+    # The after control room's band of four windows on each quarter (textured side render: 0.79 m tall at 18.74-19.53 m,
+    # three on its angled after faces, 0.46-0.52 m wide as seen from abeam, abaft the one on its flat side), seated on
+    # this model's facets (the two tiers share them).
+    ('window', 1.790, 19.130, 24.600, 0.660, 0.790, 0.737, 0.676),
+    ('window', -1.807, 19.130, 24.600, 0.660, 0.790, -0.722, 0.692),
+    ('window', 1.310, 19.130, 25.122, 0.550, 0.790, 0.737, 0.676),
+    ('window', -1.310, 19.130, 25.120, 0.550, 0.790, -0.722, 0.692),
+    ('window', 0.665, 19.130, 25.710, 0.640, 0.790, 0.648, 0.762),
+    ('window', -0.660, 19.130, 25.710, 0.640, 0.790, -0.644, 0.765),
     ('port', -4.288, 23.888, -27.130, 0.300, 0.300, 0.000, 1.000),
     ('port', 4.262, 23.888, -27.130, 0.300, 0.300, 0.000, 1.000),
     ('port', -3.062, 23.738, -27.130, 0.300, 0.300, 0.000, 1.000),
