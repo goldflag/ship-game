@@ -267,7 +267,7 @@ class _Kit:
             a = math.tau * k / spokes + math.pi / 2
             end = (cx + r * math.cos(a), cy, cz + r * math.sin(a))
             self.rod(label + '-spoke', (cx, cy, cz), end, tube * .7, material, frame, n=4)
-        self.rod(label + '-hub', (cx, cy - .018, cz), (cx, cy + .018, cz), hub, material, frame, n=8)
+        self.rod(label + '-hub', (cx, cy - .018, cz), (cx, cy + .018, cz), hub, material, frame, n=6)
 
 
 def create_mount(mount, col, helpers, materials):
@@ -282,12 +282,8 @@ def create_mount(mount, col, helpers, materials):
     k.lathe('stand', [(0.0, STAND_BORE), (0.0, STAND_FOOT), (.180, STAND_FOOT - (STAND_FOOT - STAND_TOP) * .180 / RACE),
                       (.180, STAND_BORE)], N, 'base', n=10, axis='z', closed_profile=True)
     k.lathe('stand.race', [(.180, .470), (.180, .606), (RACE, STAND_TOP), (RACE, .470)], E, 'base',
-            n=20, axis='z', closed_profile=True)
-    k.lathe('stand.foundation-plate', [(0.0, STAND_BORE + .005), (.012, STAND_BORE + .005)], N, 'base', n=20, axis='z')
-    for i in range(10):
-        a = math.tau * (i + .5) / 10
-        k.rod('stand.holding-down-bolt', (.40 * math.cos(a), .40 * math.sin(a), .010),
-              (.40 * math.cos(a), .40 * math.sin(a), .040), .026, E, 'base', n=6)
+            n=10, axis='z', closed_profile=True)
+    k.lathe('stand.foundation-plate', [(0.0, STAND_BORE + .005), (.012, STAND_BORE + .005)], N, 'base', n=10, axis='z')
 
     # ==================================================================== training platform
     # Low after deck with the reference's slot at the after edge and its chamfered starboard
@@ -319,12 +315,12 @@ def create_mount(mount, col, helpers, materials):
     for sy in (1, -1):
         k.prism('carriage.cheek', cheek, sy * CHEEK[0], sy * CHEEK[1], 'y', N)
         # Trunnion bearing cap and its bolts on the outer face.
-        k.rod('carriage.trunnion-cap', (T, sy * CHEEK[1], P), (T, sy * (CHEEK[1] + .025), P), .100, E, n=12)
+        k.rod('carriage.trunnion-cap', (T, sy * CHEEK[1], P), (T, sy * (CHEEK[1] + .025), P), .100, E, n=10)
         k.rod('carriage.trunnion-hub', (T, sy * (CHEEK[1] + .025), P), (T, sy * (CHEEK[1] + .040), P), .045, E, n=8)
-        for i in range(6):
-            a = math.tau * i / 6
+        for i in range(4):
+            a = math.tau * (i + .5) / 4
             k.rod('carriage.cap-bolt', (T + .075 * math.cos(a), sy * (CHEEK[1] + .025), P + .075 * math.sin(a)),
-                  (T + .075 * math.cos(a), sy * (CHEEK[1] + .034), P + .075 * math.sin(a)), .011, E, n=6)
+                  (T + .075 * math.cos(a), sy * (CHEEK[1] + .034), P + .075 * math.sin(a)), .012, E, n=4)
     # Front web joining the cheeks ahead of the well.
     k.prism('carriage.front-web', [(.470, FORE_DECK), (.613, FORE_DECK), (.613, 1.081), (.470, 1.068)],
             -CHEEK[0], CHEEK[0], 'y', N)
@@ -351,7 +347,7 @@ def create_mount(mount, col, helpers, materials):
         k.rod('station.indicator-drum', (.133, sy * .714, 1.552), (.133, sy * .907, 1.552), .089, N, n=8)
         k.rod('station.handwheel-shaft', (.132, sy * .655, 1.552), (.132, sy * .965, 1.552), .020, E, n=6)
         for yy, h, deg in ((.6795, -1, 231), (.9425, 1, 50)):
-            k.wheel('station.handwheel', (.132, sy * yy, 1.552), .112, .012, PE, n=14, spokes=3, hub=.030)
+            k.wheel('station.handwheel', (.132, sy * yy, 1.552), .112, .012, PE, n=12, spokes=3, hub=.030)
             a = math.radians(deg)
             gx, gz = .132 + .112 * math.cos(a), 1.552 + .112 * math.sin(a)
             k.rod('station.crank-handle', (gx, sy * yy, gz), (gx, sy * (yy + h * .085), gz), .012, E, n=6)
@@ -392,8 +388,8 @@ def create_mount(mount, col, helpers, materials):
                                         (xc - .0815, 1.311), (xc - .0415, 1.240)], 1.254, 1.389, 'y', N)
     for xc in (-1.419, -1.121, -.827):
         # Setter pot between the dividers, its dark mouth, and the setting crank on the outboard face.
-        k.rod('fuze-setter.pot', (xc, 1.3215, 1.008), (xc, 1.3215, 1.052), .070, N, n=8)
-        k.rod('fuze-setter.pot-mouth', (xc, 1.3215, 1.052), (xc, 1.3215, 1.056), .052, D, n=8)
+        k.rod('fuze-setter.pot', (xc, 1.3215, 1.008), (xc, 1.3215, 1.052), .070, N, n=6)
+        k.rod('fuze-setter.pot-mouth', (xc, 1.3215, 1.052), (xc, 1.3215, 1.056), .052, D, n=6)
         k.rod('fuze-setter.crank-boss', (xc, 1.443, .884), (xc, 1.506, .884), .1125, N, n=6)
         k.rod('fuze-setter.crank-hub', (xc, 1.444, .884), (xc, 1.512, .884), .030, E, n=6)
     # Indicator tower at the forward end, with its ridged hood and a dial on the inboard face.
@@ -426,9 +422,9 @@ def create_mount(mount, col, helpers, materials):
     k.rod('slide.cylinder-band', (1.08, -.205, 1.886), (1.12, -.205, 1.886), .097, E, 'elev', n=10)
     # Trunnion pins (coaxial with the cheek bearings).
     for sy in (1, -1):
-        k.rod('slide.trunnion-pin', (T, sy * .300, P), (T, sy * .398, P), .070, E, 'elev', n=12)
+        k.rod('slide.trunnion-pin', (T, sy * .300, P), (T, sy * .398, P), .070, E, 'elev', n=8)
     # Toothed elevating arc about the trunnion, hung from the slide's underside.
-    teeth = 26
+    teeth = 22
     rim = []
     for i in range(teeth * 2 + 1):
         a = math.radians(-30 - 120 * i / (teeth * 2))
@@ -457,8 +453,8 @@ def create_mount(mount, col, helpers, materials):
         y = sy * .822
         k.rod('slide.sight-post', (.490, y, 1.768), (.490, y, 1.930), .020, PE, 'elev', n=6)
         k.rod('slide.telescope', (.372, y, 1.960), (.605, y, 1.960), .040, E, 'elev', n=8)
-        k.rod('slide.telescope-eyepiece', (.345, y, 1.960), (.372, y, 1.960), .030, D, 'elev', n=8)
-        k.rod('slide.telescope-objective', (.605, y, 1.960), (.612, y, 1.960), .032, G, 'elev', n=8)
+        k.rod('slide.telescope-eyepiece', (.345, y, 1.960), (.372, y, 1.960), .030, D, 'elev', n=6)
+        k.rod('slide.telescope-objective', (.605, y, 1.960), (.612, y, 1.960), .032, G, 'elev', n=6)
         k.box('slide.telescope-clamp', (.490, y, 1.925), (.06, .07, .03), PE, 'elev')
 
     # ==================================================================== gun (recoil)
@@ -467,7 +463,7 @@ def create_mount(mount, col, helpers, materials):
     muzzle = s['muzzleForward']
     k.lathe('gun.barrel', [(-.107, .158), (.281, .158), (muzzle, .095)], N, 'recoil', n=16, axis='x',
             center=(0, 0, P), smooth=True)
-    k.rod('gun.bore', (muzzle - .050, 0, P), (muzzle + .002, 0, P), .066, D, 'recoil', n=16)
+    k.rod('gun.bore', (muzzle - .050, 0, P), (muzzle + .002, 0, P), .066, D, 'recoil', n=12)
     k.box('gun.breech-ring', (-.2535, 0, P), (.293, .300, .300), N, 'recoil')
     k.box('gun.breech-block', (-.412, .010, P), (.030, .230, .240), E, 'recoil')
     k.rod('gun.lever-pivot', (-.300, .150, 1.780), (-.300, .185, 1.780), .025, E, 'recoil', n=8)
