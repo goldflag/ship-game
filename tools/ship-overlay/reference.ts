@@ -55,6 +55,10 @@ export const suggestedVehicles: Record<string, string> = {
   'new-orleans': 'pasc107',
   omaha: 'pasc005',
   pensacola: 'pasc106',
+  fuso: 'pjsb006',
+  hyuga: 'pjsb517',
+  ise: 'pjsb526',
+  nagato: 'pjsb010',
 };
 export const vehicleUrl = (id: string) => `https://gamemodels3d.com/en/games/worldofwarships/vehicles/${id}`;
 export function vehicleId(input: string): string {
