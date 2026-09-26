@@ -4,6 +4,7 @@ export { loadShipPreset, loadShipPresets } from './presetLoading';
 
 /** Canonical roster; definitions are admitted on demand before simulation. */
 export const shipPresets = {
+  'new-orleans': preset('new-orleans'),
   'takao': preset('takao'),
   "valiant": preset("valiant"),
   'resolute': preset('resolute'),
