@@ -48,10 +48,12 @@ def hull_half(kit, zref, y):
             t = (station - s0['station']) / max(1e-9, s1['station'] - s0['station'])
 
             def w(sec):
+                # Held at the section's own deck edge above it: the sheer rises between stations.
+                yy = min(y, sec['points'][-1][1])
                 best = 0
                 for (w0, y0), (w1, y1) in zip(sec['points'], sec['points'][1:]):
-                    if min(y0, y1) <= y <= max(y0, y1) and abs(y1 - y0) > 1e-9:
-                        best = max(best, w0 + (w1 - w0) * (y - y0) / (y1 - y0))
+                    if min(y0, y1) <= yy <= max(y0, y1) and abs(y1 - y0) > 1e-9:
+                        best = max(best, w0 + (w1 - w0) * (yy - y0) / (y1 - y0))
                 return best
             return w(s0) * (1 - t) + w(s1) * t
     return 0.0
@@ -67,6 +69,175 @@ def deck(kit, zref):
             t = (station - s0['station']) / max(1e-9, s1['station'] - s0['station'])
             return s0['points'][-1][1] * (1 - t) + s1['points'][-1][1] * t
     return 3.64
+
+
+# ---------------------------------------------------------------- bow bulwark
+# The reference carries a flared bulwark above the forecastle deck edge from z -76.7 to the stem: a sloped aft end
+# up to 8.45 m at z -77.6, then a top rising gently to 8.85 m at the stem head (sections at z -77.5 to -82.2, plan
+# cuts at y 8.5 and 8.75). Outer top edge (z, half-breadth); the bullnose fairleads pierce it.
+BULWARK_FOOT = -76.71
+BULWARK_TOP = [(-77.58, 2.50), (-78.0, 2.46), (-78.5, 2.36), (-79.0, 2.25), (-79.5, 2.16), (-80.0, 2.04), (-80.5, 1.93),
+               (-81.0, 1.76), (-81.5, 1.57), (-82.0, 1.27), (-82.2, 1.15), (-82.42, .97), (-82.6, .75), (-82.74, .57),
+               (-82.85, .3), (-82.9, 0.0)]
+
+
+def stem_z(kit):
+    """Reference z of the hull's stem head (station L)."""
+    return -kit.D['hull']['length'] / 2 - ZS
+
+
+def deck_edge(kit, zref):
+    """(half-breadth, height) of the weather-deck edge, held at the stem head forward of it."""
+    z = max(zref, stem_z(kit) + .005)
+    y = deck(kit, z)
+    return hull_half(kit, z, y - .005), y
+
+
+def bulwark_top(kit, zref):
+    """(half-breadth, height) of the bow bulwark's outer top edge at a reference z, or None aft of its foot."""
+    if zref > BULWARK_FOOT:
+        return None
+    z1, x1 = BULWARK_TOP[0]
+    if zref >= z1:
+        x0, y0 = deck_edge(kit, BULWARK_FOOT)
+        t = (BULWARK_FOOT - zref) / (BULWARK_FOOT - z1)
+        return x0 + (x1 - x0) * t, y0 + (8.45 - y0) * t
+    for (za, xa), (zb, xb) in zip(BULWARK_TOP, BULWARK_TOP[1:]):
+        if zb <= zref <= za:
+            x = xa + (xb - xa) * (za - zref) / (za - zb)
+            break
+    else:
+        x = 0.0
+    return x, 8.45 + .0757 * (BULWARK_TOP[0][0] - max(zref, BULWARK_TOP[-1][0]))
+
+
+def side_x(kit, zref, y):
+    """Outer half-breadth of the hull side at a reference z and height, the bow bulwark included."""
+    xe, ye = deck_edge(kit, zref)
+    top = bulwark_top(kit, zref)
+    ylo = ye - .12
+    if y <= ylo or top is None or top[1] < ye + .01:
+        return hull_half(kit, zref, min(y, ye - .005))
+    xlo = hull_half(kit, zref, ylo) - .02
+    return max(hull_half(kit, zref, min(y, ye - .005)), xlo + (top[0] - xlo) * (y - ylo) / (top[1] - ylo))
+
+
+def bow_bulwark(kit):
+    col = kit.collections['Hull and decks']
+    tip = stem_z(kit)
+    zs = [BULWARK_FOOT, -76.9, -77.1, -77.3] + [z for z, _ in BULWARK_TOP]
+    vv, ff = [], []
+
+    def add(p):
+        vv.append(P(*p))
+        return len(vv) - 1
+
+    for s in (-1, 1):
+        rows = []
+        for z in zs:
+            xb, yb = deck_edge(kit, z)
+            if z < tip:
+                xb = 0.0
+            xt, yt = bulwark_top(kit, z)
+            inner = xt - .12 > .03 and xb - .14 > .03
+            # The outer plating starts just inside the side below the deck edge and runs out through it, so the
+            # two surfaces meet in a clean line instead of a step.
+            ylo, xlo = (yb - .12, hull_half(kit, z, yb - .12) - .02) if z >= tip else (yb, 0.0)
+            rows.append(dict(ob=add((s * xlo, ylo, max(z, tip))), ot=add((s * xt, yt, z)),
+                             it=add((s * (xt - .12), yt, z)) if inner else None,
+                             ib=add((s * (xb - .14), yb - .03, max(z, tip))) if inner else None,
+                             ct=add((0.0, yt, z)), cb=add((0.0, yb - .03, max(z, tip)))))
+        for a, b in zip(rows, rows[1:]):
+            ff.append((a['ob'], b['ob'], b['ot'], a['ot']))
+            if b['it'] is not None:
+                ff.append((a['ot'], b['ot'], b['it'], a['it']))
+                ff.append((a['it'], b['it'], b['ib'], a['ib']))
+                ff.append((a['ib'], b['ib'], b['ob'], a['ob']))
+            elif a['it'] is not None:
+                # Forward of here the two sides are one solid: close the inner face across to the centreline.
+                ff.append((a['it'], a['ct'], a['cb'], a['ib']))
+                ff.append((a['ot'], b['ot'], b['ct'], a['ct'], a['it']))
+                ff.append((a['ob'], a['ib'], a['cb'], b['cb'], b['ob']))
+            else:
+                ff.append((a['ot'], b['ot'], b['ct'], a['ct']))
+                ff.append((a['ob'], a['cb'], b['cb'], b['ob']))
+        r0 = rows[0]
+        ff.append((r0['ob'], r0['ot'], r0['it'], r0['ib']))
+    ff = [f if len(set(f)) == len(f) else tuple(dict.fromkeys(f)) for f in ff]
+    ff = [f for f in ff if len(f) >= 3]
+    ob = kit.mesh('bow-bulwark', vv, ff, 'hullgray', col)
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
+    bmesh.ops.dissolve_degenerate(bm, dist=1e-4, edges=bm.edges)
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    bm.to_mesh(ob.data)
+    bm.free()
+    kit.tag(ob, 'bow-bulwark')
+    return ob
+
+
+def surface_disc(kit, aid, col, label, s, zc, yc, rz, ry, lift, material, n=16):
+    """A thin elliptic plate lying on the hull side (bulwark included) about (zc, yc), `lift` proud of it."""
+    vv, ff = [], []
+    for k in range(n):
+        t = math.tau * k / n
+        z, y = zc + rz * math.cos(t), yc + ry * math.sin(t)
+        x = side_x(kit, z, y)
+        vv += [P(s * (x + lift), y, z), P(s * (x - .02), y, z)]
+    ff.append(tuple(2 * k for k in range(n)))
+    ff.append(tuple(2 * k + 1 for k in reversed(range(n))))
+    ff += [(2 * k, 2 * k + 1, 2 * ((k + 1) % n) + 1, 2 * ((k + 1) % n)) for k in range(n)]
+    ob = kit.mesh(aid + '.' + label, vv, ff, material, col)
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    bm.to_mesh(ob.data)
+    bm.free()
+    return kit.tag(ob, aid)
+
+
+def surface_ring(kit, aid, col, s, zc, yc, rz, ry, lift, r=.05, n=14, material='naval'):
+    """A rim of members round an ellipse on the hull side."""
+    pts = []
+    for k in range(n):
+        t = math.tau * k / n
+        z, y = zc + rz * math.cos(t), yc + ry * math.sin(t)
+        pts.append(V(s * (side_x(kit, z, y) + lift), y, z))
+    for a, b in zip(pts, pts[1:] + pts[:1]):
+        kit.member(aid, col, a, b, r, material, 6)
+
+
+def leaf(kit, aid, col, label, s, root, tip, width, lift0, lift1, thickness=.12, material='naval', n=6):
+    """A flat pointed blade (an anchor fluke) lying along the hull side from root (z, y) to tip (z, y)."""
+    (z0, y0), (z1, y1) = root, tip
+    L = math.hypot(z1 - z0, y1 - y0)
+    nz, ny = -(y1 - y0) / L, (z1 - z0) / L
+    outer, inner = [], []
+    for k in range(n + 1):
+        t = k / n
+        half = width / 2 * (.75 + 1.1 * t) * (1 - t ** 2.2) if k < n else 0.0
+        zc, yc = z0 + (z1 - z0) * t, y0 + (y1 - y0) * t
+        lift = lift0 + (lift1 - lift0) * t
+        for side in ((-1, 1) if k < n else (0,)):
+            z, y = zc + side * nz * half, yc + side * ny * half
+            x = side_x(kit, z, y) + lift
+            outer.append(P(s * (x + thickness / 2), y, z))
+            inner.append(P(s * (x - thickness / 2), y, z))
+    m = len(outer)
+    # Outline order: the -1 side root to tip, then the +1 side back to the root.
+    order = [2 * k for k in range(n)] + [m - 1] + [2 * k + 1 for k in reversed(range(n))]
+    vv = outer + inner
+    ff = [tuple(order), tuple(m + i for i in reversed(order))]
+    ff += [(order[i], order[(i + 1) % len(order)], m + order[(i + 1) % len(order)], m + order[i]) for i in range(len(order))]
+    ob = kit.mesh(aid + '.' + label, vv, ff, material, col)
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    bm.to_mesh(ob.data)
+    bm.free()
+    return kit.tag(ob, aid)
 
 
 # ---------------------------------------------------------------- tubs and splinter shields
@@ -170,34 +341,73 @@ def funnels(D, kit):
         rear = min(range(n), key=lambda i: bottom[i].x)
         a, b = bottom[rear] + Vector((-.14, 0, .1)), top[rear] + Vector((-.14, 0, -.25))
         kit.ladder(aid, col, a, b, (0, 1, 0), .42)
+        # Gallery 0.9 m under the rim's lowest point: a grating on brackets, 0.5 m wide, with a rail.
+        rings = [[Vector(R(v)) for v in vs[j * n:(j + 1) * n]] for j in range(len(vs) // n)]
+        yg = min(p.z for p in top) - .9
+        ring = min(rings[:-1], key=lambda r: abs(sum(p.z for p in r) / n - yg))
+        cx, cy = sum(p.x for p in ring) / n, sum(p.y for p in ring) / n
+        inner, outer = [], []
+        for p in ring:
+            d = Vector((p.x - cx, p.y - cy, 0)).normalized()
+            inner.append(Vector((p.x, p.y, yg)) - d * .02)
+            outer.append(Vector((p.x, p.y, yg)) + d * .5)
+        vv, ff = [], []
+        for q in inner + outer:
+            vv += [tuple(q), tuple(q + Vector((0, 0, .06)))]
+        for i in range(n):
+            j = (i + 1) % n
+            a0, b0, a1, b1 = 2 * i, 2 * j, 2 * (n + i), 2 * (n + j)
+            ff += [(a0 + 1, b0 + 1, b1 + 1, a1 + 1), (a0, a1, b1, b0), (a1, a1 + 1, b1 + 1, b1), (a0, b0, b0 + 1, a0 + 1)]
+        grating = kit.tag(kit.mesh(aid + '.gallery grating', vv, ff, 'edge', col), aid)
+        for i in range(0, n, 2):
+            kit.member(aid, col, outer[i], outer[i] + Vector((0, 0, 1.0)), .022, 'naval', 5)
+            kit.member(aid, col, inner[i] + Vector((0, 0, -.02)), outer[i] - Vector((0, 0, .45)) + (inner[i] - outer[i]) * .5, .03, 'naval', 5)
+        for h in (.5, 1.0):
+            for i in range(n):
+                kit.member(aid, col, outer[i] + Vector((0, 0, h)), outer[(i + 1) % n] + Vector((0, 0, h)), .016, 'naval', 4)
+        # A steam pipe up the forward starboard face of the casing to above the rim.
+        fore = max(range(n), key=lambda i: bottom[i].x - .6 * abs(bottom[i].y + .6))
+        pb, pt = bottom[fore], top[fore]
+        out = Vector((pb.x - cx, pb.y - cy, 0)).normalized() * .22
+        kit.part('rod', aid, col, 'steam pipe', pb + out + Vector((0, 0, .1)), pt + out + Vector((0, 0, .45)), .11, 'naval', vertices=10)
+        kit.part('rod', aid, col, 'pipe mouth', pt + out + Vector((0, 0, .45)), pt + out + Vector((0, 0, .6)), .15, 'black', vertices=10)
 
 
 # ---------------------------------------------------------------- masts and the SC-1 aerial
 def masts(D, kit):
     col = kit.collections['Sensors and masts']
     aid = 'foremast'
-    # Raked pole from the bridge top to the masthead (centreline profile: 15.1 m at z -14.8 to 35.4 m at -13.2),
-    # with the signal yard at 30.9 m, a short upper yard, the RDF loop and the ship's bell.
-    foot, head = (0, 15.1, -14.8), (0, 35.4, -13.2)
-    taper(kit, aid, col, 'pole', foot, head, .23, .09, 'naval', 12)
-    kit.cylz(aid, col, 'foot collar', V(0, 15.1, -14.8), .34, .35, 'naval', 12)
+    # Raked hexagonal pole from the bridge top to the SC-1 aerial (plan cuts: axis z -14.28 at 16 m to -13.07 at 32 m,
+    # 0.43 m to 0.2 m across the flats), the signal yard at 31 m with its lamps, outriggers fore and aft for the stays,
+    # the RDF loop, the ship's bell and small lamp brackets on the forward face.
+    axis = lambda y: -14.275 + (y - 16.0) * .0757
+    foot, head = (0, 15.1, axis(15.1)), (0, 32.82, axis(32.82))
+    taper(kit, aid, col, 'pole', foot, head, .45, .2, 'naval', 6)
+    kit.cylz(aid, col, 'foot collar', V(0, 15.1, axis(15.1)), .56, .3, 'naval', 6)
     for s in (-1, 1):
-        taper(kit, aid, col, 'signal yard', (s * .1, 30.9, -13.55), (s * 7.8, 30.9, -13.55), .1, .05, 'naval', 8)
-        taper(kit, aid, col, 'upper yard', (s * .08, 33.0, -13.35), (s * 2.2, 33.0, -13.35), .06, .035, 'naval', 8)
-        # Yard braces from the pole to the yardarms.
-        kit.member(aid, col, V(0, 29.5, -13.65), V(s * 4.0, 30.88, -13.55), .03, 'naval', 5)
+        taper(kit, aid, col, 'signal yard', (s * .15, 31.0, axis(31.0)), (s * 7.8, 31.0, axis(31.0)), .1, .05, 'naval', 8)
+        kit.member(aid, col, V(0, 29.6, axis(29.6)), V(s * 4.0, 30.98, axis(31.0)), .03, 'naval', 5)
         for x in (4.52, 7.30):
-            kit.cylz(aid, col, 'signal lamp', V(s * x, 31.0, -13.55), .08, .2, 'dark', 8)
-    kit.boxc(aid, col, 'wind vane', V(1.54, 31.25, -13.55), (.4, .1, .6), 'edge')
+            kit.cylz(aid, col, 'signal lamp', V(s * x, 31.05, axis(31.0)), .08, .2, 'dark', 8)
+    kit.boxc(aid, col, 'wind vane', V(1.54, 31.25, axis(31.0)), (.4, .1, .6), 'edge')
+    # Outriggers: aft to z -9.4 near the masthead, forward to z -16.2 for the forestay, each on a strut.
+    kit.beam(aid, col, 'after outrigger', V(0, 32.4, axis(32.4)), V(0, 32.1, -9.4), .1, .12, 'naval')
+    kit.member(aid, col, V(0, 30.4, axis(30.4)), V(0, 32.05, -9.5), .04, 'naval', 5)
+    kit.beam(aid, col, 'forward outrigger', V(0, 31.5, axis(31.5)), V(0, 30.6, -16.2), .1, .12, 'naval')
+    kit.member(aid, col, V(0, 32.5, axis(32.5)), V(0, 30.65, -16.1), .04, 'naval', 5)
+    kit.boxc(aid, col, 'signal plate', V(0, 27.6, axis(27.6) - .55), (.4, .12, 2.9), 'naval')
+    for y in (19.4, 20.6, 22.1, 25.1):
+        c = V(0, y, axis(y) - .35)
+        kit.boxc(aid, col, 'lamp bracket', c + Vector((.2, 0, 0)), (.6, .5, .06), 'naval')
+        kit.cylz(aid, col, 'lamp', c + Vector((.35, 0, .03)), .1, .25, 'dark', 8)
     kit.part('rod', aid, col, 'rdf loop', V(0, 19.1, -12.38), V(0, 19.9, -12.38), .03, 'edge', vertices=6)
     kit.cylz(aid, col, 'rdf ring', V(0, 19.9, -12.38), .32, .04, 'edge', 16)
-    kit.member(aid, col, V(0, 19.1, -12.38), V(0, 19.1, -14.25), .04)
-    kit.cylz(aid, col, 'ships bell', V(0, 16.9, -13.42), .2, .45, 'brass', 12, r2=.12)
-    kit.member(aid, col, V(0, 17.35, -13.42), V(0, 17.35, -14.6), .03)
-    # Lookout platform with its rail two-thirds of the way up.
-    kit.cylz(aid, col, 'platform', V(0, 26.5, -13.8), .9, .06, 'roof', 16)
-    kit.rail(aid, col, [P(.9 * math.cos(a), 0, -13.8 + .9 * math.sin(a))[:2] for a in [i * math.tau / 12 for i in range(12)]], 26.56, .9, .5, True, False)
-    kit.ladder(aid, col, V(0, 15.2, -15.15), V(0, 30.6, -13.95), (0, 1, 0), .38)
+    kit.member(aid, col, V(0, 19.1, -12.38), V(0, 19.1, axis(19.1) + .3), .04)
+    kit.cylz(aid, col, 'ships bell', V(0, 16.9, axis(16.9) + .5), .2, .45, 'brass', 12, r2=.12)
+    kit.member(aid, col, V(0, 17.35, axis(17.35) + .5), V(0, 17.35, axis(17.35) + .3), .03)
+    kit.ladder(aid, col, V(0, 15.3, axis(15.3) - .5), V(0, 30.7, axis(30.7) - .28), (0, 1, 0), .38)
+    # Masthead plate carrying the aerial's turntable.
+    kit.cylz(aid, col, 'masthead plate', V(0, 32.8, axis(32.8)), .36, .1, 'naval', 12)
     # SC-1 air-search aerial on the masthead, trained by the rig (HP_ARS_1): a bedspring on a yoke.
     rid = 'radar-sc1'
     bx, by, bz = P(0, 32.9, -12.966)
@@ -214,16 +424,19 @@ def masts(D, kit):
     local(kit.boxc(rid, col, 'reflector screen', (bx - .1, by, zc), (.04, w, h), 'dark'), pivot)
     for t in (-1, 1):
         local(kit.part('rod', rid, col, 'frame', (bx, by + t * w / 2, zc - h / 2), (bx, by + t * w / 2, zc + h / 2), .04, 'naval', vertices=6), pivot)
-    # Main (after) mast: a pole between the funnels with its yard and the ensign gaff (HP_flag_nation).
+    # Main (after) mast abaft the after funnel (plan cuts: axis z 9.38 at 16.5 m raking to 9.97 at 27.5 m, 0.34 m to
+    # 0.26 m across, a topmast above 26 m), its yard and the ensign gaff to the HP_flag_nation datum.
     aid = 'mainmast'
-    taper(kit, aid, col, 'pole', (0, 14.8, 9.8), (0, 28.8, 10.05), .2, .08, 'naval', 12)
-    kit.cylz(aid, col, 'foot collar', V(0, 14.8, 9.8), .3, .3, 'naval', 12)
+    axis_m = lambda y: 9.38 + (y - 16.5) * .0563
+    taper(kit, aid, col, 'pole', (0, 14.6, axis_m(14.6)), (0, 26.2, axis_m(26.2)), .18, .12, 'naval', 6)
+    taper(kit, aid, col, 'topmast', (0, 26.0, axis_m(26.0)), (0, 28.9, axis_m(28.9)), .07, .04, 'naval', 8)
+    kit.cylz(aid, col, 'foot collar', V(0, 14.6, axis_m(14.6)), .28, .3, 'naval', 6)
     for s in (-1, 1):
-        taper(kit, aid, col, 'yard', (s * .08, 27.4, 10.0), (s * 3.2, 27.4, 10.0), .07, .04, 'naval', 8)
-    taper(kit, aid, col, 'gaff', (0, 25.2, 10.2), (0, 24.34, 13.1), .07, .04, 'naval', 8)
-    kit.member(aid, col, V(0, 27.0, 10.05), V(0, 24.4, 13.05), .02, 'edge', 4)
-    kit.boxc(aid, col, 'speed light', V(0, 18.0, 10.13), (.8, .28, .6), 'edge')
-    kit.ladder(aid, col, V(0, 14.9, 10.25), V(0, 26.8, 10.35), (0, 1, 0), .34)
+        taper(kit, aid, col, 'yard', (s * .08, 27.3, axis_m(27.3)), (s * 3.2, 27.3, axis_m(27.3)), .07, .04, 'naval', 8)
+    taper(kit, aid, col, 'gaff', (0, 25.6, axis_m(25.6) + .1), (0, 24.34, 13.1), .07, .04, 'naval', 8)
+    kit.member(aid, col, V(0, 27.0, axis_m(27.0)), V(0, 24.4, 13.05), .02, 'edge', 4)
+    kit.boxc(aid, col, 'speed light', V(0, 18.0, axis_m(18.0) + .3), (.8, .28, .6), 'edge')
+    kit.ladder(aid, col, V(0, 14.8, axis_m(14.8) + .32), V(0, 25.8, axis_m(25.8) + .28), (0, 1, 0), .34)
 
 
 # ---------------------------------------------------------------- fire control
@@ -513,21 +726,30 @@ def raft(kit, aid, col, c, length, height, outward):
 
 
 def crane(D, kit):
-    """Boat crane between the funnels (reference part am491): a pillar on the 01 deck and a lattice jib raked
-    forward over the motor launches, with its hoist."""
+    """Boat crane between the funnels (reference part am491, cut on the centreline): a pillar on the 01 deck with a
+    kingpost to 13.25 m, a box-lattice jib pivoted low at 10 m and raked forward 49 degrees over the motor launches,
+    the topping lift from the kingpost head and the hoist."""
     col = kit.collections['Boats']
     aid = 'boat-crane'
-    base = V(0, 8.8, 3.3)
+    base = V(0, 8.75, 3.1)
     floor = kit.below(base.x, base.y, base.z + .2, base.z)
-    kit.cylz(aid, col, 'pillar', Vector((base.x, base.y, floor - .02)), .42, 11.4 - floor, 'naval', 16, r2=.34)
-    kit.cylz(aid, col, 'slewing ring', V(0, 11.35, 3.3), .5, .2, 'edge', 16)
-    heel, head = V(0, 11.8, 3.0), V(0, 18.3, -4.8)
-    kit.lattice(aid, col, heel, head, .6, .6, 12, .06, .035)
-    kit.boxc(aid, col, 'winch house', V(0, 12.2, 3.9), (1.1, .9, .9), 'naval')
-    kit.part('rod', aid, col, 'head sheave', head + Vector((0, -.25, -.15)), head + Vector((0, .25, -.15)), .24, 'edge', vertices=12)
-    kit.wire(aid, col, V(0, 12.5, 3.9), head + Vector((0, 0, .15)), .02, False)
-    kit.wire(aid, col, head + Vector((0, 0, -.3)), head + Vector((0, 0, -4.4)), .015, False)
-    kit.part('rod', aid, col, 'hook block', head + Vector((0, 0, -4.4)), head + Vector((0, 0, -4.8)), .12, 'edge', vertices=8)
+    kit.cylz(aid, col, 'pillar', Vector((base.x, base.y, floor - .02)), .42, 10.25 - floor, 'naval', 16, r2=.38)
+    kit.cylz(aid, col, 'slewing ring', V(0, 10.2, 3.1), .5, .18, 'edge', 16)
+    kit.part('rod', aid, col, 'kingpost', V(0, 10.35, 3.1), V(0, 13.25, 3.1), .26, 'naval', r2=.08, vertices=10)
+    heel, head = V(0, 10.1, 2.7), V(0, 17.75, -4.0)
+    kit.lattice(aid, col, heel, head, .7, .7, 12, .06, .035)
+    for side in (-1, 1):
+        kit.beam(aid, col, 'heel lug', V(side * .38, 10.35, 3.1), V(side * .38, 10.1, 2.7) + Vector((0, 0, 0)), .06, .3, 'naval')
+    kit.boxc(aid, col, 'winch house', V(0, 10.9, 3.75), (1.0, .8, .9), 'naval')
+    kit.boxc(aid, col, 'head block', head + Vector((-.15, 0, -.05)), (.55, .75, .5), 'naval')
+    kit.part('rod', aid, col, 'head sheave', head + Vector((-.2, -.3, -.1)), head + Vector((-.2, .3, -.1)), .26, 'edge', vertices=12)
+    mid = heel.lerp(head, .55)
+    kit.boxc(aid, col, 'lift block', mid + Vector((0, 0, .45)), (.45, .45, .35), 'naval')
+    top = V(0, 13.25, 3.1)
+    kit.wire(aid, col, top, mid + Vector((0, 0, .55)), .02, False)
+    kit.wire(aid, col, mid + Vector((0, 0, .55)), head + Vector((0, 0, .2)), .02, False)
+    kit.wire(aid, col, head + Vector((-.2, 0, -.35)), head + Vector((-.2, 0, -4.2)), .015, False)
+    kit.part('rod', aid, col, 'hook block', head + Vector((-.2, 0, -4.2)), head + Vector((-.2, 0, -4.6)), .13, 'edge', vertices=8)
     for s in (-1, 1):
         kit.boxc(aid, col, 'controls', V(s * 2.11, 9.42, 4.41), (.95, .7, 1.2), 'naval')
 
@@ -555,26 +777,23 @@ def searchlights(D, kit):
 def deck_gear(D, kit):
     col = kit.collections['Deck fittings']
     aid = 'ground-tackle'
-    # Stockless bow anchors housed in pockets high on the flare (reference z -76 to -74.6, y 6.3 to 7.5), the hawse
-    # pipes led up to the forecastle and the cables aft to the capstans.
+    # Stockless bow anchors as the reference houses them: the shank drawn into the hawse at the centre of a round
+    # pocket (z -75.9, y 6.3, 1.6 m by 1.25 m), the crown standing just forward of it and the two flukes lying aft
+    # along the flare; the hawse pipes lead up to the forecastle and the cables aft to the capstans.
     for s in (-1, 1):
-        zz = -75.4
-        for yy, label, size in ((7.05, 'anchor shank', (.34, 1.05)), (6.45, 'anchor crown', (1.1, .28))):
-            hb = hull_half(kit, zz, yy)
-            kit.boxc(aid, col, label, V(s * (hb + .1), yy, zz), (size[0], .24, size[1]), 'black')
-        for dz in (-.45, .45):
-            hb = hull_half(kit, zz + dz, 6.62)
-            kit.part('rod', aid, col, 'anchor fluke', V(s * (hb + .1), 6.4, zz + dz * .9), V(s * (hb + .12), 6.95, zz + dz * 1.1), .08, 'black', vertices=6)
-        ring = []
-        for k in range(12):
-            t = math.tau * k / 12
-            yy, z2 = 6.9 + .72 * math.sin(t), zz + .62 * math.cos(t)
-            ring.append(V(s * (hull_half(kit, z2, yy) + .03), yy, z2))
-        for a, b in zip(ring, ring[1:] + ring[:1]):
-            kit.member(aid, col, a, b, .05, 'naval', 6)
+        zc, yc = -75.88, 6.32
+        surface_ring(kit, aid, col, s, zc, yc, .81, .62, .03, .055)
+        surface_disc(kit, aid, col, 'hawse', s, zc + .1, yc, .3, .26, .01, 'black', 14)
+
+        def on(z, y, lift):
+            return V(s * (side_x(kit, z, y) + lift), y, z)
+        kit.part('rod', aid, col, 'anchor shank', on(zc + .1, yc, -.2), on(zc + .1, yc, .3), .17, 'naval', vertices=10)
+        kit.part('rod', aid, col, 'anchor crown', on(-75.78, 5.25, .2), on(-76.5, 7.05, .2), .18, 'naval', vertices=8)
+        leaf(kit, aid, col, 'anchor fluke', s, (-76.3, 6.9), (-74.85, 7.5), .5, .2, .14)
+        leaf(kit, aid, col, 'anchor fluke', s, (-75.85, 5.75), (-74.25, 6.02), .5, .2, .14)
         top = deck(kit, -74.4)
-        hb = hull_half(kit, -75.2, 7.5)
-        kit.part('rod', aid, col, 'hawse pipe', V(s * (hb - .25), 7.45, -75.3), V(s * 1.9, top + .05, -74.4), .2, 'edge', vertices=12)
+        hb = hull_half(kit, -75.8, 7.45)
+        kit.part('rod', aid, col, 'hawse pipe', V(s * (hb - .25), 7.45, -75.8), V(s * 1.9, top + .05, -74.4), .2, 'edge', vertices=12)
         kit.cylz(aid, col, 'hawse lip', V(s * 1.9, top, -74.4), .32, .1, 'edge', 14)
         for i in range(9):
             z0 = -74.2 + i * (74.2 - 66.2) / 9
@@ -649,12 +868,68 @@ def deck_gear(D, kit):
         f = kit.below(c.x, c.y, 4.5, 3.4)
         for dz in (-2.4, 0, 2.4):
             kit.boxc('spare-torpedoes', col, 'rack', Vector((c.x + dz, c.y, (f + 4.96) / 2)), (.25, .7, 4.96 - f + .2), 'edge')
-    # Jack staff at the stem, stern light.
-    kit.part('rod', 'staffs', col, 'jack staff', V(0, 8.0, -82.35), V(0, 14.9, -82.5), .05, 'naval', r2=.025, vertices=8)
+    # Bullnose fairleads either side of the stem head, through the bulwark at the deck edge (reference z -81.1 to
+    # -82.1, y 7.5 to 8.3): a heavy rim round a dark opening.
+    for sd in (-1, 1):
+        zc, yc = -81.62, 7.92
+        surface_disc(kit, 'bullnose', col, 'opening', sd, zc, yc, .37, .3, .03, 'black', 16)
+        surface_ring(kit, 'bullnose', col, sd, zc, yc, .43, .36, .06, .065, 16)
+    # Hull number 51 in white on both bows and quarters (the reference's default paint), 0.55 m high.
+    hull_numbers(kit, col)
+    # Jack staff stepped on the bulwark's stem head (reference z -82.5, up to 15.3 m) with a truck on top and two
+    # stays down to the bulwark tops.
+    kit.part('rod', 'staffs', col, 'jack staff', V(0, 8.78, -82.5), V(0, 15.2, -82.5), .06, 'naval', r2=.035, vertices=8)
+    kit.boxc('staffs', col, 'jack staff truck', V(0, 15.32, -82.5), (.2, .2, .25), 'naval')
+    for sd in (-1, 1):
+        xt, yt = bulwark_top(kit, -80.75)
+        kit.member('staffs', col, V(sd * (xt - .06), yt, -80.75), V(0, 11.5, -82.5), .03, 'naval', 6)
+    # Stern light.
     post = V(0, 4.2, 81.95)
     post.z = kit.below(post.x, post.y, 5.0, 4.0)
     kit.part('rod', 'staffs', col, 'stern light post', post, post + Vector((0, 0, .95)), .04, 'naval', vertices=8)
     kit.boxc('staffs', col, 'stern light', post + Vector((0, 0, 1.05)), (.18, .13, .22), 'white')
+
+
+# ---------------------------------------------------------------- markings
+# Strokes of the numerals in a unit cell (u across, v up), read left to right.
+DIGITS = {
+    '5': [[(.71, 1.0), (.12, 1.0), (.07, .56), (.35, .62), (.6, .56), (.74, .38), (.71, .17), (.55, .03), (.3, 0.0), (.02, .08)]],
+    '1': [[(.36, 1.0), (.36, 0.0)]],
+}
+
+
+def hull_numbers(kit, col):
+    # Reference: 0.5-0.6 m numerals 0.7 m across, centred at z -69.3, y 3.81 on the bow and z 77.56, y 3.48 aft.
+    size, stroke, gap = .55, .09, .83
+    for zc, yc in ((-69.32, 3.81), (77.56, 3.48)):
+        for sd in (-1, 1):
+            vv, ff = [], []
+            # Seen from abeam the number reads forward on starboard (bow on the right) and aft on port.
+            along = -1 if sd > 0 else 1
+            for k, ch in enumerate('51'):
+                for line in DIGITS[ch]:
+                    for (u0, v0), (u1, v1) in zip(line, line[1:]):
+                        du, dv = u1 - u0, v1 - v0
+                        L = math.hypot(du, dv) or 1
+                        nu, nv = -dv / L * stroke / size / 2, du / L * stroke / size / 2
+                        outer, inner = [], []
+                        for u, v in ((u0 - nu, v0 - nv), (u1 - nu, v1 - nv), (u1 + nu, v1 + nv), (u0 + nu, v0 + nv)):
+                            z = zc + along * ((k * gap + u) - (gap + .38) / 2) * size
+                            y = yc + (v - .5) * size
+                            hb = hull_half(kit, z, y)
+                            outer.append(V(sd * (hb + .01), y, z))
+                            inner.append(V(sd * (hb - .004), y, z))
+                        base = len(vv)
+                        vv += [tuple(q) for q in outer + inner]
+                        ff += [(base, base + 1, base + 2, base + 3), (base + 7, base + 6, base + 5, base + 4)]
+                        ff += [(base + i, base + 4 + i, base + 4 + (i + 1) % 4, base + (i + 1) % 4) for i in range(4)]
+            ob = kit.mesh('hull-number.' + ('bow' if zc < 0 else 'quarter') + (' port' if sd < 0 else ' starboard'), vv, ff, 'white', col)
+            bm = bmesh.new()
+            bm.from_mesh(ob.data)
+            bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+            bm.to_mesh(ob.data)
+            bm.free()
+            kit.tag(ob, 'hull-numbers')
 
 
 # ---------------------------------------------------------------- underwater
@@ -694,7 +969,9 @@ def underwater(D, kit):
             bm.to_mesh(ob.data)
             bm.free()
         # Shaft from the bossing's end to the hub; the bossing is faired into the hull from z 40.5.
-        kit.part('rod', aid, col, 'shaft', V(s * 2.95, -4.97, 56.8), c + Vector((.55, 0, 0)), .2, 'bronze', vertices=12)
+        kit.part('rod', aid, col, 'shaft', V(s * 2.95, -4.97, 56.8), c + Vector((.55, 0, 0)), .2, 'antifouling', vertices=12)
+        for zz in (59.0, 61.5, 64.0):
+            kit.part('rod', aid, col, 'shaft coupling', V(s * 2.97, -4.97, zz - .18), V(s * 2.97, -4.97, zz + .18), .27, 'antifouling', vertices=12)
         kit.part('rod', aid, col, 'bossing', V(s * 2.3, -4.2, 40.5), V(s * 2.95, -4.97, 57.0), .5, 'antifouling', r2=.3, vertices=14)
         # Struts: a single strut at 54.6 and an A-bracket just ahead of the screw, from the shaft up into the hull.
         for zz, offsets in ((54.6, [0.0]), (66.3, [-.9, .35])):
@@ -751,7 +1028,7 @@ def railings(D, kit):
     """Guard rails along the weather-deck edge; the gun arcs stay clear (Kit.in_arc), as removable rails would."""
     col = kit.collections['Deck fittings']
     for s in (-1, 1):
-        zs = [-80.5 + i * 1.6 for i in range(int((81.5 + 80.5) / 1.6) + 1)]
+        zs = [-77.0 + i * 1.6 for i in range(int((81.5 + 77.0) / 1.6) + 1)]
         pts = []
         for z in zs:
             y = deck(kit, z)
@@ -762,9 +1039,19 @@ def railings(D, kit):
             for h in (.5, 1.0):
                 kit.wire('railings', col, a + Vector((0, 0, h)), b + Vector((0, 0, h)), .016, True)
             kit.wire('railings', col, a, a + Vector((0, 0, 1.0)), .022, True)
+        # Over the bow bulwark a single course 0.42 m above its top, run down onto it short of the stem.
+        bow = []
+        for z, h in ((-77.58, .42), (-78.6, .42), (-79.6, .42), (-80.6, .42), (-81.8, .04)):
+            xt, yt = bulwark_top(kit, z)
+            base = V(s * (xt - .06), yt, z)
+            bow.append(base + Vector((0, 0, h)))
+            if h > .1:
+                kit.wire('railings', col, base, base + Vector((0, 0, h)), .022, True)
+        kit.polyline('railings', col, [pts[0] + Vector((0, 0, 1.0))] + bow, .016, 'edge', 3)
 
 
 def build(D, kit):
+    bow_bulwark(kit)
     tubs(D, kit)
     funnels(D, kit)
     masts(D, kit)
