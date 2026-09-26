@@ -138,8 +138,10 @@ for id, name, y, z, bearing, rangefinder in MAIN:
                             battery='main', position=[0, y, rz(z)], bearingDeg=bearing, rangefinder=rangefinder,
                             magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN))
 # No. 3 turret stows trained aft, its muzzles at the bridge-base face at the horizontal (the reference's
-# barrels touch it); it rests a few degrees up so they clear the face's top edge (game rest pose).
-b['mounts'][2]['initialElevationDeg'] = 7
+# barrels touch it); it rests a few degrees up so they clear the face's top edge (game rest pose). At 7
+# degrees the muzzle ends still reached the bridge tier's face above it, which froze the turret at rest;
+# at 10 they clear the tier by 5 cm and the bridge base's top edge by 0.6 m.
+b['mounts'][2]['initialElevationDeg'] = 10
 # Four open twin 12.7 cm Type 89 on the shelter-deck sponsons; bearing is the centre of the beam arc.
 HA = [('ha-1', -7.501, 6.324, -10.045, -90), ('ha-2', 7.502, 6.324, -10.045, 90), ('ha-3', -7.443, 6.324, 10.868, -90), ('ha-4', 7.443, 6.324, 10.868, 90)]
 for id, x, y, z, bearing in HA:
@@ -165,6 +167,12 @@ for kind, part, rows, label in [('aa3', 'type96-25-triple', AA3, 'triple'), ('aa
         b['mounts'].append(dict(id=f'{kind}-{i}', name=f'25 mm {label} {i}', partId=part, battery='secondary', position=[x, y, rz(z)],
                                 bearingDeg=bearing, rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after',
                                 fire=FIRE_LIGHT))
+# The midships singles beside the deckhouse stand 1.03 m outboard of its wall: trained out at a low
+# elevation, their breeches and recoil stroke reach it, which froze them at rest. They rest raised
+# (game rest pose), 3 cm clear of it.
+for m in b['mounts']:
+    if m['id'] in ('aa1-13', 'aa1-14'):
+        m['initialElevationDeg'] = 35
 
 # ---------------------------------------------------------------- torpedo mounts
 # Four trainable quadruple 610 mm mounts on the upper deck under the shelter deck, training out
@@ -269,8 +277,16 @@ for m in b['mounts']:
     entry = dict(mountId=m['id'], barrelRadiusM=round(max(w['barrelBaseRadius'] * .85, .05), 3))
     if m['battery'] == 'main':
         # Model E gunhouse in the yaw frame: 8.28 m long from 2.91 m ahead of the pivot, 6.0 m wide
-        # (6.9 m across the rangefinder ends), roof and perimeter rail to 2.9 m.
-        entry['body'] = dict(center=[0, 1.47, 1.23], size=[6.9 if m['rangefinder'] else 6.1, 2.86, 8.3])
+        # (6.9 m across the rangefinder ends). The roof is at 2.06 m and its perimeter rail tops out at
+        # 2.56 m, 5 cm under the skirt of the superfiring turret that passes over it, so the lower
+        # turrets' boxes stop there, and the raised trunk on the port shoulder (to 2.70 m, 1.04-2.51 m
+        # to port and 1.16-2.66 m aft) is a pair of capsules, which No. 2's stern meets when trained
+        # aft. The rangefinder turrets keep 2.9 m for the rangefinder hood. Boxes to 2.9 m on every
+        # turret overlapped the superfiring pairs and froze Nos. 2 and 3 at rest.
+        top = 2.9 if m['rangefinder'] else 2.56
+        entry['body'] = dict(center=[0, round((.04 + top) / 2, 3), 1.23], size=[6.9 if m['rangefinder'] else 6.1, round(top - .04, 3), 8.3])
+        if not m['rangefinder']:
+            entry['fittings'] = [dict(joint='yaw', a=[x, 2.37, 1.49], b=[x, 2.37, 2.33], radiusM=.33) for x in (-2.175, -1.375)]
     else:
         entry['body'] = BODIES[m['partId']]
     clear_mounts.append(entry)
