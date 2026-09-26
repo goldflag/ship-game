@@ -95,19 +95,36 @@ def repair_sections(raw):
     # The stem foot: the reference's stem stands straight at reference z -83.43 from the forefoot up to
     # 1.2 m before it rakes forward, where the shell walk lost it; one station 3 cm abaft that face
     # (ship:slice --stations -83.45) keeps the stem upright instead of lofting a slope from the keel.
-    STEM_Z = -83.40
-    STEM = [(0.07, -6.25), (0.07, -4.4), (0.06, 1.0), (0.09, 2.02), (0.16, 2.96), (0.39, 3.75), (0.62, 4.3), (0.92, 4.88), (1.44, 5.49),
-            (1.57, 5.66), (1.66, 5.96), (1.78, 6.29), (1.82, 6.45), (1.85, 6.67), (1.88, 6.86), (1.93, 7.06), (2.1, 7.45)]
-    station = HALF - STEM_Z
-    if not any(abs(s['station'] - station) < .2 for s in out):
-        LOW = [0, .004, .012, .025, .045, .07, .1, .14, .19, .25, .32, .4, .48, .56, .64, .72, .8, .87, .94, 1]
-        HIGH = [.125, .25, .375, .5, .625, .75, .875, 1]
-        keel, top = STEM[0][1], STEM[-1][1]
-        heights = [keel + (1.5 - keel) * u for u in LOW] + [1.5 + (top - 1.5) * u for u in HIGH]
-        prof = [(y, w) for w, y in STEM]
+    # A second station 12 cm further forward (ship:slice --stations -83.55) holds the stem upright to
+    # 1.05 m, where the rake begins.
+    LOW = [0, .004, .012, .025, .045, .07, .1, .14, .19, .25, .32, .4, .48, .56, .64, .72, .8, .87, .94, 1]
+    HIGH = [.125, .25, .375, .5, .625, .75, .875, 1]
+    FOOT = [(-83.40, [(0.07, -6.25), (0.07, -4.4), (0.06, 1.0), (0.09, 2.02), (0.16, 2.96), (0.39, 3.75), (0.62, 4.3), (0.92, 4.88), (1.44, 5.49),
+                      (1.57, 5.66), (1.66, 5.96), (1.78, 6.29), (1.82, 6.45), (1.85, 6.67), (1.88, 6.86), (1.93, 7.06), (2.1, 7.45)]),
+            (-83.55, [(0.02, 1.05), (0.04, 1.63), (0.08, 2.46), (0.17, 3.18), (0.41, 4.01), (0.67, 4.46), (1.09, 5.14), (1.5, 5.44), (1.55, 5.7),
+                      (1.67, 6.0), (1.76, 6.24), (1.8, 6.43), (1.83, 6.65), (1.86, 6.88), (1.87, 6.99), (2.07, 7.45)])]
+    for stem_z, stem in FOOT:
+        station = HALF - stem_z
+        if any(abs(s['station'] - station) < .08 for s in out):
+            continue
+        keel, top = stem[0][1], stem[-1][1]
+        h0 = 1.5 if keel < .5 else keel + (top - keel) * .75
+        heights = [keel + (h0 - keel) * u for u in LOW] + [h0 + (top - h0) * u for u in HIGH]
+        prof = [(y, w) for w, y in stem]
         pts = [[0, keel]] + [[round(max(.03, interp(prof, y)), 4), round(y, 4)] for y in heights[1:]]
         out.append({'station': round(station, 4), 'points': pts})
-        out.sort(key=lambda s: s['station'])
+    out.sort(key=lambda s: s['station'])
+    # The stem head curves aft below the deck (centreline cut): the last stations' keels follow that
+    # line instead of the walk's median, their heights squeezed between the new keel and the deck.
+    STEM_LINE = [(-87.8, 7.72), (-87.4, 7.0), (-86.9, 6.2), (-86.0, 5.5), (-85.0, 4.8)]
+    for s in out:
+        z = HALF - s['station']
+        if z < -86.0:
+            keel, deck = s['points'][0][1], s['points'][-1][1]
+            new = min(deck - .08, interp(STEM_LINE, z))
+            if new > keel:
+                f = (deck - new) / max(1e-6, deck - keel)
+                s['points'] = [[w, round(new + (y - keel) * f, 4)] for w, y in s['points']]
     # Stern end: the round stern closes 0.7 m aft of the last measured station; stem head at L.
     first = out[0]
     if first['station'] > .05:
