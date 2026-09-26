@@ -67,9 +67,11 @@ for s in D['structures']:
             face.material_index = 2
         elif face.normal.z > .8:
             face.material_index = 1
-    # Lofted blocks turn in many small facets: shade them smooth and keep the corners (over 30 degrees) sharp.
-    ob.data.shade_smooth()
-    ob.data.set_sharp_from_angle(angle=math.radians(30))
+    # Lofted blocks turn in many small facets: shade them smooth and keep the corners (over 30 degrees)
+    # sharp. Prisms keep flat faces.
+    if s.get('surface'):
+        ob.data.shade_smooth()
+        ob.data.set_sharp_from_angle(angle=math.radians(30))
     shells.append(ob)
 support = SupportSurface([hull, *shells])
 kit.support = support
