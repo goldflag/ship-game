@@ -1,10 +1,9 @@
-"""Ise recipe: a Blender-recipe preset scaffolded by `ship:new --legacy`.
+"""Original IJN Ise recipe: the 1944-45 hybrid battleship, the reference's default paint.
 
-Blueprint meters: +Y up, -Z bow. Authoring meters: +X bow, +Y port, +Z up. The shared
-exporter owns the sole basis conversion. The starter builds the lofted hull, the blueprint's
-deckhouse prisms and the catalog mounts; add the ship's own geometry below (or in region
-modules such as fittings.py on a large ship) and declare every shared file it reads in
-recipe-inputs.json. No reference geometry or texture is loaded.
+Blueprint meters: +Y up, -Z bow. Authoring meters: +X bow, +Y port, +Z up. The shared exporter
+owns the sole basis conversion. Proportions follow the approved GameModels3D pjsb526 A hull; no
+reference geometry or texture is loaded. Region modules (ise_*.py) each build one part of the ship
+from the shared kit passed to them.
 """
 import bpy
 import math
@@ -21,6 +20,11 @@ from blender_supports import SupportSurface
 from blender_rig import create_flagstaffs
 sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount
+sys.path.insert(0, str(Path(__file__).parent))
+from ise_kit import Kit, P, ZS
+
+REGIONS = []
+CLAIMED = set().union(*(region.CLAIMED_STRUCTURES for region in REGIONS)) if REGIONS else set()
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -33,15 +37,18 @@ scene.unit_settings.scale_length = 1
 scene.world = bpy.data.worlds.new('Ise review world')
 scene.world.color = (.08, .10, .12)
 collections = {}
-for name in ['Hull and decks', 'Superstructure', 'Armament', 'Deck fittings']:
+for name in ['Hull and decks', 'Superstructure', 'Main and secondary batteries', 'Light AA', 'Sensors and masts', 'Boats and aviation', 'Deck fittings', 'Underwater fittings']:
     col = bpy.data.collections.new(name)
     scene.collection.children.link(col)
     collections[name] = col
 
-# Linear RGB placeholders; appearance.json binds each role to a named paint and finish.
-colors = {'naval': (.127, .16, .178), 'hullgray': (.127, .16, .178), 'roof': (.07, .08, .09), 'deck': (.07, .08, .09),
-          'edge': (.07, .085, .095), 'painted-edge': (.105, .13, .145), 'dark': (.015, .018, .02),
-          'antifouling': (.16, .052, .03), 'glass': (.025, .065, .085), 'canvas': (.55, .53, .44), 'black': (.012, .012, .013)}
+# Reference default paint: grey hull and upperworks, grey steel roofs, natural wood weather decks, a steel flight
+# deck, black funnel cap and mast heads, red-oxide bottom. Linear RGB interpretations of the source swatches;
+# appearance.json binds the named paints.
+colors = {'naval': (.118, .124, .140), 'hullgray': (.118, .124, .140), 'roof': (.092, .096, .108), 'deck': (.100, .076, .054),
+          'flightdeck': (.090, .094, .104), 'edge': (.038, .038, .040), 'painted-edge': (.082, .085, .097), 'dark': (.012, .013, .014),
+          'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.105, .050, .039), 'bronze': (.36, .27, .12),
+          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12)}
 materials = {}
 for key, color in colors.items():
     m = bpy.data.materials.new('Ise ' + key)
@@ -98,49 +105,77 @@ def box(name, loc, dim, material='naval', col=None, bev=0):
     return ob
 
 
-# Shared part builders call these helpers.
 helpers = dict(mesh=mesh, cyl=cyl, rod=rod, box=box)
+H = D['hull']
 
 # ---------------------------------------------------------------- hull
-hull = authored_hull(D['hull'], mesh, collections['Hull and decks'], [materials['hullgray'], materials['antifouling']], False)
-hull.data.materials.append(materials['deck'])
+hull = authored_hull(H, mesh, collections['Hull and decks'], [materials['hullgray'], materials['antifouling']], False)
+for key in ['deck', 'roof']:
+    hull.data.materials.append(materials[key])
 for face in hull.data.polygons:
     if face.normal.z > .96 and face.center.z > 0:
         face.material_index = 2
+        # The casemate ledge outboard of the forecastle wall is steel.
+        if 4.4 < face.center.z < 4.75 and -face.center.x - ZS < -13.9:
+            face.material_index = 3
 
 # ---------------------------------------------------------------- superstructure
+FLIGHT_DECK_Y = (10.5, 10.9)
 shells = []
 for s in D['structures']:
     ob = authored_structure(s, mesh, materials, collections['Superstructure'])
-    ob.data.materials.append(materials['roof'])
+    top = s['baseY'] + s['height']
+    zs = [p[1] - ZS for p in s['footprint']]
+    flight = FLIGHT_DECK_Y[0] < top < FLIGHT_DECK_Y[1] and max(zs) > 80
+    ob.data.materials.append(materials['flightdeck' if flight else 'roof'])
     for face in ob.data.polygons:
-        if 'exhaust' in s:
-            face.use_smooth = abs(face.normal.z) < .8
-        elif face.normal.z > .8:
+        if face.normal.z > .8:
             face.material_index = 1
     shells.append(ob)
 support = SupportSurface([hull, *shells])
+for ob in [o for o in shells if o['assemblyId'] in CLAIMED]:
+    shells.remove(ob)
+    bpy.data.objects.remove(ob, do_unlink=True)
+kit = Kit(D, helpers, materials, collections, support)
 
 # ---------------------------------------------------------------- guns
+arm = collections['Main and secondary batteries']
+light = collections['Light AA']
 for mount in D['mounts']:
     x, y, z = -mount['position'][2], -mount['position'][0], mount['position'][1]
-    floor = min(z, support.below(x, y, z + .5))
-    radius = mount['weapon']['barbetteRadius']
-    # Every mount stands on something: a barbette closes the gap to the deck below.
-    if z - floor > .02:
-        ob = cyl(mount['id'] + '.barbette', (x, y, (floor + z) / 2), radius, z - floor + .02, 'naval', collections['Armament'], 64 if radius > 3 else 40)
+    kind = mount['partId']
+    col = light if kind.startswith('type96') else arm
+    if mount['battery'] == 'main':
+        # The Kongo turret recipe bears on a shallow roller ring 3.14 m above its yaw datum; the ship owns the
+        # 9.6 m barbette from the supporting deck up to that plane.
+        top = z + 3.14
+        floor = support.below(x, y, top - .05)
+        ob = cyl(mount['id'] + '.barbette', (x, y, (floor + top) / 2), 4.8, top - floor + .02, 'naval', arm, 72)
         ob['assemblyId'] = mount['id']
-    create_mount(mount, collections['Armament'], helpers, materials)
+        kit.cylz(mount['id'], arm, 'barbette top ring', (x, y, top - .16), 4.9, .12, 'naval', vertices=72)
+    create_mount(mount, col, helpers, materials)
+
+for region in REGIONS:
+    region.build(D, kit)
+
+# ---------------------------------------------------------------- directors (temporary until the region pass)
+from blender_rig import radar_pivot
+sen = collections['Sensors and masts']
+for did, (x, y, z), rf in [('main-director', (0, 36.347, -32.092), 10.0), ('after-director', (0, 20.049, 44.846), 4.5)]:
+    moving = [kit.cylz(did, sen, 'base', P(x, y, z), 1.5, .5, 'naval', 24),
+              kit.part('box', did, sen, 'hood', tuple(Vector(P(x, y + 1.2, z)) + Vector((0, 0, 0))), (3.0, 3.1, 1.6), 'naval'),
+              kit.part('rod', did, sen, 'rangefinder', P(-rf / 2, y + 1.3, z + 3.0), P(rf / 2, y + 1.3, z + 3.0), .3, 'naval', vertices=16)]
+    radar_pivot(did + '.yaw', P(x, y, z), moving)
+kit.build_wires()
 
 scene['definitionHash'] = D['contentHash']
 scene['historicalConfiguration'] = D['configuration']
-scene['accuracyStatus'] = 'Scaffold starter; see README'
+scene['accuracyStatus'] = 'GameModels3D-only fidelity target; see README approximations'
 create_flagstaffs(D)
-sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
 from blender_wall_fittings import seat_wall_fittings
 seat_wall_fittings(scene)
 sys.path.insert(0, str(ROOT / 'assets/ships/appearance'))
 from surface import apply_appearance
 apply_appearance(scene, materials, Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'source.blend'))
-print('Ise recipe:', len(scene.objects), 'objects; source saved')
+print('Ise original recipe:', len(scene.objects), 'objects; source saved')

@@ -4,6 +4,9 @@
     "assets/parts/library.py",
     "assets/parts/library.json",
     "assets/parts/ijn-356/geometry.py",
+    "assets/parts/ijn-yamato-aa/type89_twin.py",
+    "assets/parts/ijn-carrier-guns/type96_triple.py",
+    "assets/parts/type96-single/geometry.py",
     "assets/ships/ise/appearance.json",
     "assets/ships/appearance/surface.py",
     "assets/ships/appearance/finishes.json"
