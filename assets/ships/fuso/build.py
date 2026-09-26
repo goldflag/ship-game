@@ -1,10 +1,10 @@
-"""Fusō recipe: a Blender-recipe preset scaffolded by `ship:new --legacy`.
+"""Original IJN Fusō recipe, 1943 fit, the reference's source (default) paint.
 
-Blueprint meters: +Y up, -Z bow. Authoring meters: +X bow, +Y port, +Z up. The shared
-exporter owns the sole basis conversion. The starter builds the lofted hull, the blueprint's
-deckhouse prisms and the catalog mounts; add the ship's own geometry below (or in region
-modules such as fittings.py on a large ship) and declare every shared file it reads in
-recipe-inputs.json. No reference geometry or texture is loaded.
+Blueprint meters: +Y up, -Z bow. Authoring meters: +X bow, +Y port, +Z up. The
+shared exporter owns the sole basis conversion. Proportions follow the approved
+GameModels3D pjsb006 B hull; no reference geometry or texture is loaded.
+Region modules (fuso_*.py) each build one part of the ship from the shared
+helpers passed to them.
 """
 import bpy
 import math
@@ -21,6 +21,16 @@ from blender_supports import SupportSurface
 from blender_rig import create_flagstaffs
 sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount
+sys.path.insert(0, str(Path(__file__).parent))
+from fuso_kit import Kit, P
+import fuso_pagoda
+import fuso_midships
+import fuso_aft
+import fuso_hull
+
+# Region modules in build order; each may claim measured prisms it draws itself.
+REGIONS = [fuso_pagoda, fuso_midships, fuso_aft, fuso_hull]
+CLAIMED = set().union(*(region.CLAIMED_STRUCTURES for region in REGIONS))
 
 OUT = Path(os.environ['SHIP_OUTPUT'])
 D = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -33,15 +43,18 @@ scene.unit_settings.scale_length = 1
 scene.world = bpy.data.worlds.new('Fusō review world')
 scene.world.color = (.08, .10, .12)
 collections = {}
-for name in ['Hull and decks', 'Superstructure', 'Armament', 'Deck fittings']:
+for name in ['Hull and decks', 'Superstructure', 'Main and secondary batteries', 'Light AA', 'Sensors and masts', 'Boats and aviation', 'Deck fittings', 'Underwater fittings']:
     col = bpy.data.collections.new(name)
     scene.collection.children.link(col)
     collections[name] = col
 
-# Linear RGB placeholders; appearance.json binds each role to a named paint and finish.
-colors = {'naval': (.127, .16, .178), 'hullgray': (.127, .16, .178), 'roof': (.07, .08, .09), 'deck': (.07, .08, .09),
-          'edge': (.07, .085, .095), 'painted-edge': (.105, .13, .145), 'dark': (.015, .018, .02),
-          'antifouling': (.16, .052, .03), 'glass': (.025, .065, .085), 'canvas': (.55, .53, .44)}
+# Reference source paint: light blue-grey hull and upperworks, grey steel roofs, the casemate ledge and
+# quarterdeck steel, natural wood weather decks, a linoleum aircraft deck with brass strips, black funnel cap,
+# red-oxide bottom to the waterline. Linear RGB interpretations; appearance.json binds the named paints.
+colors = {'naval': (.118, .124, .142), 'hullgray': (.118, .124, .142), 'roof': (.098, .102, .116), 'deck': (.100, .076, .054),
+          'linoleum': (.072, .040, .031), 'edge': (.038, .038, .040), 'painted-edge': (.090, .094, .108), 'dark': (.012, .013, .014),
+          'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.105, .050, .039), 'bronze': (.36, .27, .12),
+          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12)}
 materials = {}
 for key, color in colors.items():
     m = bpy.data.materials.new('Fusō ' + key)
@@ -98,49 +111,89 @@ def box(name, loc, dim, material='naval', col=None, bev=0):
     return ob
 
 
-# Shared part builders call these helpers.
 helpers = dict(mesh=mesh, cyl=cyl, rod=rod, box=box)
+H = D['hull']
+L = H['length']
 
 # ---------------------------------------------------------------- hull
-hull = authored_hull(D['hull'], mesh, collections['Hull and decks'], [materials['hullgray'], materials['antifouling']], False)
-hull.data.materials.append(materials['deck'])
+hull = authored_hull(H, mesh, collections['Hull and decks'], [materials['hullgray'], materials['antifouling']], False)
+for key in ['deck', 'roof', 'linoleum']:
+    hull.data.materials.append(materials[key])
+ZC = -1.095
 for face in hull.data.polygons:
     if face.normal.z > .96 and face.center.z > 0:
+        zref = -face.center.x + ZC
         face.material_index = 2
+        # The casemate ledge outboard of the forecastle wall is steel; the quarterdeck abaft No. 6 turret's
+        # barbette is the linoleum aircraft deck.
+        if face.center.z < 4.3 and zref < 52.5:
+            face.material_index = 3
+        elif face.center.z < 4.3 and zref > 70.2:
+            face.material_index = 4
 
 # ---------------------------------------------------------------- superstructure
+ROOFS = {}
 shells = []
 for s in D['structures']:
     ob = authored_structure(s, mesh, materials, collections['Superstructure'])
-    ob.data.materials.append(materials['roof'])
+    ob.data.materials.append(materials[ROOFS.get(s['id'], 'roof')])
+    ob.data.materials.append(materials['black'])
+    funnel = s['id'] == 'funnel'
     for face in ob.data.polygons:
-        if 'exhaust' in s:
+        if funnel:
             face.use_smooth = abs(face.normal.z) < .8
+            if face.normal.z > .8:
+                face.material_index = 2
         elif face.normal.z > .8:
             face.material_index = 1
     shells.append(ob)
 support = SupportSurface([hull, *shells])
+# Claimed prisms still support fittings; their region draws the visible replacement.
+for ob in [o for o in shells if o['assemblyId'] in CLAIMED]:
+    shells.remove(ob)
+    bpy.data.objects.remove(ob, do_unlink=True)
+kit = Kit(D, helpers, materials, collections, support)
 
 # ---------------------------------------------------------------- guns
+arm = collections['Main and secondary batteries']
+light = collections['Light AA']
 for mount in D['mounts']:
     x, y, z = -mount['position'][2], -mount['position'][0], mount['position'][1]
-    floor = min(z, support.below(x, y, z + .5))
+    kind = mount['partId']
+    col = light if kind.startswith('type96') else arm
     radius = mount['weapon']['barbetteRadius']
-    # Every mount stands on something: a barbette closes the gap to the deck below.
-    if z - floor > .02:
-        ob = cyl(mount['id'] + '.barbette', (x, y, (floor + z) / 2), radius, z - floor + .02, 'naval', collections['Armament'], 64 if radius > 3 else 40)
+    if mount['battery'] == 'main':
+        # The Kongō turret recipe bears on a shallow roller ring 3.14 m above its yaw datum; the ship owns the
+        # barbette (4.82 m, as the reference's) from the supporting deck up to that plane.
+        top = z + 3.14
+        floor = support.below(x, y, top - .05)
+        ob = cyl(mount['id'] + '.barbette', (x, y, (floor + top) / 2), 4.82, top - floor + .02, 'naval', arm, 72)
         ob['assemblyId'] = mount['id']
-    create_mount(mount, collections['Armament'], helpers, materials)
+        kit.barbette_details(mount, floor, top)
+    else:
+        floor = min(z, support.below(x, y, z + .5))
+        if z - floor > .02 and not kind.startswith(('type96', 'type89')):
+            ob = cyl(mount['id'] + '.barbette', (x, y, (floor + z) / 2), radius, z - floor + .02, 'naval', col, 40)
+            ob['assemblyId'] = mount['id']
+        if kind.startswith('type89') or kind == 'type96-25-mogami-2':
+            kit.gun_tub(mount, floor)
+        elif kind.startswith('type96') and z - floor > .02:
+            kit.cylz(mount['id'], col, 'pedestal plate', (x, y, floor), .45, z - floor + .01, 'naval', 16)
+    create_mount(mount, col, helpers, materials)
+
+# ---------------------------------------------------------------- regions
+for region in REGIONS:
+    region.build(D, kit)
+kit.build_wires()
 
 scene['definitionHash'] = D['contentHash']
 scene['historicalConfiguration'] = D['configuration']
-scene['accuracyStatus'] = 'Scaffold starter; see README'
+scene['accuracyStatus'] = 'GameModels3D-only fidelity target; see README approximations'
 create_flagstaffs(D)
-sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
 from blender_wall_fittings import seat_wall_fittings
 seat_wall_fittings(scene)
 sys.path.insert(0, str(ROOT / 'assets/ships/appearance'))
 from surface import apply_appearance
 apply_appearance(scene, materials, Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'source.blend'))
-print('Fusō recipe:', len(scene.objects), 'objects; source saved')
+print('Fusō original recipe:', len(scene.objects), 'objects; source saved')
