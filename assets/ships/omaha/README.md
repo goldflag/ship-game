@@ -91,7 +91,6 @@ measurements and comparison captures stay in ignored `.build/`.
   left to the runtime long-deployment wear. Boats have ship-grey hulls under white canopies.
 - **Fittings:** boats, davits, cranes, catapults, searchlights, ladders and rigging are simplified original
   shapes; no aircraft is carried. The masts' tops, lookout stations, yards and trusses are at the reference
-  heights, but the spotting top's pitched roof is flat with a raised centre; small deck boxes, lockers and
-  fire-fighting gear are mostly left out.
+  heights; small deck boxes, lockers and fire-fighting gear are mostly left out.
 - **Guns:** the four gun parts are original recipes registered for recipe use (`guns.json`, `library.json`);
   they are not in the Shipbuilder construction catalog.
