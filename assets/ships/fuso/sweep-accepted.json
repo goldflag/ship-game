@@ -1,0 +1,18 @@
+{
+  "accepted": [
+    { "mount": "casemate-p1", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-p2", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-p3", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-p4", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-p5", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-p6", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-p7", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-s1", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-s2", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-s3", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-s4", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-s5", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-s6", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" },
+    { "mount": "casemate-s7", "against": "hull", "reason": "15.2 cm casemate drum and the gun's breech end turn half inside the embrasure in the forecastle wall, as in the reference; the barrel beyond the drum clears the embrasure over the whole arc" }
+  ]
+}

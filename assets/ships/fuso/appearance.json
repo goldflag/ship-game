@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "id": "fuso-1943-default-paint-v1",
+  "basis": "Approved GameModels3D pjsb006 source (default) scheme: one light blue-grey over hull and upperworks, grey steel roofs, platforms, casemate ledge and turret tops, natural wood weather decks, a linoleum aircraft deck on the quarterdeck, a black funnel cap and a red-oxide bottom to the waterline without boot topping. Swatches are linear-RGB interpretations of the reference's texture compared under one light in ship:overlay --textured renders, not measured historical paint.",
+  "wear": "in-commission",
+  "palette": {
+    "fuso-reference-grey": [0.090, 0.095, 0.112],
+    "fuso-reference-steel-roof": [0.076, 0.080, 0.094],
+    "fuso-reference-wood": [0.128, 0.095, 0.060],
+    "fuso-reference-linoleum": [0.090, 0.046, 0.036],
+    "fuso-reference-red-oxide": [0.092, 0.058, 0.038],
+    "fuso-reference-black": [0.012, 0.012, 0.013],
+    "fuso-authored-dark-fittings": [0.038, 0.038, 0.040],
+    "fuso-authored-mid-fittings": [0.074, 0.078, 0.090],
+    "fuso-authored-canvas": [0.55, 0.53, 0.44],
+    "fuso-authored-fitting-wood": [0.19, 0.13, 0.075]
+  },
+  "materials": {
+    "naval": { "paint": "fuso-reference-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "fuso-reference-grey", "finish": "painted-steel" },
+    "roof": { "paint": "fuso-reference-steel-roof", "finish": "painted-deck" },
+    "deck": { "paint": "fuso-reference-wood", "finish": "wood" },
+    "linoleum": { "paint": "fuso-reference-linoleum", "finish": "linoleum" },
+    "antifouling": { "paint": "fuso-reference-red-oxide", "finish": "underwater-coating" },
+    "black": { "paint": "fuso-reference-black", "finish": "painted-steel" },
+    "edge": { "paint": "fuso-authored-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "fuso-authored-mid-fittings", "finish": "painted-steel" },
+    "canvas": { "paint": "fuso-authored-canvas", "finish": "painted-steel" },
+    "wood": { "paint": "fuso-authored-fitting-wood", "finish": "wood", "fittings": true }
+  },
+  "decking": {
+    "deck": { "plankWidth": 0.15, "plankLength": 6.0, "seamWidth": 0.004, "coating": "bare" }
+  }
+}
