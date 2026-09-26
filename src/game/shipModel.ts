@@ -19,6 +19,7 @@ const identities: Record<string, { type: string; nation: string }> = {
   hood: { type: 'Battlecruiser', nation: 'United Kingdom' },
   'king-george-v': { type: 'Battleship', nation: 'United Kingdom' },
   cleveland: { type: 'Light cruiser', nation: 'United States' },
+  atlanta: { type: 'Light cruiser', nation: 'United States' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
   mogami: { type: 'Heavy cruiser', nation: 'Japan' },
   takao: { type: 'Heavy cruiser', nation: 'Japan' },
