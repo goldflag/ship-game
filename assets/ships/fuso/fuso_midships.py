@@ -109,10 +109,10 @@ def boats(kit, col):
     """Boats at the reference boat datums: cutters on the boat deck beside the pagoda, motor launches and motor
     boats on chocks on the forecastle deck."""
     # The cutters lie canted 24.5 degrees, bow inboard, as their 5.3 m by 8.2 m reference bounds show, clear of
-    # the 25 mm single outboard of each.
+    # the 25 mm single outboard of each; grey outside and wood inside, as the reference paints them.
     import bpy
     for id, (x, z), s in [('cutter-port', (-6.07, -34.83), -1), ('cutter-starboard', (6.07, -34.83), 1)]:
-        kit.open_boat(id, (x, z), 8.2, 2.2, 9.62, .95, col, bow=1, outer='wood', inner='wood', chocks=(.25, .5, .75))
+        kit.open_boat(id, (x, z), 8.2, 2.2, 9.62, .95, col, bow=1, outer='naval', inner='wood', chocks=(.25, .5, .75))
         kit.build_wires()
         bpy.context.view_layer.update()
         cx, cy, _ = P(x, 0, z)

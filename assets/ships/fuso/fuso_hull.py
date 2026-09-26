@@ -7,7 +7,7 @@ stern anchors), bitts, fairleads, ventilators, hatches, winches and reels from t
 twin rudders. Datums are reference-frame measurements converted by `P`.
 """
 import math
-from mathutils import Vector
+from mathutils import Matrix, Vector
 from fuso_kit import P, ZC
 from fuso_fittings import DECK_FITTINGS, PORTHOLES
 
@@ -79,9 +79,10 @@ def seat_on_hull(kit, s, ref, standoff):
     return loc + nrm * standoff, nrm
 
 
-def anchor(kit, assembly, col, s, hawse, crown, scale=1.0):
+def anchor(kit, assembly, col, s, hawse, crown, scale=1.0, bolster=0.0):
     """Stockless anchor housed flat against the plating: the shank from the hawse down to the crown, the arms and
-    palms spread in the plating's plane, the hawse pipe's bolster round the shank's head."""
+    palms spread in the plating's plane, the hawse pipe's bolster round the shank's head (with `bolster` > 0, a
+    ring of that radius round the pipe's dark mouth)."""
     h, nh = seat_on_hull(kit, s, hawse, .2 * scale)
     c, nc = seat_on_hull(kit, s, crown, .24 * scale)
     kit.part('rod', assembly, col, 'shank', h, c, .15 * scale, 'black', vertices=10, r2=.13 * scale)
@@ -96,7 +97,11 @@ def anchor(kit, assembly, col, s, hawse, crown, scale=1.0):
     kit.part('box', assembly, col, 'crown', tuple(c), (.62 * scale, .62 * scale, .62 * scale), 'black')
     # Bolster: a thick ring on the plating round the hawse, touching the shank.
     b, nb = seat_on_hull(kit, s, hawse, .0)
-    kit.part('rod', assembly, col, 'hawse bolster', b - nb * .05, b + nb * .22 * scale, .38 * scale, 'naval', vertices=16, r2=.3 * scale)
+    if bolster:
+        kit.part('rod', assembly, col, 'hawse bolster', b - nb * .35, b + nb * .24, bolster, 'naval', vertices=24, r2=bolster * .9)
+        kit.part('rod', assembly, col, 'hawse mouth', b + nb * .2, b + nb * .26, bolster * .6, 'black', vertices=20)
+    else:
+        kit.part('rod', assembly, col, 'hawse bolster', b - nb * .05, b + nb * .22 * scale, .38 * scale, 'naval', vertices=16, r2=.3 * scale)
 
 
 def capstan(kit, C, col, rx, rz, ry, r, height=.55):
@@ -145,11 +150,11 @@ def ground_tackle(kit, col):
         hx, hy, hz = P(s * 3.45, 0, -73.8)
         kit.part('rod', W, col, 'brake column', (hx, hy, floor), (hx, hy, floor + .55), .06, 'naval', vertices=8)
         kit.part('rod', W, col, 'brake handwheel', (hx - .03, hy, floor + .6), (hx + .03, hy, floor + .6), .22, 'edge', vertices=14)
-        # Bower anchor housed in its hawse on the bow (reference cm005: 3.5 m high, 1.25 m across about z -100.1; the
-        # hawse mouth painted at 6 m, z -99.6).
-        anchor(kit, f'bower-anchor-{side}', col, s, (s * 3.2, 6.1, -99.6), (s * 3.35, 4.45, -100.4), 1.25)
+        # Bower anchor housed in its hawse on the bow: the side render shows a hawse ring 1.9 m across centred at 6.1 m,
+        # z -99.9, with the anchor's crown and arms close under it (reference cm005 about z -100.1).
+        anchor(kit, f'bower-anchor-{side}', col, s, (s * 3.2, 6.1, -99.9), (s * 3.3, 4.7, -100.05), 1.0, bolster=.95)
         # Stern anchor in its hawse under the quarterdeck (reference cm005: 2.7 m high about x 5.05, z 96.7).
-        anchor(kit, f'stern-anchor-{side}', col, s, (s * 5.0, 3.55, 96.3), (s * 5.1, 1.45, 97.05), .8)
+        anchor(kit, f'stern-anchor-{side}', col, s, (s * 5.0, 3.55, 96.72), (s * 5.1, 1.45, 96.72), .8)
     capstan(kit, 'capstan-forward', col, 0, -80.83, 6.75, .75)
     # The after capstan stands under No. 6 turret's barrels at full depression: 0.6 m lower than the reference's.
     capstan(kit, 'capstan-after', col, 0, 78.5, 4.06, .55, .3)
@@ -221,11 +226,11 @@ def deck_fittings(kit, col):
 
 
 def crest_and_staffs(kit, col):
-    # Gold chrysanthemum on the stem at 6.48 m (reference jm306/jm307), seated on this loft's stem by a ray from ahead.
-    # The disc lies on the raked stem: its face is square to the line between the stem's points 0.42 m above and
-    # below the crest's centre.
-    hi = kit.hit(P(.01, 6.9, -115), (-1, 0, 0), 12)
-    lo = kit.hit(P(.01, 6.06, -115), (-1, 0, 0), 12)
+    # Gold chrysanthemum on the stem (reference jm306 boss and sixteen jm307 petals: 1.55 m across, centred at
+    # 6.08 m), seated on this loft's stem by rays from ahead. It lies on the raked stem: its face is square to the
+    # line between the stem's points 0.42 m above and below the crest's centre.
+    hi = kit.hit(P(.01, 6.5, -115), (-1, 0, 0), 12)
+    lo = kit.hit(P(.01, 5.66, -115), (-1, 0, 0), 12)
     if hi and lo:
         a, b = Vector(hi[0]), Vector(lo[0])
         tangent = (a - b).normalized()
@@ -234,15 +239,15 @@ def crest_and_staffs(kit, col):
             normal = -normal
         centre = (a + b) / 2 + normal * .05
     else:
-        centre, normal = Vector(P(0, 6.48, -106.6)), Vector((1, 0, 0))
-    kit.part('rod', 'chrysanthemum', col, 'crest', tuple(centre - normal * .12), tuple(centre + normal * .07), .42, 'gold', vertices=16)
+        centre, normal = Vector(P(0, 6.08, -106.6)), Vector((1, 0, 0))
+    kit.part('rod', 'chrysanthemum', col, 'crest', tuple(centre - normal * .12), tuple(centre + normal * .05), .66, 'gold', vertices=32)
     across = Vector((0, 1, 0))
     up = normal.cross(across).normalized()
     for i in range(16):
-        ang = math.tau * i / 16
-        p = centre + normal * .07 + (across * math.cos(ang) + up * math.sin(ang)) * .33
-        petal = kit.part('box', 'chrysanthemum', col, 'petal', tuple(p), (.06, .12, .12), 'gold')
-        petal.rotation_euler = normal.to_track_quat('X', 'Z').to_euler()
+        d = across * math.cos(math.tau * i / 16) + up * math.sin(math.tau * i / 16)
+        petal = kit.part('box', 'chrysanthemum', col, 'petal', tuple(centre + normal * .07 + d * .46), (.06, .6, .21), 'gold')
+        petal.rotation_euler = Matrix((normal, d, normal.cross(d))).transposed().to_euler()
+    kit.part('rod', 'chrysanthemum', col, 'boss', tuple(centre + normal * .04), tuple(centre + normal * .14), .16, 'gold', vertices=16)
     # Jackstaff on the stem head (reference centreline section: 7.40 to 11.94 m at z -106.89, its truck to 12.28 m).
     x, y, z = P(0, 7.4, -106.89)
     kit.part('rod', 'jackstaff', col, 'staff', (x, y, z), (x, y, z + 4.8), .05, 'naval', vertices=8)

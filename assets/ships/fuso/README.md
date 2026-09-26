@@ -119,7 +119,8 @@ sampled from station cuts of that model. Hull and superstructure plating are 26 
 - The shared 25 mm single's ring sight hangs 8 cm clear of its rail; the recipe joins it with three spokes rather
   than editing the shared part.
 - Windows and portholes come from the reference's painted textures, so painted vents and grilles read as glazing too.
-  The bower and stern anchors lie housed against the plating rather than in recessed hawse pockets.
+  The anchors lie housed against the plating under their hawses (at the bow a ring round a dark mouth, as the side
+  render shows); the hawse pipes are not openings through the hull.
 - Movement interlocks are game clearance, not verified historical mechanical stops.
 - Stability, mass distribution, flooding compartmentation, handling (24.7 kn) and weapon values are shared game
   calibration, not historical measurements. Model fidelity and export checks do not certify historical accuracy.
