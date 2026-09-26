@@ -514,22 +514,24 @@ def rigging(D, kit):
 
 # ---------------------------------------------------------------- fire control
 def mk37(kit, did, x, y, z, face):
-    """Mk 37 director house on its roller ring, trained by the rig: sloped front, roof hatches, rangefinder
-    through the house with hooded ends."""
+    """Mk 37 director house on its base plate, trained by the rig: sloped front with two rows of sighting hatches,
+    roof hatches, the rangefinder through the house in canvas bags, an access trunk behind."""
     col = kit.collections['Sensors and masts']
     bx, by, bz = P(x, y, z)
     pivot = kit.empty(did + '.yaw', (bx, by, bz), assembly=did, col=col)
     s = 1 if face == 0 else -1
-    local(kit.cylz(did, col, 'roller ring', (bx, by, bz - .05), 1.28, .3, 'edge', 32), pivot)
-    # House: 3.4 m long, 2.9 m wide, 2.1 m tall, upright to 1.05 m and then sloping back 0.95 m to the roof, as the
-    # reference's house; three sighting hatches on the slope (lids hinged down) and three on the roof (lids up).
-    L, W, H, V1, SB = 3.4, 2.9, 2.1, 1.05, .95
+    # The reference's 3.2 m base plate, 0.1 m thick, turning with the house.
+    local(kit.cylz(did, col, 'roller ring', (bx, by, bz), 1.6, .1, 'edge', 40), pivot)
+    # House as the reference's (sections and orthographic views): 2.85 m long, 2.88 m wide and 1.99 m tall on the
+    # plate, the front upright for 1.0 m and then sloping back 1.12 m to the roof; the upright part's corners are
+    # chamfered from the full breadth 1.12 m back to 0.31 m in at the front.
+    L, W, H, V1, SB, BASE = 2.85, 2.88, 1.99, 1.0, 1.12, .1
     f, r = s * L / 2, -s * L / 2
-    outline = [(r, -W / 2), (f - s * .45, -W / 2), (f, -W / 2 + .45), (f, W / 2 - .45), (f - s * .45, W / 2), (r, W / 2)]
+    outline = [(r, -W / 2), (f - s * SB, -W / 2), (f, -W / 2 + .31), (f, W / 2 - .31), (f - s * SB, W / 2), (r, W / 2)]
     n = len(outline)
 
     def ring(h, back):
-        return [(bx + px - s * (back if abs(px - f) < .5 else 0), by + py, bz + .25 + h) for px, py in outline]
+        return [(bx + px - s * (back if abs(px - f) < .5 else 0), by + py, bz + BASE + h) for px, py in outline]
     vv = ring(0, 0) + ring(V1, 0) + ring(H, SB)
     ff = [tuple(reversed(range(n))), tuple(range(2 * n, 3 * n))]
     ff += [(k * n + i, k * n + (i + 1) % n, (k + 1) * n + (i + 1) % n, (k + 1) * n + i) for k in (0, 1) for i in range(n)]
@@ -542,26 +544,44 @@ def mk37(kit, did, x, y, z, face):
     local(house, pivot)
     up = Vector((-s * SB, 0, H - V1)).normalized()
     out = Vector((s * (H - V1), 0, SB)).normalized()
-    mid = Vector((bx + f - s * SB / 2, by, bz + .25 + (V1 + H) / 2))
-    roof = Vector((bx + f - s * (SB + .4), by, bz + .25 + H))
+    foot = Vector((bx + f, by, bz + BASE + V1))          # the slope's lower edge on the centreline
+    slope = math.hypot(SB, H - V1)
     back = Vector((-s, 0, 0))
-    for t in (-.8, 0, .8):
-        c = mid + Vector((0, t, 0))
-        local(kit.beam(did, col, 'sight hatch', c - up * .24 + out * .03, c + up * .24 + out * .03, .52, .08, 'naval'), pivot)
-        local(kit.beam(did, col, 'sight window', c - up * .15 + out * .07, c + up * .15 + out * .07, .34, .02, 'glass'), pivot)
-        hinge = c - up * .24 + out * .07
-        local(kit.beam(did, col, 'hatch lid', hinge, hinge + (-up * .6 + out * .8).normalized() * .46, .5, .04, 'naval'), pivot)
-        c2 = roof + Vector((0, t, 0))
-        local(kit.boxc(did, col, 'roof hatch', c2 + Vector((0, 0, .05)), (.5, .5, .1), 'naval'), pivot)
-        local(kit.boxc(did, col, 'roof window', c2 + Vector((0, 0, .1)), (.34, .34, .02), 'glass'), pivot)
-        hinge2 = c2 + back * .25 + Vector((0, 0, .1))
-        local(kit.beam(did, col, 'hatch lid', hinge2, hinge2 + (back * .3 + Vector((0, 0, .95))).normalized() * .46, .5, .04, 'naval'), pivot)
-    # Rangefinder tube through the house and its end hoods, 4.75 m over the hoods.
-    local(kit.part('rod', did, col, 'rangefinder', (bx - s * .2, by - 2.2, bz + 1.55), (bx - s * .2, by + 2.2, bz + 1.55), .2, 'naval', vertices=14), pivot)
+    # Two rows of three sighting hatches on the slope, 0.66 m apart as the reference's: the upper row's lids hinged
+    # at the roof edge and standing up to 20.9 m, the lower row's hinged at the slope's foot and hanging forward.
+    for t in (-.66, 0, .66):
+        for frac, lid in ((.72, 'up'), (.3, 'down')):
+            c = foot + up * slope * frac + Vector((0, t, 0))
+            local(kit.beam(did, col, 'sight hatch', c - up * .22 + out * .02, c + up * .22 + out * .02, .48, .06, 'naval'), pivot)
+            local(kit.beam(did, col, 'sight window', c - up * .15 + out * .055, c + up * .15 + out * .055, .3, .02, 'dark'), pivot)
+            if lid == 'up':
+                hinge = foot + up * slope + Vector((0, t, 0)) + out * .06
+                local(kit.beam(did, col, 'hatch lid', hinge, hinge + (back * .15 + Vector((0, 0, 1))).normalized() * .47, .44, .05, 'naval'), pivot)
+            else:
+                hinge = foot + Vector((0, t, 0)) + out * .06
+                local(kit.beam(did, col, 'hatch lid', hinge, hinge + (-back * .4 + Vector((0, 0, -.35))).normalized() * .5, .44, .05, 'naval'), pivot)
+    # Two closed roof hatches over the after part of the house.
+    for t in (-.45, .45):
+        local(kit.boxc(did, col, 'roof hatch', (bx + r + s * .55, by + t, bz + BASE + H + .03), (.5, .42, .06), 'naval'), pivot)
+    # Rangefinder 0.4 m abaft the pivot at 19.85 m (reference), its arms reaching 2.385 m out through canvas bags
+    # on the house sides (1.44 to 1.83 m out, 18.9 to 20.35 m), a round end with a lens window on each arm.
+    rx, rh = bx - s * .4, bz + 1.5
+    local(kit.part('rod', did, col, 'rangefinder', (rx, by - 2.33, rh), (rx, by + 2.33, rh), .15, 'naval', vertices=14), pivot)
     for t in (-1, 1):
-        local(kit.boxc(did, col, 'rangefinder hood', (bx - s * .2, by + t * 2.2, bz + 1.55), (.62, .36, .58), 'naval'), pivot)
-        local(kit.boxc(did, col, 'hood window', (bx - s * .2 + s * .31, by + t * 2.2, bz + 1.55), (.02, .22, .16), 'glass'), pivot)
-    local(kit.boxc(did, col, 'rear door', (bx + r - s * .02, by, bz + 1.05), (.05, .7, 1.4), 'edge'), pivot)
+        local(kit.part('rod', did, col, 'rangefinder end', (rx, by + t * 2.29, rh), (rx, by + t * 2.385, rh), .17, 'naval', vertices=14), pivot)
+        local(kit.boxc(did, col, 'lens window', (rx + s * .15, by + t * 2.2, rh), (.03, .16, .16), 'dark'), pivot)
+        local(kit.part('rod', did, col, 'end drum', (rx, by + t * 2.08, rh - .19), (rx, by + t * 2.08, rh - .06), .08, 'naval', vertices=10), pivot)
+        rings = []
+        for h, bulge, half in ((.5, .08, .2), (1.0, .3, .3), (1.45, .39, .3), (1.9, .32, .28), (2.0, .1, .2)):
+            ring = []
+            for k in range(10):
+                a = math.tau * k / 10
+                ring.append((rx + s * half * math.cos(a) * 1.0, by + t * (W / 2 - .02 + bulge * (.5 + .5 * math.sin(a))), bz + h))
+            rings.append(ring)
+        local(kit.loft(did, col, 'canvas bag', rings, 'canvas', True, True, True), pivot)
+    # The access trunk on the back of the house (reference: 0.66 m wide, 0.52 m deep, 19.03 to 20.19 m) and its door.
+    local(kit.boxc(did, col, 'rear trunk', (bx + r - s * .26, by, bz + 1.265), (.52, .66, 1.16), 'naval'), pivot)
+    local(kit.boxc(did, col, 'rear door', (bx + r - s * .53, by, bz + 1.25), (.04, .5, .95), 'edge'), pivot)
 
 
 def mk44(kit, did, x, y, z, bearing):
