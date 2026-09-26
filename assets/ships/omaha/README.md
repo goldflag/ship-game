@@ -28,7 +28,7 @@ models are build outputs.
 The loft is `ship:lines` from the cached reference (`authoring/lines.json`), sampled at 127 stations; the
 authoring script sets the forecastle and quarterdeck lines, the stem and forefoot profile, the flat keel and the
 stern tips, and rebuilds outlying stations (bilge keels, torpedo pockets, an anchor recess at the deck edge) from
-their neighbours. The superstructure is prisms traced from reference plan cuts at every tier (`--structures`
+their neighbours; `omaha_fittings.py` cuts the torpedo pockets and the anchor recesses from the visual hull only. The superstructure is prisms traced from reference plan cuts at every tier (`--structures`
 takes the traced tier files in `.build/omaha/`), with the funnels, midships casings, the forward shelter and the
 after superstructure's lowest tier as measured tables. Where the lowest forward tier runs out over the side
 beside the lower 6-inch drums it becomes a sponson shelf over a bowl fairing, as the reference's cuts show.
@@ -45,9 +45,11 @@ wings, girder, rails, side-light screens, flag boxes, binnacle, pelorus stands a
 and chart-house rails, the after control station's trestle and rangefinder platform and the after superstructure's
 roof rails; `omaha_fittings.py` the casemate hoods and sponson fairings, funnel caps, ladders and steam pipes,
 the tripod foremast with its lower top, lookout house, signal truss and spotting top, the mainmast with its
-lookout stations, yards and truss, directors, rangefinders, searchlights, catapults, boats and davits, torpedo
-mounts, deck gear, screws, shafts, rudder and bilge keels; `omaha_windows.py` the windows and scuttles the reference paints into its textures, read
-off orthographic textured renders and seated on this model's own walls.
+lookout stations, yards and truss, the signal yard and its lamps, the stays, shrouds and aerials, the ensign
+staff and jackstaff, directors, rangefinders, searchlights and their walkways, catapults, boats, hull-side davits
+and boat booms, torpedo mounts, anchors and cables, deck gear, screws, shafts, rudder and bilge keels;
+`omaha_windows.py` the windows and scuttles the reference paints into its textures, read off orthographic textured
+renders and seated on this model's own walls.
 
 Machinery (four shafts, four boiler rooms under the funnels, two turbine rooms), magazines, flood spaces,
 stability, damage control and weapon performance are game estimates. The native trial gives 35.0 kn at full power,
