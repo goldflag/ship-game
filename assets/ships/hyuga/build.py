@@ -7,6 +7,7 @@ Region modules (hyuga_*.py) each build one part of the ship from the shared
 helpers passed to them.
 """
 import bpy
+import bmesh
 import math
 import json
 import os
@@ -54,7 +55,8 @@ for name in ['Hull and decks', 'Superstructure', 'Main and secondary batteries',
 colors = {'naval': (.118, .124, .140), 'hullgray': (.118, .124, .140), 'roof': (.100, .104, .117), 'deck': (.100, .076, .054),
           'linoleum': (.072, .040, .031), 'edge': (.038, .038, .040), 'painted-edge': (.090, .094, .106), 'dark': (.012, .013, .014),
           'black': (.012, .012, .013), 'canvas': (.55, .53, .44), 'antifouling': (.118, .062, .040), 'bronze': (.36, .27, .12),
-          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12)}
+          'glass': (.02, .04, .05), 'wood': (.19, .13, .075), 'white': (.30, .31, .30), 'gold': (.62, .45, .12),
+          'brass': (.40, .33, .16)}
 materials = {}
 for key, color in colors.items():
     m = bpy.data.materials.new('Hyūga ' + key)
@@ -131,6 +133,51 @@ for face in hull.data.polygons:
                                          or (-13.0 <= ref_z < 45.0 and y > 13.9))
         face.material_index = 3 if ledge else 2
 
+
+def split_quarterdeck(ob):
+    """Cut the quarterdeck's triangles along the aircraft deck's edges: the linoleum's V-shaped forward edge
+    and its after edge, where the grey steel stern begins (reference frame lines, hyuga_aft)."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    A = hyuga_aft
+    lines = [((-14.0, A.LINO_AFT), (14.0, A.LINO_AFT)), ((-A.APEX_X, A.LINO_APEX), (A.APEX_X, A.LINO_APEX))]
+    for s in (-1, 1):
+        lines += [((s * A.APEX_X, A.LINO_APEX), (s * A.CORNER_X, A.LINO_CORNER)), ((s * A.CORNER_X, A.LINO_CORNER), (s * 14.0, A.LINO_CORNER))]
+    for (ax, az), (bx, bz) in lines:
+        a = Vector((-(az - ZC), -ax, 0))
+        b = Vector((-(bz - ZC), -bx, 0))
+        d = (b - a).normalized()
+        lo = Vector((min(a.x, b.x) - .6, min(a.y, b.y) - .6))
+        hi = Vector((max(a.x, b.x) + .6, max(a.y, b.y) + .6))
+        faces = []
+        for f in bm.faces:
+            if f.normal.z < .96 or f.calc_center_median().z < 3.0:
+                continue
+            xs = [v.co.x for v in f.verts]
+            ys = [v.co.y for v in f.verts]
+            if max(xs) >= lo.x and min(xs) <= hi.x and max(ys) >= lo.y and min(ys) <= hi.y:
+                faces.append(f)
+        edges = list({e for f in faces for e in f.edges})
+        verts = list({v for f in faces for v in f.verts})
+        bmesh.ops.bisect_plane(bm, geom=[*verts, *edges, *faces], dist=1e-6, plane_co=a, plane_no=Vector((-d.y, d.x, 0)))
+        bm.normal_update()
+    bm.to_mesh(ob.data)
+    bm.free()
+
+
+# The quarterdeck aft of No. 6 turret: the aircraft deck's linoleum inside its V, grey steel over the stern.
+hull.data.materials.append(materials['linoleum'])
+split_quarterdeck(hull)
+for face in hull.data.polygons:
+    if face.normal.z > .96 and face.center.z > 3.0:
+        ref_z = -face.center.x + ZC
+        if ref_z > hyuga_aft.LINO_AFT:
+            face.material_index = 3
+        elif hyuga_aft.in_linoleum(-face.center.y, ref_z):
+            face.material_index = 4
+# The reference's hull is asymmetric on the port quarter: a blister under the aircraft deck, carried as its own shell.
+blister = hyuga_aft.blister_mesh(D, mesh, materials, collections['Hull and decks'])
+
 # ---------------------------------------------------------------- superstructure
 shells = []
 for s in D['structures']:
@@ -144,7 +191,7 @@ for s in D['structures']:
         elif face.normal.z > .8:
             face.material_index = 1
     shells.append(ob)
-support = SupportSurface([hull, *shells])
+support = SupportSurface([hull, blister, *shells])
 # Claimed prisms still support fittings; their region draws the visible replacement.
 for ob in [o for o in shells if o['assemblyId'] in CLAIMED]:
     shells.remove(ob)

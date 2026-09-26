@@ -11,6 +11,7 @@ from mathutils import Vector
 from hyuga_kit import P, ZC
 from hyuga_fittings_table import FITTINGS
 from hyuga_windows import WINDOWS
+from hyuga_aft import BLISTER, blister_half, deck_edge as aft_deck_edge
 
 CLAIMED_STRUCTURES = set()
 
@@ -318,6 +319,8 @@ def deck_edge_rails(D, kit, col):
         return deck_edge(secs[-1]['points'])
     # Casemate drums turn in the forecastle embrasures below the deck edge: no rail over them.
     drums = [(-m['position'][2], -m['position'][0]) for m in D['mounts'] if m['partId'].endswith('casemate')]
+    # The port quarter's blister carries its own rail round its outline (below).
+    z0, z1 = BLISTER[0][0], BLISTER[-1][0]
     for side in (-1, 1):
         pts = []
         for i in range(0, 441):
@@ -327,7 +330,8 @@ def deck_edge_rails(D, kit, col):
         run = []
         for p, q in zip(pts, pts[1:]):
             near_drum = any(math.hypot(p[0] - dx, p[1] - dy) < 1.7 or math.hypot(q[0] - dx, q[1] - dy) < 1.7 for dx, dy in drums)
-            if abs(p[2] - q[2]) > .35 or abs(p[1] - q[1]) > .8 or near_drum:
+            on_blister = side > 0 and any(z0 - .05 <= -x + ZC <= z1 + .05 for x in (p[0], q[0]))
+            if abs(p[2] - q[2]) > .35 or abs(p[1] - q[1]) > .8 or near_drum or on_blister:
                 if len(run) > 1:
                     kit.rail('deck-rails', col, [(a, b) for a, b, _ in run], sum(c for _, _, c in run) / len(run), 1.0, 1.6)
                 run = []
@@ -335,3 +339,9 @@ def deck_edge_rails(D, kit, col):
             run.append(p)
         if len(run) > 1:
             kit.rail('deck-rails', col, [(a, b) for a, b, _ in run], sum(c for _, _, c in run) / len(run), 1.0, 1.6)
+    # Round the blister: out along its forward face, aft along its side and back in along its after face.
+    outline = [(aft_deck_edge(D, z0 + .08)[0] - .08, z0 + .08)]
+    outline += [(blister_half(z) - .08, z) for z in [z0 + .08] + [z for z, _, _ in BLISTER[1:-1]] + [z1 - .08]]
+    outline += [(aft_deck_edge(D, z1 - .08)[0] - .08, z1 - .08)]
+    top = sum(aft_deck_edge(D, z)[1] for _, z in outline) / len(outline) + .008
+    kit.rail('deck-rails', col, [P(-w, 0, z)[:2] for w, z in outline], top, 1.0, 1.6)

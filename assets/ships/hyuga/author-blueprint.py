@@ -171,7 +171,10 @@ if opts.structures:
 else:
     structures = previous['structures']
 # Recorded corrections to the measured prisms, one per line: None drops a prism, a dict overrides fields.
-STRUCTURE_EDITS = {}
+STRUCTURE_EDITS = {
+    'deckhouse-003': None,   # the catapult turntable's base ring mirrored onto the port side, where the reference has none
+    'deckhouse-007': None,   # the after aircraft trolley and its rails traced as one slab; the recipe draws them
+}
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]
 
 
