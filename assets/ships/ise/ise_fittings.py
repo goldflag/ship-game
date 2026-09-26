@@ -227,7 +227,9 @@ def boats(D, kit):
     for s in (-1, 1):
         kit.open_boat(f'cutter-pagoda-{"port" if s < 0 else "starboard"}', (s * 8.65, -31.35), 9.0, 2.4, 9.75, 1.3, col, chocks=None)
         kit.open_boat(f'cutter-turret-4-{"port" if s < 0 else "starboard"}', (s * 7.545, 16.52), 9.0, 2.4, 4.9, 1.3, col)
-    kit.open_boat('dinghy', (-4.43, -69.74), 6.2, 1.55, 7.45, .95, col)
+    # The dinghy sits on low chocks, its gunwale under the stand-in No. 1 gunhouse's after overhang (8.45 m),
+    # which sweeps over its stern as the turret trains aft; the reference carries it 0.33 m higher.
+    kit.open_boat('dinghy', (-4.43, -69.74), 6.2, 1.55, 7.12, .95, col)
     # Davits for the cutters abreast the pagoda, which hang clear of the deck.
     for s in (-1, 1):
         A = f'cutter-pagoda-{"port" if s < 0 else "starboard"}'

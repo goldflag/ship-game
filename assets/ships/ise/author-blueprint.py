@@ -237,12 +237,17 @@ b = dict(schemaVersion=1, id='ise', name='IJN Ise',
 FIRE_MAIN = dict(fuelSeconds=90, ignitionHeat=.5, heatPerDamage=.014)
 FIRE_LIGHT = dict(fuelSeconds=45, ignitionHeat=.5, heatPerDamage=.014)
 # The Kongo twin carries its bore axis 4.17 m over its yaw datum; the reference bore axis is 0.834 m over the
-# hardpoint, so the datum sits 3.336 m below it and the gunhouse floor lands 6 cm over the reference's.
+# hardpoint, so the datum sits 3.336 m below it and the gunhouse floor lands 6 cm over the reference's. The
+# superfiring turrets stand 0.15 m higher still: the stand-in gunhouse carries a roof guard rail (0.72 m over the
+# roof's after end) that the reference's gunhouses do not, and the lift lets the lower turret's rail pass under
+# the upper gunhouse's floor where their after overhangs cross.
 MAIN_DY = -3.336
+SUPERFIRING_LIFT = .15
 MAIN = [('main-1', 'No. 1 turret', 8.388, -61.497, 0), ('main-2', 'No. 2 turret', 11.457, -48.895, 0),
         ('main-3', 'No. 3 turret', 9.653, 9.498, 180), ('main-4', 'No. 4 turret', 6.485, 22.049, 180)]
 for id, name, y, z, bearing in MAIN:
-    b['mounts'].append(dict(id=id, name=name + ' 35.6 cm', partId='type41-356-kongo-1942-twin', battery='main', position=[0, round(y + MAIN_DY, 3), rz(z)],
+    lift = SUPERFIRING_LIFT if id in ('main-2', 'main-3') else 0
+    b['mounts'].append(dict(id=id, name=name + ' 35.6 cm', partId='type41-356-kongo-1942-twin', battery='main', position=[0, round(y + MAIN_DY + lift, 3), rz(z)],
                             bearingDeg=bearing, rangefinder=False, magazineId='magazine-forward' if z < 0 else 'magazine-after', fire=FIRE_MAIN))
 # Open 12.7 cm twins (reference HP_JGS; jgs158 is the Yamato open mount's own reference visual).
 HA = [(-6.118, 7.913, -39.931, -90), (6.119, 7.913, -39.931, 90), (-3.817, 12.551, -32.727, -90), (3.818, 12.551, -32.727, 90),
@@ -319,6 +324,42 @@ def regularize(poly, tol=.1, snap=math.tan(math.radians(5))):
     area = sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(out, out[1:] + out[:1])) / 2
     before = sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(poly, poly[1:] + poly[:1])) / 2
     return out if len(out) >= 3 and area * before > 0 and abs(area) > .85 * abs(before) else poly
+
+
+def triangulable(poly):
+    """True when the simulation's ear clipping (naval-sim structure.rs `cap`) can cap this outline: a thin sliver that
+    Douglas-Peucker folds across itself, or an outline pinched at a vertex, leaves it no ear and fails the battle."""
+    def cross(a, b, c):
+        return (poly[b][0] - poly[a][0]) * (poly[c][1] - poly[a][1]) - (poly[b][1] - poly[a][1]) * (poly[c][0] - poly[a][0])
+    area = sum(p[0] * poly[(i + 1) % len(poly)][1] - p[1] * poly[(i + 1) % len(poly)][0] for i, p in enumerate(poly))
+    ids = list(range(len(poly)))[::-1 if area < 0 else 1]
+    while len(ids) > 2:
+        for i in range(len(ids)):
+            a, b, c = ids[i - 1], ids[i], ids[(i + 1) % len(ids)]
+            if abs(cross(a, b, c)) < 1e-9:
+                break
+            if cross(a, b, c) > 0 and not any(p not in (a, b, c) and cross(a, b, p) >= -1e-9 and cross(b, c, p) >= -1e-9
+                                              and cross(c, a, p) >= -1e-9 for p in ids):
+                break
+        else:
+            return False
+        ids.pop(i)
+    return True
+
+
+def fit_ring(raw, tol=.08):
+    """A regularized outline of at most 160 points that the simulation can cap, straightened less where the first try
+    folds; None when even the traced outline cannot be capped."""
+    ring = regularize(raw, tol)
+    while len(ring) > 160:
+        tol *= 1.5
+        ring = regularize(raw, tol)
+    while not triangulable(ring) and tol > .01:
+        tol /= 2
+        finer = regularize(raw, tol)
+        if len(finer) <= 250:
+            ring = finer
+    return ring if triangulable(ring) else None
 
 
 def deck_under(poly):
@@ -439,6 +480,10 @@ def measured_prisms(cuts, cell=.1, gap=3):
             ang = (np.degrees(np.arctan2(dx, -dz)) - bearing + 540) % 360 - 180
             mask = (r <= carriage) | ((r <= reach) & (np.abs(ang) <= half + 16))
             carve.append((gy, np.nonzero(mask)))
+        # Each main turret's barbette well is the recipe's own cylinder and the guns' breeches swing down into it
+        # at full elevation: nothing measured stands inside 4.9 m of its axis up to the gunhouse roof.
+        wells = [(m['position'][1] + 6.2, np.nonzero(np.hypot(cx[None, :] - m['position'][0], cz[:, None] - (m['position'][2] - ZS)) <= 4.9))
+                 for m in b['mounts'] if m['battery'] == 'main']
         for k, lv in enumerate(levels):
             img = Image.new('L', (W, H), 0)
             draw = ImageDraw.Draw(img)
@@ -453,6 +498,9 @@ def measured_prisms(cuts, cell=.1, gap=3):
                 grid[hull_rows] &= col_x[None, :] > row_half[hull_rows, None]
             for gy, where in carve:
                 if gy + .08 < lv["y"] < gy + 3.4:
+                    grid[where] = False
+            for top, where in wells:
+                if lv['y'] < top:
                     grid[where] = False
             on = grid.reshape(-1)
             # Above the hull's working decks the towers' open galleries and window bands are bridged up to
@@ -545,7 +593,8 @@ def measured_prisms(cuts, cell=.1, gap=3):
                     ring = [[round(x0 + c * cell, 3), round(z0 + r * cell, 3)] for c, r in outline(comp, W)]
                     xs, zs = [q[0] for q in ring], [q[1] for q in ring]
                     found.append(dict(region=region, base=round(levels[k0]['y'] - step / 2, 3), top=round(levels[k1]['y'] + step / 2, 3), ring=ring,
-                                      area=len(comp) * cell * cell, bounds=dict(min=[min(xs), min(zs)], max=[max(xs), max(zs)])))
+                                      area=len(comp) * cell * cell, bounds=dict(min=[min(xs), min(zs)], max=[max(xs), max(zs)]),
+                                      cells=comp, grid=(W, x0, z0)))
     # Hull, not structure: anything that does not clear the deck under it; and slivers.
     kept = []
     for p in found:
@@ -590,11 +639,16 @@ def measured_prisms(cuts, cell=.1, gap=3):
     # The rest are drawn by the recipe from ise_blocks.py, as geometry that fittings can stand on.
     minor = []
     for i, p in enumerate(sorted(ranked, key=lambda p: (p['bounds']['min'][1], p['base']))):
-        ring = regularize(p['ring'], .08)
-        tol = .08
-        while len(ring) > 160:
-            tol *= 1.5
-            ring = regularize(p['ring'], tol)
+        ring = fit_ring(p['ring'])
+        if ring is None:
+            # A sliver whose traced outline pinches where cells meet corner to corner: grown by a cell all round.
+            W, gx0, gz0 = p['grid']
+            cells = set(p['cells'])
+            grown = cells | {j for i in cells for j in (i - W, i + W)} | {j for i in cells for j in (i - 1, i + 1) if j // W == i // W}
+            ring = fit_ring([[round(gx0 + c * cell, 3), round(gz0 + r * cell, 3)] for c, r in outline(sorted(grown), W)])
+        if ring is None:
+            print(f"dropped a {p['area']:.1f} m2 block at {p['base']:.1f}-{p['top']:.1f} m whose outline cannot be capped")
+            continue
         zc = (p['bounds']['min'][1] + p['bounds']['max'][1]) / 2
         label = 'Forward' if zc < -13.8 else 'Midships' if zc < 42.4 else 'After'
         block = dict(id=f"block-{i:03d}", name=f"{label} superstructure {p['base']:.1f}-{p['top']:.1f} m",
@@ -738,6 +792,8 @@ if funnel:
     top = funnel[-1]
     top['exhaust'] = dict(position=[0, round(top['baseY'] + top['height'], 3), rz(FUNNEL['z'])], width=FUNNEL['width'], length=FUNNEL['length'])
 structures = [{k: v for k, v in s.items() if k != 'funnel'} | ({'id': s['id'] + '-funnel'} if s.get('funnel') and not s['id'].endswith('-funnel') else {}) for s in structures]
+uncapped = [s['id'] for s in structures if not triangulable(s['footprint'])]
+assert not uncapped, f'the simulation cannot cap these footprints: {uncapped}'
 b['structures'] = structures
 
 
@@ -946,28 +1002,83 @@ print(f'posts: {len(posts)}')
 print(f'structures: {len(structures)}')
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, each outline cut into
-# fore-and-aft strips so a stepped deckhouse is not boxed at its widest: 3.5 m within an interlocked mount's
-# reach, 10 m elsewhere (the blueprint holds at most 256 obstructions).
+# fore-and-aft strips so a stepped deckhouse is not boxed at its widest. Within an interlocked mount's reach the
+# barrels stop on these boxes as well as on the blocks themselves, so there the strips are 2 m and each box spans
+# only what the block fills along its whole strip (a slanted wall is boxed at its narrowest, a tapering tip not at
+# all); elsewhere they only stop the line of fire, in 10 m strips at the block's widest (the blueprint holds at
+# most 256 obstructions).
+def inscribed_span(poly, z0, z1):
+    span = None
+    levels = {z0 + .05, (z0 + z1) / 2, z1 - .05} | {p[1] + d for p in poly if z0 < p[1] < z1 for d in (-.01, .01)}
+    for zc in sorted(z + 1e-6 for z in levels if z0 < z < z1):
+        xs_at = sorted(ax + (bx - ax) * (zc - az) / (bz - az) for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1])
+                       if (az - zc) * (bz - zc) < 0)
+        runs = list(zip(xs_at[::2], xs_at[1::2]))
+        if not runs:
+            return None
+        if span is None:
+            span = max(runs, key=lambda r: r[1] - r[0])
+        else:
+            best = max(runs, key=lambda r: min(r[1], span[1]) - max(r[0], span[0]))
+            span = (max(span[0], best[0]), min(span[1], best[1]))
+        if span[1] - span[0] < 1.0:
+            return None
+    return span
+
+
 for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
     zs = [p[1] for p in poly]
     if s['height'] < 1.2 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 6:
         continue
-    strip = 3.5 if any(near_interlocked(x, z, 1.0) for x, z in poly) else 10
-    n = max(1, math.ceil((max(zs) - min(zs)) / strip))
+    near = any(near_interlocked(x, z, 1.0) for x, z in poly)
+    n = max(1, math.ceil((max(zs) - min(zs)) / (2 if near else 10)))
     for k in range(n):
         z0 = min(zs) + (max(zs) - min(zs)) * k / n
         z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
-        pts = [p[0] for p in poly if z0 <= p[1] <= z1]
-        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
-            for zc in (z0, z1):
-                if (az - zc) * (bz - zc) < 0:
-                    pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
-        if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
+        if near:
+            span = inscribed_span(poly, z0, z1)
+        else:
+            pts = [p[0] for p in poly if z0 <= p[1] <= z1]
+            for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+                for zc in (z0, z1):
+                    if (az - zc) * (bz - zc) < 0:
+                        pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
+            span = (min(pts), max(pts)) if len(pts) >= 2 and max(pts) - min(pts) >= 1.0 else None
+        if span is None or z1 - z0 < .6:
             continue
-        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
-                                      size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((span[0] + span[1]) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
+                                      size=[round(span[1] - span[0] - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+
+
+# The drawn blocks beyond the blueprint's structure limit (ise_blocks.py) are invisible to the interlocks, so each
+# one a main turret's barrels can reach (inside the trained arc, between the barrels' lowest and highest heights
+# there, and 0.64 m short of the muzzles in plan: the interlock's barrel capsule already reaches that far past
+# them) is boxed at its bounds, 10 cm inside.
+def barrel_reach(s, m):
+    x, y, z = m['position']
+    trunnion = y + PARTS[m['partId']]['pivotHeight']
+    for (ax, az), (bx, bz) in zip(s['footprint'], s['footprint'][1:] + s['footprint'][:1]):
+        steps = max(1, int(math.hypot(bx - ax, bz - az) / .25))
+        for k in range(steps):
+            px, pz = ax + (bx - ax) * k / steps, az + (bz - az) * k / steps
+            h = math.hypot(px - x, pz - z)
+            off = (math.degrees(math.atan2(px - x, -(pz - z))) - m['bearingDeg'] + 540) % 360 - 180
+            if h > PARTS[m['partId']]['muzzleForward'] - .64 or (abs(off) > 146 and h > 5):
+                continue
+            if s['baseY'] < trunnion + max(0.0, h - 1) * math.tan(math.radians(43)) + .7 and \
+                    s['baseY'] + s['height'] > trunnion - h * math.tan(math.radians(5)) - .7:
+                return True
+    return False
+
+
+for s in minor_blocks:
+    if any(m['battery'] == 'main' and barrel_reach(s, m) for m in b['mounts']):
+        xs = [p[0] for p in s['footprint']]
+        zs = [p[1] for p in s['footprint']]
+        b['obstructions'].append(dict(id=f"minor-{s['id']}", center=[round((min(xs) + max(xs)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((min(zs) + max(zs)) / 2, 3)],
+                                      size=[round(max(.05, max(xs) - min(xs) - .2), 3), round(s['height'], 3), round(max(.05, max(zs) - min(zs) - .2), 3)]))
 # Stowed boats: reference boat bounds (x, y, z ranges), so barrels stop at and cannot fire through them.
 BOATS = [('cutter-pagoda', (7.4, 9.9), (9.7, 11.31), (-36.0, -26.71)), ('motor-launch', (1.09, 4.95), (10.12, 11.79), (-23.5, -11.3)),
          ('cutter-turret-4', (6.08, 9.01), (4.86, 6.47), (11.93, 21.12))]
@@ -975,21 +1086,22 @@ for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
     for side, sign in [('port', -1), ('starboard', 1)]:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
                                       size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
-# The dinghy on the forecastle, under No. 1 turret's depressed barrels when trained to port.
-b['obstructions'].append(dict(id='dinghy', center=[-4.43, 8.1, rz(-69.74)], size=[1.7, 1.4, 6.4]))
-# The catapult girders, in three boxes each along their slant, so No. 3's depressed barrels stop at them.
+# The dinghy on the forecastle, under No. 1 turret's depressed barrels when trained to port: the boat's own bounds
+# (on low chocks, gunwale 8.39 m), which the barrels clear at a close-range broadside's elevation.
+b['obstructions'].append(dict(id='dinghy', center=[-4.425, 7.755, rz(-69.743)], size=[1.61, 1.27, 6.23]))
+# The catapult girders (a 1 m lattice from 9.8 to 10.8 m with its rails, on a turntable), in eighteen 1.4 m boxes
+# along each slant so the boxes hug the girder (No. 3's barrels reach its inner end, No. 4's its middle when
+# elevated) and stop the barrels at it.
 for s_, bearing in ((-1, 19.7), (1, -19.7)):
     fx, fz = math.sin(math.radians(bearing)), -math.cos(math.radians(bearing))
-    for k, (u0, u1) in enumerate(((-9.4, -1.0), (-1.0, 7.5), (7.5, 16.3))):
+    cuts = [-9.4 + 25.7 * k / 18 for k in range(19)]
+    for k, (u0, u1) in enumerate(zip(cuts, cuts[1:])):
         ax, az = s_ * 13.207 + fx * u0, 32.928 + fz * u0
         bx, bz = s_ * 13.207 + fx * u1, 32.928 + fz * u1
-        b['obstructions'].append(dict(id=f'catapult-{"port" if s_ < 0 else "starboard"}-{k}', center=[round((ax + bx) / 2, 3), 10.2, rz((az + bz) / 2)],
-                                      size=[round(abs(bx - ax) + 1.1, 3), 2.2, round(abs(bz - az) + 1.1, 3)]))
-# The superfiring turrets' barbettes, up to just under their gunhouses, so the lower turret's barrels stop at
-# them: No. 2 over No. 1, No. 3 over No. 4.
-for mid, (y0, zr) in [('main-2', (6.9, -48.895)), ('main-3', (4.51, 9.498))]:
-    top = next(y for i, _, y, z, _ in MAIN if i == mid) - .1
-    b['obstructions'].append(dict(id=f'{mid}-barbette', center=[0, round((y0 + top) / 2, 3), rz(zr)], size=[9.6, round(top - y0, 3), 9.6]))
+        b['obstructions'].append(dict(id=f'catapult-{"port" if s_ < 0 else "starboard"}-{k}', center=[round((ax + bx) / 2, 3), 10.4, rz((az + bz) / 2)],
+                                      size=[round(abs(bx - ax) + 1.1, 3), 1.3, round(abs(bz - az) + 1.1, 3)]))
+# The superfiring turrets' barbettes need no boxes: at its 145 degree train limit the lower turret's barrels pass
+# 6 m from the upper barbette's axis, and a box there would stop the upper turret's own breeches at elevation.
 
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: main barrels (with the full recoil stroke) and gunhouses may not enter the blocks they
@@ -1002,12 +1114,19 @@ for m in b['mounts']:
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
-        # Gunhouse from its working floor to the roof, as on Kongo; the lower turret of each superfiring pair to
-        # its 6.45 m roof rails, the upper one from its 3.25 m blast bags, so the pair's envelopes meet where
-        # the meshes do (the upper turret's overhang passes 15 cm over the lower's roof in the reference) while
-        # the upper turret's resting barrels keep 18 cm over the lower envelope.
+        # Gunhouse bodies from the 3.4 m working floor to the 6.0 m roof, as on Kongo; the upper turret of each
+        # superfiring pair from 3.8 m, clear of the roof guard rail the stand-in gunhouse carries on the lower one,
+        # so the pair trains together to either beam (the lower 0.4 m of the upper gunhouse is out of the lower
+        # turret's reach at its 145 degree train limit). That rail (its top rail 0.72 m over the sloped roof along
+        # each shoulder, at the part's posts) is a chain of thin capsules on the lower turret's yaw frame, so the
+        # upper turret's depressed barrels stop over it.
         lower = m['id'] in ('main-1', 'main-4')
-        entry['body'] = dict(center=[0, 4.925 if lower else 4.625, 1.27], size=[9.0, 3.05 if lower else 2.75, 11.56])
+        entry['body'] = dict(center=[0, 4.7 if lower else 4.9, 1.27], size=[9.0, 2.6 if lower else 2.2, 11.56])
+        if lower:
+            posts = [(-5.55, 3.18), (-4.15, 3.65), (-1.65, 3.65), (.7, 3.57), (1.55, 3.23)]
+            top = [(y, 4.8 + (3.35 - x) / 10.25 * 1.2 + .72, -x) for x, y in posts]
+            entry['fittings'] = [dict(joint='yaw', a=[s * a[0], round(a[1], 3), a[2]], b=[s * c[0], round(c[1], 3), c[2]], radiusM=.06)
+                                 for s in (-1, 1) for a, c in zip(top, top[1:])]
     clear_mounts.append(entry)
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
 nearby = []
@@ -1023,9 +1142,11 @@ for st in structures:
     if best is not None:
         nearby.append((best, st['id']))
 nearby = [sid for _, sid in sorted(nearby)[:128]]
-b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 12.7 cm mounts against the measured superstructure blocks they can reach, including the full recoil stroke, and between the superfiring turret pairs. Game clearance envelopes, not verified historical mechanical stops.',
+# Neighbours: each superfiring pair, and No. 2 with the forward 12.7 cm pair abaft it, whose raised barrels its
+# depressed barrels can reach when trained on the after quarters.
+b['mountClearance'] = dict(version=1, marginM=.03, basis='Provisional CPU motion interlocks for the main and 12.7 cm mounts against the measured superstructure blocks they can reach, including the full recoil stroke, between the superfiring turret pairs and between No. 2 turret and the forward 12.7 cm pair. Game clearance envelopes, not verified historical mechanical stops.',
                            mounts=clear_mounts, structures=[dict(structureId=sid, topExtensionM=0) for sid in nearby],
-                           neighbors=[['main-1', 'main-2'], ['main-3', 'main-4']])
+                           neighbors=[['main-1', 'main-2'], ['main-3', 'main-4'], ['main-2', 'ha-1'], ['main-2', 'ha-2']])
 
 # ---------------------------------------------------------------- rooms, machinery, directors
 def room(id, name, center, size, kind=None, role=None, hp=150, fire=None):

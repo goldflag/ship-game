@@ -232,8 +232,10 @@ fn every_preset_rest_is_clear_of_its_interlocks() {
 
 /// Presets whose main battery is known to stop short of a beam: Mogami's No. 2
 /// turret depresses onto No. 1's roof while both train and wedges the pair;
-/// Takao's turrets rest inside their interlock envelopes.
-const BEAM_BLOCKED: [&str; 2] = ["mogami", "takao"];
+/// Takao's turrets rest inside their interlock envelopes; Ise's after pair meets
+/// its stowed catapults (No. 3) and the flight deck's forward sponsons (No. 4)
+/// below about 6 degrees of elevation, as the hybrid conversion placed them.
+const BEAM_BLOCKED: [&str; 3] = ["ise", "mogami", "takao"];
 
 #[test]
 fn every_preset_main_battery_trains_from_rest_to_either_beam() {
