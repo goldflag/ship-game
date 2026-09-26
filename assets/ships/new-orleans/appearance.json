@@ -1,15 +1,39 @@
 {
   "version": 1,
-  "id": "new-orleans-starter-v1",
-  "basis": "Scaffold placeholder: one grey for hull and upperworks, dark painted-steel decks and a red-oxide bottom. Replace with the approved paint scheme (docs/ship-appearance.md); swatches are the recipe's linear-RGB material colors.",
+  "id": "new-orleans-1944-plain-v1",
+  "basis": "Approved GameModels3D pasc107 default (plain) scheme: one light haze grey over hull, upperworks and turrets, deck-blue timber weather decks and deck-blue steel roofs and platforms, a black boot-topping from 0.24 to 0.76 m above the reference waterline and a fouled olive-brown anti-fouling bottom, black funnel tops. Swatches are linear-RGB interpretations of the reference's default texture sampled through its own UVs, not measured historical paint.",
   "wear": "in-commission",
+  "palette": {
+    "new-orleans-reference-haze-grey": [0.137, 0.180, 0.196],
+    "new-orleans-reference-roof-grey": [0.130, 0.171, 0.187],
+    "new-orleans-reference-deck-blue": [0.026, 0.034, 0.040],
+    "new-orleans-reference-bottom": [0.085, 0.075, 0.046],
+    "new-orleans-reference-boot-black": [0.018, 0.018, 0.019],
+    "new-orleans-reference-funnel-black": [0.014, 0.014, 0.015],
+    "new-orleans-authored-dark-fittings": [0.040, 0.047, 0.052],
+    "new-orleans-authored-mid-fittings": [0.100, 0.130, 0.142],
+    "new-orleans-authored-canvas": [0.30, 0.31, 0.29],
+    "new-orleans-authored-fitting-wood": [0.19, 0.13, 0.075],
+    "new-orleans-authored-white-light": [0.52, 0.53, 0.52],
+    "new-orleans-authored-red-light": [0.40, 0.03, 0.02]
+  },
   "materials": {
-    "naval": { "paint": "new-orleans-hull-grey", "finish": "painted-steel" },
-    "hullgray": { "paint": "new-orleans-hull-grey", "finish": "painted-steel" },
-    "antifouling": { "paint": "new-orleans-red-oxide", "finish": "underwater-coating" },
-    "deck": { "paint": "new-orleans-deck-grey", "finish": "painted-deck" },
-    "roof": { "paint": "new-orleans-deck-grey", "finish": "painted-deck" },
-    "edge": { "paint": "new-orleans-dark-fittings", "finish": "painted-steel" },
-    "painted-edge": { "paint": "new-orleans-mid-fittings", "finish": "painted-steel" }
+    "naval": { "paint": "new-orleans-reference-haze-grey", "finish": "painted-steel" },
+    "hullgray": { "paint": "new-orleans-reference-haze-grey", "finish": "painted-steel" },
+    "roof": { "paint": "new-orleans-reference-roof-grey", "finish": "painted-deck" },
+    "deck-blue": { "paint": "new-orleans-reference-deck-blue", "finish": "painted-deck" },
+    "wood_deck": { "paint": "new-orleans-reference-deck-blue", "finish": "wood" },
+    "antifouling": { "paint": "new-orleans-reference-bottom", "finish": "underwater-coating" },
+    "boot": { "paint": "new-orleans-reference-boot-black", "finish": "underwater-coating" },
+    "black": { "paint": "new-orleans-reference-funnel-black", "finish": "painted-steel" },
+    "edge": { "paint": "new-orleans-authored-dark-fittings", "finish": "painted-steel" },
+    "painted-edge": { "paint": "new-orleans-authored-mid-fittings", "finish": "painted-steel" },
+    "canvas": { "paint": "new-orleans-authored-canvas", "finish": "painted-steel" },
+    "wood": { "paint": "new-orleans-authored-fitting-wood", "finish": "wood", "fittings": true },
+    "white": { "paint": "new-orleans-authored-white-light", "finish": "painted-steel" },
+    "red": { "paint": "new-orleans-authored-red-light", "finish": "painted-steel" }
+  },
+  "decking": {
+    "wood_deck": { "plankWidth": 0.127, "plankLength": 3.048, "seamWidth": 0.003, "coating": "blue-gray" }
   }
 }
