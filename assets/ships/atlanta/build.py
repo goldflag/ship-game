@@ -77,6 +77,9 @@ support = SupportSurface([hull, *shells, *platforms])
 kit.support = support
 
 # ---------------------------------------------------------------- guns
+# The reference paints the 5-inch gunhouse roofs haze grey like their sides (only deckhouse roofs and decks are
+# deck blue), so the gun part's roof role takes the side paint here.
+gunhouse_materials = {**materials, 'roof': materials['naval']}
 for mount in D['mounts']:
     main = mount['battery'] == 'main'
     col = collections['Main battery' if main else 'Light AA']
@@ -84,7 +87,7 @@ for mount in D['mounts']:
         kit.barbette(mount)
     else:
         kit.gun_seat(mount)
-    create_mount(mount, col, helpers, materials)
+    create_mount(mount, col, helpers, gunhouse_materials if main else materials)
 
 # ---------------------------------------------------------------- fittings
 atlanta_fittings.build(D, kit)
