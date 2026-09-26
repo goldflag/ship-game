@@ -113,15 +113,16 @@ def directors(kit):
 def mainmast(kit):
     col = kit.collections['Sensors and masts']
     A = 'mainmast'
-    # Pole: from the crosstree platform to the truck (HP_Flagpole 44.4 m), raked slightly aft; black above 33 m.
-    rod(kit, A, col, 'pole', (0, 30.9, 17.72), (0, 33.2, 17.75), .34, 'naval', 14, .32)
+    # Pole: from the crosstree platform to the truck (HP_Flagpole 44.4 m), raked slightly aft. The reference paints the
+    # whole mast black above 22.65 m.
+    rod(kit, A, col, 'pole', (0, 30.9, 17.72), (0, 33.2, 17.75), .34, 'black', 14, .32)
     rod(kit, A, col, 'topmast', (0, 33.2, 17.75), (0, 45.2, 18.14), .30, 'black', 12, .12)
     kit.cylz(A, col, 'truck', P(0, 45.2, 18.14), .16, .1, 'black', 10)
-    # Tripod legs: box struts from the after control deck up to the crosstree, splayed to each side, black from
-    # 27.6 m as the reference paints them.
+    # Tripod legs: box struts from the after control deck up to the crosstree, splayed to each side, black from the
+    # mast's paint line.
     for s in (-1, 1):
         foot, head = (s * 2.35, 16.85, 19.55), (s * .55, 30.95, 17.2)
-        t = (27.6 - foot[1]) / (head[1] - foot[1])
+        t = (22.65 - foot[1]) / (head[1] - foot[1])
         joint = tuple(a + (b - a) * t for a, b in zip(foot, head))
         kit.beam(A, col, 'tripod leg', P(*foot), P(*joint), .75, .8, 'naval')
         kit.beam(A, col, 'tripod leg head', P(*joint), P(*head), .75, .8, 'black')
@@ -130,13 +131,21 @@ def mainmast(kit):
         rod(kit, A, col, 'top yard', (-half, y0, 18.02), (half, y0, 18.02), .07, 'black', 8)
         for s in (-1, 1):
             rod(kit, A, col, 'top yard brace', (s * half * .7, y0, 18.02), (0, y0 + 1.3, 18.05), .03, 'black', 6)
-    # Gaff from the crosstree forward and up, stayed to the topmast.
-    rod(kit, A, col, 'gaff', (0, 31.35, 16.6), (0, 33.1, 8.8), .1, 'black', 8, .06)
-    kit.member(A, col, P(0, 33.1, 8.8), P(0, 44.0, 18.1), .02, 'edge', 3)
-    # Signal blocks hung from the after side of the pole.
-    for y0 in (26.0, 27.1, 28.2):
-        kit.part('rod', A, col, 'signal block', P(1.1, y0, 18.6), P(1.1, y0, 18.95), .32, 'black', vertices=6)
-        kit.member(A, col, P(0, y0 + .4, 18.0), P(1.1, y0, 18.75), .03, 'naval', 4)
+    # Two gaffs aft (x = 0 profile cut and the side renders): the masthead gaff from the topmast at 38.9 m to its peak
+    # 2.3 m aft, where the ensign flies at sea (HP_flag_nation, the blueprint's rig), with its peak stay from 41.8 m;
+    # and the lower gaff along the crosstree's after arm at 28.8 m, 3 m abaft the trunk, with its peak halyard.
+    rod(kit, A, col, 'masthead gaff', (0, 38.9, 18.1), (0, 39.55, 20.45), .08, 'black', 8, .05)
+    kit.member(A, col, P(0, 41.76, 17.98), P(0, 39.6, 20.43), .025, 'black', 4)
+    rod(kit, A, col, 'lower gaff', (0, 28.8, 18.95), (0, 28.95, 22.0), .09, 'black', 8, .06)
+    kit.member(A, col, P(0, 28.99, 21.95), P(0, 31.1, 19.0), .025, 'black', 4)
+    # Three signal blocks forward of the trunk (reference z 14.4 to 15.1), each on a short arm from an eye on the
+    # trunk's forward face.
+    for y0 in (25.0, 26.4, 27.4):
+        block = Vector(P(0, y0, 14.7))
+        kit.part('rod', A, col, 'signal block', tuple(block + Vector((0, -.17, 0))), tuple(block + Vector((0, .17, 0))), .35, 'black', vertices=6)
+        face = kit.toward(tuple(block + Vector((-.35, 0, 0))), (-1, 0, 0), 2.5, P(0, y0, 15.9))
+        kit.member(A, col, tuple(block + Vector((-.3, 0, 0))), tuple(face + Vector((-.08, 0, 0))), .05, 'black', 6)
+        kit.boxc(A, col, 'signal block eye', tuple(face + Vector((.03, 0, 0))), (.12, .3, .3), 'black')
     # Aircraft crane jib from its heel at the mast foot, forward and up (x = 0 profile), with sheaves and a hook.
     C = 'aircraft-crane'
     heel, head = (0, 11.5, 15.45), (0, 28.6, 8.72)
@@ -181,7 +190,82 @@ def funnel(kit, D):
             dome = .45 * (1 - u * u) * (1 - .4 * v * v)
             pts_.append((cx + u * hx * .96 * math.sqrt(max(.05, 1 - (v * .96) ** 2)), cy + v * hy * .96, top + .05 + dome))
         kit.polyline(A, col, pts_, .035, 'black', 5)
-    # Steam pipes up the after face and a siren platform; a ladder up the port side to the rim.
+    # Steam pipes up the after face; a ladder up the port side to the rim.
     for dy in (-.8, 0, .8):
         kit.part('rod', A, col, 'steam pipe', (cx - hx - .12, cy + dy, 14.9), (cx - hx - .12, cy + dy, top + .9), .09 if dy else .13, 'naval', vertices=10)
     kit.ladder(A, col, (cx + hx * .4, cy + hy + .14, 15.2), (cx + hx * .4, cy + hy + .14, top), (1, 0, 0), .42)
+    # Sirens on the rim (plan cuts y = 24.7 and 25.0): a pair on each quarter of the after rim and one on the forward
+    # rim to starboard of the centre line, each pair of whistles joined by a bar.
+    for a, b in [((2.56, .455), (2.26, 1.015)), ((-2.56, .455), (-2.26, 1.015)), ((.86, -5.125), (1.52, -5.125))]:
+        for x0, z0 in (a, b):
+            foot = Vector(P(x0, top + .02, z0))
+            kit.part('rod', A, col, 'siren', tuple(foot), tuple(foot + Vector((0, 0, .9))), .1, 'black', vertices=8)
+            kit.cylz(A, col, 'siren bell', tuple(foot + Vector((0, 0, .9))), .14, .16, 'black', 10)
+        kit.part('rod', A, col, 'siren bar', P(a[0], top + .75, a[1]), P(b[0], top + .75, b[1]), .06, 'black', vertices=6)
+    funnel_lattice(kit)
+
+
+# The funnel's lattice (plan cuts y = 9.6 to 17.0 every 0.2-0.5 m, reference frame; mirrored to port). Two rows of
+# posts round the funnel's forward half from the 11.85 m casing roof up to the platforms at 15.15-15.45 m, X-braced
+# with a raised V in the middle bay (the reference's side view); abaft them a leaning post from the 01 deck to the
+# 14.75 m platform, braced to the frame and to the after legs, and the two legs of the after 25 mm platform (16.75 m),
+# one upright and one leaning in. Rows: (z, x, width across, depth fore and aft, x lean per metre from 12 m).
+LATTICE_OUTER = [(-8.73, 4.91, .30, .28, -.042), (-6.94, 4.43, .12, .29, 0), (-4.00, 4.61, .11, .30, 0), (-2.05, 4.70, .30, .33, 0)]
+LATTICE_INNER = [(-8.73, 3.70, .42, .28, 0), (-6.67, 2.62, .12, .29, 0), (-3.91, 2.87, .11, .30, 0), (-1.87, 3.20, .33, .30, 0)]
+LATTICE_BAYS = ['X', 'V', 'X']          # from forward: between posts 1-2, 2-3 and 3-4 of each row
+LATTICE_LEAN = (.81, 4.64, .37, .32, .24)      # leaning post abaft the frame (z, x at 12 m, width, depth, lean)
+LATTICE_LEGS = [(3.25, 3.39, .27, .24, 0), (3.54, 2.31, .40, .30, -.238)]
+
+
+def funnel_lattice(kit):
+    col = kit.collections['Superstructure']
+    A = 'funnel-lattice'
+
+    def at(post, y):
+        z, x, w, d, lean = post
+        return x + lean * (y - 12.0), z
+
+    def pt(side, post, y):
+        x, z = at(post, y)
+        return Vector(P(side * x, y, z))
+
+    for side in (-1, 1):
+        ends = {}
+        # Every post runs from the surface under it to the platform over it.
+        for post in LATTICE_OUTER + LATTICE_INNER + [LATTICE_LEAN] + LATTICE_LEGS:
+            frame = post in LATTICE_OUTER + LATTICE_INNER
+            ax, ay, _ = pt(side, post, 12.0 if frame else 10.0)
+            foot = kit.below(ax, ay, 12.2 if frame else 11.2)
+            start = 16.0 if post in LATTICE_LEGS else 14.2
+            ax, ay, _ = pt(side, post, start + .5)
+            head = kit.above(ax, ay, start, 2.5, 15.15 if start < 16 else 16.75)
+            a, b = pt(side, post, foot - .03), pt(side, post, head + .03)
+            kit.beam(A, col, 'post', tuple(a), tuple(b), post[2], post[3], 'naval', (1, 0, 0))
+            ends[post] = (foot, head)
+        # The frame's two rows: top and bottom beams and the bay bracing.
+        for row in (LATTICE_OUTER, LATTICE_INNER):
+            lo = max(ends[p][0] for p in row) + .12
+            hi = min(ends[p][1] for p in row) - .12
+            for p, q, bay in zip(row, row[1:], LATTICE_BAYS):
+                for y in (lo, hi):
+                    kit.beam(A, col, 'beam', tuple(pt(side, p, y)), tuple(pt(side, q, y)), .12, .22, 'naval')
+                if bay == 'X':
+                    kit.member(A, col, tuple(pt(side, p, lo)), tuple(pt(side, q, hi)), .045, 'naval', 6)
+                    kit.member(A, col, tuple(pt(side, p, hi)), tuple(pt(side, q, lo)), .045, 'naval', 6)
+                else:
+                    mid = (pt(side, p, hi) + pt(side, q, hi)) / 2
+                    kit.member(A, col, tuple(pt(side, p, lo)), tuple(mid), .045, 'naval', 6)
+                    kit.member(A, col, tuple(pt(side, q, lo)), tuple(mid), .045, 'naval', 6)
+            # Ties across the frame between the rows at the forward end.
+            for y in (lo, hi):
+                kit.beam(A, col, 'tie', tuple(pt(side, LATTICE_OUTER[0], y)), tuple(pt(side, LATTICE_INNER[0], y)), .12, .22, 'naval')
+        # Abaft the frame: the leaning post braced to the frame's after post and to the upright after leg.
+        lo, hi = 11.97, 14.6
+        for p, q in ((LATTICE_OUTER[-1], LATTICE_LEAN), (LATTICE_LEAN, LATTICE_LEGS[0])):
+            for y in (lo, hi):
+                kit.beam(A, col, 'beam', tuple(pt(side, p, y)), tuple(pt(side, q, y)), .12, .22, 'naval')
+            kit.member(A, col, tuple(pt(side, p, lo)), tuple(pt(side, q, hi)), .045, 'naval', 6)
+            kit.member(A, col, tuple(pt(side, p, hi)), tuple(pt(side, q, lo)), .045, 'naval', 6)
+        # The after legs tied together.
+        for y in (lo, hi):
+            kit.beam(A, col, 'tie', tuple(pt(side, LATTICE_LEGS[0], y)), tuple(pt(side, LATTICE_LEGS[1], y)), .12, .2, 'naval')

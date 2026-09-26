@@ -159,7 +159,8 @@ def gear(kit):
         if at is None:
             continue
         cx, cy, cz = at
-        kit.boxc(A, col, 'leadsman platform', (cx, cy, cz + .08), (sz, sx, .12), 'naval')
+        # Timber gratings, as the reference paints them.
+        kit.boxc(A, col, 'leadsman platform', (cx, cy, cz + .08), (sz, sx, .12), 'wood')
     for x, y, z, sx, sy, sz, foot in rows('lamp'):
         at = seated(x, foot, z, sy, max(sx, sz) / 2)
         if at is None:
@@ -273,14 +274,19 @@ def underwater(kit, D):
             h0, h1 = z - sz * .35 - .05, z - sz * .35 - 2.75
             kit.part('rod', A, col, 'housing', tuple(at(h0)), tuple(at(h1 + .6)), .47, 'antifouling', vertices=16)
             kit.part('rod', A, col, 'housing taper', tuple(at(h1 + .6)), tuple(at(h1)), .47, 'antifouling', vertices=16, r2=.25)
-            # A-bracket: an inboard and an outboard leg from the housing up into the hull, in the housing's plane.
+            # Shaft bracket: a single streamlined strut from the housing up and inboard into the hull, as the reference's
+            # station cuts at the brackets show (z = 78.5 and 86.5: the outer struts lean 25 degrees in, the inner 20).
             zc = (h0 + h1) / 2
             foot_ = at(zc)
-            for dx, dy in ((-1.3, 2.2), (1.0, 2.6)):
-                lx, ly = x + side * dx, y + dy
-                while ly < y + 6 and loft_half_breadth(D, zc, ly) < abs(lx) + .2:
-                    ly += .1
-                kit.beam(A, col, 'bracket leg', tuple(foot_), P(lx, ly + .3, zc), .8, .16, 'antifouling')
+            dx, dy = (-1.05, 2.24) if abs(x) > 7 else (-1.08, 2.97)
+            n = math.hypot(dx, dy)
+            dx, dy = dx / n, dy / n
+            t = .5
+            while t < 6 and loft_half_breadth(D, zc, foot_.z + dy * t) < abs(x) + dx * t + .25:
+                t += .05
+            head = (x + side * dx * (t + .15), foot_.z + dy * (t + .15), zc)
+            assert head[1] < -.5, f'{A} bracket strut reaches the hull only at y {head[1]:.2f}'
+            kit.beam(A, col, 'bracket strut', tuple(foot_), P(*head), .8, .16, 'antifouling')
     # Twin rudders abaft the inner screws, measured on the x = +/-2.3 profile cut: leading edge 88.0, trailing edge
     # 94.85, top 4.85-4.65 m below the waterline clear of the hull, foot 9.25-9.42 m, the corners rounded; each hangs
     # on a stock with its head under the hull at z 90.5.
@@ -351,8 +357,53 @@ def stem(kit):
         kit.part('rod', A, col, 'petal', tuple(p), tuple(p + n * .03), .09, 'gold', vertices=6)
 
 
+def staffs(kit, D):
+    """The jack staff on the forecastle head and the raked ensign staff at the stern with its strut, after the reference's
+    x = 0 profile cut (reference frame; the staffs' stays are rigging and are left out). The ensign flies from the
+    mainmast gaff at sea (the blueprint's rig), so neither staff carries a flag."""
+    col = kit.collections['Deck fittings']
+    A = 'jack-staff'
+    base = Vector(P(0, 0, -113.55))
+    deck = kit.below(base.x, base.y, 9.0)
+    kit.part('rod', A, col, 'staff', (base.x, base.y, deck - .02), (base.x, base.y, 15.6), .11, 'naval', vertices=10, r2=.075)
+    kit.cylz(A, col, 'lamp', (base.x, base.y, 15.58), .13, .36, 'naval', 10)
+    kit.cylz(A, col, 'lamp lens', (base.x, base.y, 15.68), .135, .14, 'glass', 10)
+    kit.cylz(A, col, 'step', (base.x, base.y, deck - .02), .22, .18, 'naval', 12)
+    for (za, ya), (zb, yb) in [((-112.3, 7.85), (-113.5, 11.2)), ((-114.1, 8.2), (-113.6, 9.55))]:
+        a = Vector(P(0, 0, za))
+        a.z = kit.below(a.x, a.y, 9.0, ya) - .02
+        kit.member(A, col, tuple(a), P(0, yb, zb), .05, 'naval', 6)
+    A = 'ensign-staff'
+    a = Vector(P(0, 0, 109.07))
+    a.z = kit.below(a.x, a.y, 6.0) - .02
+    top = Vector(P(0, 13.27, 110.32))
+    kit.part('rod', A, col, 'staff', tuple(a), tuple(top), .1, 'naval', vertices=10, r2=.06)
+    kit.cylz(A, col, 'step', tuple(a), .2, .16, 'naval', 12)
+    kit.cylz(A, col, 'truck', tuple(top), .08, .08, 'naval', 10)
+    b = Vector(P(0, 0, 108.47))
+    b.z = kit.below(b.x, b.y, 6.0) - .02
+    kit.member(A, col, tuple(b), tuple(a.lerp(top, (6.92 - a.z) / (top.z - a.z))), .05, 'naval', 6)
+
+
+def propeller_guards(kit, D):
+    """A guard over each outer screw, just above the waterline (the reference's plan cuts y = 1.3 to 1.45): a flat bar
+    from the hull out to an apex 13 m off the centre line, a transverse bar back to the hull and a raking bar aft to it,
+    reference frame."""
+    col = kit.collections['Underwater fittings']
+    y = 1.38
+    for side in (-1, 1):
+        A = 'propeller-guard-' + ('port' if side < 0 else 'starboard')
+        apex = (13.04, 76.9)
+        for z in (73.3, 76.9, 80.67):
+            inboard = loft_half_breadth(D, z, y) - .2
+            kit.beam(A, col, 'guard bar', P(side * inboard, y, z), P(side * apex[0], y, apex[1]), .1, .15, 'naval')
+        kit.cylz(A, col, 'guard apex', Vector(P(side * apex[0], y - .1, apex[1])), .1, .2, 'naval', 8)
+
+
 def build(kit, D):
     gear(kit)
     ground_tackle(kit, D)
     underwater(kit, D)
     stem(kit)
+    staffs(kit, D)
+    propeller_guards(kit, D)

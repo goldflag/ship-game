@@ -10,6 +10,8 @@ import bmesh
 from mathutils import Vector
 
 ZC = -2.2  # runtime z = reference z - ZC
+# The linoleum aircraft deck on the forecastle deck (runtime z from, z to, half breadth), read off the textured top render.
+LINO = (20.5, 47.3, 11.0)
 
 
 def P(x, y, z):
@@ -207,6 +209,24 @@ class Kit:
             if fallback is None:
                 raise
             return fallback
+
+    def above(self, x, y, z, reach=3.0, fallback=None):
+        """Height of the first structure surface over (x, y) above z (a platform's underside), within reach."""
+        try:
+            return self.support.along((x, y, z), (0, 0, 1), reach).z
+        except ValueError:
+            if fallback is None:
+                raise
+            return fallback
+
+    def toward(self, origin, direction, reach, fallback=None):
+        """First structure surface from an authoring point along a direction, within reach."""
+        try:
+            return self.support.along(origin, direction, reach)
+        except ValueError:
+            if fallback is None:
+                raise
+            return Vector(fallback)
 
     # ------------------------------------------------------------ rails and wires
     def in_arc(self, a, b):

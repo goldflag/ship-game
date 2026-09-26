@@ -126,6 +126,7 @@ STRUCTURE_EDITS = {
     'platform-075': None,             # ladder landings on the pagoda's after legs, which stand 3 m clear of the
     'platform-076': None,             # stepped prisms that model those legs
     'deckhouse-070': None,            # the lip under the 20.6 m platform's nose, closed down over the bridge windows
+    'deckhouse-087': None,            # the sirens and grating over the funnel mouth, which the plan cuts closed into a box
 }
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures
               if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]

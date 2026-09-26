@@ -6,7 +6,7 @@ Datums are the cached pjsb010 reference's part bounds (nagato_gear.GEAR), conver
 """
 import math
 from mathutils import Vector
-from nagato_kit import P
+from nagato_kit import P, LINO
 from nagato_gear import GEAR
 
 
@@ -112,3 +112,46 @@ def build(kit):
             for u in (-1, 1):
                 kit.part('rod', A, col, 'trolley leg', (cx + u * .6, cy + t * .55, cz + .1), (cx + u * .6, cy + t * .55, cz + .45), .06, 'naval', vertices=8)
         kit.lattice(A, col, (cx - .6, cy, cz + .7), (cx + .6, cy, cz + 1.3), .9, .5, 2)
+    aircraft_deck(kit, col)
+
+
+def _inside(poly, x, z):
+    c = False
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        if (az > z) != (bz > z) and x < (bx - ax) * (z - az) / (bz - az) + ax:
+            c = not c
+    return c
+
+
+def aircraft_deck(kit, col):
+    """Pale strips over the linoleum aircraft deck (textured top render: across the deck every 2.0 m from runtime
+    z 22.25 to 46.25, and one either side 3.77 m off the centre line), laid only where the deck is open."""
+    A = 'aircraft-deck'
+    z0, z1, half = LINO
+    deck = 6.5
+    blocks = [s['footprint'] for s in kit.D['structures'] if s['baseY'] <= deck + .05 < s['baseY'] + s['height']
+              and not s['id'].startswith('forecastle-')]
+    turrets = [(m['position'][0], m['position'][2], 6.3) for m in kit.D['mounts'] if m['battery'] == 'main']
+
+    def open_deck(x, z):
+        return not any(_inside(f, x, z) for f in blocks) and all((x - tx) ** 2 + (z - tz) ** 2 > r * r for tx, tz, r in turrets)
+
+    def strip(a, b, width):
+        """Runs of open deck along a runtime line a -> b (x, z), each laid as one strip."""
+        n = max(1, int(math.hypot(b[0] - a[0], b[1] - a[1]) / .2))
+        pts = [(a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n) for i in range(n + 1)]
+        run = []
+        for p in pts + [None]:
+            if p is not None and open_deck(*p):
+                run.append(p)
+                continue
+            if len(run) > 2:
+                (xa, za), (xb, zb) = run[0], run[-1]
+                h = kit.below(-(za + zb) / 2, -(xa + xb) / 2, deck + .3, deck)
+                kit.beam(A, col, 'deck strip', (-za, -xa, h + .008), (-zb, -xb, h + .008), width, .016, 'wood')
+            run = []
+    for k in range(13):
+        z = 22.25 + 2.0 * k
+        strip((-half, z), (half, z), .22)
+    for x in (-3.77, 3.77):
+        strip((x, z0), (x, z1), .22)

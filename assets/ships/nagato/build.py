@@ -8,6 +8,7 @@ boats and cranes, aviation, ground tackle, underwater gear, rails) and `nagato_w
 the reference paints.
 """
 import bpy
+import bmesh
 import math
 import json
 import os
@@ -23,7 +24,7 @@ from blender_rig import create_flagstaffs
 sys.path.insert(0, str(ROOT / 'assets/parts'))
 from library import create_mount
 sys.path.insert(0, str(Path(__file__).parent))
-from nagato_kit import Kit, P, R, ZC, FIXED_SINGLES
+from nagato_kit import Kit, P, R, ZC, FIXED_SINGLES, LINO
 import nagato_fittings
 from nagato_tiers import TIERS
 
@@ -42,14 +43,42 @@ kit = Kit(D, ['Hull and decks', 'Superstructure', 'Main and secondary batteries'
 materials, collections, helpers = kit.materials, kit.collections, kit.helpers
 
 # ---------------------------------------------------------------- hull
+def split_top(ob, planes, keep):
+    """Cut an object's upward faces (those `keep(center)` selects) along vertical planes [(point, normal), ...] so paint
+    boundaries fall on real edges without moving any vertex of the shape."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    for co, no in planes:
+        faces = [f for f in bm.faces if f.normal.z > .8 and keep(f.calc_center_median())]
+        geom = list({*faces, *(e for f in faces for e in f.edges), *(v for f in faces for v in f.verts)})
+        if geom:
+            bmesh.ops.bisect_plane(bm, geom=geom, plane_co=co, plane_no=no, dist=1e-6)
+    bm.to_mesh(ob.data)
+    bm.free()
+
+
+# Steel plating the reference paints on the forecastle head (textured top render): a strip along each cable run from
+# the windlasses to the hawse pipes, the plate round the hawse pipes, the deck forward of them outside the centre-line
+# planking and all of the stem head. Runtime rows: (z from, z to, |x| from, |x| to).
+CHAIN_DECK = [(-94.5, -75.0, 1.55, 3.05), (-104.0, -94.5, 1.3, 4.1), (-108.7, -104.0, 1.3, 99.0), (-120.0, -108.7, 0.0, 99.0)]
+
+
+def chain_deck(c):
+    z, x = -c.x, abs(c.y)
+    return any(z0 <= z <= z1 and x0 <= x <= x1 for z0, z1, x0, x1 in CHAIN_DECK)
+
+
 hull = authored_hull(D['hull'], kit.mesh, collections['Hull and decks'], [materials['hullgray'], materials['antifouling']], False)
 for key in ['deck', 'roof']:
     hull.data.materials.append(materials[key])
+split_top(hull, [((75.0, 0, 0), (1, 0, 0)), ((94.5, 0, 0), (1, 0, 0)), ((104.0, 0, 0), (1, 0, 0)), ((108.7, 0, 0), (1, 0, 0))]
+          + [((0, s * y, 0), (0, 1, 0)) for y in (1.3, 1.55, 3.05, 4.1) for s in (-1, 1)],
+          lambda c: c.z > 0 and c.x > 74.0)
 for face in hull.data.polygons:
     if face.normal.z > .96 and face.center.z > 0:
         zref = -face.center.x + ZC
-        # Planked weather decks; the casemate shelf beside the forecastle block is grey steel.
-        face.material_index = 3 if -57.6 < zref < 12.1 else 2
+        # Planked weather decks; the casemate shelf beside the forecastle block and the chain deck are grey steel.
+        face.material_index = 3 if -57.6 < zref < 12.1 or chain_deck(face.center) else 2
 
 # ---------------------------------------------------------------- superstructure
 shells = []
@@ -63,12 +92,24 @@ for s in D['structures']:
     ob.data.materials.append(materials[nagato_fittings.roof(s)])
     ob.data.materials.append(materials['black'])
     funnel = s['id'].startswith('funnel-')
+    black = nagato_fittings.mast_black(s)
     for face in ob.data.polygons:
-        if funnel and face.center.z > FUNNEL_TOP - 1.35:
-            # The funnel is black from about 1.3 m below the mouth, as the reference paints it.
+        if black or funnel and face.center.z > FUNNEL_TOP - 1.35:
+            # The funnel is black from about 1.3 m below the mouth, and the mainmast above 22.65 m, as the reference
+            # paints them.
             face.material_index = 2
         elif face.normal.z > .8:
             face.material_index = 1
+    if s['id'] == 'forecastle-001':
+        # The linoleum aircraft deck on the forecastle deck abaft the mainmast (textured top render: runtime z 20.5 to
+        # 47.3, 11 m either side of the centre line), cut into the block's roof.
+        ob.data.materials.append(materials['linoleum'])
+        split_top(ob, [((-LINO[0], 0, 0), (1, 0, 0)), ((-LINO[1], 0, 0), (1, 0, 0)), ((0, LINO[2], 0), (0, 1, 0)), ((0, -LINO[2], 0), (0, 1, 0))],
+                  lambda c: True)
+        for face in ob.data.polygons:
+            c = face.center
+            if face.normal.z > .8 and LINO[0] < -c.x < LINO[1] and abs(c.y) < LINO[2]:
+                face.material_index = 3
     ob.data.shade_smooth()
     ob.data.set_sharp_from_angle(angle=math.radians(30))
     shells.append(ob)
