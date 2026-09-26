@@ -546,6 +546,34 @@ CT = [(-2.84, -26.3), (-2.3, -27.5), (0, -27.87), (2.3, -27.5), (2.84, -26.3), (
 for i, ((ax, az), (bx, bz)) in enumerate(zip(CT, CT[1:] + CT[:1])):
     plate(f'conning-tower-{i}', 'Conning tower', [[ax, 12.82, rz(az)], [bx, 12.82, rz(bz)], [bx, 15.18, rz(bz)], [ax, 15.18, rz(az)]], 65)
 plate('conning-tower-roof', 'Conning tower roof', [[x, 15.18, rz(z)] for x, z in CT], 32)
+# Conning-tower floor (16 mm), barbette decks and floors (16 mm) and the magazine floors (6 mm), as the armour model
+# has them.
+plate('conning-tower-floor', 'Conning tower floor', [[x, 12.82, rz(z)] for x, z in CT], 16)
+BARBETTE_DECK = {'main-1': (6.12, 5.89), 'main-2': (7.95, 7.91), 'main-3': (9.85, 9.85), 'main-4': (3.65, 3.64), 'main-5': (3.65, 3.64),
+                 'main-6': (7.32, 7.32), 'main-7': (5.62, 5.62), 'main-8': (3.85, 3.79)}
+for m in b['mounts'][:8]:
+    x, _, z = m['position']
+    fwd, aft = BARBETTE_DECK[m['id']]
+    ring = [(x + 1.86 * math.cos(i * math.tau / 16), z + 1.86 * math.sin(i * math.tau / 16)) for i in range(16)]
+    plate(f"{m['id']}-barbette-deck", m['name'] + ' barbette deck', [[px, round((fwd + aft) / 2, 3), pz] for px, pz in ring], 16)
+    plate(f"{m['id']}-barbette-floor", m['name'] + ' barbette floor', [[px, BARBETTE_FLOOR[m['id']], pz] for px, pz in ring], 16)
+for id, name, z0, z1, w0, w1, y in [('magazine-floor-forward', 'Forward magazine floor', -54.47, -31.56, 2.58, 4.39, -4.14),
+                                    ('magazine-floor-after', 'After magazine floor', 25.38, 52.66, 2.88, 1.51, -3.74)]:
+    plate(id, name, [[-w0, y, rz(z0)], [w0, y, rz(z0)], [w1, y, rz(z1)], [-w1, y, rz(z1)]], 6)
+# Bottom plating (20 mm) from the forefoot to the run: the flat keel strake and the garboards up to the armour model's
+# upper edge at each of its stations, fitted to the loft.
+BOTTOM = [(-80.4, -5.11), (-78.75, -5.11), (-72.72, -5.13), (-64.59, -5.2), (-54.47, -5.3), (-47.42, -5.38), (-38.28, -5.45),
+          (-31.56, -5.52), (-24.72, -5.6), (-8.16, -5.88), (-.25, -5.91), (15.98, -5.71), (25.38, -5.36), (38.43, -4.52),
+          (44.49, -4.04), (52.66, -3.74), (58.0, -3.5)]
+# The loft's forefoot and run lift off the keel line: the plating starts and ends where the flat keel has breadth.
+# The loft's flat of bottom lies at 6.14-6.17 m under the waterline: the keel strake spans it at 6.1 m.
+BOTTOM = [(z, top) for z, top in BOTTOM if half_breadth(rz(z), -6.1) > .1]
+for j, ((za, ta), (zb, tb)) in enumerate(zip(BOTTOM, BOTTOM[1:])):
+    zone = 'Bow' if zb <= -31.56 else 'Citadel' if zb <= 25.38 else 'Stern'
+    ka, kb = half_breadth(rz(za), -6.1) * .998, half_breadth(rz(zb), -6.1) * .998
+    plate(f'bottom-{j}-keel', f'{zone} bottom plating', [[-ka, -6.1, rz(za)], [ka, -6.1, rz(za)], [kb, -6.1, rz(zb)], [-kb, -6.1, rz(zb)]], 20, True)
+    quad(f'bottom-{j}', f'{zone.lower()} bottom plating', (ka, -6.1, za), (kb, -6.1, zb), (half_breadth(rz(zb), tb) * .998, tb, zb),
+         (half_breadth(rz(za), ta) * .998, ta, za), 20, True)
 # Steering-gear box (25 mm).
 for id, vs in [('steering-port', [[-2.15, -2.1, rz(61.51)], [-2.15, -2.1, rz(72.47)], [-2.15, .1, rz(72.47)], [-2.15, .1, rz(61.51)]]),
                ('steering-starboard', [[2.15, -2.1, rz(61.51)], [2.15, -2.1, rz(72.47)], [2.15, .1, rz(72.47)], [2.15, .1, rz(61.51)]]),

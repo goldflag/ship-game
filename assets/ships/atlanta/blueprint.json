@@ -30222,6 +30222,5215 @@
       }
     },
     {
+      "id": "conning-tower-floor",
+      "name": "Conning tower floor",
+      "center": [
+        0,
+        12.82,
+        -26.095
+      ],
+      "size": [
+        5.68002,
+        0.00102,
+        3.15002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            -2.84,
+            12.82,
+            -26.1
+          ],
+          [
+            -2.3,
+            12.82,
+            -27.3
+          ],
+          [
+            0,
+            12.82,
+            -27.67
+          ],
+          [
+            2.3,
+            12.82,
+            -27.3
+          ],
+          [
+            2.84,
+            12.82,
+            -26.1
+          ],
+          [
+            2.6,
+            12.82,
+            -24.52
+          ],
+          [
+            -2.6,
+            12.82,
+            -24.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-1-barbette-deck",
+      "name": "No. 1 5-inch mount barbette deck",
+      "center": [
+        0,
+        6.005,
+        -52.402
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            6.005,
+            -52.402
+          ],
+          [
+            1.7184,
+            6.005,
+            -51.6902
+          ],
+          [
+            1.3152,
+            6.005,
+            -51.0868
+          ],
+          [
+            0.7118,
+            6.005,
+            -50.6836
+          ],
+          [
+            0,
+            6.005,
+            -50.542
+          ],
+          [
+            -0.7118,
+            6.005,
+            -50.6836
+          ],
+          [
+            -1.3152,
+            6.005,
+            -51.0868
+          ],
+          [
+            -1.7184,
+            6.005,
+            -51.6902
+          ],
+          [
+            -1.86,
+            6.005,
+            -52.402
+          ],
+          [
+            -1.7184,
+            6.005,
+            -53.1138
+          ],
+          [
+            -1.3152,
+            6.005,
+            -53.7172
+          ],
+          [
+            -0.7118,
+            6.005,
+            -54.1204
+          ],
+          [
+            0,
+            6.005,
+            -54.262
+          ],
+          [
+            0.7118,
+            6.005,
+            -54.1204
+          ],
+          [
+            1.3152,
+            6.005,
+            -53.7172
+          ],
+          [
+            1.7184,
+            6.005,
+            -53.1138
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-1-barbette-floor",
+      "name": "No. 1 5-inch mount barbette floor",
+      "center": [
+        0,
+        3.42,
+        -52.402
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            3.42,
+            -52.402
+          ],
+          [
+            1.7184,
+            3.42,
+            -51.6902
+          ],
+          [
+            1.3152,
+            3.42,
+            -51.0868
+          ],
+          [
+            0.7118,
+            3.42,
+            -50.6836
+          ],
+          [
+            0,
+            3.42,
+            -50.542
+          ],
+          [
+            -0.7118,
+            3.42,
+            -50.6836
+          ],
+          [
+            -1.3152,
+            3.42,
+            -51.0868
+          ],
+          [
+            -1.7184,
+            3.42,
+            -51.6902
+          ],
+          [
+            -1.86,
+            3.42,
+            -52.402
+          ],
+          [
+            -1.7184,
+            3.42,
+            -53.1138
+          ],
+          [
+            -1.3152,
+            3.42,
+            -53.7172
+          ],
+          [
+            -0.7118,
+            3.42,
+            -54.1204
+          ],
+          [
+            0,
+            3.42,
+            -54.262
+          ],
+          [
+            0.7118,
+            3.42,
+            -54.1204
+          ],
+          [
+            1.3152,
+            3.42,
+            -53.7172
+          ],
+          [
+            1.7184,
+            3.42,
+            -53.1138
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-2-barbette-deck",
+      "name": "No. 2 5-inch mount barbette deck",
+      "center": [
+        0,
+        7.93,
+        -43.894
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            7.93,
+            -43.894
+          ],
+          [
+            1.7184,
+            7.93,
+            -43.1822
+          ],
+          [
+            1.3152,
+            7.93,
+            -42.5788
+          ],
+          [
+            0.7118,
+            7.93,
+            -42.1756
+          ],
+          [
+            0,
+            7.93,
+            -42.034
+          ],
+          [
+            -0.7118,
+            7.93,
+            -42.1756
+          ],
+          [
+            -1.3152,
+            7.93,
+            -42.5788
+          ],
+          [
+            -1.7184,
+            7.93,
+            -43.1822
+          ],
+          [
+            -1.86,
+            7.93,
+            -43.894
+          ],
+          [
+            -1.7184,
+            7.93,
+            -44.6058
+          ],
+          [
+            -1.3152,
+            7.93,
+            -45.2092
+          ],
+          [
+            -0.7118,
+            7.93,
+            -45.6124
+          ],
+          [
+            0,
+            7.93,
+            -45.754
+          ],
+          [
+            0.7118,
+            7.93,
+            -45.6124
+          ],
+          [
+            1.3152,
+            7.93,
+            -45.2092
+          ],
+          [
+            1.7184,
+            7.93,
+            -44.6058
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-2-barbette-floor",
+      "name": "No. 2 5-inch mount barbette floor",
+      "center": [
+        0,
+        5.4,
+        -43.894
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            5.4,
+            -43.894
+          ],
+          [
+            1.7184,
+            5.4,
+            -43.1822
+          ],
+          [
+            1.3152,
+            5.4,
+            -42.5788
+          ],
+          [
+            0.7118,
+            5.4,
+            -42.1756
+          ],
+          [
+            0,
+            5.4,
+            -42.034
+          ],
+          [
+            -0.7118,
+            5.4,
+            -42.1756
+          ],
+          [
+            -1.3152,
+            5.4,
+            -42.5788
+          ],
+          [
+            -1.7184,
+            5.4,
+            -43.1822
+          ],
+          [
+            -1.86,
+            5.4,
+            -43.894
+          ],
+          [
+            -1.7184,
+            5.4,
+            -44.6058
+          ],
+          [
+            -1.3152,
+            5.4,
+            -45.2092
+          ],
+          [
+            -0.7118,
+            5.4,
+            -45.6124
+          ],
+          [
+            0,
+            5.4,
+            -45.754
+          ],
+          [
+            0.7118,
+            5.4,
+            -45.6124
+          ],
+          [
+            1.3152,
+            5.4,
+            -45.2092
+          ],
+          [
+            1.7184,
+            5.4,
+            -44.6058
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-3-barbette-deck",
+      "name": "No. 3 5-inch mount barbette deck",
+      "center": [
+        0,
+        9.85,
+        -35.384
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            9.85,
+            -35.384
+          ],
+          [
+            1.7184,
+            9.85,
+            -34.6722
+          ],
+          [
+            1.3152,
+            9.85,
+            -34.0688
+          ],
+          [
+            0.7118,
+            9.85,
+            -33.6656
+          ],
+          [
+            0,
+            9.85,
+            -33.524
+          ],
+          [
+            -0.7118,
+            9.85,
+            -33.6656
+          ],
+          [
+            -1.3152,
+            9.85,
+            -34.0688
+          ],
+          [
+            -1.7184,
+            9.85,
+            -34.6722
+          ],
+          [
+            -1.86,
+            9.85,
+            -35.384
+          ],
+          [
+            -1.7184,
+            9.85,
+            -36.0958
+          ],
+          [
+            -1.3152,
+            9.85,
+            -36.6992
+          ],
+          [
+            -0.7118,
+            9.85,
+            -37.1024
+          ],
+          [
+            0,
+            9.85,
+            -37.244
+          ],
+          [
+            0.7118,
+            9.85,
+            -37.1024
+          ],
+          [
+            1.3152,
+            9.85,
+            -36.6992
+          ],
+          [
+            1.7184,
+            9.85,
+            -36.0958
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-3-barbette-floor",
+      "name": "No. 3 5-inch mount barbette floor",
+      "center": [
+        0,
+        7.54,
+        -35.384
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            7.54,
+            -35.384
+          ],
+          [
+            1.7184,
+            7.54,
+            -34.6722
+          ],
+          [
+            1.3152,
+            7.54,
+            -34.0688
+          ],
+          [
+            0.7118,
+            7.54,
+            -33.6656
+          ],
+          [
+            0,
+            7.54,
+            -33.524
+          ],
+          [
+            -0.7118,
+            7.54,
+            -33.6656
+          ],
+          [
+            -1.3152,
+            7.54,
+            -34.0688
+          ],
+          [
+            -1.7184,
+            7.54,
+            -34.6722
+          ],
+          [
+            -1.86,
+            7.54,
+            -35.384
+          ],
+          [
+            -1.7184,
+            7.54,
+            -36.0958
+          ],
+          [
+            -1.3152,
+            7.54,
+            -36.6992
+          ],
+          [
+            -0.7118,
+            7.54,
+            -37.1024
+          ],
+          [
+            0,
+            7.54,
+            -37.244
+          ],
+          [
+            0.7118,
+            7.54,
+            -37.1024
+          ],
+          [
+            1.3152,
+            7.54,
+            -36.6992
+          ],
+          [
+            1.7184,
+            7.54,
+            -36.0958
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-4-barbette-deck",
+      "name": "No. 4 5-inch mount (port waist) barbette deck",
+      "center": [
+        -5.347,
+        3.645,
+        23.708
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            -3.487,
+            3.645,
+            23.708
+          ],
+          [
+            -3.6286,
+            3.645,
+            24.4198
+          ],
+          [
+            -4.0318,
+            3.645,
+            25.0232
+          ],
+          [
+            -4.6352,
+            3.645,
+            25.4264
+          ],
+          [
+            -5.347,
+            3.645,
+            25.568
+          ],
+          [
+            -6.0588,
+            3.645,
+            25.4264
+          ],
+          [
+            -6.6622,
+            3.645,
+            25.0232
+          ],
+          [
+            -7.0654,
+            3.645,
+            24.4198
+          ],
+          [
+            -7.207,
+            3.645,
+            23.708
+          ],
+          [
+            -7.0654,
+            3.645,
+            22.9962
+          ],
+          [
+            -6.6622,
+            3.645,
+            22.3928
+          ],
+          [
+            -6.0588,
+            3.645,
+            21.9896
+          ],
+          [
+            -5.347,
+            3.645,
+            21.848
+          ],
+          [
+            -4.6352,
+            3.645,
+            21.9896
+          ],
+          [
+            -4.0318,
+            3.645,
+            22.3928
+          ],
+          [
+            -3.6286,
+            3.645,
+            22.9962
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-4-barbette-floor",
+      "name": "No. 4 5-inch mount (port waist) barbette floor",
+      "center": [
+        -5.347,
+        1.13,
+        23.708
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            -3.487,
+            1.13,
+            23.708
+          ],
+          [
+            -3.6286,
+            1.13,
+            24.4198
+          ],
+          [
+            -4.0318,
+            1.13,
+            25.0232
+          ],
+          [
+            -4.6352,
+            1.13,
+            25.4264
+          ],
+          [
+            -5.347,
+            1.13,
+            25.568
+          ],
+          [
+            -6.0588,
+            1.13,
+            25.4264
+          ],
+          [
+            -6.6622,
+            1.13,
+            25.0232
+          ],
+          [
+            -7.0654,
+            1.13,
+            24.4198
+          ],
+          [
+            -7.207,
+            1.13,
+            23.708
+          ],
+          [
+            -7.0654,
+            1.13,
+            22.9962
+          ],
+          [
+            -6.6622,
+            1.13,
+            22.3928
+          ],
+          [
+            -6.0588,
+            1.13,
+            21.9896
+          ],
+          [
+            -5.347,
+            1.13,
+            21.848
+          ],
+          [
+            -4.6352,
+            1.13,
+            21.9896
+          ],
+          [
+            -4.0318,
+            1.13,
+            22.3928
+          ],
+          [
+            -3.6286,
+            1.13,
+            22.9962
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-5-barbette-deck",
+      "name": "No. 5 5-inch mount (starboard waist) barbette deck",
+      "center": [
+        5.348,
+        3.645,
+        23.708
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            7.208,
+            3.645,
+            23.708
+          ],
+          [
+            7.0664,
+            3.645,
+            24.4198
+          ],
+          [
+            6.6632,
+            3.645,
+            25.0232
+          ],
+          [
+            6.0598,
+            3.645,
+            25.4264
+          ],
+          [
+            5.348,
+            3.645,
+            25.568
+          ],
+          [
+            4.6362,
+            3.645,
+            25.4264
+          ],
+          [
+            4.0328,
+            3.645,
+            25.0232
+          ],
+          [
+            3.6296,
+            3.645,
+            24.4198
+          ],
+          [
+            3.488,
+            3.645,
+            23.708
+          ],
+          [
+            3.6296,
+            3.645,
+            22.9962
+          ],
+          [
+            4.0328,
+            3.645,
+            22.3928
+          ],
+          [
+            4.6362,
+            3.645,
+            21.9896
+          ],
+          [
+            5.348,
+            3.645,
+            21.848
+          ],
+          [
+            6.0598,
+            3.645,
+            21.9896
+          ],
+          [
+            6.6632,
+            3.645,
+            22.3928
+          ],
+          [
+            7.0664,
+            3.645,
+            22.9962
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-5-barbette-floor",
+      "name": "No. 5 5-inch mount (starboard waist) barbette floor",
+      "center": [
+        5.348,
+        1.13,
+        23.708
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            7.208,
+            1.13,
+            23.708
+          ],
+          [
+            7.0664,
+            1.13,
+            24.4198
+          ],
+          [
+            6.6632,
+            1.13,
+            25.0232
+          ],
+          [
+            6.0598,
+            1.13,
+            25.4264
+          ],
+          [
+            5.348,
+            1.13,
+            25.568
+          ],
+          [
+            4.6362,
+            1.13,
+            25.4264
+          ],
+          [
+            4.0328,
+            1.13,
+            25.0232
+          ],
+          [
+            3.6296,
+            1.13,
+            24.4198
+          ],
+          [
+            3.488,
+            1.13,
+            23.708
+          ],
+          [
+            3.6296,
+            1.13,
+            22.9962
+          ],
+          [
+            4.0328,
+            1.13,
+            22.3928
+          ],
+          [
+            4.6362,
+            1.13,
+            21.9896
+          ],
+          [
+            5.348,
+            1.13,
+            21.848
+          ],
+          [
+            6.0598,
+            1.13,
+            21.9896
+          ],
+          [
+            6.6632,
+            1.13,
+            22.3928
+          ],
+          [
+            7.0664,
+            1.13,
+            22.9962
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-6-barbette-deck",
+      "name": "No. 6 5-inch mount barbette deck",
+      "center": [
+        0,
+        7.32,
+        34.087
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            7.32,
+            34.087
+          ],
+          [
+            1.7184,
+            7.32,
+            34.7988
+          ],
+          [
+            1.3152,
+            7.32,
+            35.4022
+          ],
+          [
+            0.7118,
+            7.32,
+            35.8054
+          ],
+          [
+            0,
+            7.32,
+            35.947
+          ],
+          [
+            -0.7118,
+            7.32,
+            35.8054
+          ],
+          [
+            -1.3152,
+            7.32,
+            35.4022
+          ],
+          [
+            -1.7184,
+            7.32,
+            34.7988
+          ],
+          [
+            -1.86,
+            7.32,
+            34.087
+          ],
+          [
+            -1.7184,
+            7.32,
+            33.3752
+          ],
+          [
+            -1.3152,
+            7.32,
+            32.7718
+          ],
+          [
+            -0.7118,
+            7.32,
+            32.3686
+          ],
+          [
+            0,
+            7.32,
+            32.227
+          ],
+          [
+            0.7118,
+            7.32,
+            32.3686
+          ],
+          [
+            1.3152,
+            7.32,
+            32.7718
+          ],
+          [
+            1.7184,
+            7.32,
+            33.3752
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-6-barbette-floor",
+      "name": "No. 6 5-inch mount barbette floor",
+      "center": [
+        0,
+        3.65,
+        34.087
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            3.65,
+            34.087
+          ],
+          [
+            1.7184,
+            3.65,
+            34.7988
+          ],
+          [
+            1.3152,
+            3.65,
+            35.4022
+          ],
+          [
+            0.7118,
+            3.65,
+            35.8054
+          ],
+          [
+            0,
+            3.65,
+            35.947
+          ],
+          [
+            -0.7118,
+            3.65,
+            35.8054
+          ],
+          [
+            -1.3152,
+            3.65,
+            35.4022
+          ],
+          [
+            -1.7184,
+            3.65,
+            34.7988
+          ],
+          [
+            -1.86,
+            3.65,
+            34.087
+          ],
+          [
+            -1.7184,
+            3.65,
+            33.3752
+          ],
+          [
+            -1.3152,
+            3.65,
+            32.7718
+          ],
+          [
+            -0.7118,
+            3.65,
+            32.3686
+          ],
+          [
+            0,
+            3.65,
+            32.227
+          ],
+          [
+            0.7118,
+            3.65,
+            32.3686
+          ],
+          [
+            1.3152,
+            3.65,
+            32.7718
+          ],
+          [
+            1.7184,
+            3.65,
+            33.3752
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-7-barbette-deck",
+      "name": "No. 7 5-inch mount barbette deck",
+      "center": [
+        0,
+        5.62,
+        42.428
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            5.62,
+            42.428
+          ],
+          [
+            1.7184,
+            5.62,
+            43.1398
+          ],
+          [
+            1.3152,
+            5.62,
+            43.7432
+          ],
+          [
+            0.7118,
+            5.62,
+            44.1464
+          ],
+          [
+            0,
+            5.62,
+            44.288
+          ],
+          [
+            -0.7118,
+            5.62,
+            44.1464
+          ],
+          [
+            -1.3152,
+            5.62,
+            43.7432
+          ],
+          [
+            -1.7184,
+            5.62,
+            43.1398
+          ],
+          [
+            -1.86,
+            5.62,
+            42.428
+          ],
+          [
+            -1.7184,
+            5.62,
+            41.7162
+          ],
+          [
+            -1.3152,
+            5.62,
+            41.1128
+          ],
+          [
+            -0.7118,
+            5.62,
+            40.7096
+          ],
+          [
+            0,
+            5.62,
+            40.568
+          ],
+          [
+            0.7118,
+            5.62,
+            40.7096
+          ],
+          [
+            1.3152,
+            5.62,
+            41.1128
+          ],
+          [
+            1.7184,
+            5.62,
+            41.7162
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-7-barbette-floor",
+      "name": "No. 7 5-inch mount barbette floor",
+      "center": [
+        0,
+        3.71,
+        42.428
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            3.71,
+            42.428
+          ],
+          [
+            1.7184,
+            3.71,
+            43.1398
+          ],
+          [
+            1.3152,
+            3.71,
+            43.7432
+          ],
+          [
+            0.7118,
+            3.71,
+            44.1464
+          ],
+          [
+            0,
+            3.71,
+            44.288
+          ],
+          [
+            -0.7118,
+            3.71,
+            44.1464
+          ],
+          [
+            -1.3152,
+            3.71,
+            43.7432
+          ],
+          [
+            -1.7184,
+            3.71,
+            43.1398
+          ],
+          [
+            -1.86,
+            3.71,
+            42.428
+          ],
+          [
+            -1.7184,
+            3.71,
+            41.7162
+          ],
+          [
+            -1.3152,
+            3.71,
+            41.1128
+          ],
+          [
+            -0.7118,
+            3.71,
+            40.7096
+          ],
+          [
+            0,
+            3.71,
+            40.568
+          ],
+          [
+            0.7118,
+            3.71,
+            40.7096
+          ],
+          [
+            1.3152,
+            3.71,
+            41.1128
+          ],
+          [
+            1.7184,
+            3.71,
+            41.7162
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-8-barbette-deck",
+      "name": "No. 8 5-inch mount barbette deck",
+      "center": [
+        0,
+        3.82,
+        50.984
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            3.82,
+            50.984
+          ],
+          [
+            1.7184,
+            3.82,
+            51.6958
+          ],
+          [
+            1.3152,
+            3.82,
+            52.2992
+          ],
+          [
+            0.7118,
+            3.82,
+            52.7024
+          ],
+          [
+            0,
+            3.82,
+            52.844
+          ],
+          [
+            -0.7118,
+            3.82,
+            52.7024
+          ],
+          [
+            -1.3152,
+            3.82,
+            52.2992
+          ],
+          [
+            -1.7184,
+            3.82,
+            51.6958
+          ],
+          [
+            -1.86,
+            3.82,
+            50.984
+          ],
+          [
+            -1.7184,
+            3.82,
+            50.2722
+          ],
+          [
+            -1.3152,
+            3.82,
+            49.6688
+          ],
+          [
+            -0.7118,
+            3.82,
+            49.2656
+          ],
+          [
+            0,
+            3.82,
+            49.124
+          ],
+          [
+            0.7118,
+            3.82,
+            49.2656
+          ],
+          [
+            1.3152,
+            3.82,
+            49.6688
+          ],
+          [
+            1.7184,
+            3.82,
+            50.2722
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "main-8-barbette-floor",
+      "name": "No. 8 5-inch mount barbette floor",
+      "center": [
+        0,
+        1.59,
+        50.984
+      ],
+      "size": [
+        3.72002,
+        0.00102,
+        3.72002
+      ],
+      "thicknessMm": 16,
+      "plate": {
+        "vertices": [
+          [
+            1.86,
+            1.59,
+            50.984
+          ],
+          [
+            1.7184,
+            1.59,
+            51.6958
+          ],
+          [
+            1.3152,
+            1.59,
+            52.2992
+          ],
+          [
+            0.7118,
+            1.59,
+            52.7024
+          ],
+          [
+            0,
+            1.59,
+            52.844
+          ],
+          [
+            -0.7118,
+            1.59,
+            52.7024
+          ],
+          [
+            -1.3152,
+            1.59,
+            52.2992
+          ],
+          [
+            -1.7184,
+            1.59,
+            51.6958
+          ],
+          [
+            -1.86,
+            1.59,
+            50.984
+          ],
+          [
+            -1.7184,
+            1.59,
+            50.2722
+          ],
+          [
+            -1.3152,
+            1.59,
+            49.6688
+          ],
+          [
+            -0.7118,
+            1.59,
+            49.2656
+          ],
+          [
+            0,
+            1.59,
+            49.124
+          ],
+          [
+            0.7118,
+            1.59,
+            49.2656
+          ],
+          [
+            1.3152,
+            1.59,
+            49.6688
+          ],
+          [
+            1.7184,
+            1.59,
+            50.2722
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "magazine-floor-forward",
+      "name": "Forward magazine floor",
+      "center": [
+        0,
+        -4.14,
+        -42.815
+      ],
+      "size": [
+        8.78002,
+        0.00102,
+        22.91002
+      ],
+      "thicknessMm": 6,
+      "plate": {
+        "vertices": [
+          [
+            -2.58,
+            -4.14,
+            -54.27
+          ],
+          [
+            2.58,
+            -4.14,
+            -54.27
+          ],
+          [
+            4.39,
+            -4.14,
+            -31.36
+          ],
+          [
+            -4.39,
+            -4.14,
+            -31.36
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "magazine-floor-after",
+      "name": "After magazine floor",
+      "center": [
+        0,
+        -3.74,
+        39.22
+      ],
+      "size": [
+        5.76002,
+        0.00102,
+        27.28002
+      ],
+      "thicknessMm": 6,
+      "plate": {
+        "vertices": [
+          [
+            -2.88,
+            -3.74,
+            25.58
+          ],
+          [
+            2.88,
+            -3.74,
+            25.58
+          ],
+          [
+            1.51,
+            -3.74,
+            52.86
+          ],
+          [
+            -1.51,
+            -3.74,
+            52.86
+          ]
+        ],
+        "material": "steel",
+        "exterior": false
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-0-keel",
+      "name": "Bow bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -79.375
+      ],
+      "size": [
+        0.92362,
+        0.00102,
+        1.65002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.1057,
+            -6.1,
+            -80.2
+          ],
+          [
+            0.1057,
+            -6.1,
+            -80.2
+          ],
+          [
+            0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            -0.4618,
+            -6.1,
+            -78.55
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-0-port-a",
+      "name": "Port bow bottom plating",
+      "center": [
+        -0.48555,
+        -5.605,
+        -79.375
+      ],
+      "size": [
+        0.75972,
+        0.99002,
+        1.65002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.1057,
+            -6.1,
+            -80.2
+          ],
+          [
+            -0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            -0.8654,
+            -5.11,
+            -78.55
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-0-port-b",
+      "name": "Port bow bottom plating",
+      "center": [
+        -0.48555,
+        -5.605,
+        -79.375
+      ],
+      "size": [
+        0.75972,
+        0.99002,
+        1.65002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.1057,
+            -6.1,
+            -80.2
+          ],
+          [
+            -0.8654,
+            -5.11,
+            -78.55
+          ],
+          [
+            -0.4876,
+            -5.11,
+            -80.2
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-0-starboard-a",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        0.48555,
+        -5.605,
+        -79.375
+      ],
+      "size": [
+        0.75972,
+        0.99002,
+        1.65002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.1057,
+            -6.1,
+            -80.2
+          ],
+          [
+            0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            0.8654,
+            -5.11,
+            -78.55
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-0-starboard-b",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        0.48555,
+        -5.605,
+        -79.375
+      ],
+      "size": [
+        0.75972,
+        0.99002,
+        1.65002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.1057,
+            -6.1,
+            -80.2
+          ],
+          [
+            0.8654,
+            -5.11,
+            -78.55
+          ],
+          [
+            0.4876,
+            -5.11,
+            -80.2
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-1-keel",
+      "name": "Bow bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -75.535
+      ],
+      "size": [
+        1.09922,
+        0.00102,
+        6.03002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            -0.5496,
+            -6.1,
+            -72.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-1-port-a",
+      "name": "Port bow bottom plating",
+      "center": [
+        -0.82715,
+        -5.615,
+        -75.535
+      ],
+      "size": [
+        0.73072,
+        0.97002,
+        6.03002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            -0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            -1.1925,
+            -5.13,
+            -72.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-1-port-b",
+      "name": "Port bow bottom plating",
+      "center": [
+        -0.82715,
+        -5.605,
+        -75.535
+      ],
+      "size": [
+        0.73072,
+        0.99002,
+        6.03002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            -1.1925,
+            -5.13,
+            -72.52
+          ],
+          [
+            -0.8654,
+            -5.11,
+            -78.55
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-1-starboard-a",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        0.82715,
+        -5.615,
+        -75.535
+      ],
+      "size": [
+        0.73072,
+        0.97002,
+        6.03002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            1.1925,
+            -5.13,
+            -72.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-1-starboard-b",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        0.82715,
+        -5.605,
+        -75.535
+      ],
+      "size": [
+        0.73072,
+        0.99002,
+        6.03002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.4618,
+            -6.1,
+            -78.55
+          ],
+          [
+            1.1925,
+            -5.13,
+            -72.52
+          ],
+          [
+            0.8654,
+            -5.11,
+            -78.55
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-2-keel",
+      "name": "Bow bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -68.455
+      ],
+      "size": [
+        1.46802,
+        0.00102,
+        8.13002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            -0.734,
+            -6.1,
+            -64.39
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-2-port-a",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.04805,
+        -5.65,
+        -68.455
+      ],
+      "size": [
+        0.99692,
+        0.90002,
+        8.13002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            -0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            -1.5465,
+            -5.2,
+            -64.39
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-2-port-b",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.04805,
+        -5.615,
+        -68.455
+      ],
+      "size": [
+        0.99692,
+        0.97002,
+        8.13002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            -1.5465,
+            -5.2,
+            -64.39
+          ],
+          [
+            -1.1925,
+            -5.13,
+            -72.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-2-starboard-a",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.04805,
+        -5.65,
+        -68.455
+      ],
+      "size": [
+        0.99692,
+        0.90002,
+        8.13002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            1.5465,
+            -5.2,
+            -64.39
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-2-starboard-b",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.04805,
+        -5.615,
+        -68.455
+      ],
+      "size": [
+        0.99692,
+        0.97002,
+        8.13002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.5496,
+            -6.1,
+            -72.52
+          ],
+          [
+            1.5465,
+            -5.2,
+            -64.39
+          ],
+          [
+            1.1925,
+            -5.13,
+            -72.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-3-keel",
+      "name": "Bow bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -59.33
+      ],
+      "size": [
+        2.01462,
+        0.00102,
+        10.12002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            -1.0073,
+            -6.1,
+            -54.27
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-3-port-a",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.3639,
+        -5.7,
+        -59.33
+      ],
+      "size": [
+        1.25982,
+        0.80002,
+        10.12002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            -1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            -1.9938,
+            -5.3,
+            -54.27
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-3-port-b",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.3639,
+        -5.65,
+        -59.33
+      ],
+      "size": [
+        1.25982,
+        0.90002,
+        10.12002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            -1.9938,
+            -5.3,
+            -54.27
+          ],
+          [
+            -1.5465,
+            -5.2,
+            -64.39
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-3-starboard-a",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.3639,
+        -5.7,
+        -59.33
+      ],
+      "size": [
+        1.25982,
+        0.80002,
+        10.12002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            1.9938,
+            -5.3,
+            -54.27
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-3-starboard-b",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.3639,
+        -5.65,
+        -59.33
+      ],
+      "size": [
+        1.25982,
+        0.90002,
+        10.12002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.734,
+            -6.1,
+            -64.39
+          ],
+          [
+            1.9938,
+            -5.3,
+            -54.27
+          ],
+          [
+            1.5465,
+            -5.2,
+            -64.39
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-4-keel",
+      "name": "Bow bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -50.745
+      ],
+      "size": [
+        2.12182,
+        0.00102,
+        7.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            -1.0609,
+            -6.1,
+            -47.22
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-4-port-a",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.6543,
+        -5.74,
+        -50.745
+      ],
+      "size": [
+        1.29402,
+        0.72002,
+        7.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            -1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            -2.3013,
+            -5.38,
+            -47.22
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-4-port-b",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.6543,
+        -5.7,
+        -50.745
+      ],
+      "size": [
+        1.29402,
+        0.80002,
+        7.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            -2.3013,
+            -5.38,
+            -47.22
+          ],
+          [
+            -1.9938,
+            -5.3,
+            -54.27
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-4-starboard-a",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.6543,
+        -5.74,
+        -50.745
+      ],
+      "size": [
+        1.29402,
+        0.72002,
+        7.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            2.3013,
+            -5.38,
+            -47.22
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-4-starboard-b",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.6543,
+        -5.7,
+        -50.745
+      ],
+      "size": [
+        1.29402,
+        0.80002,
+        7.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.0073,
+            -6.1,
+            -54.27
+          ],
+          [
+            2.3013,
+            -5.38,
+            -47.22
+          ],
+          [
+            1.9938,
+            -5.3,
+            -54.27
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-5-keel",
+      "name": "Bow bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -42.65
+      ],
+      "size": [
+        2.40742,
+        0.00102,
+        9.14002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            -1.2037,
+            -6.1,
+            -38.08
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-5-port-a",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.84475,
+        -5.775,
+        -42.65
+      ],
+      "size": [
+        1.56772,
+        0.65002,
+        9.14002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            -1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            -2.6286,
+            -5.45,
+            -38.08
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-5-port-b",
+      "name": "Port bow bottom plating",
+      "center": [
+        -1.84475,
+        -5.74,
+        -42.65
+      ],
+      "size": [
+        1.56772,
+        0.72002,
+        9.14002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            -2.6286,
+            -5.45,
+            -38.08
+          ],
+          [
+            -2.3013,
+            -5.38,
+            -47.22
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-5-starboard-a",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.84475,
+        -5.775,
+        -42.65
+      ],
+      "size": [
+        1.56772,
+        0.65002,
+        9.14002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            2.6286,
+            -5.45,
+            -38.08
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-5-starboard-b",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        1.84475,
+        -5.74,
+        -42.65
+      ],
+      "size": [
+        1.56772,
+        0.72002,
+        9.14002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.0609,
+            -6.1,
+            -47.22
+          ],
+          [
+            2.6286,
+            -5.45,
+            -38.08
+          ],
+          [
+            2.3013,
+            -5.38,
+            -47.22
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-6-keel",
+      "name": "Bow bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -34.72
+      ],
+      "size": [
+        2.70042,
+        0.00102,
+        6.72002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            -1.3502,
+            -6.1,
+            -31.36
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-6-port-a",
+      "name": "Port bow bottom plating",
+      "center": [
+        -2.04735,
+        -5.81,
+        -34.72
+      ],
+      "size": [
+        1.68732,
+        0.58002,
+        6.72002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            -1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            -2.891,
+            -5.52,
+            -31.36
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-6-port-b",
+      "name": "Port bow bottom plating",
+      "center": [
+        -2.04735,
+        -5.775,
+        -34.72
+      ],
+      "size": [
+        1.68732,
+        0.65002,
+        6.72002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            -2.891,
+            -5.52,
+            -31.36
+          ],
+          [
+            -2.6286,
+            -5.45,
+            -38.08
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-6-starboard-a",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        2.04735,
+        -5.81,
+        -34.72
+      ],
+      "size": [
+        1.68732,
+        0.58002,
+        6.72002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            2.891,
+            -5.52,
+            -31.36
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-6-starboard-b",
+      "name": "Starboard bow bottom plating",
+      "center": [
+        2.04735,
+        -5.775,
+        -34.72
+      ],
+      "size": [
+        1.68732,
+        0.65002,
+        6.72002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.2037,
+            -6.1,
+            -38.08
+          ],
+          [
+            2.891,
+            -5.52,
+            -31.36
+          ],
+          [
+            2.6286,
+            -5.45,
+            -38.08
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-7-keel",
+      "name": "Citadel bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -27.94
+      ],
+      "size": [
+        3.04582,
+        0.00102,
+        6.84002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            -1.5229,
+            -6.1,
+            -24.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-7-port-a",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.2554,
+        -5.85,
+        -27.94
+      ],
+      "size": [
+        1.81042,
+        0.50002,
+        6.84002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            -1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            -3.1606,
+            -5.6,
+            -24.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-7-port-b",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.2554,
+        -5.81,
+        -27.94
+      ],
+      "size": [
+        1.81042,
+        0.58002,
+        6.84002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            -3.1606,
+            -5.6,
+            -24.52
+          ],
+          [
+            -2.891,
+            -5.52,
+            -31.36
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-7-starboard-a",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.2554,
+        -5.85,
+        -27.94
+      ],
+      "size": [
+        1.81042,
+        0.50002,
+        6.84002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            3.1606,
+            -5.6,
+            -24.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-7-starboard-b",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.2554,
+        -5.81,
+        -27.94
+      ],
+      "size": [
+        1.81042,
+        0.58002,
+        6.84002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.3502,
+            -6.1,
+            -31.36
+          ],
+          [
+            3.1606,
+            -5.6,
+            -24.52
+          ],
+          [
+            2.891,
+            -5.52,
+            -31.36
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-8-keel",
+      "name": "Citadel bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -16.24
+      ],
+      "size": [
+        4.53742,
+        0.00102,
+        16.56002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            -2.2687,
+            -6.1,
+            -7.96
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-8-port-a",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.43125,
+        -5.99,
+        -16.24
+      ],
+      "size": [
+        1.81672,
+        0.22002,
+        16.56002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            -2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            -3.3396,
+            -5.88,
+            -7.96
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-8-port-b",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.43125,
+        -5.85,
+        -16.24
+      ],
+      "size": [
+        1.81672,
+        0.50002,
+        16.56002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            -3.3396,
+            -5.88,
+            -7.96
+          ],
+          [
+            -3.1606,
+            -5.6,
+            -24.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-8-starboard-a",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.43125,
+        -5.99,
+        -16.24
+      ],
+      "size": [
+        1.81672,
+        0.22002,
+        16.56002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            3.3396,
+            -5.88,
+            -7.96
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-8-starboard-b",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.43125,
+        -5.85,
+        -16.24
+      ],
+      "size": [
+        1.81672,
+        0.50002,
+        16.56002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.5229,
+            -6.1,
+            -24.52
+          ],
+          [
+            3.3396,
+            -5.88,
+            -7.96
+          ],
+          [
+            3.1606,
+            -5.6,
+            -24.52
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-9-keel",
+      "name": "Citadel bottom plating",
+      "center": [
+        0,
+        -6.1,
+        -4.005
+      ],
+      "size": [
+        4.83522,
+        0.00102,
+        7.91002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            -2.4176,
+            -6.1,
+            -0.05
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-9-port-a",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.8073,
+        -6.005,
+        -4.005
+      ],
+      "size": [
+        1.07722,
+        0.19002,
+        7.91002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            -2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            -3.3459,
+            -5.91,
+            -0.05
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-9-port-b",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.8073,
+        -5.99,
+        -4.005
+      ],
+      "size": [
+        1.07722,
+        0.22002,
+        7.91002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            -3.3459,
+            -5.91,
+            -0.05
+          ],
+          [
+            -3.3396,
+            -5.88,
+            -7.96
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-9-starboard-a",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.8073,
+        -6.005,
+        -4.005
+      ],
+      "size": [
+        1.07722,
+        0.19002,
+        7.91002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            3.3459,
+            -5.91,
+            -0.05
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-9-starboard-b",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.8073,
+        -5.99,
+        -4.005
+      ],
+      "size": [
+        1.07722,
+        0.22002,
+        7.91002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            2.2687,
+            -6.1,
+            -7.96
+          ],
+          [
+            3.3459,
+            -5.91,
+            -0.05
+          ],
+          [
+            3.3396,
+            -5.88,
+            -7.96
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-10-keel",
+      "name": "Citadel bottom plating",
+      "center": [
+        0,
+        -6.1,
+        8.065
+      ],
+      "size": [
+        4.83522,
+        0.00102,
+        16.23002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            -1.3615,
+            -6.1,
+            16.18
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-10-port-a",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.2976,
+        -5.905,
+        8.065
+      ],
+      "size": [
+        1.87222,
+        0.39002,
+        16.23002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            -1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            -3.2337,
+            -5.71,
+            16.18
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-10-port-b",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.88175,
+        -5.905,
+        8.065
+      ],
+      "size": [
+        0.92832,
+        0.39002,
+        16.23002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            -3.2337,
+            -5.71,
+            16.18
+          ],
+          [
+            -3.3459,
+            -5.91,
+            -0.05
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-10-starboard-a",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.2976,
+        -5.905,
+        8.065
+      ],
+      "size": [
+        1.87222,
+        0.39002,
+        16.23002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            3.2337,
+            -5.71,
+            16.18
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-10-starboard-b",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.88175,
+        -5.905,
+        8.065
+      ],
+      "size": [
+        0.92832,
+        0.39002,
+        16.23002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            2.4176,
+            -6.1,
+            -0.05
+          ],
+          [
+            3.2337,
+            -5.71,
+            16.18
+          ],
+          [
+            3.3459,
+            -5.91,
+            -0.05
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-11-keel",
+      "name": "Citadel bottom plating",
+      "center": [
+        0,
+        -6.1,
+        20.88
+      ],
+      "size": [
+        2.72302,
+        0.00102,
+        9.40002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            -0.7709,
+            -6.1,
+            25.58
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-11-port-a",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -1.95225,
+        -5.73,
+        20.88
+      ],
+      "size": [
+        2.36272,
+        0.74002,
+        9.40002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            -0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            -3.1336,
+            -5.36,
+            25.58
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-11-port-b",
+      "name": "Port citadel bottom plating",
+      "center": [
+        -2.2976,
+        -5.73,
+        20.88
+      ],
+      "size": [
+        1.87222,
+        0.74002,
+        9.40002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            -3.1336,
+            -5.36,
+            25.58
+          ],
+          [
+            -3.2337,
+            -5.71,
+            16.18
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-11-starboard-a",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        1.95225,
+        -5.73,
+        20.88
+      ],
+      "size": [
+        2.36272,
+        0.74002,
+        9.40002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            3.1336,
+            -5.36,
+            25.58
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-11-starboard-b",
+      "name": "Starboard citadel bottom plating",
+      "center": [
+        2.2976,
+        -5.73,
+        20.88
+      ],
+      "size": [
+        1.87222,
+        0.74002,
+        9.40002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            1.3615,
+            -6.1,
+            16.18
+          ],
+          [
+            3.1336,
+            -5.36,
+            25.58
+          ],
+          [
+            3.2337,
+            -5.71,
+            16.18
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-12-keel",
+      "name": "Stern bottom plating",
+      "center": [
+        0,
+        -6.1,
+        32.105
+      ],
+      "size": [
+        1.54182,
+        0.00102,
+        13.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            -0.3828,
+            -6.1,
+            38.63
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-12-port-a",
+      "name": "Port stern bottom plating",
+      "center": [
+        -1.5874,
+        -5.31,
+        32.105
+      ],
+      "size": [
+        2.40922,
+        1.58002,
+        13.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            -0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            -2.792,
+            -4.52,
+            38.63
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-12-port-b",
+      "name": "Port stern bottom plating",
+      "center": [
+        -1.95225,
+        -5.31,
+        32.105
+      ],
+      "size": [
+        2.36272,
+        1.58002,
+        13.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            -2.792,
+            -4.52,
+            38.63
+          ],
+          [
+            -3.1336,
+            -5.36,
+            25.58
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-12-starboard-a",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        1.5874,
+        -5.31,
+        32.105
+      ],
+      "size": [
+        2.40922,
+        1.58002,
+        13.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            2.792,
+            -4.52,
+            38.63
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-12-starboard-b",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        1.95225,
+        -5.31,
+        32.105
+      ],
+      "size": [
+        2.36272,
+        1.58002,
+        13.05002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.7709,
+            -6.1,
+            25.58
+          ],
+          [
+            2.792,
+            -4.52,
+            38.63
+          ],
+          [
+            3.1336,
+            -5.36,
+            25.58
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-13-keel",
+      "name": "Stern bottom plating",
+      "center": [
+        0,
+        -6.1,
+        41.66
+      ],
+      "size": [
+        0.76562,
+        0.00102,
+        6.06002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            -0.3231,
+            -6.1,
+            44.69
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-13-port-a",
+      "name": "Port stern bottom plating",
+      "center": [
+        -1.4719,
+        -5.07,
+        41.66
+      ],
+      "size": [
+        2.29762,
+        2.06002,
+        6.06002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            -0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            -2.6207,
+            -4.04,
+            44.69
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-13-port-b",
+      "name": "Port stern bottom plating",
+      "center": [
+        -1.5874,
+        -5.07,
+        41.66
+      ],
+      "size": [
+        2.40922,
+        2.06002,
+        6.06002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            -2.6207,
+            -4.04,
+            44.69
+          ],
+          [
+            -2.792,
+            -4.52,
+            38.63
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-13-starboard-a",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        1.4719,
+        -5.07,
+        41.66
+      ],
+      "size": [
+        2.29762,
+        2.06002,
+        6.06002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            2.6207,
+            -4.04,
+            44.69
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-13-starboard-b",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        1.5874,
+        -5.07,
+        41.66
+      ],
+      "size": [
+        2.40922,
+        2.06002,
+        6.06002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.3828,
+            -6.1,
+            38.63
+          ],
+          [
+            2.6207,
+            -4.04,
+            44.69
+          ],
+          [
+            2.792,
+            -4.52,
+            38.63
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-14-keel",
+      "name": "Stern bottom plating",
+      "center": [
+        0,
+        -6.1,
+        48.775
+      ],
+      "size": [
+        0.64622,
+        0.00102,
+        8.17002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            -0.3122,
+            -6.1,
+            52.86
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-14-port-a",
+      "name": "Port stern bottom plating",
+      "center": [
+        -0.90265,
+        -4.92,
+        48.775
+      ],
+      "size": [
+        1.18092,
+        2.36002,
+        8.17002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            -0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            -1.4931,
+            -3.74,
+            52.86
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-14-port-b",
+      "name": "Port stern bottom plating",
+      "center": [
+        -1.4719,
+        -4.92,
+        48.775
+      ],
+      "size": [
+        2.29762,
+        2.36002,
+        8.17002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            -1.4931,
+            -3.74,
+            52.86
+          ],
+          [
+            -2.6207,
+            -4.04,
+            44.69
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-14-starboard-a",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        0.90265,
+        -4.92,
+        48.775
+      ],
+      "size": [
+        1.18092,
+        2.36002,
+        8.17002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            1.4931,
+            -3.74,
+            52.86
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-14-starboard-b",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        1.4719,
+        -4.92,
+        48.775
+      ],
+      "size": [
+        2.29762,
+        2.36002,
+        8.17002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.3231,
+            -6.1,
+            44.69
+          ],
+          [
+            1.4931,
+            -3.74,
+            52.86
+          ],
+          [
+            2.6207,
+            -4.04,
+            44.69
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-15-keel",
+      "name": "Stern bottom plating",
+      "center": [
+        0,
+        -6.1,
+        55.53
+      ],
+      "size": [
+        0.62442,
+        0.00102,
+        5.34002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            0.2583,
+            -6.1,
+            58.2
+          ],
+          [
+            -0.2583,
+            -6.1,
+            58.2
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-15-port-a",
+      "name": "Port stern bottom plating",
+      "center": [
+        -0.51255,
+        -4.8,
+        55.53
+      ],
+      "size": [
+        0.50852,
+        2.60002,
+        5.34002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            -0.2583,
+            -6.1,
+            58.2
+          ],
+          [
+            -0.7668,
+            -3.5,
+            58.2
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-15-port-b",
+      "name": "Port stern bottom plating",
+      "center": [
+        -0.90265,
+        -4.8,
+        55.53
+      ],
+      "size": [
+        1.18092,
+        2.60002,
+        5.34002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            -0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            -0.7668,
+            -3.5,
+            58.2
+          ],
+          [
+            -1.4931,
+            -3.74,
+            52.86
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-15-starboard-a",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        0.51255,
+        -4.8,
+        55.53
+      ],
+      "size": [
+        0.50852,
+        2.60002,
+        5.34002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            0.2583,
+            -6.1,
+            58.2
+          ],
+          [
+            0.7668,
+            -3.5,
+            58.2
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
+      "id": "bottom-15-starboard-b",
+      "name": "Starboard stern bottom plating",
+      "center": [
+        0.90265,
+        -4.8,
+        55.53
+      ],
+      "size": [
+        1.18092,
+        2.60002,
+        5.34002
+      ],
+      "thicknessMm": 20,
+      "plate": {
+        "vertices": [
+          [
+            0.3122,
+            -6.1,
+            52.86
+          ],
+          [
+            0.7668,
+            -3.5,
+            58.2
+          ],
+          [
+            1.4931,
+            -3.74,
+            52.86
+          ]
+        ],
+        "material": "steel",
+        "exterior": true
+      },
+      "provenance": {
+        "sourceId": "gamemodels3d-pasc006-armour",
+        "basis": "inferred",
+        "note": "Thickness and zone from the approved GameModels3D armour model; placement fitted to the authored loft. Provisional game protection."
+      }
+    },
+    {
       "id": "steering-port",
       "name": "Steering-gear protection",
       "center": [
