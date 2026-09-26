@@ -55,7 +55,8 @@ shells = []
 FUNNEL_TOPS = {}
 for s in D['structures']:
     if s.get('exhaust'):
-        FUNNEL_TOPS[s['id'].rsplit('-', 1)[0]] = s['baseY'] + s['height']
+        # The mouth's height (the casing's slanted cap rises above it at the front edge).
+        FUNNEL_TOPS[s['id'].rsplit('-', 1)[0]] = s['exhaust']['position'][1]
 for s in D['structures']:
     ob = authored_structure(s, kit.mesh, materials, collections['Superstructure'])
     ob.data.materials.append(materials[kit.roof(s)])

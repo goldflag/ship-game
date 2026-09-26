@@ -100,6 +100,12 @@ def bulwarks(D, kit):
     col = kit.collections['Superstructure']
     for w in BULWARKS:
         aid = 'bulwark-rails'
+        if 'wall' in w:
+            # Traced plate walls carry their measured top at every vertex: the rolled edge follows it.
+            for (ax, az, _, at), (bx, bz, _, bt) in zip(w['wall'], w['wall'][1:]):
+                if math.hypot(bx - ax, bz - az) > .02:
+                    kit.member(aid, col, V(ax, at + .01, az), V(bx, bt + .01, bz), .045, 'naval', 6)
+            continue
         pts = [tuple(p) for p in (w.get('ring') or w['chain'])]
         if 'ring' in w:
             pts.append(pts[0])
@@ -118,9 +124,15 @@ def foremast(D, kit):
     for s in (-1, 1):
         taper(kit, aid, col, 'side leg', (s * 5.63, 9.2, -22.16), (s * 1.18, 31.0, -26.04), .32, .3, 'naval', 16)
         kit.cylz(aid, col, 'leg foot', V(s * 5.63, 0, -22.16)[:2] + (9.18,), .5, .14, 'edge', 16)
-        # Struts from the side legs to the main leg under the foretop.
-        kit.member(aid, col, V(s * 2.78, 23.4, -24.66), V(0, 23.4, -28.18), .09)
-        kit.member(aid, col, V(s * 3.65, 19.0, -23.89), V(0, 21.4, -28.37), .09)
+    # The foretop platform's spider (plan cuts every 0.2 m from 22.8 to 24.8 m): five struts fan up and forward
+    # from a collar on the main leg at 22.9 m to the platform's underside, and one strut up from each side leg
+    # to its outer corner. No struts join the side legs to the main leg.
+    kit.cylz(aid, col, 'spider collar', V(0, 0, -28.32)[:2] + (22.75,), .46, .3, 'naval', 18)
+    for (x0, z0), (x1, z1) in [((0, -28.5), (0, -30.28)), ((.22, -28.4), (1.52, -29.74)), ((.3, -28.25), (2.36, -29.05))]:
+        for s in ((-1, 1) if x1 else (1,)):
+            kit.member(aid, col, V(s * x0, 22.95, z0), V(s * x1, 24.7, z1), .055, 'naval', 8)
+    for s in (-1, 1):
+        kit.member(aid, col, V(s * 2.8, 23.15, -24.8), V(s * 3.15, 24.7, -26.42), .055, 'naval', 8)
     # Topmast behind the director top, carrying the CXAM, with its bracket to the top house.
     taper(kit, aid, col, 'topmast', (0, 30.4, -24.08), (0, 38.05, -24.08), .18, .15, 'naval', 12)
     kit.member(aid, col, V(0, 31.2, -24.08), V(0, 31.2, -25.3), .08)
@@ -363,17 +375,16 @@ def searchlights(D, kit):
     for i, (x, z) in enumerate([(-2.43, 19.71), (2.43, 19.71), (-3.18, 23.92), (3.18, 23.92)], 1):
         searchlight(kit, f'searchlight-{i}', col, V(x, 14.1, z), .45, 90 if x > 0 else -90)
     # 24-inch (600 mm) signal searchlights under the foretop (am038) on their platform between the tripod
-    # legs (plan cut: 4.0 x 2.0 m at 20.8-21.0 m), carried on brackets to the side legs and the main leg.
+    # legs (plan cuts: rails round a 4.1 x 2.0 m deck at 21.0 m), which stands on two box columns (0.34 x 0.30 m
+    # at x +-0.74, z -26.19) from the house roof abaft the bridge top at 19.6 m.
     aid = 'searchlight-platform'
-    kit.boxc(aid, col, 'platform', V(0, 20.93, -26.2), (2.0, 4.0, .12), 'roof')
+    kit.boxc(aid, col, 'platform', V(0, 20.93, -26.2), (2.0, 4.1, .12), 'roof')
     for s in (-1, 1):
-        leg_x = 5.63 + (1.18 - 5.63) * (20.9 - 9.2) / (31.0 - 9.2)
-        leg_z = -22.16 + (-26.04 + 22.16) * (20.9 - 9.2) / (31.0 - 9.2)
-        kit.member(aid, col, V(s * 1.9, 20.9, -25.4), V(s * (leg_x - .2), 20.9, leg_z), .07)
-        kit.member(aid, col, V(s * 1.6, 20.87, -26.9), V(s * .2, 20.1, -28.43), .06)
-    kit.member(aid, col, V(0, 20.87, -27.15), V(0, 20.87, -28.36), .08)
-    for i, x in enumerate((-.98, .98), 5):
-        searchlight(kit, f"searchlight-{i}", col, V(x, 21.02, -26.17), .3, 0, 20.99)
+        kit.boxc(aid, col, 'column', V(s * .74, 20.26, -26.19), (.3, .34, 1.28), 'naval')
+    corners = [(-2.03, -26.6), (-1.6, -27.21), (1.6, -27.21), (2.03, -26.6), (2.03, -25.8), (1.6, -25.17), (-1.6, -25.17), (-2.03, -25.8)]
+    kit.rail(aid, col, [V(x, 0, z)[:2] for x, z in corners], 20.99, .6, 1.0, True, False)
+    for i, x in enumerate((-.74, .74), 5):
+        searchlight(kit, f"searchlight-{i}", col, V(x, 21.02, -26.19), .3, 0, 20.99)
     # Sky lookout stations on the bridge top (am061): a pedestal seat with binoculars.
     for i, (x, z) in enumerate([(-1.79, -31.06), (1.79, -31.06), (-2.10, -25.94), (2.10, -25.94)], 1):
         aid = f'sky-lookout-{i}'
@@ -518,20 +529,125 @@ def deck_gear(D, kit):
 
 # ---------------------------------------------------------------- funnels
 def funnels(D, kit):
-    """Steam and exhaust pipes up the funnels (plan cuts at 10-20.5 m): two thin pipes up the forward
-    funnel's face, the whistle pipe standing above its cap, a large pipe up its after face bending into
-    the hood, and three pipes up the after funnel's after face. Each pipe rides the raked casing."""
+    """Steam and exhaust pipes up the funnels, on the centres the reference's plan sections give every 0.5-2.5 m
+    (10-20.5 m): two thin pipes up the forward funnel's face on its 0.1 rake, one ending in the whistle above the
+    cap and one turning into the casing under the cap; a large pipe up its after face whose head turns aft; and
+    three pipes up the after funnel's after face, the outer two with heavier heads. Each pipe stands on the deck."""
     col = kit.collections['Superstructure']
-    pipes = [('forward-funnel', (.43, 8.8, -18.2), (.43, 20.6, -17.4), .085), ('forward-funnel', (-.67, 8.8, -18.18), (-.67, 17.6, -17.55), .065),
-             ('forward-funnel', (0, 8.8, -12.3), (0, 18.9, -11.2), .23), ('after-funnel', (-.43, 8.5, 16.9), (-.43, 18.6, 18.05), .15),
-             ('after-funnel', (.58, 8.5, 16.9), (.58, 18.6, 18.1), .24), ('after-funnel', (0, 8.5, 16.95), (0, 18.7, 18.3), .26)]
-    for aid, a, b, r in pipes:
+    # (assembly, polyline of (x, y, reference z), radius, mouth radius or 0 for a closed bend, mouth direction)
+    pipes = [('forward-funnel', [(.43, 8.8, -18.23), (.43, 17.0, -17.41), (.43, 18.7, -17.53), (.43, 20.55, -17.42)], .085, .1, (0, 1, 0)),
+             ('forward-funnel', [(-.67, 8.8, -18.21), (-.67, 16.9, -17.32), (-.67, 17.15, -17.08)], .065, 0, None),
+             ('forward-funnel', [(0, 8.8, -12.26), (0, 18.2, -11.24), (0, 18.55, -10.96)], .24, .26, (0, -.35, 1)),
+             ('after-funnel', [(-.43, 8.5, 16.9), (-.43, 18.4, 18.03)], .14, .2, (0, 1, 0)),
+             ('after-funnel', [(.58, 8.5, 16.9), (.58, 18.3, 18.05)], .24, .3, (0, 1, 0)),
+             ('after-funnel', [(0, 8.5, 17.15), (0, 17.4, 17.97), (0, 18.1, 18.3)], .26, .28, (0, -.3, 1))]
+    for aid, pts, r, mouth, direction in pipes:
+        a, b = pts[0], pts[1]
         foot = kit.below(*V(*a)[:2], a[1] + .3, a[1] - .5)
-        a = (a[0], foot - .02, a[2] - (a[1] - foot) * (b[2] - a[2]) / (b[1] - a[1]))
-        kit.part('rod', aid + '-pipes', col, 'steam pipe', V(*a), V(*b), r, 'naval', vertices=12)
-        kit.part('rod', aid + '-pipes', col, 'pipe mouth', V(*b), V(b[0], b[1] + .12, b[2]), r * 1.2, 'black', vertices=12)
-    # The forward funnel's big after pipe turns forward into the hood.
-    kit.part('rod', 'forward-funnel-pipes', col, 'pipe bend', V(0, 18.9, -11.2), V(0, 19.45, -12.7), .21, 'naval', vertices=12)
+        pts = [(a[0], foot - .02, a[2] - (a[1] - foot) * (b[2] - a[2]) / (b[1] - a[1]))] + pts[1:]
+        for p, q in zip(pts, pts[1:]):
+            kit.part('rod', aid + '-pipes', col, 'steam pipe', V(*p), V(*q), r, 'naval', vertices=12)
+            kit.part('rod', aid + '-pipes', col, 'pipe joint', V(*q) - Vector((0, 0, r * .6)), V(*q) + Vector((0, 0, r * .6)), r * 1.12, 'naval', vertices=12)
+        if mouth:
+            end = V(*pts[-1])
+            d = Vector((-direction[2], -direction[0], direction[1])).normalized()   # reference (x, y, z) direction -> authoring
+            kit.part('rod', aid + '-pipes', col, 'pipe head', end - d * .05, end + d * .35, mouth, 'naval', vertices=12)
+            kit.part('rod', aid + '-pipes', col, 'pipe mouth', end + d * .35, end + d * .42, mouth * 1.05, 'black', vertices=12)
+        # Brackets to the casing every 2.5 m up the run.
+        for k in range(1, 5):
+            y = pts[0][1] + (pts[1][1] - pts[0][1]) * k / 5
+            t = (y - pts[0][1]) / (pts[1][1] - pts[0][1])
+            c = (pts[0][0], y, pts[0][2] + (pts[1][2] - pts[0][2]) * t)
+            toward = -1 if c[2] > (-14.5 if aid == 'forward-funnel' else 14.8) else 1
+            kit.member(aid + "-pipes", col, V(*c), V(c[0], c[1], c[2] + toward * (r + .2)), .03, "naval", 6)
+    funnel_tops(D, kit)
+
+
+def casing_rings(D, fid):
+    """The funnel casing's rings (height, runtime-frame outline) from its blueprint surface: rings of n vertices
+    bottom to top, then the two cap centres."""
+    s = next(s for s in D['structures'] if s['id'] == fid)
+    vv = s['surface']['vertices']
+    n = sum(1 for v in vv if abs(v[1] - s['baseY']) < 1e-4) - 1
+    rings = [(vv[j * n][1], [tuple(v) for v in vv[j * n:(j + 1) * n]]) for j in range((len(vv) - 2) // n)]
+    # The outer casing only: the rim's inner edge and the mouth's well follow the top ring.
+    out = [rings[0]]
+    for y, ring in rings[1:]:
+        if y <= out[-1][0] + 1e-6:
+            break
+        out.append((y, ring))
+    return out
+
+
+def casing_at(rings, y, d=0.0):
+    """Casing outline at height y (runtime frame, linear between rings), grown by d outward."""
+    for (ya, ra), (yb, rb) in zip(rings, rings[1:]):
+        if ya - 1e-6 <= y <= yb + 1e-6:
+            t = 0 if yb - ya < 1e-9 else (y - ya) / (yb - ya)
+            ring = [(a[0] + (b[0] - a[0]) * t, y, a[2] + (b[2] - a[2]) * t) for a, b in zip(ra, rb)]
+            break
+    else:
+        ring = [(p[0], y, p[2]) for p in rings[-1][1]]
+    cx = sum(p[0] for p in ring) / len(ring)
+    cz = (min(p[2] for p in ring) + max(p[2] for p in ring)) / 2
+    hw = max(abs(p[0] - cx) for p in ring)
+    hl = max(abs(p[2] - cz) for p in ring)
+    return [(cx + (p[0] - cx) * (hw + d) / hw, y, cz + (p[2] - cz) * (hl + d) / hl) for p in ring]
+
+
+def funnel_tops(D, kit):
+    """Funnel cap fittings read off the reference's plan sections: the sloping apron round each casing under
+    the cap (forward 17.63-17.84 m, 0.23 m out; after 17.2-17.45 m, 0.35 m out), the grating over each mouth,
+    and the forward funnel's cowl, a hood over the front of the mouth whose flat back stands open aft at
+    reference z -14.40 and whose top falls from 20.95 m there to the cap's front edge."""
+    col = kit.collections['Superstructure']
+    Ra = lambda p: R(list(p))
+    for fid, (y0, y1, out) in (('forward-funnel', (17.63, 17.84, .23)), ('after-funnel', (17.20, 17.45, .35))):
+        rings = casing_rings(D, fid)
+        aid = fid + '-cap'
+        inner_lo, outer_hi = casing_at(rings, y0, -.02), casing_at(rings, y1, out)
+        outer_lo = casing_at(rings, y1 - .05, out)
+        inner_hi = casing_at(rings, y0 + .05, -.02)
+        kit.loft(aid, col, 'apron', [[Ra(p) for p in ring] for ring in (inner_lo, outer_lo, outer_hi, inner_hi)], 'black', False, False, False)
+        # Grating in the mouth: bars 0.15 m down the well, wall to wall (the well is 0.12 m inside the rim), on the
+        # cap's slant (read off the rim: its height against z).
+        top = rings[-1][0]
+        rim = rings[-1][1]
+        mouth = casing_at(rings, top, -.13)
+        zs = [p[2] for p in mouth]
+        cz = (min(zs) + max(zs)) / 2
+        slope = sum((p[1] - top) * (p[2] - cz) for p in rim) / sum((p[2] - cz) ** 2 for p in rim)
+        at = lambda z: top - .15 + slope * (z - cz)
+        z_open = rz_ref(-14.40) if fid == 'forward-funnel' else min(zs)
+        for x in (-.6, 0.0, .6):
+            span = [p[2] for p in mouth if abs(p[0] - x) < .35]
+            za, zb = max(z_open, min(span)), max(span)
+            a, b = Vector(Ra((x, at(za), za))), Vector(Ra((x, at(zb), zb)))
+            kit.beam(aid, col, 'grating bar', a, b, .06, .1, 'black')
+        z = z_open + .45
+        while z < max(zs) - .2:
+            half = max(abs(p[0]) for p in mouth if abs(p[2] - z) < .4)
+            kit.boxc(aid, col, 'grating bar', Vector(Ra((0, at(z), z))), (.06, 2 * half, .1), 'black')
+            z += .8
+    # The forward funnel's cowl: plan-section outlines every 0.1 m (half-width, front edge at reference z) about
+    # its open back at reference z -14.40.
+    rings = casing_rings(D, 'forward-funnel')
+    top = rings[-1][0]
+    COWL = [(top - .02, 1.36, -16.60), (19.70, 1.36, -16.49), (19.80, 1.356, -16.42), (19.90, 1.258, -16.40), (20.00, 1.188, -16.22),
+            (20.10, 1.141, -16.03), (20.20, 1.098, -15.85), (20.30, 1.055, -15.67), (20.40, .962, -15.49), (20.50, .84, -15.31),
+            (20.60, .736, -15.12), (20.70, .633, -14.94), (20.80, .494, -14.76), (20.85, .327, -14.67), (20.93, .10, -14.50)]
+    back = -14.40
+    rows = []
+    for y, a, zf in COWL:
+        depth = back - zf
+        ring = [(a * math.cos(math.pi * k / 16), y, back - depth * math.sin(math.pi * k / 16)) for k in range(17)]
+        rows.append([Ra((x, yy, rz_ref(z))) for x, yy, z in ring])
+    kit.loft('forward-funnel-cap', col, 'cowl', rows, 'black', True, True, True)
+
+
+def rz_ref(z):
+    """Reference z -> runtime z."""
+    return z - ZC
 
 
 # ---------------------------------------------------------------- underwater

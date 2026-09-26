@@ -47,13 +47,27 @@ footprint is followed up through the levels; a chain breaks where the outline ch
 an overhang). A chain whose outline stays put is a prism; one whose outline changes gradually (tapered or rounded
 faces) is lofted through its levels on one set of bearings about its middle (`blocks2structures.py`), thinned
 wherever the wall runs straight, and split in height to stay within the blueprint's surface limits; chains that are
-not star-shaped, or that hold a light gun's tub, stay prisms. The two funnels are rebuilt from their own cuts as one
-smooth loft each: every 0.1 m level's traced extent becomes a stadium, smoothed over 0.5 m, with the lip under the
-cap and the black hood's raked top (higher forward, from the centreline cut). A block that starts within 0.35 m of
-the deck reaches down into it; a level lost between tracks is closed; thin slabs that touch nothing are dropped.
-Gun tubs and the open platforms of the foretop and after tower are plating walls (blueprint blocks, so hits and the
-clearance interlocks see them) along the traced outlines or the section chains that follow a circle round each mount,
-with a rolled top edge; each light mount's tub is cleared from the blocks around it. The windows and scuttles were
+not star-shaped, or that hold a light gun's tub, stay prisms. A block that starts within 0.35 m of the deck reaches
+down into it; a level lost between tracks is closed; thin slabs that touch nothing are dropped; the deck a light
+mount stands on stops at the mount's datum (the foretop's Oerlikon platform is the full 8.4 m wide at 24.9 m).
+
+The funnel casings are single-sided shells, so their raw plan-section chains (`cuts.ts`, `funnel_levels.py`) give the
+true outline with the steam pipes left out: 3.21 m across and 5.38 m long, straight sides and flattened ends, the
+same on both funnels and raked aft 0.105. Each casing is one closed loft on its own rake line from its foot (the
+forward funnel's 0.25 m flare at the deck, the after funnel's skirt over its stepped base) to the cap: a lip standing
+0.13-0.15 m proud, tapering in to the rim of the mouth (half-widths read every 5 cm), the cap set on a slant 0.30 and
+0.35 m higher at the front edge, and the mouth a 0.5 m well 0.12 m inside the rim. Rings sit 1.8 m under the mouth,
+where the black cap paint meets the grey. The sloping apron round each casing under the cap, the gratings in the
+wells, the forward funnel's cowl (its plan outline read every 0.1 m up to 20.95 m, flat back at reference z -14.40)
+and the steam pipes on their measured centres are fittings.
+
+Plating the plan tracer cannot see (the reference models it as single-sided plates) is traced from the same raw
+chains (`walls2.py`): the runs that stand more than 15 cm from every block at the middle of each region are drawn into
+a 3 cm raster, thinned to centre lines and followed up and down the levels for a foot and top at every vertex. They
+are thin surfaced blocks (so hits and the clearance interlocks see them) with a rolled top edge along the measured
+top: the eight 5-inch tubs (tops sloping from 10.25 to 10.85 m forward, 7.75-8.0 m aft), the bridge-top bulwark
+(17.3-18.85 m, with its bulges round the Mk 44 directors) and the sidelight screens. The 1.1-inch tubs follow the
+section chains round each mount, and the foretop and after-tower platforms' bulwarks their traced outlines. The windows and scuttles were
 read off orthographic textured renders of the reference with the depth of the wall each lies on
 (`windows_detect.py`, `windows_table.py`) and are set into this model's own walls where they stand within 0.35 m of
 the reference's: 160-odd panes and rimmed scuttles on the bridge, deckhouses and hull.
@@ -68,7 +82,8 @@ superfiring pairs interlock against each other, and firing obstructions box the 
 lower legs and the forecastle deck rising ahead of No. 1 turret. `ship:sweep` finds no reachable contact.
 
 **Fittings** are simplified original constructions at the reference's positions and sizes (hardpoints, part bounds
-and plan cuts): the tripod foremast (raked main leg, side legs from the sponson deck, struts, topmast and yard), the
+and plan cuts): the tripod foremast (raked main leg, side legs from the sponson deck, the spider of struts under the
+foretop, the searchlight platform on its two columns, topmast and yard), the
 pole mainmast with its gaff and the after tower's struts and legs, the aircraft crane (king post, braces, cranked
 lattice jib), two powder catapults on their pedestals trained fore and aft (fitted empty), the spare float and
 aircraft cradles, two Mk 19 directors (house, rangefinder arms, sight ports), four Mk 44 directors, the Mk 22 on the
@@ -96,7 +111,9 @@ top, 1.63°/s, 90° in 32 s.
   edges show 0.1 m steps where a loft would not fit (a tub or a footprint that is not star-shaped), and curved faces
   are faceted. Painted texture detail other than windows and scuttles (doors, hatches, markings) is not modelled;
   openings whose wall here stands away from the reference's are left out.
-- The funnel caps' hoods are lofted stadia with a planar raked top; the reference's hood corners are sharper.
+- The forward funnel's cowl is closed at the back, where the reference's hood stands open aft over the grating; both
+  casings use the forward funnel's measured outline (the after one measures the same); the after funnel's skirt keeps
+  the traced steps of its base.
 - Masts, the crane, catapults, directors, the radar and searchlights are simplified; the catapults are empty, as the
   brief asks (the reference's aircraft are not modelled). Rails stay out of the gun arcs.
 - Weather-deck planks use the Baltimore preset's plank size (0.127 x 3.048 m): the reference texture shows planking

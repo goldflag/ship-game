@@ -259,7 +259,8 @@ for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
     zs = [p[1] for p in poly]
-    if s['height'] < 1.2 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 6 or s.get('exhaust'):
+    # Tub and platform bulwarks are thin plates round open space: a box over their outline would fill the tub.
+    if s['height'] < 1.2 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 6 or s.get('exhaust') or s['id'].startswith('bulwark-'):
         continue
     n = max(1, math.ceil((max(zs) - min(zs)) / 3))
     for k in range(n):
