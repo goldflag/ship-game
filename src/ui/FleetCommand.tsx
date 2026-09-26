@@ -68,6 +68,7 @@ export { applyGroupFormation, FORMATION_HINT, standingOrder, stationEscorts } fr
 import type { CombatTelemetry } from '../game/session/telemetry';
 import { airborne } from '../game/airWing';
 import { isDeveloperConsoleKey } from './devConsoleCommands';
+import { deadlineCaption, ObjectiveReadout } from './ObjectiveReadout';
 
 const SPEEDS = [8, 12, 16, 20, 24, 28, 30];
 /** Orders aimed at water preview a line from the unit to the cursor while armed. */
@@ -1736,14 +1737,15 @@ export function FleetCommand({
       />
       <header className="fleet-command-top">
         <div>
-          {visiting && combat.remainingSeconds !== null ? (
+          {(visiting || combat.objective) && combat.remainingSeconds !== null ? (
             <time aria-label="Time remaining">
               {duration(combat.remainingSeconds)}
-              <small>remaining</small>
+              <small>{deadlineCaption(combat)}</small>
             </time>
           ) : (
             <time>{duration(tick / 60)}</time>
           )}
+          <ObjectiveReadout combat={combat} />
           <SimulationSpeed desk={desk} data={data} bindings={bindings} />
         </div>
         <nav aria-label="Fleet views">

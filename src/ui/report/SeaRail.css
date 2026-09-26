@@ -32,3 +32,8 @@
 .after-action .aar-link:hover { color:#efd5a0; }
 @media (max-width:1100px) { .aar-rail { right:20px; top:20px; bottom:16px; } .aar-rail h1 { font-size:56px; } }
 @media (max-height:820px) { .aar-rail { top:20px; bottom:16px; gap:12px; } .aar-rail h1 { font-size:56px; } }
+.aar-points { display:grid; gap:6px; padding-top:14px; border-top:1px solid var(--aar-line); }
+.aar-points > div { display:grid; grid-template-columns:48px 70px minmax(0,1fr); gap:10px; align-items:baseline; color:var(--aar-muted); font-size:12.5px; }
+.aar-points strong { color:var(--aar-team); font:600 26px/1 'Barlow Condensed',sans-serif; text-align:right; }
+.aar-points small { color:var(--aar-muted); font-size:11.5px; }
+.aar-points p { color:var(--aar-muted); font-size:12px; }

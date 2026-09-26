@@ -31,6 +31,34 @@ test('loaded guns show their current direction before traversing and converge on
   expect(gunAimPoints(sim.player, sim.definition, 'main', aim)[0].status).toBe('blocked');
 });
 
+test('guns still laid for a longer range show the fall beyond a nearer aim, not a point in the sky', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck'));
+  const mount = sim.definition.mounts[0], state = sim.player.mounts[0] as MountState;
+  for (let i = 0; i < 3600; i++) updateMount(mount, state, sim.definition, sim.ship, [18000, .5, 0], FIXED_DT);
+  expect(state.status).toBe('ready');
+  for (const [range, height] of [[16000, .5], [8000, .5], [4000, .5], [8000, 20]]) {
+    const point = gunAimPoints(sim.player, sim.definition, 'main', [range, height, 0])[0].point;
+    expect(point[1]).toBeCloseTo(height, 2);
+    expect(point[0]).toBeGreaterThan(range + 1000);
+  }
+});
+
+test('flat fire just over a close, high aim stays at the aim\'s range until it clears the superstructure', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck'));
+  const mount = sim.definition.mounts[0], state = sim.player.mounts[0] as MountState, aim: Vec3 = [900, 30, 0];
+  for (let i = 0; i < 3600; i++) updateMount(mount, state, sim.definition, sim.ship, aim, FIXED_DT);
+  const laid = state.elevation;
+  for (const raise of [.0005, .002, .01]) {
+    state.elevation = laid + raise;
+    const point = gunAimPoints(sim.player, sim.definition, 'main', aim)[0].point;
+    expect(Math.hypot(point[0], point[2])).toBeCloseTo(900, 0);
+    expect(point[1]).toBeGreaterThan(30); expect(point[1]).toBeLessThan(60);
+  }
+  state.elevation = laid + .1;
+  const cleared = gunAimPoints(sim.player, sim.definition, 'main', aim)[0].point;
+  expect(cleared[0]).toBeGreaterThan(5000); expect(cleared[1]).toBeCloseTo(30, 2);
+});
+
 test('trained turret centers stay on the reticle at every binocular magnification', () => {
   for (const shipId of ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6']) {
     const sim = new CombatSimulation(shipPreset(shipId)), aim: Vec3 = [shipId === 'enterprise-cv6' ? -1800 : 1800, .5, 0];

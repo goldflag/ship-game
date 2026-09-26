@@ -67,6 +67,7 @@ import { createStarterSource } from '../ships/constructionStarter';
 import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../game/session/battleSetup';
 import { NewDesignDialog } from './shipbuilding/NewDesignDialog';
 import type { HullPresetChoice } from '../ships/constructionHullPresets';
+import { scenarioForMission } from './battle/scenarios';
 
 /** The port berths the tree ships the player owns and their designs. A `?ship=` link keeps any preset alongside for review and
  * diagnostics: a locked tree ship as a preview with its unlock, an enemy-only one (fictional ships, merchants) as before. */
@@ -407,7 +408,8 @@ function Harbor({ account, startup }: AppProps) {
     if (!ready || !session || !entry || switchPending.current || entry.pending) throw new Error('The port is still preparing.');
     setBattleSetup((value) => ({ ...value, mapId: draft.briefing.setup.mapId as BattleSetup['mapId'] }));
     setPveBriefing(draft.briefing);
-    setPveRequest(draft.request);
+    // A scenario leaves the fleet-command request alone for the next time that mode opens.
+    if (draft.request) setPveRequest(draft.request);
     setBattleLoading({ label: 'Preparing mission waters', progress: 0, leaving: false });
     await entry.run(
       (progress) => session.preparePveBattle(draft, placements, progress),
@@ -617,7 +619,9 @@ function Harbor({ account, startup }: AppProps) {
 
   useEffect(() => {
     document.title =
-      phase === 'sailing' && pveBriefing
+      phase === 'sailing' && pveBriefing?.scenario
+        ? `${scenarioForMission(pveBriefing.setup.missionRules?.id)?.title ?? 'Scenario'} — Scenario`
+        : phase === 'sailing' && pveBriefing
         ? 'Fleet Command — PvE'
         : phase === 'garage' && berthEmpty
           ? 'Home port'
@@ -924,7 +928,7 @@ function Harbor({ account, startup }: AppProps) {
         {battleOver && (report && data.combat?.outcome ? (
           <AfterActionReport
             key={game.current?.battleRevision}
-            mode={ended?.networked ? 'Online battle' : ended?.missionRules ? 'Fleet command' : 'Custom battle'}
+            mode={ended?.networked ? 'Online battle' : ended?.missionRules?.objective ? (scenarioForMission(ended.missionRules.id)?.title ?? 'Scenario') : ended?.missionRules ? 'Fleet command' : 'Custom battle'}
             result={battleOver}
             outcome={data.combat.outcome}
             debrief={report}

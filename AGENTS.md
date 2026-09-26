@@ -36,6 +36,7 @@ pipeline. Read the row for your task, then the nested `AGENTS.md` in the directo
 | Simulation, combat, bots, carrier operations | [crates/AGENTS.md](crates/AGENTS.md), then [air operations](docs/air-operations.md), [bot behavior](docs/bot-behavior.md) or [maneuvering](docs/maneuvering.md) |
 | Aiming, gun laying, gun-aim circles | [Gunnery aim path](docs/gunnery.md): the sight, the input, the Rust mount and the drawn circle, with cadences and units |
 | Research trees, XP, unlocks, locked ships | [Research progression](docs/progression.md) |
+| Scenarios: historical actions, raid scripts, victory points, night spotting | [Scenarios](docs/scenarios.md) |
 | A field crossing Rust and TypeScript (definitions, frames, commands) | The checklists in [crates/AGENTS.md](crates/AGENTS.md) |
 | Multiplayer server, accounts, deployment | [Rust multiplayer](docs/rust-multiplayer-implementation.md), [accounts](docs/accounts.md), [deployment](docs/deployment.md) |
 | See a UI or battle change in the real game | [Browser verification](docs/browser-verification.md): account-free harness, `bun run ui:shot`, saved custom designs |

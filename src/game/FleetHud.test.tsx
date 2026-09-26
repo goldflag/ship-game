@@ -315,6 +315,9 @@ test('the helm compass and course read true bearings on a turned chart', () => {
   expect(html).toContain('aria-label="Ship heading 315 degrees"');
   expect(html).toContain('<span class="fleet-bearing-course">315°</span>');
   expect(html).toContain('aria-label="View bearing 345 degrees"');
+  // The dial is camera-up: looking 30° to starboard draws the hull turned 30° to port.
+  const hull = html.match(/<g transform="rotate\((-?[\d.]+) 100 100\)"><path d="M100 37c/);
+  expect(Number(hull?.[1])).toBeCloseTo(-30);
   const open = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={{ ...data, mapId: 'north-atlantic' }} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   expect(open).toContain('aria-label="Ship heading 0 degrees"');
   expect(open).toContain('aria-label="View bearing 030 degrees"');

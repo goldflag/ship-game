@@ -14,7 +14,13 @@ export interface GunAimPoint {
   aligned: boolean; status: MountState['status']; reload: number;
 }
 
-/** Preview the current barrels at sight range, or sea level if the round falls short.
+// A round still climbing when it reaches the aim's range falls far beyond it.
+// Draw it there only once it clears the aim by more than a superstructure, so
+// flat fire just over a close, high aim point stays on that point.
+const PASS_OVER_M = 30;
+
+/** Preview the current barrels at sight range, at sea level if the round falls
+ * short, or where it comes back down to the aim's height if it passes over.
  * Uses the same muzzle, velocity and gravity as firing; never advances combat.
  */
 export function gunAimPoints(actor: Combatant, definition: ShipDefinition, battery: Battery, aim: Vec3, weaponGroupId?: string): GunAimPoint[] {
@@ -28,14 +34,19 @@ export function gunAimPoints(actor: Combatant, definition: ShipDefinition, batte
     const drag = mount.weapon.ballistics?.dragPerSecond ?? 0;
     const factor = range / Math.max(.001, Math.hypot(velocity[0], velocity[2]));
     const rangeTime = drag > 1e-8 ? (factor * drag >= 1 ? Infinity : -Math.log1p(-factor * drag) / drag) : factor;
-    let low = 0, high = Math.min(180, rangeTime);
-    if (ballisticStep(origin, velocity, high, drag).position[1] < 0) {
+    // Barrels still laid for a longer range would otherwise put the circle in
+    // the sky above a nearer aim until they depress.
+    const at = (seconds: number) => ballisticStep(origin, velocity, seconds, drag);
+    let low = 0, high = Math.min(180, rangeTime), level = 0;
+    const reach = at(high), over = reach.position[1] - aim[1];
+    if (over > 0 && (reach.velocity[1] <= 0 || over > PASS_OVER_M)) [low, high, level] = [high, 180, aim[1]];
+    if (at(high).position[1] < level) {
       for (let i = 0; i < 28; i++) {
         const mid = (low + high) / 2;
-        if (ballisticStep(origin, velocity, mid, drag).position[1] >= 0) low = mid; else high = mid;
+        if (at(mid).position[1] >= level) low = mid; else high = mid;
       }
     }
-    const point = ballisticStep(origin, velocity, high, drag).position;
+    const point = at(high).position;
     point[1] = Math.max(0, point[1]);
     return [{ id: mount.id, number: ++number, name: mount.name, point,
       aligned: state.status === 'ready' || state.status === 'reloading', status: state.status, reload: state.reload / workRate }];

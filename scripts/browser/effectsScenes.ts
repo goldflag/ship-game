@@ -4,7 +4,8 @@
  * Ship-local camera offsets: +X starboard, +Y up, −Z toward the bow. Add scenes freely. */
 import type { EffectsStage, Frame } from './effectsStage';
 
-type Shoot = (label?: string) => Promise<void>;
+/** Capture the game's view, or with `png` a data URL the scene drew itself. */
+type Shoot = (label?: string, png?: string) => Promise<void>;
 export type Scene = (stage: EffectsStage, shoot: Shoot) => Promise<void>;
 
 /** Advance to each absolute time and capture it. */
@@ -42,7 +43,109 @@ function salvo(stage: EffectsStage, side: number, shift = 0): void {
   }
 }
 
+/** The baked gas atlas read back and relit on the CPU as `gasSpriteMaterial` lights it, one image per light, with up at
+ * the top: `light` is the direction toward the light in the tile's frame (+X right, +Y up, +Z toward the viewer). The depth
+ * channel holds optical depth ÷ 12 (`GAS_DEPTH`). */
+async function gasAtlasImages(stage: EffectsStage): Promise<{ label: string; png: string }[]> {
+  type Backend = { copyTextureToBuffer(texture: unknown, x: number, y: number, width: number, height: number, face: number): Promise<Uint8Array> };
+  const g = stage.game as unknown as { effects: { gasAtlas: { sides: { image: { width: number } }; body: unknown } }; renderer: { backend: Backend } };
+  const atlas = g.effects.gasAtlas, size = atlas.sides.image.width;
+  const [sides, body] = await Promise.all([atlas.sides, atlas.body].map(map => g.renderer.backend.copyTextureToBuffer(map, 0, 0, size, size, 0)));
+  const image = (label: string, shade: (s: number[], b: number[]) => [number, number, number, number]) => {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
+    const context = canvas.getContext('2d')!, pixels = context.createImageData(size, size);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4, o = ((size - 1 - y) * size + x) * 4;
+      const [r, gr, bl, a] = shade([sides[i] / 255, sides[i + 1] / 255, sides[i + 2] / 255, sides[i + 3] / 255], [body[i] / 255, body[i + 1] / 255, body[i + 2] / 255, body[i + 3] / 255]);
+      // Over a mid-grey sky, with a display gamma.
+      const over = (c: number) => Math.round(255 * Math.min(1, (c * a + .32 * (1 - a)) ** (1 / 2.2)));
+      pixels.data[o] = over(r); pixels.data[o + 1] = over(gr); pixels.data[o + 2] = over(bl); pixels.data[o + 3] = 255;
+    }
+    context.putImageData(pixels, 0, 0);
+    return { label, png: canvas.toDataURL('image/png') };
+  };
+  const lit = (light: [number, number, number], albedo = .6) => (s: number[], b: number[]): [number, number, number, number] => {
+    const n = Math.hypot(...light), [lx, ly, lz] = light.map(v => v / n), sq = (v: number) => Math.max(0, v) ** 2;
+    const direct = s[0] * sq(lx) + s[1] * sq(-lx) + s[2] * sq(ly) + s[3] * sq(-ly) + b[0] * sq(lz) * .85 + b[1] * 2 * sq(-lz) * 1.6;
+    const sky = s[2] * .5 + (s[0] + s[1] + b[0] + b[1] * 2) * .11 + s[3] * .06;
+    // Daylight at 15 h: direct 1.42, sky .13 (see the probe-lighting scene).
+    const c = albedo * (1.42 * direct + .13 * 2 * sky);
+    return [c, c * .98, c * .95, 1 - Math.exp(-b[2] * 12)];
+  };
+  const fire = (heatScale: number) => (s: number[], b: number[]): [number, number, number, number] => {
+    const heat = b[3] * heatScale * 1.25, mix = (a: number, c: number, t: number) => a + (c - a) * t;
+    const step = (e0: number, e1: number, x: number) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+    const ember = [.45, .035, .004].map((v, k) => mix(v, [2.6, .6, .06][k], step(.12, .55, heat)));
+    const flame = ember.map((v, k) => mix(v, [4.2, 2, .5][k], step(.55, .95, heat)));
+    const [base] = lit([-.5, .7, .5], .25 * (1 - Math.min(1, heat) * .85))(s, b);
+    const c = flame.map((v, k) => base + v * heat * heat + [4, 3, 1.4][k] * step(1.05, 1.35, heat));
+    return [c[0] / (1 + c[0]), c[1] / (1 + c[1]), c[2] / (1 + c[2]), 1 - Math.exp(-b[2] * 12)];
+  };
+  const detailSize = (atlas as unknown as { detail: { image: { width: number } } }).detail.image.width;
+  const detail = await g.renderer.backend.copyTextureToBuffer((atlas as unknown as { detail: unknown }).detail, 0, 0, detailSize, detailSize, 0);
+  const detailImage = () => {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = detailSize;
+    const context = canvas.getContext('2d')!, pixels = context.createImageData(detailSize, detailSize);
+    for (let i = 0; i < detailSize * detailSize * 4; i += 4) { pixels.data[i] = detail[i]; pixels.data[i + 1] = detail[i + 1]; pixels.data[i + 2] = detail[i + 2]; pixels.data[i + 3] = 255; }
+    context.putImageData(pixels, 0, 0);
+    return { label: 'detail: normal xy, height', png: canvas.toDataURL('image/png') };
+  };
+  return [image('sun upper left', lit([-.5, .7, .5])), image('backlit', lit([.25, .3, -.92])), image('from below', lit([0, -1, .15])),
+    image('opacity', (_, b) => [1, 1, 1, 1 - Math.exp(-b[2] * 12)]), image('fireball, heat 1', fire(1)), image('cooling, heat .55', fire(.55)), detailImage()];
+}
+
 export const scenes: Record<string, Scene> = {
+  /** The baked gas atlas itself, relit six ways (see `gasAtlasImages`). */
+  async 'gas-atlas'(stage, shoot) {
+    for (const { label, png } of await gasAtlasImages(stage)) await shoot(label, png);
+  },
+  /** Wall time of baking a fresh gas atlas (kernel compilation included), then of a second bake. */
+  async 'gas-bake-time'(stage, shoot) {
+    const { GasAtlas } = await import(/* @vite-ignore */ String('/src/game/GasAtlas.ts')) as typeof import('../../src/game/GasAtlas');
+    const renderer = (stage.game as unknown as { renderer: import('three/webgpu').WebGPURenderer & { backend: { device: { queue: { onSubmittedWorkDone(): Promise<void> } } } } }).renderer;
+    const queue = renderer.backend.device.queue;
+    for (const label of ['first bake', 'second bake']) {
+      const atlas = new GasAtlas();
+      await queue.onSubmittedWorkDone();
+      const start = performance.now();
+      atlas.bake(renderer);
+      const submitted = performance.now();
+      await queue.onSubmittedWorkDone();
+      stage.note(label, { submitMs: +(submitted - start).toFixed(1), totalMs: +(performance.now() - start).toFixed(1) });
+      atlas.dispose();
+    }
+    await shoot('after bakes');
+  },
+  /** The shared effect lighting at a few times of day, as notes: sun direction, direct and sky light, daylight. */
+  async 'probe-lighting'(stage, shoot) {
+    type V = { x: number; y: number; z: number };
+    const lighting = (stage.game as unknown as { effectLighting: { sunDirection: { value: V }; direct: { value: V }; ambient: { value: V }; daylight: { value: number } } }).effectLighting;
+    const round = (v: V) => [v.x, v.y, v.z].map(n => +n.toFixed(3));
+    for (const hours of [9, 12, 15, 18.4, 23]) {
+      stage.reset(); stage.weather({ timeHours: hours }); stage.advance(1 / 60);
+      stage.note(`${hours} h`, { sun: round(lighting.sunDirection.value), direct: round(lighting.direct.value), ambient: round(lighting.ambient.value), daylight: +lighting.daylight.value.toFixed(3) });
+    }
+    await shoot('23 h');
+  },
+  /** The World of Warships reference view: from the deck behind and beside turret Bruno, looking out along turret Anton's line
+   * of fire, so the fireball and its smoke stand against the sky beside the barrels. */
+  async 'w-turret'(stage, shoot) {
+    stage.reset(); stage.weather({ timeHours: 15 });
+    stage.aim(0, 1, 5, 'main');
+    const { muzzleCenterWorld, shotDirection } = await import('../../src/game/mountGeometry');
+    type View = { definition: { mounts: Parameters<typeof shotDirection>[0][] }; actor: { mounts: Parameters<typeof shotDirection>[1][]; motion: Parameters<typeof shotDirection>[2] } };
+    const view = (stage.game as unknown as { fleetViews: View[] }).fleetViews[0];
+    const muzzle = muzzleCenterWorld(view.definition.mounts[0], view.actor.mounts[0], view.actor.motion);
+    const dir = shotDirection(view.definition.mounts[0], view.actor.mounts[0], view.actor.motion);
+    const flat = Math.hypot(dir[0], dir[2]) || 1, fx = dir[0] / flat, fz = dir[2] / flat;
+    // Aft of the line of fire: the side vector that points toward the stern.
+    const heading = view.actor.motion.heading, sternX = -Math.sin(heading), sternZ = Math.cos(heading);
+    const side = fx * -sternZ + fz * sternX >= 0 ? 1 : -1, ax = -fz * side, az = fx * side;
+    stage.camera({ position: [muzzle[0] - fx * 42 + ax * 38, muzzle[1] + 3, muzzle[2] - fz * 42 + az * 38],
+      target: [muzzle[0] + fx * 45, muzzle[1] + 9, muzzle[2] + fz * 45], fov: 50 });
+    stage.fire(0, { mounts: [0] });
+    await timeline(stage, shoot, [.04, .1, .2, .35, .6, 1, 1.8, 3, 6]);
+  },
   /** Main-battery broadside from the firing ship's disengaged quarter. */
   async muzzle(stage, shoot) {
     stage.reset(); stage.weather({ timeHours: 15 });
@@ -452,6 +555,60 @@ export const scenes: Record<string, Scene> = {
     lights.forEach(light => (light as unknown as { removeFromParent(): void }).removeFromParent());
     stage.note('two point lights', { withMs: +median(on).toFixed(2), withoutMs: +median(off).toFixed(2), costMs: +(median(on) - median(off)).toFixed(2) });
     await shoot('light probe');
+  },
+  /** A/B cost of the explosion and fire effects at the moments that load them most, each as the paired shown-minus-hidden GPU
+   * time of every effect mesh (`effectsCost`): run it on master and a branch in alternation and compare medians. */
+  async 'ab-cost'(stage, shoot) {
+    const side = stage.facing();
+    const moments: [string, () => void, Parameters<typeof stage.camera>[0]][] = [
+      ['broadsides 0.3 s', () => { stage.aim(0, 1, 4, 'main'); stage.aim(1, 0, 4, 'main'); stage.fire(0); stage.fire(1); stage.advance(.3); },
+        { ship: 0, offset: [-150, 42, 150], look: [70, 14, -35], fov: 50 }],
+      ['broadsides 3 s', () => { stage.aim(0, 1, 4, 'main'); stage.aim(1, 0, 4, 'main'); stage.fire(0); stage.fire(1); stage.advance(3); },
+        { ship: 0, offset: [-150, 42, 150], look: [70, 14, -35], fov: 50 }],
+      ['turret close 1 s', () => { stage.aim(0, 1, 3, 'main'); stage.fire(0, { mounts: [0] }); stage.advance(1); },
+        { ship: 0, offset: [-60, 30, -140], look: [60, 12, -60], fov: 55 }],
+      ['secondaries 0.5 s', () => { stage.aim(0, 1, 3, 'secondary'); stage.fire(0, { battery: 'secondary' }); stage.advance(.5); },
+        { ship: 0, offset: [120, 30, -150], look: [15, 10, -20], fov: 45 }],
+      ['4 hits 1 s', () => { for (let i = 0; i < 4; i++) stage.hit(1, { kind: i % 2 ? 'burst' : 'penetration', along: .3 + i * .15, height: 4 + i * 2 }); stage.advance(1); },
+        { ship: 1, offset: [side * 230, 40, 110], look: [0, 10, -10], fov: 45 }],
+      ['HE close 0.5 s', () => { stage.hit(1, { kind: 'burst', along: .6, height: 11 }); stage.advance(.5); },
+        { ship: 1, offset: [side * 85, 22, -10], look: [0, 10, -30], fov: 50 }],
+      ['magazine 2 s at 900 m', () => { stage.hit(1, { kind: 'magazine' }); stage.advance(2); },
+        { ship: 1, offset: [side * 900, 90, 350], look: [0, 60, 0], fov: 40 }],
+      ['magazine 20 s at 900 m', () => { stage.hit(1, { kind: 'magazine' }); stage.advance(20); },
+        { ship: 1, offset: [side * 900, 90, 350], look: [0, 60, 0], fov: 40 }],
+      ['flak barrage 1 s', () => { for (let i = 0; i < 12; i++) stage.flak(1, [(i % 4 - 1.5) * 50, 150 + (i % 3) * 25, (Math.floor(i / 4) - 1) * 60]); stage.advance(1); },
+        { ship: 1, offset: [side * 420, 150, 160], look: [0, 170, 0], fov: 40 }],
+      ['burning ship close', () => { stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 }); stage.advance(25); },
+        { ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 }],
+      ['burning turret', () => { stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 }); stage.advance(25); },
+        { ship: 1, offset: [-120, 30, -90], look: [0, 14, -60], fov: 45 }],
+      ['busy battle', () => {
+        stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 }); stage.underway(0, 1); stage.underway(1, .6); stage.advance(20);
+        stage.aim(0, 1, 4, 'main'); stage.aim(1, 0, 4, 'main'); stage.fire(0); stage.fire(1); stage.advance(.3);
+        for (let i = 0; i < 4; i++) { stage.hit(1, { kind: 'penetration', along: .2 + i * .2 }); stage.hit(0, { kind: 'burst', from: 1, along: .3 + i * .15, height: 8 }); }
+        stage.advance(1.5); }, { ship: 0, offset: [-140, 55, 190], look: [60, 18, -20], fov: 50 }],
+    ];
+    for (const [label, stageIt, camera] of moments) {
+      stage.reset(); stage.weather({ timeHours: 15 }); stage.camera(camera); stageIt(); stage.camera(camera);
+      const cost = await stage.effectsCost(60);
+      // Main-thread time of a stage step (every effect system's update and publish, the wake and the scorch), per frame.
+      const started = performance.now();
+      for (let i = 0; i < 30; i++) stage.advance(1 / 60);
+      stage.note(label, { gpuMs: cost ? +cost.deltaMs.toFixed(3) : null, stepMs: +((performance.now() - started) / 30).toFixed(3) });
+    }
+    await shoot('last moment');
+  },
+  /** The burning-ship moments of `ab-cost` alone, for quicker fire A/B rounds. */
+  async 'ab-fire'(stage, shoot) {
+    for (const [label, camera] of [['burning ship close', { ship: 1, offset: [-200, 50, 140], look: [0, 12, -10], fov: 45 }],
+      ['burning turret', { ship: 1, offset: [-120, 30, -90], look: [0, 14, -60], fov: 45 }]] as const) {
+      stage.reset(); stage.weather({ timeHours: 15 }); stage.camera(camera as Parameters<typeof stage.camera>[0]);
+      stage.burn(1, { rooms: 3, mounts: [0, 3], intensity: 1 }); stage.advance(25);
+      const cost = await stage.effectsCost(60);
+      stage.note(label, cost ? +cost.deltaMs.toFixed(3) : null);
+    }
+    await shoot('burning turret');
   },
   /** GPU milliseconds of every effect draw (combat, fires, funnels), interleaving frames with the
    * effect meshes shown and hidden in one session, so background load cancels out. */

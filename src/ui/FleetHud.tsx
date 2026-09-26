@@ -47,9 +47,11 @@ const BEARING_TICKS = Array.from({ length: 36 }, (_, i) => (
   />
 ));
 
+/** The dial is camera-up: the view marker stays at the top and the hull turns by its heading off the view bearing. */
 function ShipBearing({ data }: { data: Telemetry }) {
   const selectedShip = useShip();
   const degrees = compassDegrees(data, data.ship.heading);
+  const relative = ((data.ship.heading - (data.viewBearing ?? data.ship.heading)) * 180) / Math.PI;
   const mounts =
     data.combat?.battery === 'depth-charge'
       ? (selectedShip.depthChargeLaunchers ?? [])
@@ -62,12 +64,10 @@ function ShipBearing({ data }: { data: Telemetry }) {
         <circle cx="100" cy="100" r="92" stroke="currentColor" strokeOpacity=".65" />
         <circle cx="100" cy="100" r="87" stroke="currentColor" strokeOpacity=".2" />
         {BEARING_TICKS}
-        <g transform={`rotate(${compassDegrees(data, data.viewBearing ?? data.ship.heading)} 100 100)`}>
-          <path d="M100 100 66 15Q100 2 134 15Z" fill="currentColor" fillOpacity=".045" />
-          <path d="M100 100V10" stroke="var(--fleet-active)" strokeOpacity=".55" strokeDasharray="3 4" />
-          <circle cx="100" cy="13" r="3" fill="var(--fleet-active)" />
-        </g>
-        <g transform={`rotate(${degrees} 100 100)`}>
+        <path d="M100 100 66 15Q100 2 134 15Z" fill="currentColor" fillOpacity=".045" />
+        <path d="M100 100V10" stroke="var(--fleet-active)" strokeOpacity=".55" strokeDasharray="3 4" />
+        <circle cx="100" cy="13" r="3" fill="var(--fleet-active)" />
+        <g transform={`rotate(${relative} 100 100)`}>
           <path
             d="M100 37c-8 12-14 24-14 39v66l6 16h16l6-16V76c0-15-6-27-14-39Z"
             stroke="currentColor"

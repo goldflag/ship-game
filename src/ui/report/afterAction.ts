@@ -3,6 +3,7 @@ import type { BattleOutcome } from '../../game/session/battleRules';
 import type { HitReport } from '../../multiplayer/generated/HitReport';
 import { FIXED_DT } from '../../game/session/motion';
 import { shipTitle } from '../../ships/localShips';
+import { scenarioInfo, scenarioShipTitle } from '../battle/scenarios';
 
 /** How a hit is drawn: what did the damage, or that the armor held. */
 export type HitTone = 'penetrated' | 'explosive' | 'torpedo' | 'blocked';
@@ -66,7 +67,10 @@ export const reasonText = (result: Decided, outcome: BattleOutcome) => outcome.r
 /** Roster names, numbered where a fleet has several of one ship. */
 export function shipTitles(debrief: BattleDebrief): Map<string, string> {
   const titles = new Map<string, string>();
+  const scenario = scenarioInfo(debrief.scenario?.id);
   for (const ship of debrief.ships) {
+    const named = scenarioShipTitle(scenario, ship.id);
+    if (named) { titles.set(ship.id, named); continue; }
     const same = debrief.ships.filter(other => other.team === ship.team && other.presetId === ship.presetId);
     const title = shipTitle({ id: ship.presetId, name: ship.name });
     titles.set(ship.id, same.length > 1 ? `${title} ${same.indexOf(ship) + 1}` : title);

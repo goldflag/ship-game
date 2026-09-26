@@ -162,6 +162,8 @@ pub struct Survivor {
 pub enum FinishReason {
     Destruction,
     TimeLimit,
+    /// Every surviving ship of one side left the area on its commander's order.
+    Withdrawal,
     Forfeit,
     Abandoned,
     Infrastructure,

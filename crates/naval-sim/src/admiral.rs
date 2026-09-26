@@ -23,7 +23,7 @@ use std::collections::BTreeMap;
 /// wants fire concentrated, the report to focus on.
 pub type Directives = BTreeMap<String, (Movement, Option<String>)>;
 
-fn members<'a>(
+pub(crate) fn members<'a>(
     battle: &'a Battle,
     units: &[FleetShip],
     group: &TaskGroup,
@@ -52,7 +52,7 @@ fn members<'a>(
 /// The formation a group sails in and the berth each follower keeps in it, from
 /// the same table the deployment chart laid the group out with. `ships` is the
 /// group in `members` order, guide first.
-fn group_stations(group: &TaskGroup, ships: &[&Vessel]) -> (Formation, Vec<Station>) {
+pub(crate) fn group_stations(group: &TaskGroup, ships: &[&Vessel]) -> (Formation, Vec<Station>) {
     let formation = group.formation.unwrap_or_default();
     let class = |a: &Vessel| StationClass::of(a.definition());
     let followers: Vec<_> = ships[1..]
@@ -113,7 +113,7 @@ fn search(leader: &Vessel, battle: &Battle) -> Movement {
 /// recorded placement falls back to the station its class earns in the group's
 /// formation. The slot always comes from the table, so guide succession runs
 /// down the formation in role order.
-fn escort(
+pub(crate) fn escort(
     ship: &Vessel,
     leader: &Vessel,
     plan: &PvePlan,
@@ -233,7 +233,14 @@ impl PvePlan {
                 let Some(leader) = ships.first() else {
                     continue;
                 };
-                let movement = if team == TeamId::B && group.station == GroupStation::Rear {
+                let movement = if let Some(scenario) = &self.scenario {
+                    if team == TeamId::A {
+                        scenario.opening(&group.id).unwrap_or(Movement::Autonomous)
+                    } else {
+                        // The raid's first decision lands on tick 0 of the battle.
+                        Movement::Autonomous
+                    }
+                } else if team == TeamId::B && group.station == GroupStation::Rear {
                     patrol(leader, battle)
                 } else if team == TeamId::B {
                     search(leader, battle)
@@ -260,7 +267,13 @@ impl PvePlan {
     }
     /// Difficulty changes decision cadence. All targets come from the same
     /// report store and the same contact priority policy as human captains.
-    pub fn enemy_directives(&self, battle: &Battle) -> Directives {
+    /// A scenario's raid follows its script instead.
+    pub fn enemy_directives(&mut self, battle: &Battle) -> Directives {
+        if let Some(mut script) = self.scenario.as_ref().map(|s| s.script.clone()) {
+            let orders = script.directives(self, battle);
+            self.scenario.as_mut().unwrap().script = script;
+            return orders;
+        }
         let level = self
             .setup
             .ships
@@ -366,5 +379,22 @@ impl PvePlan {
             }
         }
         orders
+    }
+    /// Scenario raiders that have left the battle through their exit.
+    pub fn withdrawals(&self, battle: &Battle) -> Vec<String> {
+        self.scenario
+            .as_ref()
+            .map_or(vec![], |s| s.script.withdrawals(self, battle))
+    }
+    /// A scenario raid's standing weapons, which its script changes as the
+    /// action develops. None outside a scenario.
+    pub fn enemy_weapons(&self) -> Option<crate::navigation::WeaponsPolicy> {
+        self.scenario.as_ref().map(|s| s.raid_weapons())
+    }
+    /// A restarted battle starts any scripted plan over.
+    pub fn reset(&mut self) {
+        if let Some(scenario) = &mut self.scenario {
+            scenario.reset();
+        }
     }
 }

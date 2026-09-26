@@ -61,7 +61,8 @@ async function run(harness: Harness, names: string[], out: string, columns: numb
       const scene = scenes[name];
       if (!scene) throw new Error(`Unknown scene "${name}". Scenes: ${Object.keys(scenes).join(', ')}`);
       const frames: { label: string; png: string }[] = [], staged = stage;
-      await scene(staged as Parameters<typeof scene>[0], async (label?: string) => { frames.push(await staged.capture(label)); });
+      // A scene may hand over its own image (a readback of a texture, say) instead of a render of the game.
+      await scene(staged as Parameters<typeof scene>[0], async (label?: string, png?: string) => { frames.push(png ? { label: label ?? '', png } : await staged.capture(label)); });
       return { frames, sheet: await contactSheet(frames, columns), diagnostics: stage.diagnostics() } satisfies SceneResult;
     }, { name, columns, seaTime, fleetSize }).catch(error => {
       throw /context was destroyed|navigat/i.test(error.message) ? new Error(`The page reloaded during ${name} (a source edit?); run it again.`) : error;

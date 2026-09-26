@@ -147,7 +147,7 @@ struct BlockedCache {
 impl MountState {
     pub fn new(m: &MountDefinition) -> Self {
         let count = m.weapon.barrel_count;
-        Self {
+        let mut state = Self {
             carrier: None,
             id: m.id.clone(),
             train: 0.0,
@@ -175,7 +175,10 @@ impl MountState {
             blocked_cache: None,
             clearance_cache: None,
             clear_bound: None,
-        }
+        };
+        // A gun that carries no AP (the Japanese HA and AA guns) starts on HE.
+        state.loaded = state.stocked(m, Ammunition::Ap);
+        state
     }
     /// A stand-in left in the mount vector while this mount is detached for its
     /// own update. Every scalar a neighbour reads (train, elevation, recoil,
@@ -213,6 +216,23 @@ impl MountState {
         match kind {
             Ammunition::He => self.ammo.min(self.he_ammo).max(0.0),
             Ammunition::Ap => (self.ammo - self.he_ammo).max(0.0),
+        }
+    }
+    /// `preferred` while a salvo of it is aboard, otherwise the other fitted
+    /// shell when that has one: a gun never waits on a type it does not carry.
+    pub fn stocked(&self, m: &MountDefinition, preferred: Ammunition) -> Ammunition {
+        let count = m.weapon.barrel_count;
+        let other = match preferred {
+            Ammunition::Ap => Ammunition::He,
+            Ammunition::He => Ammunition::Ap,
+        };
+        if self.available(preferred) < count
+            && (other == Ammunition::Ap || m.weapon.he.is_some())
+            && self.available(other) >= count
+        {
+            other
+        } else {
+            preferred
         }
     }
     pub fn expend_salvo(&mut self, m: &MountDefinition, reload: f64) -> usize {

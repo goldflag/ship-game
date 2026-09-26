@@ -11,24 +11,21 @@
 .ship-label-fill { height:100%; width:100%; background:var(--ship-color); transform-origin:left; }
 .ship-label-loss { position:absolute; top:0; height:100%; background:#a9d8f5; }
 .ship-label-player-loss { height:100%; background:#e8c56c; }
-.ship-label-damage { position:absolute; left:calc(100% + 8px); top:12px; display:flex; flex-direction:column; gap:3px; white-space:nowrap; font:600 23px/1 'Barlow Condensed',sans-serif; }
+.ship-label-damage { position:absolute; left:calc(100% + 8px); top:12px; display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left; white-space:nowrap; font:600 23px/1 'Barlow Condensed',sans-serif; }
 .ship-label-damage [data-source=player] { color:#e8c56c; }
 .ship-label-damage [data-source=other] { color:#a9d8f5; }
 .ship-label-damage[hidden], .ship-label-damage [hidden] { display:none; }
+/* Your salvo's hits by outcome, then equipment it lost: text on the sea, no plate. */
+.ship-label-hits { display:flex; align-items:center; gap:8px; font:500 13px/1 'Barlow Condensed',sans-serif; color:#dbe5e3; }
+.ship-label-hits > span, .ship-label-equipment { display:inline-flex; align-items:center; gap:2px; }
+.ship-label-damage i { display:inline-flex; font-style:normal; }
+.ship-label-damage svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 1px 1px #07131b); }
+.ship-label-hits [data-kind=penetrated] i { color:#86e4c5; }
+.ship-label-hits [data-kind=ricochet] i { color:#e8c56c; }
+.ship-label-hits [data-kind=stopped] i { color:#c1d0d4; }
+.ship-label-equipment { gap:4px; margin-top:1px; font:600 14px/16px 'Barlow Condensed',sans-serif; color:#f0f5f3; }
+.ship-label-equipment em { font-style:normal; font-weight:500; }
+.ship-label-equipment[data-state=damaged] :is(i, em) { color:#f2b25c; }
+.ship-label-equipment[data-state=destroyed] :is(i, em) { color:#f47563; }
 .ship-label-sinking .ship-label-name { color:#c1d0d4; opacity:.4; }
 .ship-label-health[hidden], .ship-label-meter[hidden], .ship-label-sinking .ship-label-damage { display:none; }
-
-.hit-label-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; font-variant-numeric:tabular-nums; }
-.ocean-viewport[data-ship-labels=false] .hit-label-layer { visibility:hidden; }
-.hit-label-layer[hidden],.hit-label[hidden],.hit-label [hidden] { display:none; }
-.hit-label { position:absolute; top:0; left:0; width:150px; text-align:center; color:#f0f5f3; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
-.hit-label strong { display:block; color:#e8c56c; font:600 16px/1.1 'Barlow Condensed',sans-serif; }
-.hit-label[data-source=other] strong { color:#a9d8f5; }
-.hit-label-part { display:flex; align-items:center; justify-content:center; gap:4px; font:500 11px/1.2 'Barlow Condensed',sans-serif; }
-.hit-label-name { min-width:0; overflow-wrap:anywhere; }
-.hit-label-outcome { display:inline-flex; flex-shrink:0; align-items:center; gap:2px; color:#c1d0d4; }
-.hit-label-outcome[data-outcome=penetration] { color:#86e4c5; }
-.hit-label-outcome[data-outcome=ricochet] { color:#e8c56c; }
-.hit-label-outcome[data-outcome=destroyed] { color:#ee9b86; }
-.hit-label-outcome svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 1px 1px #07131b); }
-.hit-label small { display:block; margin-top:1px; font:500 9px/1.2 'Barlow',sans-serif; }

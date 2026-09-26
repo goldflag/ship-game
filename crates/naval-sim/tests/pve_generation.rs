@@ -298,7 +298,7 @@ fn opening_orders_keep_escorts_but_leave_all_player_group_routes_unassigned() {
 fn enemy_search_orders_do_not_change_when_unobserved_friendly_ships_move() {
     let mut content = catalog().clone();
     content.definitions.retain(|id, _| id == "fletcher");
-    let plan = PvePlan::generate(
+    let mut plan = PvePlan::generate(
         &content,
         request(83, &["fletcher", "fletcher"], "north-atlantic"),
     )
@@ -412,7 +412,7 @@ fn enemy_front_loss_repositions_carriers_and_keeps_surviving_escorts_with_them()
     content
         .definitions
         .retain(|id, _| matches!(id.as_str(), "fletcher" | "enterprise-cv6"));
-    let plan = (0..50)
+    let mut plan = (0..50)
         .map(|seed| {
             PvePlan::generate(
                 &content,

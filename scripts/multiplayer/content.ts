@@ -29,12 +29,16 @@ const hydro = Object.entries(shipPresets).filter(([, definition]) => definition.
   if (table?.contentHash !== definition.contentHash) throw new Error(`Stale hydrostatic table: ${id}. Run bun run ship:hydrostatics`);
   return { id, ...table };
 });
+// Hand-authored actions, each with its own mission rules (crates/naval-sim/src/scenario.rs).
+const scenarios = await Promise.all([...new Bun.Glob('*.json').scanSync('assets/gameplay/scenarios')].sort()
+  .map(async (file) => JSON.parse(await Bun.file(`assets/gameplay/scenarios/${file}`).text())));
 const manifest = {
   version: 1, rulesVersion: rules.version, missions: [pveMission], airProfiles: [legacyAir, pveAir], ships, hydrostatics: hydro,
   aircraft: await Promise.all([...new Set(Object.values(shipPresets).flatMap(def => def.airWing?.squadrons.map(s => s.modelId) ?? []))].map(async id => ({ id, ...aircraftGroundPose(id), deckGeometry: await aircraftDeckGeometry(id), bomb: aircraftBomb(id), torpedo: aircraftTorpedo(id) }))),
   terrain,
   maps,
   conditions: JSON.parse(await Bun.file('assets/maps/battle-conditions.v1.json').text()),
+  scenarios,
 };
 const json = JSON.stringify(manifest);
 await mkdir('.build/naval-content', { recursive: true });

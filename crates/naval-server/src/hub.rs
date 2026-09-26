@@ -420,6 +420,7 @@ impl Hub {
                 weather: environment.weather.clone(),
                 spawn_distance: Rules::default().spawn_distance_m as f64,
                 wind_speed: None,
+                time_of_day: None,
                 mission_rules: None,
                 air_rules: None,
             };

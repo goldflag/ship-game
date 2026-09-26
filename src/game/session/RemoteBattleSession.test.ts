@@ -1,7 +1,8 @@
 import { expect, test } from 'bun:test';
 import { gzipSync } from 'node:zlib';
 import { MatchConnection, RemoteBattleSession, type MatchMetadata } from './RemoteBattleSession';
-import { HitFeedback } from '../HitFeedback';
+import { isHit, SalvoTally } from '../SalvoTally';
+import { FIXED_DT } from './motion';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { battleExitLabel } from './BattleSession';
 import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
@@ -21,7 +22,8 @@ test('online hits retain gold local ownership for either seat after the shell di
   const local = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: [{ shipId: 'fletcher', aiLevel: 'normal' }], spawnDistance: 1000, windSpeed: 0 });
   try {
     const baseline = decodeFrameUpdate(undefined, JSON.parse(local.runtime.snapshot_delta([])));
-    const feedback = [new HitFeedback(), new HitFeedback()];
+    const tallies = [new Map<string, SalvoTally>(), new Map<string, SalvoTally>()];
+    const damaging = [new Set<number>(), new Set<number>()], cursors = [0, 0];
     const sessions = (['a', 'b'] as const).map((team, player) => {
       const metadata: MatchMetadata = { type: 'matched', matchId: 'ownership', player, team, connectionEpoch: 1,
         version, contentHash: '', setup: local.setup, environment: { timeOfDay: 'morning', weather: 'clear' }, baseline };
@@ -36,10 +38,21 @@ test('online hits retain gold local ownership for either seat after the shell di
       sessions.forEach((session, seat) => {
         session.receive(frame);
         session.advance(0, { throttle: 0, rudder: 0 }, { aim: [0, 0, 0], battery: 'main', fire: false });
-        for (const cue of feedback[seat].update(session)) {
-          expect(cue.source).toBe('player');
-          if (cue.damage > 0 && cue.projectileIds.every(id => !session.shells.some(shell => shell.id === id))) seen[seat] = true;
+        const time = session.tick * FIXED_DT;
+        for (const event of session.events) {
+          if (event.sequence <= cursors[seat]) continue;
+          cursors[seat] = event.sequence;
+          const victim = session.actors.find(actor => actor.motion.id === event.shipId);
+          if (!isHit(event) || !victim || victim.team === session.player.team) continue;
+          expect(event.sourceId).toBe(session.ship.id);
+          const tally = tallies[seat].get(event.shipId) ?? new SalvoTally();
+          tallies[seat].set(event.shipId, tally);
+          tally.add(event, time, event.sourceId === session.ship.id);
+          const shell = event.shell?.id ?? event.impact?.shellId;
+          if (shell !== undefined && (event.impact?.hullDamage ?? event.hullDamage ?? 0) > 0) damaging[seat].add(shell);
         }
+        const gone = [...damaging[seat]].some(id => !session.shells.some(shell => shell.id === id));
+        if (gone && [...tallies[seat].values()].some(tally => tally.read(time).damage > 0)) seen[seat] = true;
       });
     }
     expect(seen).toEqual([true, true]);

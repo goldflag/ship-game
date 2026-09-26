@@ -22,7 +22,7 @@ seconds per battle second (`crates/naval-sim/src/mobility.rs`, mirrored in `src/
 | 5. Laying | `crates/naval-sim/src/weapons.rs` `update_mount_control_at` | Each control update | Solves the lead, lays train and elevation in the rolled hull frame, sets the mount status |
 | 6. Hull attitude | `crates/naval-sim/src/stability.rs` `update_stability`, `environment.rs` `SeaState::response` | Every tick | Roll and pitch from the righting arms plus the wave arm |
 | 7. Frames | `ShipView.updateMotion` / `updateArticulation` (`src/game/ShipRenderView.ts`) | Every render frame | Interpolates pose, train and elevation between the last two frames by `interpolationAlpha` |
-| 8. Preview | `src/game/gunAim.ts` `gunAimPoints` | Every render frame | Traces each selected gun's current barrels forward to the aim range, or to where the round meets the sea |
+| 8. Preview | `src/game/gunAim.ts` `gunAimPoints` | Every render frame | Traces each selected gun's current barrels forward to the aim range, to where the round meets the sea if it falls short, or to where it comes back down to the aim's height if it passes over |
 | 9. Circles | `src/game/GunAimIndicators.ts` | Every render frame | Projects, smooths (80 ms), groups and labels the preview points |
 
 ### 1. The sight
@@ -139,10 +139,13 @@ to one frame interval.
 
 `gunAimPoints` is a preview, not the simulation's aim. For each selected surface gun it takes the
 interpolated barrels (`shotDirection` of the rendered mount state), the muzzle speed plus the ship's
-velocity / `SHELL_PACE`, and traces the drag ballistic to the aim point's horizontal range, or
-bisects to where the round meets the sea if it falls short. The circle therefore shows where the
-barrels point now; it converges on the sight as the mount trains. `aligned` is `ready` or
-`reloading`.
+velocity / `SHELL_PACE`, and traces the drag ballistic to the aim point's horizontal range. If the
+round falls short it bisects to where it meets the sea; if it would pass over the aim it follows it on
+to where it comes back down to the aim's height, so barrels still laid for a longer range draw the
+fall beyond a nearer aim instead of a circle in the sky. A round still climbing at the aim's range
+(flat fire at a close, high aim) counts as passing over only once it clears the aim by more than
+`PASS_OVER_M` (30 m). The circle therefore shows where the barrels point now; it converges on the
+sight as the mount trains. `aligned` is `ready` or `reloading`.
 
 `GunAimIndicators` projects each point, smooths its direction in camera space with an 80 ms time
 constant (95% in 240 ms), groups turrets within 24 px that share state and reload seconds, and turns

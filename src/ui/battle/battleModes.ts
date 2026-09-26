@@ -6,7 +6,7 @@ import { fleetBudget } from '../../game/session/battleRules';
 import { budgetError } from '../pveSetup';
 import type { BattleSetup } from '../../game/session/battleSetup';
 
-export type BattleMode = 'custom' | 'pve' | 'duel';
+export type BattleMode = 'custom' | 'pve' | 'scenario' | 'duel';
 /** One line of the sortie board's ledger: the same four questions answered for every mode. */
 export interface BattleModeFact { label: 'You' | 'Enemy' | 'Fleet' | 'Needs'; value: string; note?: string }
 export interface BattleModeInfo {
@@ -27,6 +27,9 @@ export const BATTLE_MODES: readonly BattleModeInfo[] = [
   { id: 'pve', name: 'Fleet command', summary: 'Assemble task groups and command the whole fleet against a mission fleet.',
     pitch: 'Assemble task groups and command the whole fleet from the chart against a hidden mission fleet.', action: 'Set up a mission',
     ledger: [{ label: 'You', value: 'The whole fleet, by orders', note: 'Formations, courses, air ops' }, { label: 'Enemy', value: 'Generated mission fleet', note: 'Easy · Normal · Hard' }, { label: 'Fleet', value: 'Within a tonnage budget', note: 'Two task groups' }, { label: 'Needs', value: 'Mission content · offline' }] },
+  { id: 'scenario', name: 'Scenarios', summary: 'Command a historical force in a real action, judged on victory points.',
+    pitch: 'Fight a real action with the forces that were there. The enemy follows its own plan, unseen; points, not annihilation, decide it.', action: 'Choose an action',
+    ledger: [{ label: 'You', value: 'A historical force, by orders', note: 'Take any ship\'s helm' }, { label: 'Enemy', value: 'Follows its own plan', note: 'Easy · Normal · Hard' }, { label: 'Fleet', value: 'Set by the action', note: 'Positions, time and weather too' }, { label: 'Needs', value: 'Nothing · offline' }] },
   { id: 'duel', name: '1v1 online', summary: 'Up to 8 vessels and 2 carriers within 200,000 tonnes against another commander.',
     pitch: 'Bring a fleet within the budget and fight another commander. Queue up or share a match code.', action: 'Find an opponent', online: true,
     ledger: [{ label: 'You', value: 'Your ship; bots sail your escorts' }, { label: 'Enemy', value: 'Another player' }, { label: 'Fleet', value: 'Up to 8 vessels, 2 carriers', note: '200,000 t total' }, { label: 'Needs', value: 'Connection · matchmaking' }] },
@@ -55,6 +58,8 @@ const definitions = new Map(Object.keys(shipPresets).map(id => [id, shipPreset(i
 export function fleetForCarry(mode: BattleMode, state: { setup: BattleSetup; request?: PveRequest; duel: string[] }): string[] {
   if (mode === 'custom') return [state.setup.playerShipId, ...state.setup.friendlyBots.map(bot => typeof bot === 'string' ? bot : bot.shipId)];
   if (mode === 'pve') return state.request?.ships.map(ship => ship.presetId) ?? [];
+  // A scenario's fleet is history's, not the player's: it neither carries in nor out.
+  if (mode === 'scenario') return [];
   return state.duel;
 }
 /** A fleet only carries into a mode the player has not started filling, and only as far as that mode's rules allow. */

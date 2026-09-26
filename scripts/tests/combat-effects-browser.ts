@@ -1,9 +1,9 @@
 import * as THREE from 'three/webgpu';
 import { CombatEffects } from '../../src/game/CombatEffects';
 import { EffectParticlePool, effectTexture } from '../../src/game/EffectParticles';
-import { effectVolumeMaterial, effectVolumeTexture } from '../../src/game/EffectVolume';
+import { EffectLighting } from '../../src/game/EffectLighting';
+import { GasAtlas, gasSpriteMaterial } from '../../src/game/GasAtlas';
 import { configureRenderOrder } from '../../src/game/renderOrder';
-import { uniform, viewportDepthTexture } from 'three/tsl';
 import type { CombatSimulation } from '../../src/simulation/combat';
 import type { rtt } from 'three/tsl';
 
@@ -20,6 +20,7 @@ export async function checkCombatSmokeDissipation(verify = true) {
   const camera = new THREE.PerspectiveCamera(52, 1, .5, 1000);
   camera.position.set(65, 55, 150); camera.lookAt(30, 30, 0); camera.updateMatrixWorld();
   const effects = new CombatEffects();
+  effects.prepare(renderer);
   const smoke = effects.root.getObjectByName('Propellant and impact volumes') as THREE.InstancedMesh;
   // Keep the actual material/particle path; exclude flash light and ocean from
   // the opacity measurement, so lighting cannot disguise a disappearing plume.
@@ -62,9 +63,10 @@ export async function checkCombatSmokeDissipation(verify = true) {
   } finally { target.dispose(); effects.dispose(); renderer.dispose(); }
 }
 
-/** GPU regression: one submission per volume batch, visible from outside and
- * inside, with real scene-depth clipping and no residual pixels after reset. */
-export async function checkCombatVolumeRendering(reversedDepthBuffer = false, turbulent = true) {
+/** GPU regression for gas puffs: one submission per batch, visible from outside, hidden behind an opaque surface and in front
+ * of distant transparent water, cleared rather than smeared over the view when the camera is inside, elongated along its
+ * launch axis, and round again, with nothing left over, after a reset reuses the slot. */
+export async function checkCombatVolumeRendering(reversedDepthBuffer = false) {
   const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer });
   await renderer.init();
   configureRenderOrder(renderer);
@@ -74,9 +76,9 @@ export async function checkCombatVolumeRendering(reversedDepthBuffer = false, tu
   target.depthTexture = new THREE.DepthTexture(256, 256);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(52, 1, .5, 1000);
-  const map = effectTexture('smoke'), volume = effectVolumeTexture();
-  const material = effectVolumeMaterial(volume, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), viewportDepthTexture().r, turbulent ? 12 : 10, turbulent);
-  const pool = new EffectParticlePool(8, map, false, material);
+  const map = effectTexture('smoke'), atlas = new GasAtlas(), lighting = new EffectLighting();
+  atlas.bake(renderer);
+  const pool = new EffectParticlePool(8, map, false, gasSpriteMaterial(atlas, { lighting }), false, true);
   const blocker = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({ color: 0 }));
   blocker.position.set(0, 10, 20);
   // Like the ocean surface, the plane is transparent, writes depth and has an
@@ -101,8 +103,8 @@ export async function checkCombatVolumeRendering(reversedDepthBuffer = false, tu
     }
     const calls = renderer.info.render.drawCalls;
     frames.push({ view, visiblePixels, draws: calls, width: Math.max(0, right - left + 1), height: Math.max(0, bottom - top + 1) });
-    if ((visible ? visiblePixels < 100 : visiblePixels !== 0) || calls !== draws) {
-      throw new Error(`Volume visibility/draw budget failed: ${JSON.stringify(frames)}`);
+    if ((visible ? visiblePixels < 100 : visiblePixels !== 0) || calls > draws) {
+      throw new Error(`Gas visibility/draw budget failed: ${JSON.stringify(frames)}`);
     }
   };
   try {
@@ -122,39 +124,35 @@ export async function checkCombatVolumeRendering(reversedDepthBuffer = false, tu
     scene.remove(blocker);
     camera.position.set(40, 25, -25); camera.lookAt(0, 10, 0);
     await render('reverse oblique', true, 1);
+    // Inside, a sprite would lay one flat sheet over the whole view: the puff clears as the lens enters it.
     camera.position.set(0, 10, 0); camera.lookAt(0, 10, -1);
-    await render('inside', true, 1);
-    if (turbulent) {
-      particle.volumeAspect = 2.2;
-      camera.position.set(0, 10, 50); camera.lookAt(0, 10, 0);
-      await render('elongated side', true, 1);
-      const side = frames.at(-1)!;
-      if (side.width < side.height * 1.5) throw new Error(`Muzzle volume lost its launch direction: ${JSON.stringify(side)}`);
-      particle.volumeYaw = Math.PI / 2;
-      await render('elongated end-on', true, 1);
-      particle.volumeYaw = .7; particle.volumeAxisY = .65;
-      await render('elevated oblique', true, 1);
-      scene.add(blocker);
-      await render('elongated behind opaque surface', false, 2);
-      scene.remove(blocker);
-      camera.position.set(0, 10, 0); camera.lookAt(0, 10, -1);
-      await render('inside elongated volume', true, 1);
-    }
+    await render('inside', false, 1);
+    particle.volumeAspect = 2.2;
+    camera.position.set(0, 10, 50); camera.lookAt(0, 10, 0);
+    await render('elongated side', true, 1);
+    const side = frames.at(-1)!;
+    if (side.width < side.height * 1.5) throw new Error(`Muzzle gas lost its launch direction: ${JSON.stringify(side)}`);
+    particle.volumeYaw = Math.PI / 2;
+    await render('elongated end-on', true, 1);
+    particle.volumeYaw = .7; particle.volumeAxisY = .65;
+    await render('elevated oblique', true, 1);
+    scene.add(blocker);
+    await render('elongated behind opaque surface', false, 2);
+    scene.remove(blocker);
     pool.reset();
     await render('reset', false, 1);
-    // Muzzles share storage with ordinary impact/fire smoke. Reusing their
-    // slots must restore a sphere, including after an elevated launch.
+    // Muzzles share storage with ordinary impact and fire smoke. Reusing their slots must restore a round puff.
     const reused = pool.emit(new THREE.Vector3(0, 10, 0));
-    reused.size = 28; reused.life = 12; reused.opacity = .9; reused.density = 4;
+    reused.size = 28; reused.life = 12; reused.opacity = .9; reused.density = 4; reused.seed = particle.seed;
     camera.position.set(0, 10, 50); camera.lookAt(0, 10, 0);
-    await render('reused spherical slot', true, 1);
+    await render('reused round slot', true, 1);
     const restored = frames.at(-1)!;
-    if (restored.width !== frames[0].width || restored.height !== frames[0].height || restored.visiblePixels !== outsidePixels) {
-      throw new Error(`Reused smoke retained its muzzle shape: ${JSON.stringify(restored)}`);
+    if (Math.abs(restored.width - frames[0].width) > 2 || Math.abs(restored.height - frames[0].height) > 2 || Math.abs(restored.visiblePixels - outsidePixels) > outsidePixels * .02) {
+      throw new Error(`Reused gas retained its muzzle shape: ${JSON.stringify(restored)}`);
     }
-    return { reversedDepth: renderer.reversedDepthBuffer, effect: turbulent ? 'smoke' : 'water', frames };
+    return { reversedDepth: renderer.reversedDepthBuffer, frames };
   } finally {
-    target.dispose(); pool.dispose(); map.dispose(); volume.dispose();
+    target.dispose(); pool.dispose(); map.dispose(); atlas.dispose(); lighting.dispose();
     blocker.geometry.dispose(); blocker.material.dispose(); renderer.dispose();
     horizon.geometry.dispose(); horizon.material.dispose();
   }

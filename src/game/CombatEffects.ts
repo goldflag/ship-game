@@ -6,7 +6,7 @@ import * as THREE from 'three/webgpu';
 import { attribute, color, mix, positionGeometry, uniform } from 'three/tsl';
 import { FIXED_DT } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
-import { effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
+import { GasAtlas, gasSpriteMaterial } from './GasAtlas';
 import { EffectLighting } from './EffectLighting';
 import { rejectTemporalHistory } from './TemporalAntialiasing';
 import { WaterPlumes } from './WaterPlumes';
@@ -52,11 +52,11 @@ export class CombatEffects {
   readonly root = new THREE.Group();
   private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), shellGlow: effectTexture('glow'), foam: effectTexture('foam'), tracer: effectTexture('tracer'),
     droplet: effectTexture('droplet'), billow: smokeBillowTexture() };
-  private readonly volumeMap = effectVolumeTexture();
+  /** Baked puffs of smoke and fire that every gas sprite relights (filled by `prepare`). */
+  readonly gasAtlas = new GasAtlas();
   private readonly ownsLighting: boolean;
   /** Scene light, wind and depth, shared with ship fires and funnel exhaust. */
   readonly lighting: EffectLighting;
-  private readonly sun: EffectLighting['sunDirection'];
   private readonly wind: THREE.Vector3;
   private readonly smoke: EffectParticlePool;
   // Splash water, created in its drawing order: the billowing spray around a column's base, the jets rising
@@ -66,11 +66,11 @@ export class CombatEffects {
   private readonly spouts: WaterPlumes;
   private readonly spray: EffectParticlePool;
   private readonly mist: EffectParticlePool;
-  private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke, false, undefined, false, true);
+  private readonly aircraftSmoke: EffectParticlePool;
   private readonly flakSmoke: EffectParticlePool;
   private readonly airbursts = new Map<number, CombatEvent>();
   private readonly aircraftTrails = new Map<string, { position: THREE.Vector3; age: number }>();
-  private readonly fire = new EffectParticlePool(256, this.maps.flash, true, undefined, false, true);
+  private readonly fire = new EffectParticlePool(512, this.maps.flash, true, undefined, false, true);
   private readonly foam = new EffectParticlePool(96, this.maps.foam, false, undefined, false, true);
   private readonly pools: EffectParticlePool[];
   private readonly projectiles = new ExpandableInstances(projectileGeometry(false, 256), projectileMaterial(), 256);
@@ -113,18 +113,20 @@ export class CombatEffects {
   constructor(lighting?: EffectLighting) {
     this.ownsLighting = !lighting;
     this.lighting = lighting ?? new EffectLighting();
-    this.sun = this.lighting.sunDirection; this.wind = this.lighting.wind;
+    this.wind = this.lighting.wind;
     this.billows = new EffectParticlePool(320, this.maps.billow, false, undefined, false, true);
     applySpraySprite(this.billows.mesh.material, this.lighting, this.maps.billow);
     this.spouts = new WaterPlumes(640, this.lighting);
     this.spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
     this.mist = new EffectParticlePool(192, this.maps.smoke, false, undefined, true);
-    const volumes = { direct: this.lighting.direct, ambient: this.lighting.ambient, flashes: this.flashes };
-    this.smoke = new EffectParticlePool(256, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.lighting.sceneDepth, 16, true, volumes), false, true);
-    this.flakSmoke = new EffectParticlePool(256, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.lighting.sceneDepth, 10, true, volumes), false, true);
+    const gas = { lighting: this.lighting, flashes: this.flashes };
+    this.smoke = new EffectParticlePool(768, this.maps.smoke, false, gasSpriteMaterial(this.gasAtlas, gas), false, true);
+    this.aircraftSmoke = new EffectParticlePool(768, this.maps.smoke, false, gasSpriteMaterial(this.gasAtlas, gas), false, true);
+    this.flakSmoke = new EffectParticlePool(256, this.maps.smoke, false, gasSpriteMaterial(this.gasAtlas, gas), false, true);
     this.pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.billows, this.spray, this.fire];
-    this.localFires = new LocalizedFireEffects(this.lighting);
-    this.blasts = new BlastEffects({ volumes: this.smoke, fire: this.fire, foam: this.foam, mist: this.mist, spray: this.spray, spouts: this.spouts,
+    this.localFires = new LocalizedFireEffects(this.lighting, this.gasAtlas);
+    this.blasts = new BlastEffects({ volumes: this.smoke, gasMaterial: () => gasSpriteMaterial(this.gasAtlas, gas), fire: this.fire, foam: this.foam,
+      mist: this.mist, spray: this.spray, spouts: this.spouts,
       illuminate: (position, power, duration, distance) => this.illuminate(position, power, duration, distance) }, this.lighting);
     this.root.name = 'Combat effects';
     this.root.add(this.localFires.root, this.shellTrails.mesh, this.blasts.root);
@@ -149,6 +151,9 @@ export class CombatEffects {
     }
     this.lights.forEach(({ light }) => this.root.add(light));
   }
+
+  /** Bake the gas atlas on the renderer's GPU: once, before the first battle frame draws any gas. */
+  prepare(renderer: THREE.WebGPURenderer): void { this.gasAtlas.bake(renderer); }
 
   setWind(speed: number, direction: number): void {
     // Match the ocean/funnel convention: radians from +X toward +Z.
@@ -234,11 +239,12 @@ export class CombatEffects {
         puff.growth = 18 * scale; puff.growthDecay = 3; puff.diffusion = 1.1 * scale;
         puff.life = 5.5 + random(); puff.age = age; puff.opacity = .95; puff.fadeIn = .035;
         // Unequal hot lobes ignite together, then expose the charcoal cloud.
-        puff.heat = i === 0 ? 1.15 : .85 + random() * .2;
-        puff.density = 5.5; puff.cooling = .38 + random() * .14; puff.dissipationTime = 2.8;
+        puff.heat = i === 0 ? 1.7 : 1.3 + random() * .3;
+        // Charcoal, not ink: dark grey that the sun still greys on its lit side, thinning into a smudge.
+        puff.density = 2.4; puff.cooling = .3 + random() * .12; puff.dissipationTime = 2.6;
         puff.velocity.set((random() - .5) * .8, .4 + random() * .5, (random() - .5) * .8);
         puff.wind = 1; puff.seed = random() * 100;
-        puff.color.set('#45484d').multiplyScalar(.85 + random() * .3);
+        puff.color.set('#8c9096').multiplyScalar(.85 + random() * .3);
         puff.position.addScaledVector(puff.velocity, age).addScaledVector(this.wind, age);
       }
       // Brief radial gas fingers break up the round cloud silhouette. Their
@@ -255,8 +261,8 @@ export class CombatEffects {
         puff.size = 4 * scale; puff.growth = 38 * scale; puff.growthDecay = 6;
         puff.volumeAspect = 3.2; puff.volumeYaw = yaw; puff.volumeAxisY = y;
         puff.life = life; puff.age = age; puff.opacity = .9;
-        puff.heat = .5; puff.cooling = .18; puff.density = 4.5; puff.dissipationTime = .55;
-        puff.wind = 1; puff.seed = seed; puff.color.set('#3e4249');
+        puff.heat = .8; puff.cooling = .18; puff.density = 2; puff.dissipationTime = .55;
+        puff.wind = 1; puff.seed = seed; puff.color.set('#72767c');
         puff.position.addScaledVector(puff.velocity, age).addScaledVector(this.wind, age);
       }
       // Narrow, separated fragments leave the fireball and burn out quickly.
@@ -299,12 +305,13 @@ export class CombatEffects {
       for (let i = 1; i <= count; i++) {
         this.normal.copy(trail.position).lerp(this.position, i / count);
         const smoke = this.aircraftSmoke.emit(this.normal);
-        smoke.size = 3.6 + random() * 1.5; smoke.growth = 3.5; smoke.growthDecay = .25; smoke.diffusion = .6;
+        smoke.size = 3.2 + random() * 1.5; smoke.growth = 3.5; smoke.growthDecay = .25; smoke.diffusion = .6;
         smoke.life = 6 + random() * 2; smoke.age = elapsed * (1 - i / count);
         smoke.velocity.set((random() - .5) * 2, 1.6 + random(), (random() - .5) * 2);
-        smoke.wind = .65; smoke.drag = .5; smoke.opacity = .6 + random() * .18;
-        smoke.color.set('#46433f').multiplyScalar(.75 + random() * .45);
-        smoke.angle = random() * Math.PI * 2; smoke.spin = (random() - .5) * .35;
+        smoke.wind = .65; smoke.drag = .5; smoke.opacity = .7 + random() * .18;
+        // Burning fuel and oil: dark smoke, glowing at the flame for its first moments, that thins as it spreads.
+        smoke.heat = 1.1; smoke.cooling = .25 + random() * .15; smoke.density = 2.6; smoke.dissipationTime = 3;
+        smoke.color.set('#5a5550').multiplyScalar(.8 + random() * .4);
       }
       const flame = this.fire.emit(this.position);
       flame.size = 2.2 + random(); flame.growth = 1.6; flame.life = .16; flame.opacity = .6;
@@ -562,7 +569,7 @@ export class CombatEffects {
     this.detailedProjectiles.dispose(); this.detailedProjectiles.geometry.dispose();
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.depthChargeBodies]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
-    this.volumeMap.dispose();
+    this.gasAtlas.dispose();
     if (this.ownsLighting) this.lighting.dispose();
     this.lights.forEach(({ light }) => light.dispose());
   }

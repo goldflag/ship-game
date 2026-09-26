@@ -364,6 +364,7 @@ mod construction_trial_tests {
             weather: "clear".into(),
             spawn_distance: 3000.,
             wind_speed: Some(0.),
+            time_of_day: None,
             mission_rules: None,
             air_rules: None,
         };
@@ -657,7 +658,7 @@ impl LocalRuntime {
                 self.session.battle.step_aftermath();
                 continue;
             }
-            if let Some(plan) = &self.pve_plan {
+            if let Some(plan) = &mut self.pve_plan {
                 for directive in plan.enemy_air_directives(&self.session.battle) {
                     self.enemy_air_sequence += 1;
                     let command = match directive.intent {
@@ -692,6 +693,10 @@ impl LocalRuntime {
                         ship.target_id = target;
                     }
                 }
+                for id in plan.withdrawals(&self.session.battle) {
+                    self.session.battle.withdrawn.insert(id);
+                }
+                apply_enemy_weapons(plan, &mut self.session);
             }
             self.session.step();
         }
@@ -745,6 +750,23 @@ impl LocalRuntime {
     }
 }
 
+/// A scenario raid's scripted weapons policy onto its ships' standing orders.
+fn apply_enemy_weapons(
+    plan: &naval_sim::pve::PvePlan,
+    session: &mut naval_protocol::session::Session,
+) {
+    let Some(weapons) = plan.enemy_weapons() else {
+        return;
+    };
+    for actor in &session.battle.actors {
+        if actor.team == naval_sim::rules::TeamId::B
+            && let Some(ship) = session.control.ships.get_mut(&actor.motion.id)
+        {
+            ship.weapons = weapons;
+        }
+    }
+}
+
 /// Assemble the local frame behind the information boundary and hand it to
 /// `sink`. A live mission never reaches the full-knowledge frame.
 fn present<S: FrameSink>(
@@ -762,7 +784,7 @@ fn present<S: FrameSink>(
         // with the full-knowledge frame for a mission, decided or not.
         let mut frame = session.local_team_frame(detail).map_err(error)?;
         if let (Some(debrief), Some(plan)) = (frame.battle.debrief.as_deref_mut(), pve_plan) {
-            debrief.mission = Some(plan.debrief());
+            debrief.mission = Some(plan.debrief(&session.battle));
         }
         return sink.take(tick, &frame);
     }
@@ -783,7 +805,7 @@ impl LocalRuntime {
     }
     fn from_battle(
         battle: naval_sim::battle::Battle,
-        pve_plan: Option<naval_sim::pve::PvePlan>,
+        mut pve_plan: Option<naval_sim::pve::PvePlan>,
     ) -> Result<Self, JsValue> {
         let selected = battle
             .actors
@@ -799,13 +821,15 @@ impl LocalRuntime {
         if session.battle.mission_rules.is_none() {
             session.control.players[0].selected_ship_id = selected;
         }
-        if let Some(plan) = &pve_plan {
+        if let Some(plan) = &mut pve_plan {
+            plan.reset();
             for (id, (movement, target)) in plan.initial_directives(&session.battle) {
                 if let Some(ship) = session.control.ships.get_mut(&id) {
                     ship.movement = movement;
                     ship.target_id = target;
                 }
             }
+            apply_enemy_weapons(plan, &mut session);
         }
         Ok(Self {
             session,
@@ -848,6 +872,26 @@ impl PvePlanner {
         let catalog =
             std::sync::Arc::new(naval_sim::catalog::Catalog::load(manifest).map_err(error)?);
         let plan = naval_sim::pve::PvePlan::generate(
+            &catalog,
+            serde_json::from_str(request).map_err(error)?,
+        )
+        .map_err(error)?;
+        Ok(Self {
+            catalog,
+            plan,
+            compiled: Default::default(),
+        })
+    }
+    /// A hand-authored scenario instead of a generated mission: the fleet,
+    /// positions and opening orders are fixed; `start` takes the briefing's
+    /// own spawns back as its placements.
+    pub fn scenario(manifest: &[u8], request: &str) -> Result<PvePlanner, JsValue> {
+        if request.len() > 4096 {
+            return Err(error("Scenario request exceeds limit"));
+        }
+        let catalog =
+            std::sync::Arc::new(naval_sim::catalog::Catalog::load(manifest).map_err(error)?);
+        let plan = naval_sim::pve::PvePlan::scenario(
             &catalog,
             serde_json::from_str(request).map_err(error)?,
         )

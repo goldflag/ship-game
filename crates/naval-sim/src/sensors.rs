@@ -12,6 +12,10 @@ use std::collections::BTreeMap;
 /// Gameplay tuning: repeated gunfire refreshes this visibility window.
 pub const FIRING_VISIBILITY_SECONDS: f64 = 20.0;
 const FIRING_VISIBILITY_BONUS_M: f64 = 1000.0;
+/// Gameplay tuning: in any light short of full day, a gun flash or a fire aboard
+/// shows a ship this far off, however little of its hull the lookouts can make out.
+/// Weather visibility and the horizon still bound it.
+pub const NIGHT_FLASH_RANGE_M: f64 = 14000.0;
 use ts_rs::TS;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
@@ -178,11 +182,26 @@ impl VisualEntity {
 pub struct VisualConditions {
     pub visibility_m: f64,
     pub light: f64,
+    /// Each team's lookout reach in poor light, as a multiple of the common
+    /// rule: a navy trained and equipped for night fighting sees further. Full
+    /// daylight ignores it.
+    pub night_lookout: [f64; 2],
 }
 impl VisualConditions {
+    /// Full daylight: every battle that names no time of day.
     pub fn resolve(catalog: &Catalog, map_id: &str, weather: &str) -> Self {
-        // PvE initially fixes daylight; weather has the same authored fog limit
-        // used by the renderer. Decorative clouds do not occlude CPU lookouts.
+        Self::resolve_at(catalog, map_id, weather, None)
+    }
+    /// A named time of day takes the renderer's light scale from the same
+    /// `times` preset, so night lookouts see about half as far as by day.
+    pub fn resolve_at(
+        catalog: &Catalog,
+        map_id: &str,
+        weather: &str,
+        time_of_day: Option<&str>,
+    ) -> Self {
+        // Weather has the same authored fog limit used by the renderer.
+        // Decorative clouds do not occlude CPU lookouts.
         let weather = catalog.conditions["weather"]
             .as_array()
             .and_then(|v| v.iter().find(|w| w["id"] == weather));
@@ -193,9 +212,19 @@ impl VisualConditions {
             .and_then(|w| w["fog"]["end"].as_f64())
             .or_else(|| map.and_then(|m| m["fog"]["end"].as_f64()))
             .unwrap_or(20000.0);
+        let light = time_of_day
+            .and_then(|id| {
+                catalog.conditions["times"]
+                    .as_array()?
+                    .iter()
+                    .find(|t| t["id"] == id)?["lightScale"]
+                    .as_f64()
+            })
+            .unwrap_or(1.0);
         Self {
             visibility_m,
-            light: 1.0,
+            light,
+            night_lookout: [1.0; 2],
         }
     }
 }
@@ -611,9 +640,26 @@ pub fn observation_strength(
         1.0
     };
     let horizon = 3570.0 * (observer.eye[1].max(0.0).sqrt() + target.feature[1].max(0.0).sqrt());
-    let range = (range * aggregate * conditions.light.clamp(0.05, 1.0).sqrt())
+    let lookout = if conditions.light < 1.0 {
+        conditions.night_lookout[observer.team.index()]
+    } else {
+        1.0
+    };
+    let range = (range * aggregate * conditions.light.clamp(0.05, 1.0).sqrt() * lookout)
         .min(conditions.visibility_m)
         .min(horizon);
+    let range = if conditions.light < 1.0
+        && target.kind == ContactKind::Surface
+        && (target.firing || target.cues.fire.is_some())
+    {
+        range.max(
+            NIGHT_FLASH_RANGE_M
+                .min(conditions.visibility_m)
+                .min(horizon),
+        )
+    } else {
+        range
+    };
     let distance = horizontal(observer.eye, target.feature);
     if distance > range || range <= 0.0 {
         return None;

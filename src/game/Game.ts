@@ -60,7 +60,6 @@ import { ArmorOverlay } from './ArmorOverlay';
 import { DISPLAY_TONE_MAPPING, DisplayTransform } from './DisplayTransform';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels, type ObservedLabelReport } from './ShipLabels';
-import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { ENGINE_ORDERS, FIXED_DT, shipVelocity } from './session/motion';
@@ -193,7 +192,6 @@ export class Game {
     weathering: { dry: this.shipWeather.dry, gloss: this.shipWeather.gloss, timber: this.shipWeather.timber, scorch: this.scorch } });
   private readonly occlusion: ShipOcclusion;
   private shipLabels: ShipLabels;
-  private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
   private playerDamageFeedback!: HullDamageFeedback;
   private damageFeedbackShipId?: string;
@@ -233,7 +231,10 @@ export class Game {
     return this.weaponGroups.find(g => g.id === this.selectedWeaponGroupId)?.id
       ?? this.weaponGroups.find(g => g.battery === this.battery)?.id;
   }
-  get selectedAmmunition(): Ammunition { return this.ammunition[this.weaponGroupId ?? this.battery] ?? 'ap'; }
+  get selectedAmmunition(): Ammunition {
+    const first = this.definition.mounts.findIndex(m => selectedWeapon(m.battery, m.weapon, this.battery, this.weaponGroupId));
+    return this.ammunition[this.weaponGroupId ?? this.battery] ?? this.simulation.player.mounts[first]?.loaded ?? 'ap';
+  }
   selectWeaponGroup(id: string): void {
     const group = this.weaponGroups.find(g => g.id === id);
     if (!group) return;
@@ -377,7 +378,6 @@ export class Game {
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
     this.shipLabels = new ShipLabels(this.host, id => this.observedShipViews?.labelAnchor(id), id => this.observedShipViews?.position(id));
-    this.hitLabels = new HitLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
     this.torpedoAim = new TorpedoAimIndicators(this.host);
     this.torpedoMarkers = new TorpedoMarkers(this.host);
@@ -449,6 +449,7 @@ export class Game {
     installBindGroupReuse(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
     for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
+    this.effects.prepare(this.renderer);
     configureRenderOrder(this.renderer);
     this.assertActive();
     this.callbacks.progress(`Loading ${this.definition.name}`, 0.2);
@@ -687,7 +688,9 @@ export class Game {
       const simulation = await draft.deploy(placements);
       simulation.onFailure = message => this.callbacks.error(message);
       await this.replaceFleet(simulation, shipPreset(simulation.definition.id), progress);
-      this.environment.setBattle({ timeOfDay: 'noon', weather: draft.briefing.setup.weather as import('../maps/conditions').WeatherId, conditions: {} });
+      // A scenario sets its hour (Savo Island is fought at night); a generated mission sails at noon.
+      this.environment.setBattle({ timeOfDay: (draft.briefing.setup.timeOfDay ?? 'noon') as import('../maps/conditions').TimeOfDayId,
+        weather: draft.briefing.setup.weather as import('../maps/conditions').WeatherId, conditions: {} });
       briefingControlGroups(draft.briefing, draft.formations).forEach((group, slot) => this.controlGroups.set(slot, group));
       this.pveStartingGroups = new Map([...this.controlGroups].map(([slot, group]) => [slot, { name: group.name, shipIds: [...group.shipIds], formation: group.formation }]));
       progress?.('Preparing fleet command', .9);
@@ -1302,8 +1305,7 @@ export class Game {
         }
       }
       const combatTime = this.simulation.tick * FIXED_DT;
-      this.shipLabels.update(this.camera, combatTime, this.simulation.events, this.simulation.ship.id);
-      this.hitLabels.update(this.simulation, this.fleetViews, this.camera, !this.inPort && !this.inspecting);
+      this.shipLabels.update(this.camera, combatTime, this.simulation.events, this.simulation.ship.id, this.battery);
       const damageSubject = this.simulation.actors.find(actor => actor.motion.id === this.spectatedShipId) ?? this.simulation.player;
       if (this.damageFeedbackShipId !== damageSubject.motion.id) {
         this.damageFeedbackShipId = damageSubject.motion.id;
@@ -2061,7 +2063,6 @@ export class Game {
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
     this.inspectionHover.dispose();
     this.shipLabels.dispose();
-    this.hitLabels.dispose();
     this.torpedoPreview.dispose();
     this.gunAim.dispose();
     this.torpedoAim.dispose();

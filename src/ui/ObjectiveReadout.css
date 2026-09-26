@@ -1,0 +1,15 @@
+/* A scenario's protected ships beside the clock: instrument text over the sea, no fill. */
+.objective-readout {
+  color: var(--fleet-muted, #bacbd0);
+  font: 400 12px/1 'Barlow', sans-serif;
+  text-shadow: 0 1px 2px #000a;
+  white-space: nowrap;
+}
+.objective-readout strong {
+  color: #86e4c5;
+  font: 600 18px/1 'Barlow Condensed', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.objective-readout[data-lost='true'] strong {
+  color: #ffb5a6;
+}

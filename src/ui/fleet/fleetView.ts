@@ -22,6 +22,7 @@ import { SHIP_GLYPHS, shipClassOf, type ShipClass } from '../shipGlyphs';
 import type { OwnFleetAircraft, OwnFleetShip } from '../OwnFleet';
 import type { DeckServiceAction } from '../../game/session/BattleSession';
 import type { ControlGroup, FleetChart, FleetDesk, FleetFrame, FleetOrder } from './fleetDesk';
+import { scenarioForMission } from '../battle/scenarios';
 
 export type { FleetFrame, FleetDesk, FleetOrder, FleetChart, ControlGroup } from './fleetDesk';
 
@@ -239,7 +240,9 @@ export function fleetView(frame: FleetFrame, inputs: FleetViewInputs): FleetView
   const tick = frame.tick;
   const actors = frame.actors;
   const actorOf = (id: string) => actors.find((a) => a.motion.id === id);
-  const owned = combat.contacts.filter((c) => c.team === 'friendly');
+  // A scenario's ships sail under their own names; elsewhere duplicate classes are numbered.
+  const names = scenarioForMission(frame.missionRules?.id)?.shipNames;
+  const owned = combat.contacts.filter((c) => c.team === 'friendly').map((c) => (names?.[c.id] ? { ...c, name: names[c.id] } : c));
   const ships = owned.map((s) => {
     const same = owned.filter((other) => other.name === s.name);
     return same.length > 1 ? { ...s, name: `${s.name} ${same.findIndex((other) => other.id === s.id) + 1}` } : s;
