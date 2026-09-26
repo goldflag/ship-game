@@ -304,13 +304,18 @@ def deck_edge_rails(D, kit, col):
     L = H['length']
     secs = H['sections']
 
+    def deck_edge(points):
+        # The outermost point at deck height: aft of the forecastle the loft's last points stand inboard on the deck.
+        top = points[-1][1]
+        return max((w, y) for w, y in points if y >= top - .01)
+
     def edge(station):
         for a, b in zip(secs, secs[1:]):
             if a['station'] <= station <= b['station']:
                 t = (station - a['station']) / max(1e-9, b['station'] - a['station'])
-                pa, pb = a['points'][-1], b['points'][-1]
+                pa, pb = deck_edge(a['points']), deck_edge(b['points'])
                 return pa[0] + (pb[0] - pa[0]) * t, pa[1] + (pb[1] - pa[1]) * t
-        return secs[-1]['points'][-1]
+        return deck_edge(secs[-1]['points'])
     # Casemate drums turn in the forecastle embrasures below the deck edge: no rail over them.
     drums = [(-m['position'][2], -m['position'][0]) for m in D['mounts'] if m['partId'].endswith('casemate')]
     for side in (-1, 1):

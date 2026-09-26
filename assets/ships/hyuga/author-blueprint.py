@@ -9,8 +9,10 @@ keeps from the current blueprint unless fresh measurement files are passed:
 The measurement files are produced in ignored .build/hyuga/ from the cached
 `bun run ship:reference pjsb517` view (hull A, the only one; visual jsb049_hyuga_1942) with the
 repository's own measurement code: hull stations walked by the ship:lines station walker from the
-widest point of the shell up to the upper-deck edge or casemate ledge, then the forecastle's side or
-wall read off ship:slice --plan footprints up to the forecastle deck edge found by vertical probes;
+widest point of the shell up to the upper-deck edge or casemate ledge (never up a casemate's front: our
+casemate parts stand on the ledge), then the forecastle's side or wall read off ship:slice --plan
+footprints up to the forecastle deck edge found by vertical probes, each part of the outline with a
+fixed number of points so the loft's facets run straight from station to station;
 superstructure prisms from --plan raster cuts every 0.1 m of the hull group, mirrored, with our loft
 and the main barbettes cleared, followed up through the levels into bands. They hold our own sampled
 offsets, never source triangles. Mount datums come from the reference hardpoints (HP_*). The

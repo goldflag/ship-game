@@ -37,14 +37,18 @@ The owner approved this brief on 2026-09-25.
 
 ## Model and simulation basis
 
-The hull is an original authored-stations loft: 343 stations of 38 points at the reference's y = 0 design waterline,
-215.25 m overall (212.75 m on the waterline), 33.82 m over the anti-torpedo bulges, 9.73 m to the keel and 42,548 t at
+The hull is an original authored-stations loft: 343 stations of 40 points at the reference's y = 0 design waterline,
+215.25 m overall (212.75 m on the waterline), 33.82 m over the anti-torpedo bulges, 9.73 m to the keel and 42,544 t at
 that waterline. Each section is the shell walked by the `ship:lines` station walker from its widest point up to the
 upper-deck edge, the casemate ledge or the knuckle, then the forecastle's side or wall read off `ship:slice --plan`
 footprints up to the forecastle deck edge found by vertical probes; so the flared bow, the stem's rake, the bulges and
 their tops, the ledge under the casemates with its scalloped embrasures, the inset forecastle wall, the forecastle's
-V-shaped after end at No. 3 barbette and the quarterdeck's rising sheer follow the reference. The loft's flat decks
-stand 0.12 m above the measured deck edges, between the edge and the crown of the reference's cambered decks.
+V-shaped after end at No. 3 barbette and the quarterdeck's rising sheer follow the reference. Where the walk climbed a
+casemate's front above the shoulder, the section stops at the shoulder height of the stations either side, so the ledge
+runs unbroken and the casemate parts stand on it; the stem head stops at the deck edge, below the bow fittings. Every
+section gives the shell below 4.3 m, the climb above it, the ledge's inboard corner and the wall the same number of
+points, so the loft's facets run straight from station to station. The loft's flat decks stand 0.12 m above the
+measured deck edges, between the edge and the crown of the reference's cambered decks.
 
 Superstructure prisms come from plan cuts of the reference's hull group every 0.1 m (mirrored, gaps up to 1 m bridged so
 doors and windows do not open the outline, features thinner than 0.25 m left out), with our loft and the main barbettes
@@ -89,7 +93,7 @@ ship.
 
 ## Accepted approximations
 
-- Displacement at the reference waterline (42,548 t, 9.73 m keel draft) is the reference's loading, heavier than the
+- Displacement at the reference waterline (42,544 t, 9.73 m keel draft) is the reference's loading, heavier than the
   class's published full-load figure; the stated mass equals the loft's displacement.
 - Superstructure tiers are measured prisms: sloped faces step, and small overhangs, open galleries and the pagoda's open
   framework are approximated. The funnel's lattice tower, the mainmast and the platforms' supports are simplified
