@@ -121,6 +121,8 @@ else:
     structures = previous['structures']
 # Recorded corrections to the measured prisms, one per line: None drops a prism, a dict overrides fields.
 STRUCTURE_EDITS = {
+    'deckhouse-005': None,            # a 0.3 m scrap of the accommodation-ladder platform outboard of the upper deck
+    'platform-005': None,             # its 0.15 m companion
 }
 structures = [dict(s, **STRUCTURE_EDITS[s['id']]) if STRUCTURE_EDITS.get(s['id']) else s for s in structures
               if s['id'] not in STRUCTURE_EDITS or STRUCTURE_EDITS[s['id']] is not None]

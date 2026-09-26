@@ -74,6 +74,16 @@ for ob in [o for o in shells if o['assemblyId'] in nagato_fittings.CLAIMED_STRUC
     bpy.data.objects.remove(ob, do_unlink=True)
 
 # ---------------------------------------------------------------- guns
+def sight_wires(mount_id, col):
+    """The shared single's ring sight hangs 8 cm off its rail; cross-wires owned by the same elevating joint carry
+    it on the rail's end (as on Takao)."""
+    elev = bpy.data.objects[mount_id + '.center.elevation']
+    for a, b in (((.13, .17, .21), (.13, .17, .41)), ((.13, .07, .31), (.13, .27, .31))):
+        wire = kit.rod(mount_id + '.sight cross-wire', a, b, .007, 'edge', col, vertices=5)
+        wire.parent = elev
+        wire['assemblyId'] = mount_id
+
+
 BARBETTE_R = 5.87            # measured main barbettes (plan cuts of the reference hull group)
 for mount in D['mounts']:
     light = mount['partId'].startswith('type96')
@@ -91,7 +101,12 @@ for mount in D['mounts']:
         nagato_fittings.mount_seat(kit, mount, col)
     before = set(scene.objects)
     create_mount(mount, col, helpers, materials)
+    if mount['partId'] == 'type96-25-kongo-single':
+        sight_wires(mount['id'], col)
     if mount.get('parentMountId'):
+        # A low pedestal seats the triple on the domed turret roof (the crown is 3.16 m over the sole, so the
+        # pedestal's foot sinks into the dome); it trains with the turret too.
+        kit.cylz(mount['id'], col, 'roof pedestal', (x, y, z - .45), .62, .46, 'naval', 24)
         # A triple on a turret roof trains with that turret.
         parent = next(o for o in scene.objects if o.get('nodeId') == mount['parentMountId'] + '.yaw')
         bpy.context.view_layer.update()
@@ -109,6 +124,7 @@ for i, (x, y, z, bearing) in enumerate(FIXED_SINGLES, 1):
     nagato_fittings.mount_seat(kit, fixed, collections['Light AA'])
     before = set(scene.objects)
     create_mount(fixed, collections['Light AA'], helpers, materials)
+    sight_wires(fixed['id'], collections['Light AA'])
     bpy.context.view_layer.update()
     new = set(scene.objects) - before
     for obj in [o for o in new if o.type == 'MESH']:

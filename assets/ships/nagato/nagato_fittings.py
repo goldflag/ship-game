@@ -3,7 +3,12 @@
 Datums are reference-frame measurements (x starboard, y up, z toward the stern) converted by `P`.
 """
 import math
+import bpy
 from nagato_kit import P, R, ZC
+import nagato_masts
+import nagato_boats
+import nagato_hull
+import nagato_rails
 
 # Measured prisms a region draws itself (still used as supports).
 CLAIMED_STRUCTURES = set()
@@ -29,10 +34,12 @@ def mount_seat(kit, mount, col):
 
 
 def attach(objs, parent):
+    """Parent objects to a joint without moving them (the joint's world matrix must be current)."""
+    bpy.context.view_layer.update()
+    inverse = parent.matrix_world.inverted()
     for o in objs:
-        world = o.matrix_world.copy()
         o.parent = parent
-        o.matrix_parent_inverse = parent.matrix_world.inverted()
+        o.matrix_parent_inverse = inverse
 
 
 def main_director(kit):
@@ -54,5 +61,31 @@ def main_director(kit):
     attach(parts, yaw)
 
 
+# Measured platforms that stand clear of the blocks below them (the machine-gun control sponsons by the funnel,
+# the pagoda's side platforms): each gets a post down to the deck or roof under it.
+POSTED = ['deckhouse-037', 'deckhouse-038', 'platform-046', 'platform-047', 'platform-072']
+
+
+def posts(D, kit):
+    col = kit.collections['Superstructure']
+    for s in D['structures']:
+        if s['id'] not in POSTED:
+            continue
+        pts = [(-z, -x) for x, z in s['footprint']]
+        cx = sum(p[0] for p in pts) / len(pts)
+        cy = sum(p[1] for p in pts) / len(pts)
+        base = s['baseY']
+        floor = kit.below(cx, cy, base - .05, base - 3)
+        kit.cylz(s['id'], col, 'post', (cx, cy, floor - .02), .16, base - floor + .04, 'naval', 12)
+
+
 def build(D, kit):
     main_director(kit)
+    posts(D, kit)
+    nagato_masts.pagoda(kit)
+    nagato_masts.directors(kit)
+    nagato_masts.mainmast(kit)
+    nagato_masts.funnel(kit, D)
+    nagato_boats.build(kit)
+    nagato_hull.build(kit, D)
+    nagato_rails.build(kit, D)
