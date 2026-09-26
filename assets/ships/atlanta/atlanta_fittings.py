@@ -912,19 +912,44 @@ def depth_charges(D, kit):
             kit.part('rod', lid, col, 'arbor', barrel_top, barrel_top + Vector((0, ay * .25, .25)), .08, 'edge', vertices=8)
             kit.part('rod', lid, col, 'charge', barrel_top + Vector((-.33, ay * .3, .3)), barrel_top + Vector((.33, ay * .3, .3)), .22, 'black', vertices=12)
         else:
-            # Stern roller track: two rails on a raked frame over the transom, charges rolling aft.
-            x0 = rx + 4.1
+            # Stern roller track as the reference's agb187 (HP_AGB_7/8, bearing 171.7): two rails on a raked frame
+            # from reference z 78.8 to 83.0, splayed 8.3 degrees so the after end stands 0.4 m further outboard
+            # and overhangs the transom by 0.8 m, charges rolling aft to the release gate at its end.
+            out = 1 if ry > 0 else -1                        # authoring +Y is port
+            aft_end = Vector(P(-out * 1.35, 0, 83.0)[:2] + (0,))
+            fwd = Vector((math.cos(math.radians(8.3)), -out * math.sin(math.radians(8.3)), 0))
+            across = Vector((-fwd.y, fwd.x, 0))
             floor = kit.below(rx + 2.0, ry, rz_ + 1.5, rz_ - .3)
+            L = 4.2
+
+            def deck_under(q):
+                try:
+                    f = kit.support.below(q.x, q.y, floor + .3)
+                except ValueError:
+                    return None
+                return f if f > floor - .3 else None
+            # The charge rails, raked down aft, and the frame's two sides with their top rails, posts and ties,
+            # empty as the reference shows them.
             for t in (-.42, .42):
-                a, b = Vector((x0, ry + t, floor + 1.35)), Vector((rx, ry + t, floor + .95))
-                kit.member(lid, col, a, b, .05, 'edge', 6)
-                for k in range(5):
-                    p = a.lerp(b, k / 4)
-                    kit.member(lid, col, p, Vector((p.x, p.y, floor)), .04, 'naval', 5)
+                kit.member(lid, col, aft_end + fwd * L + across * t + Vector((0, 0, floor + 1.0)),
+                           aft_end + across * t + Vector((0, 0, floor + .72)), .05, 'edge', 6)
+            for t in (-.72, .72):
+                top_a, top_b = aft_end + fwd * L + across * t + Vector((0, 0, floor + 1.5)), aft_end + across * t + Vector((0, 0, floor + 1.22))
+                kit.member(lid, col, top_a, top_b, .045, 'naval', 6)
+                kit.member(lid, col, top_a - Vector((0, 0, .5)), top_b - Vector((0, 0, .5)), .035, 'naval', 6)
+                for k in range(6):
+                    q = top_a.lerp(top_b, k / 5)
+                    f = deck_under(q)
+                    if f is not None:
+                        kit.member(lid, col, q, Vector((q.x, q.y, f)), .045, 'naval', 6)
+                kit.member(lid, col, top_b, aft_end + fwd * 1.1 + across * t + Vector((0, 0, floor)), .04, 'naval', 5)
             for k in range(6):
-                p = Vector((x0 - .3 - k * .65, ry, floor + 1.35 - k * .065 + .25))
-                kit.part('rod', lid, col, 'charge', p + Vector((0, -.35, 0)), p + Vector((0, .35, 0)), .22, 'black', vertices=12)
-            kit.boxc(lid, col, 'release gate', Vector((rx + .05, ry, floor + .97)), (.07, 1.0, .12), 'naval')
+                q = aft_end + fwd * (L * k / 5)
+                h = 1.5 - .28 * (1 - k / 5)
+                kit.member(lid, col, q - across * .72 + Vector((0, 0, floor + h)), q + across * .72 + Vector((0, 0, floor + h)), .03, 'naval', 5)
+                kit.member(lid, col, q - across * .72 + Vector((0, 0, floor + h - .55)), q + across * .72 + Vector((0, 0, floor + h - .55)), .03, 'naval', 5)
+            g = aft_end + fwd * .05 + Vector((0, 0, floor + .78))
+            kit.part('rod', lid, col, 'release gate', g - across * .5, g + across * .5, .05, 'naval', vertices=6)
     # Ready-use stowage racks by the throwers, with their charges (reference part datums).
     for x, y, z, along in [(-3.09, 4.25, 59.91, 'x'), (3.09, 4.25, 59.91, 'x'), (-3.58, 4.26, 60.71, 'z'), (3.58, 4.26, 60.71, 'z'), (4.67, 4.26, 60.71, 'z'),
                            (-4.67, 4.26, 60.71, 'z'), (-4.12, 4.26, 60.87, 'z'), (4.12, 4.26, 60.87, 'z'), (2.84, 4.3, 63.09, 'x'), (-2.98, 4.3, 63.09, 'x'),
@@ -1356,12 +1381,37 @@ def deck_gear(D, kit):
         for d in (-.45, .45):
             kit.boxc('reels', col, 'reel cheek', Vector((c.x, c.y + d, f + r + .05)), (r * 2.1, .06, r * 2.1), 'edge')
         kit.part('rod', 'reels', col, 'drum', Vector((c.x, c.y - .42, f + r + .05)), Vector((c.x, c.y + .42, f + r + .05)), r * .75, 'canvas', vertices=14)
-    for x, z in [(-4.27, -41.94), (4.27, -41.94)]:
-        c = V(x, 0, z)
+    # Four paravanes as the reference's am077: two stowed upright on the main deck against the deckhouse (x 4.27,
+    # 5.4 to 8.3 m) and two lying on the 01 deck (x 2.95, z -41.9 to -39.0), each a torpedo body with tail fins and
+    # the kite plane across it near the nose.
+    def paravane(tail, nose, plane_axis):
+        d = (nose - tail).normalized()
+        kit.part('rod', 'paravanes', col, 'paravane body', tail + d * .25, nose - d * .35, .19, 'naval', vertices=10)
+        kit.part('rod', 'paravanes', col, 'paravane nose', nose - d * .35, nose, .19, 'naval', r2=.06, vertices=10)
+        kit.part('rod', 'paravanes', col, 'paravane tail', tail, tail + d * .25, .08, 'naval', r2=.19, vertices=10)
+        other = d.cross(plane_axis).normalized()
+        for u in (plane_axis, other):
+            kit.beam('paravanes', col, 'paravane fin', tail + d * .12 - u * .3, tail + d * .12 + u * .3, .22, .02, 'naval', up=d)
+        k = tail.lerp(nose, .72)
+        kit.beam('paravanes', col, 'kite plane', k - plane_axis * .52, k + plane_axis * .52, .7, .04, 'naval', up=d)
+        for sgn in (-1, 1):
+            kit.beam('paravanes', col, 'kite pad', k + plane_axis * sgn * .44, k + plane_axis * sgn * .56, .5, .16, 'edge', up=d)
+    for s in (-1, 1):
+        c = V(s * 4.27, 0, -41.94)
         f = kit.below(c.x, c.y, 8.0, 5.0)
-        kit.part('rod', 'paravanes', col, 'paravane body', Vector((c.x + .9, c.y, f + .5)), Vector((c.x - 1.5, c.y, f + .5)), .2, 'naval', vertices=10)
-        kit.boxc('paravanes', col, 'paravane plane', Vector((c.x - .2, c.y, f + .5)), (.8, 1.1, .04), 'naval')
-        kit.boxc('paravanes', col, 'chock', Vector((c.x, c.y, f + .15)), (.3, .5, .3), 'edge')
+        paravane(Vector((c.x, c.y, f + .05)), Vector((c.x, c.y, f + 2.9)), Vector((1, 0, 0)))
+        kit.boxc('paravanes', col, 'paravane shoe', Vector((c.x, c.y, f + .03)), (.4, .4, .08), 'edge')
+        # A strap from the body in to the deckhouse side.
+        try:
+            wall = kit.support.along(Vector((c.x, c.y, f + 2.2)), Vector((0, 1 if c.y < 0 else -1, 0)), 2.0)
+            kit.member('paravanes', col, Vector((c.x, c.y, f + 2.2)), Vector((c.x, wall.y, f + 2.2)), .03, 'naval', 5)
+        except ValueError:
+            pass
+        c2 = V(s * 2.95, 0, -40.45)
+        f2 = kit.below(c2.x, c2.y, 9.0, 7.0)
+        paravane(Vector((c2.x - 1.4, c2.y, f2 + .32)), Vector((c2.x + 1.4, c2.y, f2 + .32)), Vector((0, 0, 1)))
+        for dx in (-.8, .6):
+            kit.boxc('paravanes', col, 'chock', Vector((c2.x + dx, c2.y, f2 + .07)), (.2, .45, .16), 'edge')
     for x, y, z, w, l in [(0.0, 7.95, -78.76, .75, .9), (0.0, 7.48, -72.39, .75, .9), (.43, 5.93, -49.55, .75, .92), (-.48, 6.7, -61.37, .95, 1.45),
                           (.48, 4.18, 63.46, .9, 1.36), (-1.33, 4.29, 68.22, .9, 1.35), (-1.68, 4.38, 78.16, 1.01, .68)]:
         c = V(x, 0, z)
@@ -1372,8 +1422,14 @@ def deck_gear(D, kit):
     for s in (-1, 1):
         c = V(s * 2.23, 0, 80.92)
         f = kit.below(c.x, c.y, 5.5, 3.9)
-        kit.part('rod', 'smoke-generators', col, 'generator', Vector((c.x + .6, c.y, f + .55)), Vector((c.x - .6, c.y, f + .55)), .4, 'black', vertices=14)
-        kit.boxc('smoke-generators', col, 'cradle', Vector((c.x, c.y, f + .1)), (1.0, .7, .2), 'edge')
+        # Four smoke pots stacked two by two in a banded cradle, as the reference's am011 (1.0 x 1.3 x 1.6 m).
+        for dy in (-.24, .24):
+            for dz in (.36, .84):
+                a, b = Vector((c.x + .75, c.y + dy, f + dz)), Vector((c.x - .75, c.y + dy, f + dz))
+                kit.part('rod', 'smoke-generators', col, 'smoke pot', a, b, .23, 'naval', vertices=12)
+        for dx in (-.4, .4):
+            kit.boxc('smoke-generators', col, 'band', Vector((c.x + dx, c.y, f + .6)), (.06, 1.0, 1.0), 'edge')
+        kit.boxc('smoke-generators', col, 'cradle', Vector((c.x, c.y, f + .06)), (1.6, .95, .12), 'edge')
         # Two spare Mk 15s a side (reference am496, 6.92 m), painted as the reference's: black bodies with grey
         # warhead noses aft, the afterbody tapering forward to the fins and the bronze screws.
         for y in (4.28, 4.96):
@@ -1550,7 +1606,9 @@ def railings(D, kit):
     """Guard rails along the weather-deck edge; the gun arcs stay clear (Kit.in_arc), as removable rails would."""
     col = kit.collections['Deck fittings']
     for s in (-1, 1):
-        zs = [-77.0 + i * 1.6 for i in range(int((81.5 + 77.0) / 1.6) + 1)]
+        # Stanchions at the reference's 2.95 m pitch (section at 6.0 m: z -51.97, -49.1, -46.14 ...), from the bow
+        # bulwark's foot to the stern.
+        zs = [-77.0] + [-51.97 + 2.95 * k for k in range(-8, 46)] + [81.5]
         pts = []
         for z in zs:
             y = deck(kit, z)
