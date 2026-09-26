@@ -6,6 +6,7 @@ export { loadShipPreset, loadShipPresets } from './presetLoading';
 export const shipPresets = {
   'fuso': preset('fuso'),
   'hyuga': preset('hyuga'),
+  'ise': preset('ise'),
   'takao': preset('takao'),
   "valiant": preset("valiant"),
   'resolute': preset('resolute'),
