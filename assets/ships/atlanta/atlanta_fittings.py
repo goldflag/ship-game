@@ -678,7 +678,7 @@ def mk37(kit, did, x, y, z, face):
         for frac, lid in ((.72, 'up'), (.3, 'down')):
             c = foot + up * slope * frac + Vector((0, t, 0))
             local(kit.beam(did, col, 'sight hatch', c - up * .22 + out * .02, c + up * .22 + out * .02, .48, .06, 'naval'), pivot)
-            local(kit.beam(did, col, 'sight window', c - up * .15 + out * .055, c + up * .15 + out * .055, .3, .02, 'dark'), pivot)
+            local(kit.beam(did, col, 'sight window', c - up * .15 + out * .055, c + up * .15 + out * .055, .3, .02, 'glass'), pivot)
             if lid == 'up':
                 hinge = foot + up * slope + Vector((0, t, 0)) + out * .06
                 local(kit.beam(did, col, 'hatch lid', hinge, hinge + (back * .15 + Vector((0, 0, 1))).normalized() * .47, .44, .05, 'naval'), pivot)
@@ -694,7 +694,7 @@ def mk37(kit, did, x, y, z, face):
     local(kit.part('rod', did, col, 'rangefinder', (rx, by - 2.33, rh), (rx, by + 2.33, rh), .15, 'naval', vertices=14), pivot)
     for t in (-1, 1):
         local(kit.part('rod', did, col, 'rangefinder end', (rx, by + t * 2.29, rh), (rx, by + t * 2.385, rh), .17, 'naval', vertices=14), pivot)
-        local(kit.boxc(did, col, 'lens window', (rx + s * .15, by + t * 2.2, rh), (.03, .16, .16), 'dark'), pivot)
+        local(kit.boxc(did, col, 'lens window', (rx + s * .15, by + t * 2.2, rh), (.03, .16, .16), 'glass'), pivot)
         local(kit.part('rod', did, col, 'end drum', (rx, by + t * 2.08, rh - .19), (rx, by + t * 2.08, rh - .06), .08, 'naval', vertices=10), pivot)
         rings = []
         for h, bulge, half in ((.5, .08, .2), (1.0, .3, .3), (1.45, .39, .3), (1.9, .32, .28), (2.0, .1, .2)):
