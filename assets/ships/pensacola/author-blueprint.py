@@ -92,6 +92,22 @@ def repair_sections(raw):
         if FLAT_KEEL[0] < r['z'] < FLAT_KEEL[1]:
             pts[0][1] = min(pts[0][1], KEEL_Y)
         out.append({'station': round(r['station'], 4), 'points': [[round(w, 4), round(y, 4)] for w, y in pts]})
+    # The stem foot: the reference's stem stands straight at reference z -83.43 from the forefoot up to
+    # 1.2 m before it rakes forward, where the shell walk lost it; one station 3 cm abaft that face
+    # (ship:slice --stations -83.45) keeps the stem upright instead of lofting a slope from the keel.
+    STEM_Z = -83.40
+    STEM = [(0.07, -6.25), (0.07, -4.4), (0.06, 1.0), (0.09, 2.02), (0.16, 2.96), (0.39, 3.75), (0.62, 4.3), (0.92, 4.88), (1.44, 5.49),
+            (1.57, 5.66), (1.66, 5.96), (1.78, 6.29), (1.82, 6.45), (1.85, 6.67), (1.88, 6.86), (1.93, 7.06), (2.1, 7.45)]
+    station = HALF - STEM_Z
+    if not any(abs(s['station'] - station) < .2 for s in out):
+        LOW = [0, .004, .012, .025, .045, .07, .1, .14, .19, .25, .32, .4, .48, .56, .64, .72, .8, .87, .94, 1]
+        HIGH = [.125, .25, .375, .5, .625, .75, .875, 1]
+        keel, top = STEM[0][1], STEM[-1][1]
+        heights = [keel + (1.5 - keel) * u for u in LOW] + [1.5 + (top - 1.5) * u for u in HIGH]
+        prof = [(y, w) for w, y in STEM]
+        pts = [[0, keel]] + [[round(max(.03, interp(prof, y)), 4), round(y, 4)] for y in heights[1:]]
+        out.append({'station': round(station, 4), 'points': pts})
+        out.sort(key=lambda s: s['station'])
     # Stern end: the round stern closes 0.7 m aft of the last measured station; stem head at L.
     first = out[0]
     if first['station'] > .05:
@@ -242,11 +258,19 @@ for s in structures:
         b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
                                       size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
 # Stowed boats and the catapults: barrels stop at them and cannot fire through them (reference z, x, y spans).
-BOATS = [('whaleboat', (4.6, 6.6), (6.5, 7.9), (21.6, 29.2)), ('catapult', (5.4, 9.2), (6.2, 8.2), (-14.4, -0.9))]
+# Reference part bounds: the whaleboats (am091) and the catapults (ac002); the lower after legs of the
+# after tower, which No. 3 turret's barrels meet when trained forward and depressed.
+BOATS = [('whaleboat', (6.86, 8.88), (3.95, 5.71), (32.15, 40.09)), ('catapult', (5.4, 9.22), (6.26, 8.29), (-16.38, 5.1)),
+         ('after-tower-leg', (2.3, 3.6), (6.2, 10.0), (42.0, 43.1))]
 for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
     for side, sign in [('port', -1), ('starboard', 1)]:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
                                       size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
+# The forecastle deck rising ahead of No. 1 turret stops its depressed barrels: thin boxes on the sheer.
+for k in range(9):
+    z0, z1 = -60.0 - 3 * k, -63.0 - 3 * k
+    top = max(deck_ref(z0), deck_ref(z1)) + .02
+    b['obstructions'].append(dict(id=f'forecastle-deck-{k}', center=[0, round(top - .15, 3), rz((z0 + z1) / 2)], size=[8.0, .3, 3.0]))
 
 # ---------------------------------------------------------------- installation interlocks
 # CPU motion envelopes: barrels (with the full recoil stroke) and carriages may not enter the blocks
@@ -260,11 +284,16 @@ BODIES = {'us-8in55-mk14-mod1-triple': dict(center=[0, 1.67, 2.97], size=[5.9, 3
           'us-5in25-mk19-single': dict(center=[0, 1.02, .35], size=[2.9, 1.62, 3.0]),
           'us-11in75-quad': dict(center=[0, .95, .3], size=[2.4, 1.9, 2.3]),
           'us-20mm-oerlikon-mk4': dict(center=[0, .85, .25], size=[.8, 1.7, 1.1])}
+# The Mk 14 gunhouses carry their rangefinder hoods out past the sides 5.6 m abaft the pivot (catalog
+# recipes: to 4.3 m on the triple, 4.2 m on the twin): capsules on the yaw frame (x across, y up, z aft).
+EARS = {'us-8in55-mk14-mod1-triple': 4.3, 'us-8in55-mk14-mod2-twin': 4.2}
 clear_mounts, reach = [], {}
 for m in b['mounts']:
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(max(w['barrelBaseRadius'] * (.85 if m['battery'] == 'main' else 1), .05), 3),
                  body=BODIES[m['partId']])
+    if m['partId'] in EARS:
+        entry['fittings'] = [dict(joint='yaw', a=[-EARS[m['partId']], 2.67, 5.645], b=[EARS[m['partId']], 2.67, 5.645], radiusM=.45)]
     clear_mounts.append(entry)
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.0, m['position'][1] + w['pivotHeight'])
 pairs = []
@@ -272,7 +301,8 @@ ids = [m['id'] for m in b['mounts']]
 for i, a in enumerate(ids):
     for c in ids[i + 1:]:
         (pa, ra, _), (pc, rc, _) = reach[a], reach[c]
-        if math.hypot(pa[0] - pc[0], pa[2] - pc[2]) < ra + rc - 1.0 and abs(pa[1] - pc[1]) < 3.2:
+        # Superfiring pairs stand up to 3.9 m apart in height: their barrels still meet over the lower gunhouse.
+        if math.hypot(pa[0] - pc[0], pa[2] - pc[2]) < ra + rc - 1.0 and abs(pa[1] - pc[1]) < 4.5:
             pairs.append((math.hypot(pa[0] - pc[0], pa[2] - pc[2]), [a, c]))
 neighbors = [p for _, p in sorted(pairs)[:128]]
 nearby = []
@@ -463,11 +493,8 @@ b['damageControl'] = dict(version=1, teams=3, setupSeconds=8, repairPoints=240, 
                           basis='Placeholder; author-damage-control.ts writes the shared fleet defaults.')
 b['localDamage'] = dict(version=1, regions=[dict(id='hull-placeholder', name='Hull', kind='hull', durabilityFraction=1, center=[0, 0, 0], size=[round(beam, 3), 30, L])],
                         basis='Placeholder; author-local-damage.ts replaces it.')
-# Keep the gameplay helpers' output when the blueprint already has it (rerun them after hull or room changes).
-if previous:
-    for key in ('localDamage', 'floodRegions', 'stability', 'damageControl'):
-        if key in previous and not (key in ('localDamage', 'damageControl') and 'Placeholder' in previous[key].get('basis', '')):
-            b[key] = previous[key]
+# The gameplay helpers rewrite localDamage, the flood spaces and partitions, stability and
+# damageControl from these rooms; rerun all four after this script (see the README).
 write(HERE / 'blueprint.json', b)
 print(f'Authored pensacola: {len(sections)} sections, {round(volume * 1.025)} t at the reference waterline, beam {beam:.2f} m, {len(b["mounts"])} mounts, '
       f'{len(structures)} structures, {len(b["armor"])} armour plates, {len(b["obstructions"])} obstructions.')

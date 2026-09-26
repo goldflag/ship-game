@@ -96,13 +96,16 @@ def wall(kit, aid, col, label, pts, y0, y1, t=.06, closed=False, material='naval
 
 # ---------------------------------------------------------------- gun tubs and open platforms
 def bulwarks(D, kit):
+    """Rolled top edges of the gun-tub and platform bulwarks; the plating itself is blueprint structure."""
     col = kit.collections['Superstructure']
-    for i, w in enumerate(BULWARKS, 1):
-        aid = 'bulwark-' + '-'.join(w['mounts'])
+    for w in BULWARKS:
+        aid = 'bulwark-rails'
+        pts = [tuple(p) for p in (w.get('ring') or w['chain'])]
         if 'ring' in w:
-            wall(kit, aid, col, f'platform bulwark {i}', [tuple(p) for p in w['ring']], w['y0'] - .02, w['y1'], .06, True)
-        else:
-            wall(kit, aid, col, f'tub bulwark {i}', [tuple(p) for p in w['chain']], w['y0'] - .02, w['y1'], .06, False)
+            pts.append(pts[0])
+        for (ax, az), (bx, bz) in zip(pts, pts[1:]):
+            if math.hypot(bx - ax, bz - az) > .02:
+                kit.member(aid, col, V(ax, w['y1'] + .01, az), V(bx, w['y1'] + .01, bz), .045, 'naval', 6)
 
 
 # ---------------------------------------------------------------- masts and the aircraft crane
@@ -125,7 +128,6 @@ def foremast(D, kit):
     # Signal yard across the director top, with its footropes and the wind instruments.
     taper(kit, aid, col, 'yard', (-6.95, 33.2, -24.44), (6.95, 33.2, -24.44), .08, .08, 'naval', 8)
     for s in (-1, 1):
-        kit.wire(aid, col, V(s * .6, 32.9, -24.44), V(s * 6.6, 32.9, -24.44), .012, False)
         kit.member(aid, col, V(s * 2.9, 33.2, -24.42), V(s * 2.9, 33.55, -24.42), .03)
         kit.cylz(aid, col, 'wind vane', V(s * 2.9, 0, -24.42)[:2] + (33.5,), .12, .3, 'edge', 8)
     kit.ladder(aid, col, V(0, 17.6, -28.5), V(0, 24.6, -27.95), (0, 1, 0), .42)
@@ -136,11 +138,9 @@ def mainmast(D, kit):
     aid = 'mainmast'
     # Pole mainmast raked aft from the boat deck abaft the after funnel, with its topmast, yard and gaff.
     taper(kit, aid, col, 'mast', (0, 6.3, 24.52), (0, 29.8, 27.2), .19, .09, 'naval', 14)
-    taper(kit, aid, col, 'topmast', (0, 29.6, 27.18), (0, 36.8, 28.0), .08, .045, 'naval', 8)
+    taper(kit, aid, col, 'topmast', (0, 29.6, 27.18), (0, 31.3, 27.37), .08, .05, 'naval', 8)
     taper(kit, aid, col, 'yard', (-4.6, 24.0, 26.63), (4.6, 24.0, 26.63), .07, .05, 'naval', 8)
     kit.member(aid, col, V(0, 21.6, 26.36), V(0, 23.9, 29.6), .06)       # gaff to the ensign's hoist
-    for s in (-1, 1):
-        kit.wire(aid, col, V(s * .4, 23.75, 26.63), V(s * 4.3, 23.75, 26.63), .012, False)
     kit.boxc(aid, col, 'lookout platform', V(0, 20.7, 26.0), (1.6, 1.6, .08), 'roof')
     kit.ladder(aid, col, V(0, 6.6, 24.85), V(0, 20.6, 26.45), (0, 1, 0), .38)
     # After tower (plan cuts): two forward struts raked up to the director platform, two after legs
@@ -159,22 +159,26 @@ def crane(D, kit):
     jib from the post's foot reaching forward over the catapults (reference side view and bounds)."""
     col = kit.collections['Boats and aviation']
     aid = 'aircraft-crane'
-    foot = kit.below(*V(0, 0, 9.9)[:2], 8.0, 6.3)
-    taper(kit, aid, col, 'king post', (0, foot, 9.9), (0, 16.9, 9.9), .36, .32, 'naval', 18)
-    kit.cylz(aid, col, 'post collar', V(0, 0, 9.9)[:2] + (foot,), .75, .5, 'naval', 20, r2=.45)
-    kit.cylz(aid, col, 'post cap', V(0, 0, 9.9)[:2] + (16.9,), .42, .35, 'edge', 16)
-    brace_foot = kit.below(*V(0, 0, 15.2)[:2], 8.0, 6.3)
-    kit.member(aid, col, V(0, 16.6, 10.05), V(0, brace_foot, 15.2), .16, 'naval', 10)
-    # Cranked jib: pivot at the post foot, knee over the catapult deck, head with the hook.
-    pivot = V(0, 7.2, 9.4)
-    knee = V(0, 17.1, 3.1)
+    # Plan cuts of the reference crane every 1.5-2 m: king post at z 8.94 (0.52 m across), two braces
+    # splayed aft to the deck, jib chords 1.3 m apart at the heel closing to 0.5 m at the head.
+    foot = kit.below(*V(0, 0, 8.94)[:2], 8.0, 6.3)
+    taper(kit, aid, col, 'king post', (0, foot, 8.94), (0, 16.7, 8.9), .27, .25, 'naval', 18)
+    kit.cylz(aid, col, 'post collar', V(0, 0, 8.94)[:2] + (foot,), .6, .45, 'naval', 20, r2=.34)
+    kit.cylz(aid, col, 'post cap', V(0, 0, 8.9)[:2] + (16.7,), .34, .3, 'edge', 16)
+    for s in (-1, 1):
+        brace_foot = kit.below(*V(s * 3.45, 0, 13.75)[:2], 8.0, 6.3)
+        kit.member(aid, col, V(s * .25, 16.3, 9.3), V(s * 3.45, brace_foot, 13.75), .11, 'naval', 10)
+        kit.cylz(aid, col, 'brace foot', V(s * 3.45, 0, 13.75)[:2] + (brace_foot,), .22, .12, 'edge', 10)
+    # Cranked jib: heel at the post foot, knee over the catapult deck, head with the hook.
+    pivot = V(0, 7.2, 9.0)
+    knee = V(0, 16.7, 3.5)
     head = V(0, 23.0, -6.3)
-    kit.lattice(aid, col, pivot, knee, .55, .55, 9, .06, .035)
-    kit.lattice(aid, col, knee, head, .45, .45, 9, .05, .03)
-    kit.boxc(aid, col, 'jib heel', pivot, (.9, .9, .5), 'edge')
+    kit.lattice(aid, col, pivot, knee, 1.25, .5, 10, .06, .035)
+    kit.lattice(aid, col, knee, head, .9, .4, 10, .05, .03)
+    kit.boxc(aid, col, 'jib heel', pivot, (.7, 1.4, .45), 'edge')
     kit.boxc(aid, col, 'jib head', head, (.7, .35, .4), 'edge')
     for s in (-.2, .2):
-        kit.wire(aid, col, V(s, 16.7, 9.9), V(s, 17.0, 3.2), .025, False)
+        kit.wire(aid, col, V(s, 16.6, 8.9), V(s, 16.9, 3.6), .025, False)
     kit.wire(aid, col, V(0, 22.8, -6.35), V(0, 21.2, -6.4), .015, False)
     kit.boxc(aid, col, 'hook', V(0, 21.05, -6.4), (.2, .12, .3), 'black')
 
@@ -215,6 +219,10 @@ def director_mk19(kit, aid, col, hp, face, pivot_name=None):
     """Mk 19 director (part bounds 4.98 x 3.46 x 3.01 m): a round training base, a boxy house with a
     sloped face, its rangefinder arms out to either side, sight hoods and hatches."""
     bx, by, bz = P(*hp)
+    floor = kit.below(bx, by, bz - .6, bz - .7)
+    if bz - floor > .05:
+        # The director's trunk down to the platform it stands on.
+        kit.cylz(aid, col, 'director trunk', (bx, by, floor - .02), 1.05, bz - floor - .06, 'naval', 32)
     pivot = kit.empty((pivot_name or aid) + '.yaw', (bx, by, bz), assembly=pivot_name or aid, col=col)
     s = 1 if face == 0 else -1
     local(kit.cylz(aid, col, 'director base', (bx, by, bz - .12), 1.25, .42, 'naval', 32), pivot)
@@ -248,8 +256,9 @@ def director_mk44(kit, aid, col, hp, bearing_deg):
     kit.part('rod', aid, col, 'sight lens', head + d * .45, head + d * .5, .14, 'glass', vertices=12)
     side = Vector((-d.y, d.x, 0))
     for k in (-1, 1):
-        kit.part('rod', aid, col, 'handle', head + side * .2 * k - d * .2, head + side * .5 * k - d * .25 - Vector((0, 0, .15)), .03, 'edge', vertices=6)
-        kit.part('rod', aid, col, 'trainer\'s sight', head + side * .32 * k + Vector((0, 0, .2)), head + side * .32 * k + d * .3 + Vector((0, 0, .2)), .05, 'edge', vertices=8)
+        kit.part('rod', aid, col, 'handle', head + side * .15 * k - d * .2, head + side * .5 * k - d * .25 - Vector((0, 0, .15)), .03, 'edge', vertices=6)
+        kit.part('rod', aid, col, 'sight bracket', head + side * .12 * k, head + side * .3 * k + Vector((0, 0, .16)), .03, 'edge', vertices=6)
+        kit.part('rod', aid, col, 'trainer\'s sight', head + side * .32 * k + Vector((0, 0, .16)), head + side * .32 * k + d * .3 + Vector((0, 0, .16)), .05, 'edge', vertices=8)
 
 
 def directors(D, kit):
@@ -266,7 +275,7 @@ def directors(D, kit):
     did = 'main-director'
     bx, by, bz = P(0, 34.748, -26.932)
     pivot = kit.empty(did + '.yaw', (bx, by, bz), assembly=did, col=col)
-    local(kit.cylz(did, col, 'training base', (bx, by, bz - .1), 1.05, .3, 'edge', 24), pivot)
+    local(kit.cylz(did, col, 'training base', (bx, by, bz - .1), 1.05, .42, 'edge', 24), pivot)
     local(kit.boxc(did, col, 'director house', (bx - .15, by, bz + 1.05), (2.9, 1.9, 1.5), 'naval'), pivot)
     local(kit.boxc(did, col, 'director roof', (bx - .15, by, bz + 1.85), (2.6, 1.7, .1), 'roof'), pivot)
     for side in (-1, 1):
@@ -309,7 +318,7 @@ def radars(D, kit):
     local(kit.boxc(rid, col, 'pedestal', (bx, by, bz + .45), (.5, .5, .75), 'naval'), pivot)
     w, h = 6.2, 4.3
     zc = bz + .85 + h / 2
-    frame = kit.boxc(rid, col, 'reflector screen', (bx - .35, by, zc), (.05, w, h), 'dark')
+    frame = kit.boxc(rid, col, 'reflector screen', (bx - .1, by, zc), (.05, w, h), 'dark')
     local(frame, pivot)
     for i in range(11):
         yy = -w / 2 + w * i / 10
@@ -318,15 +327,17 @@ def radars(D, kit):
         zz = zc - h / 2 + h * j / 6
         local(kit.part('rod', rid, col, 'dipole row', (bx + .05, by - w / 2, zz), (bx + .05, by + w / 2, zz), .025, 'edge', vertices=5), pivot)
     for yy in (-w / 2, w / 2):
-        local(kit.part('rod', rid, col, 'frame', (bx - .15, by + yy, zc - h / 2), (bx - .15, by + yy, zc + h / 2), .06, 'naval', vertices=8), pivot)
+        local(kit.part('rod', rid, col, 'frame', (bx - .02, by + yy, zc - h / 2), (bx - .02, by + yy, zc + h / 2), .07, 'naval', vertices=8), pivot)
     for zz in (zc - h / 2, zc + h / 2):
-        local(kit.part('rod', rid, col, 'frame', (bx - .15, by - w / 2, zz), (bx - .15, by + w / 2, zz), .06, 'naval', vertices=8), pivot)
+        local(kit.part('rod', rid, col, 'frame', (bx - .02, by - w / 2, zz), (bx - .02, by + w / 2, zz), .07, 'naval', vertices=8), pivot)
+    local(kit.part('rod', rid, col, 'spine', (bx - .02, by, bz + .8), (bx - .02, by, zc + h / 2), .08, 'naval', vertices=8), pivot)
     for s in (-1, 1):
-        local(kit.part('rod', rid, col, 'brace', (bx - .15, by, bz + .8), (bx - .15, by + s * w * .45, zc - h / 2), .045, 'naval', vertices=6), pivot)
-    # Radio direction finder loop on the foremast (am239_rdf).
+        local(kit.part('rod', rid, col, 'brace', (bx - .02, by, bz + .8), (bx - .02, by + s * w * .45, zc - h / 2), .05, 'naval', vertices=6), pivot)
+    # Radio direction finder loop on the house abaft the bridge top (am239_rdf, 1.92 m tall).
     aid = 'rdf-loop'
     c = V(0, 20.59, -24.10)
-    kit.part('rod', aid, col, 'loop post', c + Vector((0, 0, -.9)), c + Vector((0, 0, .1)), .05, 'naval', vertices=8)
+    floor = kit.below(c.x, c.y, 20.0, 19.6)
+    kit.part('rod', aid, col, 'loop post', Vector((c.x, c.y, floor - .02)), c + Vector((0, 0, .1)), .05, 'naval', vertices=8)
     for i in range(16):
         a0, a1 = math.tau * i / 16, math.tau * (i + 1) / 16
         p0 = c + Vector((0, .5 * math.cos(a0), .55 + .5 * math.sin(a0)))
@@ -350,7 +361,7 @@ def searchlights(D, kit):
     col = kit.collections['Sensors and masts']
     # 36-inch (900 mm) searchlights on the platform round the after funnel (am225, bounds 0.9 x 2.3 m).
     for i, (x, z) in enumerate([(-2.43, 19.71), (2.43, 19.71), (-3.18, 23.92), (3.18, 23.92)], 1):
-        searchlight(kit, f'searchlight-{i}', col, V(x, 13.45, z), .45, 90 if x > 0 else -90)
+        searchlight(kit, f'searchlight-{i}', col, V(x, 14.1, z), .45, 90 if x > 0 else -90)
     # 24-inch (600 mm) signal searchlights under the foretop (am038).
     for i, x in enumerate((-.98, .98), 5):
         searchlight(kit, f'searchlight-{i}', col, V(x, 21.02, -26.17), .3, 0)
@@ -409,7 +420,9 @@ def boats(D, kit):
             kit.wire(aid, col, top + Vector((0, s * .9, -.4)), V(s * 7.87, floor + 1.7, z0 + dz * 1.1), .015, False)
     # Boat booms stowed on the forecastle and aft (am131 datums) and the Franklin life buoys (am489).
     for s in (-1, 1):
-        kit.part('rod', 'life-buoys', col, 'life buoy', V(s * 9.5, 7.1, 22.2), V(s * 9.5, 7.1, 22.98), .38, 'white', vertices=14)
+        x = 9.08 + .09      # on the flush side of the midships superstructure (plan cuts: 9.07-9.09 m)
+        kit.part('rod', 'life-buoys', col, 'life buoy', V(s * (x - .02), 5.9, 22.59), V(s * (x + .1), 5.9, 22.59), .36, 'white', vertices=16)
+        kit.part('rod', 'life-buoys', col, 'buoy bracket', V(s * (x - .02), 6.2, 22.59), V(s * (x - .12), 6.2, 22.59), .04, 'edge', vertices=6)
 
 
 # ---------------------------------------------------------------- deck gear
