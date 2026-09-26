@@ -221,12 +221,17 @@ SINGLE = [('aa-20mm-1', -2.770, 9.840, -29.044, -35), ('aa-20mm-2', 2.771, 9.840
           ('aa-20mm-3', -5.959, 6.308, 3.701, -90), ('aa-20mm-4', 5.960, 6.308, 3.699, 90),
           ('aa-20mm-5', -5.959, 6.308, 8.129, -90), ('aa-20mm-6', 5.961, 6.308, 8.129, 90),
           ('aa-20mm-7', -3.357, 4.241, 69.223, -150), ('aa-20mm-8', 3.357, 4.241, 69.225, 150)]
+# The light AA rest with their barrels at 30 degrees, as the reference stows them (its HP_gunFire datums stand about 2 m
+# over the pivots). Level at rest, the bridge-front pair's barrels lay 3 cm over their splinter shield and the
+# installation interlock held them there for good.
 for id, name, x, y, z, bearing in QUAD:
     b['mounts'].append(dict(id=id, name=name, partId='us-11in75-quad', battery='secondary', position=[x, y, rz(z)], bearingDeg=bearing,
-                            rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after', fire=FIRE_LIGHT))
+                            rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after', fire=FIRE_LIGHT,
+                            initialElevationDeg=30))
 for i, (id, x, y, z, bearing) in enumerate(SINGLE, 1):
     b['mounts'].append(dict(id=id, name=f'20 mm Oerlikon {i}', partId='us-20mm-oerlikon-mk4', battery='secondary', position=[x, y, rz(z)], bearingDeg=bearing,
-                            rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after', fire=FIRE_LIGHT))
+                            rangefinder=False, magazineId='aa-ammunition-forward' if z < 0 else 'aa-ammunition-after', fire=FIRE_LIGHT,
+                            initialElevationDeg=30))
     if id in ('aa-20mm-7', 'aa-20mm-8'):
         # The stern pair stand in 1 m tubs: an installed depression stop keeps the muzzles over the splinter shield.
         b['mounts'][-1]['elevationMinDeg'] = -2
@@ -291,7 +296,42 @@ else:
 b['structures'] = structures
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, cut into fore-and-aft strips of
-# at most 3 m so a stepped deckhouse is not boxed at its widest.
+# at most 3 m so a stepped deckhouse is not boxed at its widest. Each box takes the breadth the block keeps over the
+# whole strip (the narrowest chord), and a strip that narrows by more than a fifth (a rounded front) is halved down to
+# 0.75 m, so the boxes step in with the walls: boxed at their widest, the pilot house's rounded front stood 0.9 m
+# ahead of its own face and froze the bridge-front 20 mm at rest.
+def chord(poly, z):
+    """The footprint's breadth (x0, x1) across the fore-and-aft station z, or None."""
+    xs = []
+    for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
+        if (az - z) * (bz - z) < 0 or (az == z) != (bz == z):
+            if az == bz:
+                continue
+            xs.append(ax + (bx - ax) * (z - az) / (bz - az))
+    return (min(xs), max(xs)) if len(xs) >= 2 else None
+
+
+def inscribed(poly, z0, z1):
+    """The breadth the footprint keeps over the whole strip, and its widest breadth there."""
+    m = max(2, math.ceil((z1 - z0) / .25))
+    spans = [chord(poly, z0 + .05 + (z1 - z0 - .1) * j / m) for j in range(m + 1)]
+    spans = [c for c in spans if c]
+    if not spans:
+        return None, 0.0
+    lo, hi = max(c[0] for c in spans), min(c[1] for c in spans)
+    return ((lo, hi) if hi - lo > 0 else None), max(c[1] for c in spans) - min(c[0] for c in spans)
+
+
+def strips(poly, z0, z1):
+    span, widest = inscribed(poly, z0, z1)
+    if span and (span[1] - span[0] >= .8 * widest or z1 - z0 <= .75):
+        return [(z0, z1, span)]
+    if z1 - z0 <= .75:
+        return []
+    zm = (z0 + z1) / 2
+    return strips(poly, z0, zm) + strips(poly, zm, z1)
+
+
 for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
@@ -299,18 +339,14 @@ for s in structures:
     if s['height'] < 1.0 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 6 or s.get('exhaust'):
         continue
     n = max(1, math.ceil((max(zs) - min(zs)) / 3))
-    for k in range(n):
-        z0 = min(zs) + (max(zs) - min(zs)) * k / n
-        z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
-        pts = [p[0] for p in poly if z0 <= p[1] <= z1]
-        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1]):
-            for zc in (z0, z1):
-                if (az - zc) * (bz - zc) < 0:
-                    pts.append(ax + (bx - ax) * (zc - az) / (bz - az))
-        if len(pts) < 2 or max(pts) - min(pts) < .6 or z1 - z0 < .6:
-            continue
-        b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((min(pts) + max(pts)) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
-                                      size=[round(max(pts) - min(pts) - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+    k = 0
+    for i in range(n):
+        for z0, z1, (x0, x1) in strips(poly, min(zs) + (max(zs) - min(zs)) * i / n, min(zs) + (max(zs) - min(zs)) * (i + 1) / n):
+            if x1 - x0 < .6 or z1 - z0 < .6:
+                continue
+            b['obstructions'].append(dict(id=f"{s['id']}-{k}", center=[round((x0 + x1) / 2, 3), round(s['baseY'] + s['height'] / 2, 3), round((z0 + z1) / 2, 3)],
+                                          size=[round(x1 - x0 - .4, 3), round(s['height'], 3), round(z1 - z0 - .2, 3)]))
+            k += 1
 # The funnels stop shells and barrels too.
 for s in structures:
     if s.get('exhaust'):
