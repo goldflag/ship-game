@@ -89620,5 +89620,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "ef155d3e439001816d7b2a32feaa28fd572244c29525376f45d73a8006a84cd6"
+  "contentHash": "796549d6ac7b3df74210e5c0c19688b5de9ce75213c436c22dd08f933ee12497"
 }

@@ -75,8 +75,9 @@ hard turn and a 638 m turning circle.
 - The torpedo tubes are authored at zero train and rest trained forward; the reference stows them trained aft.
 - The waist 20 mm mounts carry an installed depression stop at 0 degrees and the stern pair at -2 degrees, so their
   barrels stay over the splinter shields the reference draws round them.
-- Deck-edge rails are two simplified courses kept out of the gun arcs; platform rails keep the reference's courses
-  with stanchions at most 1.6 m apart.
+- Deck-edge rails are three courses at the reference's heights, kept out of the gun arcs; platform rails keep the
+  reference's courses (where a rail stands against a wall it may be read as the wall's top and left out) with
+  stanchions at most 1.6 m apart.
 - Boats are closed hulls (the launches' open wells and the whaleboats' interiors are decked over); anchors, the
   bullnoses (the stem's centre chock is a dark plate, not an opening), the Mk 37 houses, the crane, masts and the
   SC-1 bedspring are simplified; the hull number is drawn in a plain stroked face at the reference's size and place.

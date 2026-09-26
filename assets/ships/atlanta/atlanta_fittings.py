@@ -771,7 +771,8 @@ def boats(D, kit):
         c = V(x, y, z)
         if flat:
             f = kit.below(c.x, c.y, c.z + .3, c.z - .3)
-            raft(kit, 'life-rafts', col, Vector((c.x, c.y, f + .2)), 3.2 if z < 58 else 2.7, 1.8 if z < 58 else 1.5, None)
+            # The reference's two balsa floats on the quarterdeck: 3.86 x 2.13 m and 3.1 x 1.72 m.
+            raft(kit, 'life-rafts', col, Vector((c.x, c.y, f + .2)), 3.86 if z < 58 else 3.1, 2.13 if z < 58 else 1.72, None)
         else:
             inboard = Vector((0, -1 if c.y > 0 else 1, 0))
             try:
@@ -1114,10 +1115,11 @@ def railings(D, kit):
             x = hull_half(kit, z, y - .03) - .12
             if x > .3:
                 pts.append(V(s * x, y, z))
+        # Three courses as the reference's deck-edge rails (0.33, 0.73 and 1.12 m over the deck).
         for a, b in zip(pts, pts[1:]):
-            for h in (.5, 1.0):
+            for h in (.33, .73, 1.12):
                 kit.wire('railings', col, a + Vector((0, 0, h)), b + Vector((0, 0, h)), .016, True)
-            kit.wire('railings', col, a, a + Vector((0, 0, 1.0)), .022, True)
+            kit.wire('railings', col, a, a + Vector((0, 0, 1.12)), .022, True)
         # Over the bow bulwark a single course 0.42 m above its top, run down onto it short of the stem.
         bow = []
         for z, h in ((-77.58, .42), (-78.6, .42), (-79.6, .42), (-80.6, .42), (-81.8, .04)):
@@ -1126,7 +1128,7 @@ def railings(D, kit):
             bow.append(base + Vector((0, 0, h)))
             if h > .1:
                 kit.wire('railings', col, base, base + Vector((0, 0, h)), .022, True)
-        kit.polyline('railings', col, [pts[0] + Vector((0, 0, 1.0))] + bow, .016, 'edge', 3)
+        kit.polyline('railings', col, [pts[0] + Vector((0, 0, 1.12))] + bow, .016, 'edge', 3)
 
 
 def build(D, kit):
