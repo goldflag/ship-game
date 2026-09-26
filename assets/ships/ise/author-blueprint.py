@@ -345,8 +345,27 @@ def components(cells, W):
     return out
 
 
-def outline(comp, W):
-    """Outer boundary of a cell set, counter-clockwise, as grid corner points (c, r)."""
+def loop_area(loop):
+    return sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(loop, loop[1:] + loop[:1])) / 2
+
+
+def hole_free(comp, W, depth=0):
+    """Split a cell set with holes (a platform round a tower, a tub round a gun) along the grid column through
+    its largest hole until every piece is simply connected, so no block fills the space it encloses."""
+    holes = [l for l in cell_loops(comp, W) if loop_area(l) < 0]
+    if not holes or depth > 10:
+        return [comp]
+    hole = min(holes, key=loop_area)
+    split = round(sum(p[0] for p in hole) / len(hole))
+    out = []
+    for part in ([i for i in comp if i % W < split], [i for i in comp if i % W >= split]):
+        for sub in components(part, W):
+            out += hole_free(sub, W, depth + 1)
+    return out
+
+
+def cell_loops(comp, W):
+    """Boundary loops of a cell set as grid corner points (c, r): outer ones counter-clockwise, holes clockwise."""
     cells = set(comp)
     nxt = {}
     for i in comp:
@@ -374,7 +393,12 @@ def outline(comp, W):
             if at not in nxt:
                 break
         loops.append(loop)
-    best = max(loops, key=lambda l: sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(l, l[1:] + l[:1])))
+    return loops
+
+
+def outline(comp, W):
+    """Outer boundary of a cell set, counter-clockwise, as grid corner points (c, r), straight runs merged."""
+    best = max(cell_loops(comp, W), key=loop_area)
     corners = [p for i, p in enumerate(best) if (best[i - 1][0] - p[0]) * (best[(i + 1) % len(best)][1] - p[1]) != (best[i - 1][1] - p[1]) * (best[(i + 1) % len(best)][0] - p[0])]
     return corners
 
@@ -459,13 +483,16 @@ def measured_prisms(cuts, cell=.1, gap=3):
             if len(group) < 30:
                 continue
             k0, k1 = int(s[group[0]]), int(e[group[0]])
-            for comp in components(runs[group, 0].tolist(), W):
-                if len(comp) < 30:
+            for whole in components(runs[group, 0].tolist(), W):
+                if len(whole) < 30:
                     continue
-                ring = [[round(x0 + c * cell, 3), round(z0 + r * cell, 3)] for c, r in outline(comp, W)]
-                xs, zs = [q[0] for q in ring], [q[1] for q in ring]
-                found.append(dict(region=region, base=round(levels[k0]['y'] - step / 2, 3), top=round(levels[k1]['y'] + step / 2, 3), ring=ring,
-                                  area=len(comp) * cell * cell, bounds=dict(min=[min(xs), min(zs)], max=[max(xs), max(zs)])))
+                for comp in hole_free(whole, W):
+                    if len(comp) < 30:
+                        continue
+                    ring = [[round(x0 + c * cell, 3), round(z0 + r * cell, 3)] for c, r in outline(comp, W)]
+                    xs, zs = [q[0] for q in ring], [q[1] for q in ring]
+                    found.append(dict(region=region, base=round(levels[k0]['y'] - step / 2, 3), top=round(levels[k1]['y'] + step / 2, 3), ring=ring,
+                                      area=len(comp) * cell * cell, bounds=dict(min=[min(xs), min(zs)], max=[max(xs), max(zs)])))
     # Hull, not structure: anything that does not clear the deck under it; and slivers.
     kept = []
     for p in found:
@@ -717,9 +744,18 @@ for s in ALL_BLOCKS:
         # left out rather than stood on posts over 14 m tall.
         s['unsupported'] = True
 minor_blocks = [s for s in minor_blocks if not s.pop('unsupported', False)]
-# Posts are obstructions too, so barrels stop at them rather than pass through.
+# Mounts with interlocks (the main turrets and the 12.7 cm twins) and the radius their barrels reach.
+INTERLOCKED = [(m['position'][0], m['position'][2], PARTS[m['partId']]['muzzleForward'] + 1.5) for m in b['mounts'] if m['battery'] == 'main' or m['id'].startswith('ha-')]
+
+
+def near_interlocked(x, z, pad=0.0):
+    return any(math.hypot(x - mx, z - mz) <= r + pad for mx, mz, r in INTERLOCKED)
+
+
+# Posts within an interlocked mount's reach are obstructions too, so its barrels stop at them.
 for i, (x, z, y0, y1, r) in enumerate(posts):
-    b['obstructions'].append(dict(id=f'post-{i}', center=[x, round((y0 + y1) / 2, 3), z], size=[round(2 * r + .1, 3), round(y1 - y0, 3), round(2 * r + .1, 3)]))
+    if near_interlocked(x, z):
+        b['obstructions'].append(dict(id=f'post-{i}', center=[x, round((y0 + y1) / 2, 3), z], size=[round(2 * r + .1, 3), round(y1 - y0, 3), round(2 * r + .1, 3)]))
 table = ',\n'.join('    ' + json.dumps(m) for m in minor_blocks)
 (HERE / 'ise_blocks.py').write_text('"""Measured superstructure blocks beyond the blueprint\'s 256-structure limit, and the posts under blocks\n'
                                     'that rest on nothing, written by author-blueprint.py: geometry the recipe draws and fittings stand on."""\n'
@@ -728,14 +764,16 @@ print(f'posts: {len(posts)}')
 print(f'structures: {len(structures)}')
 
 # Firing obstructions: boxes kept inside the visual walls for substantial blocks, each outline cut into
-# fore-and-aft strips of at most 3 m so a stepped deckhouse is not boxed at its widest.
+# fore-and-aft strips so a stepped deckhouse is not boxed at its widest: 3.5 m within an interlocked mount's
+# reach, 10 m elsewhere (the blueprint holds at most 256 obstructions).
 for s in structures:
     poly = s['footprint']
     xs = [p[0] for p in poly]
     zs = [p[1] for p in poly]
     if s['height'] < 1.2 or (max(xs) - min(xs)) * (max(zs) - min(zs)) < 6:
         continue
-    n = max(1, math.ceil((max(zs) - min(zs)) / 3))
+    strip = 3.5 if any(near_interlocked(x, z, 1.0) for x, z in poly) else 10
+    n = max(1, math.ceil((max(zs) - min(zs)) / strip))
     for k in range(n):
         z0 = min(zs) + (max(zs) - min(zs)) * k / n
         z1 = min(zs) + (max(zs) - min(zs)) * (k + 1) / n
@@ -756,7 +794,15 @@ for name, (x0, x1), (y0, y1), (z0, z1) in BOATS:
         b['obstructions'].append(dict(id=f'{name}-{side}', center=[round(sign * (x0 + x1) / 2, 3), round((y0 + y1) / 2, 3), rz((z0 + z1) / 2)],
                                       size=[round(x1 - x0, 3), round(y1 - y0, 3), round(z1 - z0, 3)]))
 # The dinghy on the forecastle, under No. 1 turret's depressed barrels when trained to port.
-b['obstructions'].append(dict(id='dinghy', center=[-4.43, 7.98, rz(-69.74)], size=[1.62, 1.15, 6.36]))
+b['obstructions'].append(dict(id='dinghy', center=[-4.43, 8.1, rz(-69.74)], size=[1.7, 1.4, 6.4]))
+# The catapult girders, in three boxes each along their slant, so No. 3's depressed barrels stop at them.
+for s_, bearing in ((-1, 19.7), (1, -19.7)):
+    fx, fz = math.sin(math.radians(bearing)), -math.cos(math.radians(bearing))
+    for k, (u0, u1) in enumerate(((-9.4, -1.0), (-1.0, 7.5), (7.5, 16.3))):
+        ax, az = s_ * 13.207 + fx * u0, 32.928 + fz * u0
+        bx, bz = s_ * 13.207 + fx * u1, 32.928 + fz * u1
+        b['obstructions'].append(dict(id=f'catapult-{"port" if s_ < 0 else "starboard"}-{k}', center=[round((ax + bx) / 2, 3), 10.2, rz((az + bz) / 2)],
+                                      size=[round(abs(bx - ax) + 1.1, 3), 2.2, round(abs(bz - az) + 1.1, 3)]))
 # The superfiring turrets' barbettes, up to just under their gunhouses, so the lower turret's barrels stop at
 # them: No. 2 over No. 1, No. 3 over No. 4.
 for mid, (y0, zr) in [('main-2', (6.9, -48.895)), ('main-3', (4.51, 9.498))]:
@@ -774,8 +820,12 @@ for m in b['mounts']:
     w = catalog[m['partId']]
     entry = dict(mountId=m['id'], barrelRadiusM=round(w['barrelBaseRadius'] * .75, 3))
     if m['battery'] == 'main':
-        # Gunhouse from its 3.4 m working floor to the 6.0 m roof, as on Kongo.
-        entry['body'] = dict(center=[0, 4.7, 1.27], size=[9.0, 2.6, 11.56])
+        # Gunhouse from its working floor to the roof, as on Kongo; the lower turret of each superfiring pair to
+        # its 6.45 m roof rails, the upper one from its 3.25 m blast bags, so the pair's envelopes meet where
+        # the meshes do (the upper turret's overhang passes 15 cm over the lower's roof in the reference) while
+        # the upper turret's resting barrels keep 18 cm over the lower envelope.
+        lower = m['id'] in ('main-1', 'main-4')
+        entry['body'] = dict(center=[0, 4.925 if lower else 4.625, 1.27], size=[9.0, 3.05 if lower else 2.75, 11.56])
     clear_mounts.append(entry)
     reach[m['id']] = (m['position'], w['muzzleForward'] + 1.5, m['position'][1] + w['pivotHeight'])
 nearby = []
