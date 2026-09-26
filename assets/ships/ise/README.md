@@ -7,12 +7,12 @@ Open `/?ship=ise` or select this ship in port or Custom battle.
 This is a legacy Blender-recipe preset (like Alaska, Hood, Kongō and Takao), by explicit request, rather than a
 construction ship. `blueprint.json` (written by `author-blueprint.py`), `build.py`, `ise_kit.py` (the shared
 vocabulary, adapted from Kongō's kit), `ise_fittings.py` (bridge glazing, directors, rangefinders and radars,
-masts, yards and cranes, searchlights, boats, catapults, the rocket launchers, ground tackle and deck gear,
-screws, shafts and rudders, rails), `ise_blocks.py` (a generated table: measured blocks beyond the blueprint's
-256-structure limit and the posts under unsupported blocks) and `ise_windows.py` (a generated table of the
-reference's painted windows and portholes) are the durable inputs; `measure-plan.ts` and `measure-windows.py` are
-the measurement scripts; the guns come from `assets/parts/`. Generated Blender scenes and runtime models are build
-outputs.
+masts, yards and cranes, searchlights, boats, catapults, the flight deck's trolley tracks and turntables, the
+rocket launchers, ground tackle and deck gear, screws, shafts and rudders, rails), `ise_blocks.py` (a generated
+table: measured blocks beyond the blueprint's 256-structure limit and the posts under unsupported blocks) and
+`ise_windows.py` (a generated table of the reference's painted windows and portholes) are the durable inputs;
+`measure-plan.ts` and `measure-windows.py` are the measurement scripts; the guns come from `assets/parts/`.
+Generated Blender scenes and runtime models are build outputs.
 
 ## Approved brief
 
@@ -139,7 +139,9 @@ These are the model's own approximations and gaps, not yet reviewed by the owner
   stern). The turret roofs carry no rangefinders, as in the reference.
 - The 25 mm singles reuse the Kongō single (its muzzle 15 cm lower at 30 degrees than the reference's `jga174`).
 - The rocket launchers, catapults, cranes, masts, directors, radars, searchlights, boats, screws and rudders are
-  simplified original constructions at the reference's positions and sizes; the catapults are empty.
+  simplified original constructions at the reference's positions and sizes; the catapults are empty. The flight
+  deck's trolley tracks and turntables follow the reference's plan as bright 10 cm rails and rimmed plates; its
+  three aircraft cradles, ready-use lockers and the recessed centre track are not modelled.
 - Handling (25.3 kn), stability, mass distribution, flooding compartmentation and weapon values are shared game
   calibration, not historical measurements. Model fidelity and export checks do not certify historical accuracy.
 

@@ -278,6 +278,64 @@ def catapults(D, kit):
         kit.sheave(A, col, tuple(fwd + Vector((0, 0, high - .1))), tuple(side), .3, .2)
 
 
+# ---------------------------------------------------------------- flight deck tracks
+def deck_rails(D, kit):
+    """The flight deck's aircraft trolley tracks and turntables, laid out as the reference's plan shows them: a
+    turntable at the stern and one forward on the centreline and five a side, each side's turntables joined by a
+    track, the centre track between the centreline two, a cross track forward, a vee from the forward turntable
+    to the deck's fore edge, and spurs from the side turntables out to the deck edge. Each track is a pair of
+    10 cm bright steel rails 3 cm proud of the deck (the centre track wider); the turntables are 1.6 m plates in
+    a bright rim. Pieces within 1.2 m of a gun stand clear of its seat."""
+    col = kit.cols['Boats and aviation']
+    stern, fwd = (0.0, 101.1), (0.0, 59.9)
+    sides = [(5.7, 93.3), (7.5, 80.1), (9.3, 69.9), (10.05, 59.7), (11.25, 50.1)]
+    tables = [stern, fwd] + [(s * x, z) for x, z in sides for s in (-1, 1)]
+    guns = [(m['position'][0], m['position'][2] - ZS) for m in D['mounts'] if 9.5 < m['position'][1] < 12]
+    tracks = [(stern, fwd, 1.12), (stern, (0.0, 107.4), 1.12)]
+    for s in (-1, 1):
+        chain = [(s * x, z) for x, z in sides]
+        tracks += [(stern, chain[0], .55), (chain[3], fwd, .55), (fwd, (s * 3.0, 47.6), .55)]
+        tracks += [(a, b, .55) for a, b in zip(chain, chain[1:])]
+        tracks += [((s * x, z), (s * (x + 2.6), z + 2.6), .55) for x, z in sides[1:]]
+
+    def seat(x, z):
+        """The deck under a reference-frame point, or None off the deck."""
+        ax, ay = P(x, 0, z)[:2]
+        try:
+            y = kit.support.below(ax, ay, 11.6)
+        except ValueError:
+            return None
+        return y if 10.4 < y < 11.2 else None
+
+    for k, (x, z) in enumerate(tables):
+        ys = [seat(x + dx, z + dz) for dx, dz in ((0, 0), (1.2, 0), (-1.2, 0), (0, 1.2), (0, -1.2))]
+        if any(y is None for y in ys):
+            continue
+        kit.cylz(f'deck-turntable-{k + 1}', col, 'rim', (*P(x, 0, z)[:2], min(ys) - .01), 1.6, max(ys) - min(ys) + .035, 'white', 40)
+        kit.cylz(f'deck-turntable-{k + 1}', col, 'plate', (*P(x, 0, z)[:2], min(ys) - .01), 1.48, max(ys) - min(ys) + .045, 'flightdeck', 40)
+    for k, ((ax, az), (bx, bz), gauge) in enumerate(tracks):
+        length = math.hypot(bx - ax, bz - az)
+        ux, uz = (bx - ax) / length, (bz - az) / length
+        start = 1.6 if (ax, az) in tables else 0.0
+        end = length - (1.6 if (bx, bz) in tables else 0.0)
+        pieces = max(1, math.ceil((end - start) / 2.0))
+        for side in (-.5, .5):
+            ox, oz = -uz * gauge * side, ux * gauge * side
+            for i in range(pieces):
+                t0, t1 = start + (end - start) * i / pieces, start + (end - start) * (i + 1) / pieces
+                a = (ax + ux * t0 + ox, az + uz * t0 + oz)
+                b = (ax + ux * t1 + ox, az + uz * t1 + oz)
+                mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+                if any(math.hypot(mid[0] - gx, mid[1] - gz) < 1.2 for gx, gz in guns):
+                    continue
+                ys = [seat(*p) for p in (a, mid, b)]
+                if any(y is None for y in ys):
+                    continue
+                nx, nz = -uz * .05, ux * .05
+                ring = [(a[0] + nx, a[1] + nz), (b[0] + nx, b[1] + nz), (b[0] - nx, b[1] - nz), (a[0] - nx, a[1] - nz)]
+                kit.prism(f'deck-track-{k + 1}', col, 'rail', [P(px, 0, pz)[:2] for px, pz in ring], min(ys) - .01, max(ys) + .03, 'white')
+
+
 # ---------------------------------------------------------------- AA rocket launchers
 def rockets(D, kit):
     """The six 12 cm 28-tube rocket launchers on the after gallery (HP_JGA_36-41): visual fittings, since the
@@ -499,6 +557,7 @@ def build(D, kit):
     searchlights(D, kit)
     boats(D, kit)
     catapults(D, kit)
+    deck_rails(D, kit)
     rockets(D, kit)
     deck_gear(D, kit)
     underwater(D, kit)
